@@ -89,6 +89,23 @@ const ECO = {
   "4": "Épique",
   "5": "Légendaire"
  },
+ "encheres": {
+  "nationaux_par_semaine": 1,
+  "regionaux_par_semaine": 2,
+  "pas_min": 0.05,
+  "depart": {
+   "national": {
+    "base": 10000,
+    "par_article": 600,
+    "arrondi": 1000
+   },
+   "regional": {
+    "base": 3000,
+    "par_article": 200,
+    "arrondi": 500
+   }
+  }
+ },
  "boutique": {
   "pack_1": 1.99,
   "pack_5": 7.99,

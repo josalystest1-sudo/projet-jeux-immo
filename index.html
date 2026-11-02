@@ -21,6 +21,7 @@
 <script src="data/monuments.js"></script>
 <script src="src/regles/lieu.js"></script>
 <script src="src/regles/celebres.js"></script>
+<script src="src/regles/encheres.js"></script>
 <style>
   :root{--bg:#11131c;--panel:#171a26;--card:#1c1f2c;--line:#2a2e40;--txt:#f3f4f8;--muted:#9aa0b8;--gold:#ffd65a;--me:#3b82f6;--other:#ef4444;--mixed:#a855f7;--ok:#7ee787;--nav:64px}
   *{box-sizing:border-box}
@@ -277,17 +278,20 @@ const FAKE = ['Léa','Marco','Inès','Yanis','Chloé','Sacha'];
 const JOUR = 60*1000;            // démo : un jour = une minute
 const R = Regles.creer(ECO, STANDING); // moteur de règles (src/regles/lieu.js) : réglages data/economie.json, standing réel data/standing.json
 const NIVEAUX = R.NIVEAUX; const SALAIRE = ECO.salaire_par_jour; const LOYER_BASE = ECO.loyer_terrain; const RARETES = ECO.raretes;
-// Les 458 monuments (data/monuments.json) : 60 nationaux (légendaires, enchère chaque semaine) et 398 régionaux.
+// Les 458 monuments (data/monuments.json) : 60 nationaux (légendaires) et 398 régionaux ; chaque semaine, 1 national et 2 régionaux aux enchères.
+const ENC = Encheres.creer(ECO); // règles des enchères (src/regles/encheres.js)
 function iconeMonument(n){ n=n.toLowerCase(); if(/tour eiffel/.test(n)) return '🗼'; if(/cathédrale|basilique|église|chapelle|abbaye|abbatiale|primatiale|collégiale|monastère|synagogue|temple|couvent|chartreuse/.test(n)) return '⛪'; if(/château|forteresse|citadelle|fort |cité de/.test(n)) return '🏰'; if(/pont|viaduc/.test(n)) return '🌉'; if(/grotte|abri|caune/.test(n)) return '🪨'; if(/théâtre|opéra|palais garnier/.test(n)) return '🎭'; if(/phare/.test(n)) return '🗼'; if(/jardin|parc/.test(n)) return '🌳'; return '🏛️'; }
-const LISTE_MON = MONUMENTS.map(m=>({ ...m, icone: iconeMonument(m.nom), depart: Math.round((10000 + m.articles*600)/1000)*1000 }));
-const MON_NATIONAUX = LISTE_MON.filter(m=>m.palier==='national');
+const LISTE_MON = MONUMENTS.map(m=>({ ...m, icone: iconeMonument(m.nom), depart: ENC.miseDepart(m) }));
+const MON_NATIONAUX = LISTE_MON.filter(m=>m.palier==='national'); const MON_REGIONAUX = LISTE_MON.filter(m=>m.palier==='regional');
 const SEMAINE = 7*JOUR;
 // points de tirage des packs : toute la France (villes et villages), en vrai : tirage dans la BAN entière
 const FRANCE = [[2.3522,48.8566],[2.2945,48.8584],[2.3912,48.8600],[2.3200,48.8300],[4.8357,45.7640],[5.3698,43.2965],[1.4442,43.6047],[-1.5536,47.2184],[7.2620,43.7102],[-0.5792,44.8378],[3.0573,50.6292],[7.7521,48.5734],[3.8767,43.6108],[-1.6778,48.1173],[4.3872,45.4397],[5.7245,45.1885],[-0.3708,49.1829],[-1.0993,49.4432],[2.8794,42.6887],[4.0333,49.2583],[6.1757,48.6921],[3.0863,45.7772],[0.6889,47.3941],[1.9093,47.9029],[6.0240,47.2378],[-4.4861,48.3904],[-1.1511,46.1591],[5.9304,43.1242],[3.1764,50.6919],[1.2622,45.8336],[2.2137,48.7138],[1.3871,48.5467],[2.0330,47.0826],[-0.3661,43.2951],[5.4474,43.5297],[6.6335,46.0558],[4.0744,46.2857],[-2.7574,47.6582],[0.1079,49.4944],[3.1550,43.3442],[1.8370,50.9513],[0.3400,46.5802],[6.2280,45.8992],[2.1500,44.9300],[3.4166,46.5569],[-0.4800,48.0700],[4.0800,44.1300],[1.5200,43.3400],[5.1600,44.9300],[-1.2000,45.7100],[6.4500,48.1700],[2.9000,47.4200],[0.7000,45.1800],[3.6000,47.8000],[4.3600,47.0500],[1.0800,49.4400],[5.0400,47.3200],[-0.8200,47.1800],[3.4100,43.6300],[2.4600,50.3700]];
 
 // =================== état ===================
-let state = { wallet: 1500, owned:{}, pseudo:'', avatar:'🦊', prefs:{offres:true, seuil:true, encheres:true}, lastPack:-1, offersIn:[], offersOut:[], notifs:[], encaisse:Date.now(), auction:{}, seen:{} };
+let state = { wallet: 1500, owned:{}, pseudo:'', avatar:'🦊', prefs:{offres:true, seuil:true, encheres:true}, lastPack:-1, offersIn:[], offersOut:[], notifs:[], encaisse:Date.now(), encheres:{ mises:{}, clos:{}, depasse:{} }, seen:{} };
 try { const s = localStorage.getItem('proto-cadastre-v3'); if (s) state = Object.assign(state, JSON.parse(s)); } catch(e){}
+// les enchères : mes mises par lot (« semaine:place »), les lots clos, les surenchères déjà signalées (l'ancienne enchère unique est abandonnée)
+if(!state.encheres) state.encheres = { mises:{}, clos:{}, depasse:{} }; delete state.auction;
 function save(){ try{ localStorage.setItem('proto-cadastre-v3', JSON.stringify(state)); }catch(e){} }
 const now = ()=>Date.now();
 const jour = ()=>Math.floor(now()/JOUR);
@@ -316,7 +320,7 @@ function loyer(a){ return R.loyerParJour(a); }
 function loyerTotal(){ return Object.values(state.owned).reduce((s,a)=>s+loyer(a),0); }
 function pendingRent(){ return R.aEncaisser(Object.values(state.owned), state.encaisse, now(), JOUR); }
 function encaisser(silent){ const p=pendingRent(); if(p>=1){ state.wallet += Math.floor(p); state.encaisse = now(); save(); if(!silent) toast(`+${Math.floor(p)} ₳ encaissés (salaire + loyers)`); } else if(!silent) toast('Rien à encaisser pour l’instant'); refreshTop(); }
-function dispo(){ return state.wallet - (state.auction.myBid && isTop(state.auction) ? state.auction.myBid : 0); }
+function dispo(){ return state.wallet - bloqueEncheres(); }
 function notify(type, text, extra){ state.notifs.unshift({ts:now(), type, text, read:false, ...(extra||{})}); if(state.notifs.length>60) state.notifs.length=60; save(); refreshTop(); }
 // propriétaires simulés (par adresse)
 function fakeOwner(addrId){ const h=hash(addrId)%100; return h<12 ? FAKE[hash(addrId+'o')%FAKE.length] : null; }
@@ -430,7 +434,7 @@ map.on('load', ()=>{
     paint:{ 'text-color':'#5a3d00', 'text-halo-color':'#ffd65a', 'text-halo-width':2.2 } });
   let t=0; setInterval(()=>{ t+=0.12; if(map.getLayer('mon-halo')) map.setPaintProperty('mon-halo','circle-opacity', 0.15+0.15*(1+Math.sin(t))); }, 120);
   map.on('click','mon-halo', (e)=>{ const f=e.features[0]; const m=LISTE_MON.find(x=>x.id===f.properties.id); if(!m) return;
-    const enJeu = auctionOf(auctionIndex()).m.id===m.id; toast(`${m.icone} ${m.nom} · monument ${m.palier==='national'?'national (légendaire)':'régional'}${enJeu?' · aux enchères cette semaine !':''}`); if(enJeu) setTimeout(()=>showScreen('encheres'), 900); });
+    const enJeu = lotsDe(semaineEnCours()).some(l=>l.m.id===m.id); toast(`${m.icone} ${m.nom} · monument ${m.palier==='national'?'national (légendaire)':'régional'}${enJeu?' · aux enchères cette semaine !':''}`); if(enJeu) setTimeout(()=>showScreen('encheres'), 900); });
 });
 // Les lieux célèbres (article Wikipédia) : un fichier par département (data/celebres/), chargé à la demande.
 const CELEBRES = {};
@@ -548,26 +552,37 @@ function repondreOffre(id, ok){ const o=state.offersIn.find(x=>x.id===id); if(!o
   else { o.status='refusee'; toast('Offre refusée'); }
   save(); refreshTop(); renderNotifs(); renderPatrimoine(); }
 
-// =================== enchères ===================
-function auctionIndex(){ return Math.floor(now()/SEMAINE); }
-function auctionOf(idx){ const m = MON_NATIONAUX[idx % MON_NATIONAUX.length]; const start = idx*SEMAINE; const bids=[]; const nmax = 4 + hash('n'+idx)%6; // 4 à 9 mises simulées
-  for(let k=0;k<nmax;k++){ const t = start + 25000 + k*42000; if(t>now()) break; bids.push({ who:FAKE[(hash('w'+idx)+k)%FAKE.length], amount:Math.round(m.depart*(1+0.12*k)), ts:t }); }
-  return { idx, m, start, end:start+SEMAINE, bids }; }
-function topBid(auc){ let top=null; for(const b of auc.bids){ if(!top || b.amount>top.amount) top=b; }
-  if(state.auction.idx===auc.idx && state.auction.myBid && state.auction.myBid > (top?top.amount:0)) top={who:ME, amount:state.auction.myBid, ts:state.auction.ts}; return top; }
-function isTop(a){ if(!a.myBid) return false; const auc=auctionOf(a.idx); const t=topBid(auc); return t && t.who===ME; }
-function encherir(amount){ const auc=auctionOf(auctionIndex()); const top=topBid(auc); const min = top ? Math.round(top.amount*1.05) : auc.m.depart;
-  if(amount<min) return toast(`Mise minimale : ${fmt(min)}`); if(state.wallet < amount) return toast('Fonds insuffisants : la mise doit être couverte par ton solde');
-  state.auction = { idx:auc.idx, myBid:amount, ts:now(), outbidNotified:false }; save(); toast(`Tu mènes l’enchère sur ${auc.m.nom} à ${fmt(amount)} (fonds bloqués)`); renderEncheres(); refreshTop(); }
-function tickAuction(){ const idx=auctionIndex(); const a=state.auction;
-  // clôture d'une enchère passée
-  if(a.idx!==undefined && a.idx<idx && !a.closed){ const auc=auctionOf(a.idx); const top=topBid(auc);
-    if(top && top.who===ME && state.wallet>=top.amount){ state.wallet-=top.amount; const m=auc.m; const id='mon'+a.idx; state.owned[id]={ id, label:m.nom, lon:m.lon, lat:m.lat, citycode:m.insee, city:m.ville, type:'monument', niveau:0, depuis:now() }; notify('enchere', `🏆 Tu as remporté ${m.nom} pour ${fmt(top.amount)} !`); setBadge(state.owned[id],0); }
-    else if(a.myBid){ notify('enchere', `Enchère terminée : ${auc.m.nom} va à ${top?top.who:'personne'} (${top?fmt(top.amount):'—'})`); }
-    a.closed=true; save(); refreshTop(); }
-  if(a.idx===idx && a.myBid && !a.outbidNotified){ const auc=auctionOf(idx); const top=topBid(auc); if(top && top.who!==ME){ a.outbidNotified=true; if(state.prefs.encheres) notify('enchere', `${top.who} a surenchéri à ${fmt(top.amount)} sur ${auc.m.nom}. Tes fonds sont libérés.`); save(); } }
-  document.getElementById('cnt-ench').style.display = (a.idx===idx && a.myBid && !isTop(a)) ? 'block':'none'; document.getElementById('cnt-ench').textContent='!';
-  if(document.getElementById('s-encheres').classList.contains('on')) renderEncheres(); }
+// =================== enchères (règles : src/regles/encheres.js) ===================
+function semaineEnCours(){ return ENC.semaine(now(), SEMAINE); }
+function lotsDe(idx){ return ENC.lots(idx, MON_NATIONAUX, MON_REGIONAUX); }
+// les mises des autres joueurs (serveur simulé) : quelques mises qui montent de 12 % au fil de la semaine
+function misesSimulees(lot){ const debut=lot.semaine*SEMAINE, dep=ENC.miseDepart(lot.m), out=[]; const n=(lot.palier==='national'?4:2)+hash('n'+lot.cle)%5;
+  for(let k=0;k<n;k++){ const t=debut+20000+k*42000+hash('t'+lot.cle)%15000; if(t>now()) break; out.push({ qui:FAKE[(hash('w'+lot.cle)+k)%FAKE.length], montant:Math.round(dep*(1+0.12*k)), ts:t }); }
+  return out; }
+function mesMises(cle){ return state.encheres.mises[cle]||[]; }
+function misesDe(lot){ return misesSimulees(lot).concat(mesMises(lot.cle)); }
+function bloqueEncheres(sauf){ const o={}; for(const l of lotsDe(semaineEnCours())) o[l.cle]=misesDe(l); return ENC.bloque(o, ME, sauf); }
+const saisieEnch = {}; // ce que le joueur tape dans chaque champ de mise (gardé quand l'écran se redessine)
+function encherir(cle, montant){ const lot=lotsDe(semaineEnCours()).find(l=>l.cle===cle); if(!lot) return toast('Cette enchère est close');
+  const r=ENC.peutMiser(lot.m, misesDe(lot), montant, state.wallet, bloqueEncheres(cle));
+  if(!r.ok) return toast(r.raison==='min' ? `Mise minimale : ${fmt(r.min)}` : `Fonds insuffisants : ${fmt(Math.max(0,r.dispo))} disponibles (tes mises qui mènent ailleurs sont bloquées)`);
+  (state.encheres.mises[cle]=state.encheres.mises[cle]||[]).push({ qui:ME, montant, ts:now() }); delete state.encheres.depasse[cle]; delete saisieEnch[cle]; save();
+  toast(`Tu mènes l’enchère sur ${lot.m.nom} à ${fmt(montant)} (fonds bloqués)`); renderEncheres(); refreshTop(); }
+function tickAuction(){ const idx=semaineEnCours(), e=state.encheres; let change=false;
+  // clôture des lots passés où j'ai misé : la meilleure mise couverte par les fonds, sinon la suivante
+  for(const cle of Object.keys(e.mises)){ const s=parseInt(cle); if(s>=idx || e.clos[cle]) continue; e.clos[cle]=true; change=true;
+    const lot=lotsDe(s).find(l=>l.cle===cle); if(!lot) continue; const mises=misesDe(lot); const top=ENC.meilleure(mises);
+    const g=ENC.cloture(mises, q=> q===ME ? state.wallet : Infinity);
+    if(g && g.qui===ME){ state.wallet-=g.montant; const m=lot.m, id='mon:'+m.id; state.owned[id]={ id, label:m.nom, lon:m.lon, lat:m.lat, citycode:m.insee, city:m.ville, type:'monument', niveau:0, depuis:now() }; state.seen[id]='libre'; notify('enchere', `🏆 Tu as remporté ${m.nom} pour ${fmt(g.montant)} !`); setBadge(state.owned[id],0); }
+    else notify('enchere', `Enchère terminée : ${lot.m.nom} va à ${g?g.qui:'personne'} (${g?fmt(g.montant):'—'})${top&&top.qui===ME?'. Tu menais, mais tes fonds ne couvraient plus ta mise : elle passe à la suivante.':''}`); }
+  // surenchères de la semaine
+  let alerte=false;
+  for(const lot of lotsDe(idx)){ if(!mesMises(lot.cle).length) continue; const t=ENC.meilleure(misesDe(lot)); if(!t || t.qui===ME) continue; alerte=true;
+    if(!e.depasse[lot.cle]){ e.depasse[lot.cle]=true; change=true; if(state.prefs.encheres) notify('enchere', `${t.qui} a surenchéri à ${fmt(t.montant)} sur ${lot.m.nom}. Tes fonds sont libérés.`); } }
+  if(change){ save(); refreshTop(); }
+  const c=document.getElementById('cnt-ench'); c.style.display=alerte?'block':'none'; c.textContent='!';
+  // pas de redessin pendant la saisie d'une mise (le clavier du téléphone se fermerait)
+  const a=document.activeElement; if(document.getElementById('s-encheres').classList.contains('on') && !(a && a.id && a.id.startsWith('bid-'))) renderEncheres(); }
 
 // =================== pack du jour ===================
 function packDispo(){ return state.lastPack < jour(); }
@@ -779,17 +794,20 @@ function renderPatrimoine(){ const el=document.getElementById('s-patrimoine'); c
     c.querySelector('.n').onclick=()=>flyToAddr(a); c.querySelector('.n').style.cursor='pointer';
     const row=addrRow(a,true); const build=row.querySelector('.build'); if(build) c.querySelector('#x-'+hash(a.id)).appendChild(build); g.appendChild(c); }); }
 
-function renderEncheres(){ const el=document.getElementById('s-encheres'); const idx=auctionIndex(); const auc=auctionOf(idx); const top=topBid(auc); const reste=auc.end-now(); const pct=100*(now()-auc.start)/SEMAINE;
-  const min = top ? Math.round(top.amount*1.05) : auc.m.depart;
-  let h=`<h1>Enchères</h1><div class="card" style="border-color:var(--gold)"><div class="t">🏛️ ${auc.m.nom} <span class="tag monument">Monument de la semaine</span></div><div class="m">${auc.m.ville} · mise de départ ${fmt(auc.m.depart)}</div>
-    <div class="bar"><i style="width:${pct}%"></i></div><div class="m">Clôture dans ${Math.floor(reste/60000)} min ${Math.floor(reste/1000)%60} s (démo : 1 semaine = 7 min)</div>
-    <div style="margin:10px 0"><b>Meilleure mise : ${top?fmt(top.amount)+' par '+(top.who===ME?'toi 🎉':top.who):'aucune'}</b></div>
-    <div class="flex"><input class="num" id="bid" type="number" value="${min}"><button class="btn" onclick="encherir(parseInt(document.getElementById('bid').value)||0)">Enchérir (min ${fmt(min)})</button></div>
-    <div class="m" style="margin-top:6px">Ta mise doit être couverte par ton solde ; elle bloque les fonds tant que tu mènes. Si tu es dépassé, ils sont libérés. ${state.auction.idx===idx&&state.auction.myBid?`Ta dernière mise : ${fmt(state.auction.myBid)}.`:''}</div>
-    <div style="margin-top:8px"><button class="btn sm" onclick="showScreen('carte');map.flyTo({center:[${auc.m.lon},${auc.m.lat}],zoom:17,duration:1200})">Voir sur la carte</button></div></div>`;
-  h+=`<div class="card"><div class="t">Historique des mises</div>`; const all=[...auc.bids]; if(state.auction.idx===idx&&state.auction.myBid) all.push({who:ME,amount:state.auction.myBid,ts:state.auction.ts}); all.sort((a,b)=>b.ts-a.ts);
-  h+= all.length ? all.map(b=>`<div class="rank"><span class="who" onclick="showPlayer('${b.who}')">${disp(b.who)}</span><b>${fmt(b.amount)}</b></div>`).join('') : '<div class="m">Aucune mise pour l’instant.</div>'; h+=`</div>`;
-  h+=`<div class="card"><div class="t">Prochains monuments</div>`; for(let k=1;k<=3;k++){ const m=MON_NATIONAUX[(idx+k)%MON_NATIONAUX.length]; h+=`<div class="rank"><span class="pos">S+${k}</span><span class="who">${m.nom}</span><span class="m">${m.ville} · dès ${fmt(m.depart)}</span></div>`; } h+=`</div>`;
+function renderEncheres(){ const el=document.getElementById('s-encheres'); const idx=semaineEnCours(), debut=idx*SEMAINE, reste=debut+SEMAINE-now(), pct=100*(now()-debut)/SEMAINE;
+  let h=`<h1>Enchères</h1><div class="card"><div class="t">Les 3 monuments de la semaine</div><div class="m">1 monument national (légendaire) et 2 régionaux, pour toute la France.</div>
+    <div class="bar"><i style="width:${pct}%"></i></div><div class="m">Clôture dans ${Math.floor(reste/60000)} min ${Math.floor(reste/1000)%60} s (démo : 1 semaine = 7 min) · disponible pour miser : <b>${fmt(dispo())}</b></div></div>`;
+  for(const lot of lotsDe(idx)){ const mises=misesDe(lot), top=ENC.meilleure(mises), min=ENC.miseMin(lot.m, mises), nat=lot.palier==='national', id='bid-'+lot.cle.replace(':','-');
+    const moi=mesMises(lot.cle), derniere=moi.length?moi[moi.length-1].montant:0, valeur=saisieEnch[lot.cle]||min;
+    h+=`<div class="card" style="border-color:${nat?'var(--gold)':'#8fb8ff'}"><div class="t">${lot.m.icone} ${lot.m.nom} <span class="tag monument">${nat?'Légendaire national':'Monument régional'}</span></div>
+      <div class="m">${lot.m.ville} · mise de départ ${fmt(ENC.miseDepart(lot.m))}</div>
+      <div style="margin:10px 0"><b>Meilleure mise : ${top?fmt(top.montant)+' par '+(top.qui===ME?'toi 🎉':top.qui):'aucune'}</b></div>
+      <div class="flex"><input class="num" id="${id}" type="number" value="${valeur}" oninput="saisieEnch['${lot.cle}']=parseInt(this.value)||0"><button class="btn" onclick="encherir('${lot.cle}', parseInt(document.getElementById('${id}').value)||0)">Enchérir (min ${fmt(min)})</button></div>
+      ${derniere?`<div class="m" style="margin-top:6px">Ta dernière mise : ${fmt(derniere)} · ${top&&top.qui===ME?'tu mènes, fonds bloqués':'dépassée, fonds libérés'}</div>`:''}
+      <details style="margin-top:6px"><summary class="m">Historique des mises (${mises.length})</summary>${mises.slice().sort((a,b)=>b.ts-a.ts).map(b=>`<div class="rank"><span class="who" onclick="showPlayer('${b.qui}')">${disp(b.qui)}</span><b>${fmt(b.montant)}</b></div>`).join('')||'<div class="m">Aucune mise pour l’instant.</div>'}</details>
+      <div style="margin-top:8px"><button class="btn sm" onclick="showScreen('carte');map.flyTo({center:[${lot.m.lon},${lot.m.lat}],zoom:17,duration:1200})">Voir sur la carte</button></div></div>`; }
+  h+=`<div class="card"><div class="t">Les règles</div><div class="m">Ta mise doit être couverte par ton solde, moins ce que tu as déjà engagé sur les autres enchères où tu mènes. Si quelqu’un te dépasse, tes fonds sont libérés. À la clôture, si le meneur n’a plus les fonds, le monument va à la mise suivante.</div></div>`;
+  h+=`<div class="card"><div class="t">Prochains monuments</div>`; for(let k=1;k<=2;k++) for(const l of lotsDe(idx+k)) h+=`<div class="rank"><span class="pos">S+${k}</span><span class="who">${l.m.icone} ${l.m.nom}</span><span class="m">${l.palier==='national'?'national':'régional'} · dès ${fmt(ENC.miseDepart(l.m))}</span></div>`; h+=`</div>`;
   el.innerHTML=h; }
 
 function renderCommunes(){ const el=document.getElementById('s-communes'); const mine={}; Object.values(state.owned).forEach(a=>{ const k=communeName(a.citycode,a.city); mine[k]=(mine[k]||0)+1; });

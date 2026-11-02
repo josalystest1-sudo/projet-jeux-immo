@@ -10,9 +10,11 @@
 
 - 2 nov. 2026 (soir) : **lieux célèbres** : les lieux qui ont un article Wikipédia (Wikidata) sont Célèbres, donc Épiques ; d'abord les **églises et chapelles** (12 913 lieux, un fichier par département dans `data/celebres/`, chargés à la demande) ; un repère ⭐ sur la carte, toujours au-dessus des bâtiments 3D (nom dès le zoom 16,5), qu'on touche pour ouvrir la parcelle, le lieu dans la fiche de sa parcelle avec le lien Wikipédia, et le pack reconnaît une église de l'IGN qui est célèbre. Outils : `tools/wikidata_celebres.py` (reprise après coupure, `--fusion`), `tools/gen_donnees.py celebres`. Moteur : `src/regles/celebres.js` (même lieu ou non : distance et nom). 18 tests. Corrigé : le badge « en vente » s'étalait en grande ellipse sombre sur la carte ; la publication échouait (`npm ci` sans `package-lock.json`).
 
+- 2 nov. 2026 (soir) : **3 enchères par semaine** (1 monument national légendaire + 2 régionaux, mise de départ plus basse pour les régionaux) : règles dans `src/regles/encheres.js` (calendrier, mise de départ, mise minimale, fonds bloqués sur plusieurs enchères, clôture avec repli sur la mise suivante), 6 tests ; l'écran Enchères montre les 3 lots, le disponible pour miser, l'historique de chaque lot, les règles et les 6 monuments des deux semaines suivantes ; l'écran ne se redessine plus pendant qu'on tape une mise. 24 tests.
+
 ## En cours
 - Lieux célèbres : les autres catégories (châteaux, mairies, gares, musées, ponts, phares, moulins…) dès que Wikidata répond (`python3 tools/wikidata_celebres.py`, puis `--fusion` et `gen_donnees.py celebres`).
-- Phase 1.1 à 1.4 : la carte et le modèle des lieux reconstruits en modules (`src/`) à partir du prototype ; puis les 3 enchères par semaine (phase 5).
+- Phase 1.1 à 1.4 : la carte et le modèle des lieux reconstruits en modules (`src/`) à partir du prototype ; puis le tirage du pack selon les raretés (phase 3.1).
 
 ## À faire
 - Voir `docs/PLAN.md` (phases 1 à 11).

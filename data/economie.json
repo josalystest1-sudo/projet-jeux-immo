@@ -15,6 +15,15 @@
   "multiplicateur_valeur": { "commune": 1, "connue": 2, "celebre": 4, "monument": 10 },
   "pack": { "cartes": 5, "par_jour": 1, "chances": { "1": 60, "2": 26, "3": 11, "4": 3 } },
   "raretes": { "1": "Commun", "2": "Peu commun", "3": "Rare", "4": "Épique", "5": "Légendaire" },
+  "encheres": {
+    "nationaux_par_semaine": 1,
+    "regionaux_par_semaine": 2,
+    "pas_min": 0.05,
+    "depart": {
+      "national": { "base": 10000, "par_article": 600, "arrondi": 1000 },
+      "regional": { "base": 3000, "par_article": 200, "arrondi": 500 }
+    }
+  },
   "boutique": { "pack_1": 1.99, "pack_5": 7.99, "pack_12": 16.99, "pass_mensuel": 4.99 },
   "solde_depart": 1500
 }

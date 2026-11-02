@@ -59,6 +59,12 @@ La liste (`data/monuments.json`, 2 nov. 2026) : 458 monuments tirés de Wikidata
 - Mises pendant 7 jours. Une mise doit être couverte par le solde ; elle bloque les fonds tant qu'on mène ; si le meneur n'a plus les fonds à la clôture, l'enchère passe à la mise suivante, et ainsi de suite.
 - Une fois attribués, les monuments circulent par offres entre joueurs.
 - Ordre des monuments : fixé par Gautier (calendrier éditorial), les joueurs voient les 3 suivants. **[Proposé]**
+- Mise en œuvre (2 nov. 2026, `src/regles/encheres.js`, réglages `data/economie.json` → `encheres`) **[Proposé]** :
+  - en attendant le calendrier de Gautier, les monuments passent dans l'ordre de la liste (les plus connus d'abord) : 60 semaines sans qu'un monument revienne ;
+  - mise de départ : national 10 000 + 600 par article Wikipédia (arrondie au millier), régional 3 000 + 200 par article (arrondie à 500) ;
+  - surenchère minimale : +5 % sur la meilleure mise ;
+  - avec trois enchères en même temps, une mise doit être couverte par le solde **moins les mises qui mènent sur les autres enchères** ; sur la même enchère, la nouvelle mise remplace l'ancienne ;
+  - à la clôture, chaque joueur compte pour sa plus haute mise ; à montant égal, la plus ancienne gagne ; personne n'a les fonds : le monument reste libre (il repassera).
 
 ### Le domicile
 **Pas de notion de domicile** dans le jeu : le joueur ne déclare aucune adresse personnelle. **[Décidé]**
