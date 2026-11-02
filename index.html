@@ -876,7 +876,7 @@ function renderNotifs(){ const el=document.getElementById('s-notifs'); let h=`<h
   el.innerHTML=h; state.notifs.forEach(n=>n.read=true); save(); refreshTop(); }
 
 function showPlayer(name){ const box=document.getElementById('modalbox'); let h;
-  if(name===ME){ const list=Object.values(state.owned); h=`<h2><span class="av">${state.avatar}</span> ${disp(ME)} (toi)</h2><div class="sub">Membre depuis aujourd’hui · <a href="#" onclick="creationProfil();return false" style="color:var(--gold)">modifier mon profil</a></div><div class="kpis"><div class="kpi"><small>LIEUX</small><b>${list.length}</b></div><div class="kpi"><small>VALEUR</small><b>${fmt(list.reduce((s,a)=>s+valeur(a),0))}</b></div><div class="kpi"><small>CONSTRUITS</small><b>${list.filter(a=>a.niveau>0).length}</b></div></div>`; }
+  if(name===ME){ const list=Object.values(state.owned); h=`<h2><span class="av">${state.avatar}</span> ${disp(ME)} (toi)</h2><div class="sub">Membre depuis aujourd’hui · <a href="#" onclick="creationProfil();return false" style="color:var(--gold)">changer mon icône</a></div><div class="kpis"><div class="kpi"><small>LIEUX</small><b>${list.length}</b></div><div class="kpi"><small>VALEUR</small><b>${fmt(list.reduce((s,a)=>s+valeur(a),0))}</b></div><div class="kpi"><small>CONSTRUITS</small><b>${list.filter(a=>a.niveau>0).length}</b></div></div>`; }
   else { const n=5+hash(name)%40, c=1+hash(name+'c')%4, b=Math.floor(n*(0.3+ (hash(name+'b')%50)/100)); const v=n*1200+b*900;
     h=`<h2>${name}</h2><div class="sub">Joueur simulé · membre depuis ${1+hash(name+'d')%60} jours</div><div class="kpis"><div class="kpi"><small>LIEUX</small><b>${n}</b></div><div class="kpi"><small>VALEUR</small><b>${fmt(v)}</b></div><div class="kpi"><small>CONSTRUITS</small><b>${b}</b></div></div><div class="card"><div class="t">Présent dans ${c} commune${c>1?'s':''}</div><div class="m">Ses lieux apparaissent en rouge sur la carte. Clique sur l’un d’eux pour lui faire une offre.</div></div>`; }
   const signaler = name===ME ? '' : `<button class="btn sm" style="width:100%;margin-bottom:8px;background:transparent;border:1px solid var(--line);color:#ff8a8a" onclick="signaler('${name}')">🚩 Signaler ce joueur</button>`;
@@ -901,16 +901,27 @@ document.getElementById('modal').addEventListener('click', e=>{ if(e.target.id==
 // le filtre des pseudos (src/regles/pseudo.js, listes data/moderation.json) ; pris = les joueurs connus du serveur simulé
 let FILTRE=null; fetch('data/moderation.json').then(r=>r.json()).then(m=>{ FILTRE=Pseudo.creer(m); }).catch(()=>{});
 function verifierPseudo(ps){ if(!FILTRE) return { ok: ps.trim().length>=3, pseudo: ps.trim(), texte:'3 caractères au moins' }; return FILTRE.valider(ps, FAKE.filter(f=>f!==state.pseudo)); }
-function creationProfil(){ const box=document.getElementById('modalbox'); let av=state.avatar||AVATARS[0];
-  box.innerHTML=`<h2>${state.pseudo?'Mon profil':'Bienvenue !'}</h2><div class="sub">Choisis ton pseudo et ton icône, visibles par les autres joueurs.</div><input class="txt" id="pseudo" maxlength="16" placeholder="Ton pseudo" value="${state.pseudo||''}"><div class="err" id="pseudoerr"></div><div class="avgrid" id="avgrid"></div><button class="btn" style="width:100%" id="okprofil">C’est parti</button>`;
+// Le profil : le pseudo se choisit une seule fois, à la création, et ne change plus (décision de Gautier, 2 nov.) ;
+// l'icône, elle, se change quand on veut.
+function creationProfil(){ const box=document.getElementById('modalbox'); let av=state.avatar||AVATARS[0]; const creation=!state.pseudo;
+  box.innerHTML = creation
+    ? `<h2>Bienvenue !</h2><div class="sub">Choisis ton pseudo et ton icône, visibles par les autres joueurs. <b>Ton pseudo est définitif</b> : tu ne pourras plus le changer.</div><input class="txt" id="pseudo" maxlength="16" placeholder="Ton pseudo" autocomplete="off"><div class="err" id="pseudoerr"></div><div class="avgrid" id="avgrid"></div><button class="btn" style="width:100%" id="okprofil">C’est parti</button>`
+    : `<h2>Mon icône</h2><div class="sub">Ton pseudo : <b>${disp(ME)}</b> (définitif). Choisis l’icône que les autres joueurs voient.</div><div class="err" id="pseudoerr"></div><div class="avgrid" id="avgrid"></div><button class="btn" style="width:100%" id="okprofil">Enregistrer</button>`;
   const grid=box.querySelector('#avgrid'); AVATARS.forEach(e=>{ const b=document.createElement('button'); b.textContent=e; b.className=e===av?'on':''; b.onclick=()=>{ av=e; grid.querySelectorAll('button').forEach(x=>x.classList.toggle('on',x.textContent===e)); }; grid.appendChild(b); });
-  const champ=box.querySelector('#pseudo'), err=box.querySelector('#pseudoerr');
-  champ.oninput=()=>{ const v=champ.value; const r=v.trim().length<3 ? {ok:true} : verifierPseudo(v); err.textContent = r.ok ? '' : 'Pseudo refusé : '+r.texte; };
-  const bouton=box.querySelector('#okprofil'), premiere=!state.pseudo;
-  bouton.onclick=async()=>{ const r=verifierPseudo(champ.value); if(!r.ok){ err.textContent='Pseudo refusé : '+r.texte; return; } const ps=r.pseudo;
-    if(window.Compte && Compte.actif() && Compte.session){ bouton.disabled=true; bouton.textContent='…'; const s=await Compte.enregistrerProfil(ps, av); bouton.disabled=false; bouton.textContent='C’est parti';
-      if(!s.ok){ err.textContent='Pseudo refusé : '+s.texte; return; } }
-    state.pseudo=ps; state.avatar=av; save(); closeModal(); refreshTop(); toast(premiere?`Bienvenue, ${ps} !`:'Profil enregistré');
+  const champ=box.querySelector('#pseudo'), err=box.querySelector('#pseudoerr'), bouton=box.querySelector('#okprofil');
+  let aConfirmer=''; // à la création, le pseudo se confirme d'un second appui (il est définitif)
+  if(champ) champ.oninput=()=>{ aConfirmer=''; bouton.textContent='C’est parti'; const v=champ.value; const r=v.trim().length<3 ? {ok:true} : verifierPseudo(v); err.textContent = r.ok ? '' : 'Pseudo refusé : '+r.texte; };
+  const serveur = ()=> window.Compte && Compte.actif() && Compte.session;
+  bouton.onclick=async()=>{
+    if(!creation){ // seulement l'icône
+      if(serveur()){ bouton.disabled=true; const s=await Compte.enregistrerAvatar(av); bouton.disabled=false; if(!s.ok){ err.textContent=s.texte; return; } }
+      state.avatar=av; save(); closeModal(); refreshTop(); toast('Icône enregistrée'); return; }
+    const r=verifierPseudo(champ.value); if(!r.ok){ err.textContent='Pseudo refusé : '+r.texte; return; } const ps=r.pseudo;
+    if(aConfirmer!==ps){ aConfirmer=ps; err.style.color='var(--gold)'; err.textContent=`Ton pseudo sera « ${ps} » pour toujours.`; bouton.textContent=`Confirmer « ${ps} »`; return; }
+    err.style.color='';
+    if(serveur()){ bouton.disabled=true; bouton.textContent='…'; const s=await Compte.enregistrerProfil(ps, av); bouton.disabled=false;
+      if(!s.ok){ aConfirmer=''; bouton.textContent='C’est parti'; err.textContent='Pseudo refusé : '+s.texte; return; } }
+    state.pseudo=ps; state.avatar=av; save(); closeModal(); refreshTop(); toast(`Bienvenue, ${ps} !`);
     if(window.Compte && Compte.actif()) Compte.apresProfil(); else if(packDispo()) setTimeout(ouvrirPack, 900); };
   document.getElementById('modal').classList.add('on'); }
 function refreshTop(){ document.getElementById('wallet').textContent = fmt(dispo()); document.getElementById('meav').textContent=state.avatar||'🙂'; document.getElementById('mename').textContent=disp(ME); document.getElementById('count').textContent = Object.keys(state.owned).length;

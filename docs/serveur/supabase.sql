@@ -20,6 +20,10 @@ create unique index if not exists profils_pseudo_cle on public.profils (pseudo_c
 create or replace function public.profils_avant_ecriture() returns trigger
 language plpgsql security definer set search_path = '' as $$
 begin
+  -- le pseudo est définitif : un joueur ne peut pas le changer (Gautier le peut, depuis le tableau de bord)
+  if tg_op = 'UPDATE' and coalesce(auth.role(), '') in ('authenticated', 'anon') then
+    new.pseudo := old.pseudo;
+  end if;
   new.pseudo := btrim(regexp_replace(new.pseudo, '\s+', ' ', 'g'));
   new.pseudo_cle := lower(extensions.unaccent('extensions.unaccent'::regdictionary, new.pseudo));
   if tg_op = 'INSERT' then
@@ -46,7 +50,9 @@ create policy "mon profil : modification" on public.profils for update to authen
   using (id = (select auth.uid())) with check (id = (select auth.uid()));
 
 grant select (id, pseudo, avatar, cree_le) on public.profils to anon, authenticated;
-grant insert (id, pseudo, avatar), update (pseudo, avatar) on public.profils to authenticated;
+-- le pseudo se choisit à la création seulement ; ensuite, seule l'icône change
+revoke update on public.profils from authenticated;
+grant insert (id, pseudo, avatar), update (avatar) on public.profils to authenticated;
 
 -- un pseudo est-il libre ? (sans tenir compte des majuscules ni des accents)
 create or replace function public.pseudo_libre(p text) returns boolean

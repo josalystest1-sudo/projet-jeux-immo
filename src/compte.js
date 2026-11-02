@@ -123,21 +123,21 @@
     return data;
   }
 
-  // appelé par l'écran du profil (creationProfil) : { ok } ou { ok:false, texte }
+  // la création du profil (une seule fois : le pseudo est définitif) : { ok } ou { ok:false, texte }
   Compte.enregistrerProfil = async function (pseudo, avatar) {
-    const moi = Compte.session.user.id;
-    const memeQue = Compte.profil && Compte.profil.pseudo.toLowerCase() === pseudo.toLowerCase();
-    if (!memeQue) {
-      const { data: libre, error } = await Compte.client.rpc('pseudo_libre', { p: pseudo });
-      if (error) return { ok: false, texte: texteErreur(error) };
-      if (!libre) return { ok: false, texte: 'ce pseudo est déjà pris' };
-    }
-    const req = Compte.profil
-      ? Compte.client.from('profils').update({ pseudo, avatar }).eq('id', moi).select('id,pseudo,avatar,cree_le').single()
-      : Compte.client.from('profils').insert({ id: moi, pseudo, avatar }).select('id,pseudo,avatar,cree_le').single();
-    const { data, error } = await req;
-    if (error) return { ok: false, texte: /duplicate|unique/i.test(error.message) ? 'ce pseudo est déjà pris' : texteErreur(error) };
-    Compte.profil = data; return { ok: true };
+    if (Compte.profil) return { ok: false, texte: 'ton pseudo est déjà choisi' };
+    const { data: libre, error } = await Compte.client.rpc('pseudo_libre', { p: pseudo });
+    if (error) return { ok: false, texte: texteErreur(error) };
+    if (!libre) return { ok: false, texte: 'ce pseudo est déjà pris' };
+    const r = await Compte.client.from('profils').insert({ id: Compte.session.user.id, pseudo, avatar }).select('id,pseudo,avatar,cree_le').single();
+    if (r.error) return { ok: false, texte: /duplicate|unique/i.test(r.error.message) ? 'ce pseudo est déjà pris' : texteErreur(r.error) };
+    Compte.profil = r.data; return { ok: true };
+  };
+  // changer d'icône (le seul changement permis après la création)
+  Compte.enregistrerAvatar = async function (avatar) {
+    const r = await Compte.client.from('profils').update({ avatar }).eq('id', Compte.session.user.id).select('id,pseudo,avatar,cree_le').single();
+    if (r.error) return { ok: false, texte: texteErreur(r.error) };
+    Compte.profil = r.data; return { ok: true };
   };
 
   Compte.deconnecter = async function () {
