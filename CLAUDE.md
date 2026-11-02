@@ -64,3 +64,4 @@ Ce fichier dit **ce qu'est le jeu, comment on travaille, ce qui est décidé et 
 - **Ne jamais mettre l'adresse e-mail de Gautier** dans un en-tête (User-Agent) ou une requête : l'User-Agent des outils cite l'adresse du dépôt.
 - **Faille packs → revente → ₳** : ne jamais ajouter de rachat par la banque ni de récompense en ₳ à la revente.
 - **Publication** : le workflow lance `npm test` directement ; pas de `npm ci` tant qu'il n'y a pas de `package-lock.json` (sinon la mise en ligne échoue en silence et le lien donne une erreur 404). Après une mise en ligne, le téléphone peut garder l'ancienne page 404 en cache quelques minutes : recharger.
+- **Repères sur la carte en 3D** : un point dessiné au sol (couche `circle`) au milieu d'un bâtiment est caché par le bâtiment en relief. Pour un lieu à voir et à toucher (lieux célèbres, badges), utiliser un repère HTML (`maplibregl.Marker`), toujours au-dessus.
