@@ -22,7 +22,7 @@ jobs:
       - uses: actions/checkout@v4
       - name: Tests
         run: |
-          if [ -f package.json ]; then npm ci --ignore-scripts && npm test; else echo "pas encore de tests"; fi
+          node --version && npm test
       - name: Site statique (tout le dépôt sauf l'outillage)
         run: |
           mkdir -p build
