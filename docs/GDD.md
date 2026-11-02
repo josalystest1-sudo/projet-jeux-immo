@@ -1,6 +1,6 @@
-# Jeu des adresses — Document de conception V1
+# Cadastra — Document de conception V1
 
-Nom provisoire : **« Cadastre »** (voir § 12 pour les autres pistes). Version du 2 novembre 2026, issue de l'interview de Gautier et du prototype `proto/`.
+Nom du jeu : **Cadastra** (choisi par Gautier le 2 nov. 2026). Version du 2 novembre 2026, issue de l'interview de Gautier et du prototype `proto/`.
 
 Étiquettes : **[Décidé]** = tranché par Gautier · **[Proposé]** = choix de Claude, à valider · **[V2]** = pas en version 1.
 
@@ -137,7 +137,7 @@ Tout le game design d'abord (fonctions complètes, serveur simulé → vrai serv
 ## 12. Nom, monnaie, style, lancement **[Décidé le 2 nov.]**
 
 - **Monnaie : les « pièces »**.
-- **Nom** : sérieux/neutre mais qui « sonne jeu ». Pistes : **Cadastra** · **Parcelia** · **Rentier** · **Quartiers** · **Bâtisseurs** · **Adressa** · **Capitale** · **Lotissement**. À vérifier avant choix : marque (INPI), domaine .fr, nom libre sur les stores. **[À décider par Gautier]**
+- **Nom : Cadastra.** **[Décidé le 2 nov.]** Homonyme connu : Cadastra S.A., agence de marketing brésilienne (cadastra.com), autre secteur. À vérifier avant le lancement : marque à l'INPI et à l'EUIPO (classes 9 et 41 : logiciels de jeu, divertissement), domaine cadastra.fr, nom libre sur les stores (V2).
 - **Style visuel : cartoon** (ville 3D stylisée aux couleurs franches, pochette et cartes illustrées façon jeu mobile), **tout produit avec des outils d'IA**, Claude guide la chaîne d'outils (comme pour Arena : image → modèle 3D, textures, animations).
 - **Lancement public direct**, sans date fixée ; pas de bêta amis.
 - **Rythme** : toutes les soirées de Gautier, ce projet passe devant Arena.
@@ -147,5 +147,5 @@ Tout le game design d'abord (fonctions complètes, serveur simulé → vrai serv
 
 - Hors France : **France seulement en V1**. **[Décidé]** Modèle de données prêt pour d'autres pays. **[Proposé]**
 - Visuel de la carte d'un lieu : V1 = photo aérienne IGN du bâtiment avec sa parcelle + cadre de rareté ; V2 = rendu 3D stylisé. **[Proposé]**
-- Nom de la monnaie, nom du jeu, calendrier des monuments.
+- Calendrier des monuments.
 - Capacité de gestion (§ 4) : à valider ou remplacer après simulation.

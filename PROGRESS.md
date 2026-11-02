@@ -1,4 +1,4 @@
-# Progression — Jeu des adresses
+# Progression — Cadastra
 
 ## Fait
 - 2 nov. 2026 : interview de Gautier (volets 1 et 2), GDD V1, plan, CLAUDE.md.
@@ -13,7 +13,7 @@
 - Voir `docs/PLAN.md` (phases 1 à 11).
 
 ## Questions ouvertes
-- Nom du jeu et de la monnaie.
+- Vérifier la marque « Cadastra » (INPI, EUIPO) et réserver cadastra.fr si libre.
 - Capacité de gestion (limite de lieux par niveau) : à valider après simulation.
 - Fin de l'interview : volets 3 à 6 (lieux et packs, technique, graphismes, lancement).
 

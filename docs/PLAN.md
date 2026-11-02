@@ -1,4 +1,4 @@
-# Plan de développement — Jeu des adresses
+# Plan de développement — Cadastra
 
 Méthode (la même que le Projet Arena) : **tout le game design d'abord, puis les graphismes, l'équilibrage à la fin.** Une PR par étape, petite, en français, fusionnée en squash sur `main` quand les tests passent. Le jeu publié se met à jour après chaque fusion ; Gautier teste sur son téléphone.
 
@@ -57,7 +57,7 @@ Méthode (la même que le Projet Arena) : **tout le game design d'abord, puis le
 - 10.3 Déchirure qui suit le doigt, cartes qui glissent du pack, vrais sons (CC0), musique de la révélation.
 - 10.4 Monuments en 3D stylisée (par preuve : la tour Eiffel d'abord).
 - 10.5 Habillage de la révélation FIFA (fond de carte, typographie animée).
-- 10.6 Icône, écran d'accueil, nom définitif.
+- 10.6 Icône, logo Cadastra, écran d'accueil.
 
 ## Phase 11 — Équilibrage et lancement
 - 11.1 Simulation à agents (6 mois, 5 profils de joueurs) → réglage des coûts, loyers, salaire, garanties de packs, mises de départ.
