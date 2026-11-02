@@ -12,9 +12,11 @@
 
 - 2 nov. 2026 (soir) : **3 enchères par semaine** (1 monument national légendaire + 2 régionaux, mise de départ plus basse pour les régionaux) : règles dans `src/regles/encheres.js` (calendrier, mise de départ, mise minimale, fonds bloqués sur plusieurs enchères, clôture avec repli sur la mise suivante), 6 tests ; l'écran Enchères montre les 3 lots, le disponible pour miser, l'historique de chaque lot, les règles et les 6 monuments des deux semaines suivantes ; l'écran ne se redessine plus pendant qu'on tape une mise. 24 tests.
 
+- 2 nov. 2026 (soir) : **le pack tiré par rareté** (60 / 26 / 11 / 3 %, `src/regles/pack.js`, graine joueur + jour) : Commun = adresse près d'un point au hasard de la France, Peu commun = adresse d'une commune au standing 2, Rare = lieu nommé (vrai nom seulement), Épique = lieu célèbre ou adresse d'une commune au standing 3 ; toujours 5 cartes. **Toucher l'écran accélère la révélation** (×4 puis ×12, demande de Gautier). 28 tests.
+
 ## En cours
 - Lieux célèbres : les autres catégories (châteaux, mairies, gares, musées, ponts, phares, moulins…) dès que Wikidata répond (`python3 tools/wikidata_celebres.py`, puis `--fusion` et `gen_donnees.py celebres`).
-- Phase 1.1 à 1.4 : la carte et le modèle des lieux reconstruits en modules (`src/`) à partir du prototype ; puis le tirage du pack selon les raretés (phase 3.1).
+- Phase 1.1 à 1.4 : la carte et le modèle des lieux reconstruits en modules (`src/`) à partir du prototype ; puis le compte et le patrimoine (phase 2).
 
 ## À faire
 - Voir `docs/PLAN.md` (phases 1 à 11).

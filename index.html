@@ -22,6 +22,7 @@
 <script src="src/regles/lieu.js"></script>
 <script src="src/regles/celebres.js"></script>
 <script src="src/regles/encheres.js"></script>
+<script src="src/regles/pack.js"></script>
 <style>
   :root{--bg:#11131c;--panel:#171a26;--card:#1c1f2c;--line:#2a2e40;--txt:#f3f4f8;--muted:#9aa0b8;--gold:#ffd65a;--me:#3b82f6;--other:#ef4444;--mixed:#a855f7;--ok:#7ee787;--nav:64px}
   *{box-sizing:border-box}
@@ -190,6 +191,8 @@
   #rlabels{position:absolute;left:0;right:0;bottom:calc(120px + env(safe-area-inset-bottom));text-align:center;pointer-events:none}
   #rlabels .l{color:#fff;font-weight:900;letter-spacing:.12em;text-transform:uppercase;font-size:14px;opacity:0;transform:translateY(12px);transition:all .45s ease;text-shadow:0 2px 16px rgba(0,0,0,.6)}
   #rlabels .l.on{opacity:1;transform:translateY(0)}
+  #rhint{position:absolute;left:0;right:0;bottom:calc(40px + env(safe-area-inset-bottom));text-align:center;color:rgba(255,255,255,.45);font-size:12px;letter-spacing:.08em;pointer-events:none;transition:opacity .3s}
+  #reveal.vite #rhint{opacity:0}
   #rlabels .l.big{font-size:30px;letter-spacing:.04em;text-transform:none;margin-top:6px}
   #rlabels .l.rar{font-size:12px;letter-spacing:.3em;margin-top:10px}
   .notif{border-left:3px solid var(--line)}
@@ -261,7 +264,7 @@
     <canvas id="pkgl" style="width:100%;height:100%;display:block;touch-action:none"></canvas>
     <div id="pkload" style="position:absolute;bottom:calc(90px + env(safe-area-inset-bottom));left:0;right:0;text-align:center;color:#fff;opacity:.8;font-size:13px">Le pack arrive…</div>
     <div class="cards" id="pkcards"></div>
-    <div id="reveal"><svg id="rsvg" preserveAspectRatio="xMidYMid meet"><g id="rg"></g></svg><div id="flash"></div><div id="rlabels"><div class="l" id="rl1"></div><div class="l big" id="rl2"></div><div class="l rar" id="rl3"></div></div></div>
+    <div id="reveal"><svg id="rsvg" preserveAspectRatio="xMidYMid meet"><g id="rg"></g></svg><div id="flash"></div><div id="rlabels"><div class="l" id="rl1"></div><div class="l big" id="rl2"></div><div class="l rar" id="rl3"></div></div><div id="rhint">Touche l’écran pour accélérer</div></div>
   </div>
   <div class="hint" id="pkhint">Glisse ton doigt sur le haut du pack pour l’ouvrir</div>
   <button class="btn" id="packdone" onclick="finPack()">Super !</button>
@@ -693,28 +696,32 @@ async function fetchCommune(c){ const code=c.citycode||''; if(!code) return null
 function depOf(code){ if(!code) return null; let k=code.slice(0,2); if(k==='97') k=code.slice(0,3); if(code.startsWith('2A')||code.startsWith('2B')) k=code.slice(0,2); return GEO.deps[k] ? {code:k, ...GEO.deps[k]} : null; }
 let vbCur=null, vbAnim=0;
 function setVB(vb){ document.getElementById('rsvg').setAttribute('viewBox', vb.join(' ')); vbCur=vb; }
-function animVB(target, ms){ cancelAnimationFrame(vbAnim); const from=vbCur.slice(); const t0=performance.now(); return new Promise(res=>{ const step=()=>{ const t=Math.min(1,(performance.now()-t0)/ms); const e=t<.5?2*t*t:-1+(4-2*t)*t; setVB(from.map((v,i)=>v+(target[i]-v)*e)); if(t<1) vbAnim=requestAnimationFrame(step); else res(); }; step(); }); }
+function animVB(target, ms){ cancelAnimationFrame(vbAnim); const from=vbCur.slice(); let fait=0, avant=performance.now(); return new Promise(res=>{ const step=()=>{ const n=performance.now(); fait+=(n-avant)*vitesseReveal; avant=n; const t=Math.min(1,fait/ms); const e=t<.5?2*t*t:-1+(4-2*t)*t; setVB(from.map((v,i)=>v+(target[i]-v)*e)); if(t<1) vbAnim=requestAnimationFrame(step); else res(); }; step(); }); }
 const wait=ms=>new Promise(r=>setTimeout(r,ms));
+// la révélation d'une carte : toucher l'écran l'accélère (×4, puis ×12), même au milieu d'une attente ou d'un zoom
+let vitesseReveal=1;
+function attendreR(ms){ return new Promise(res=>{ let fait=0, avant=performance.now(); const pas=()=>{ const n=performance.now(); fait+=(n-avant)*vitesseReveal; avant=n; if(fait>=ms) res(); else setTimeout(pas, 25); }; setTimeout(pas, 25); }); } // horloge indépendante de l'affichage
+document.getElementById('reveal').addEventListener('pointerdown', (ev)=>{ ev.preventDefault(); vitesseReveal = vitesseReveal<4 ? 4 : 12; document.getElementById('reveal').classList.add('vite'); });
 function label(id, text, on){ const el=document.getElementById(id); if(text!==undefined) el.textContent=text; el.classList.toggle('on', !!on); }
 async function revealSequence(c){ const rv=document.getElementById('reveal'); const g=document.getElementById('rg'); g.innerHTML=''; ['rl1','rl2','rl3'].forEach(i=>label(i,'',false));
-  const r=rarete(c); rv.className='on'+(r>=4?' r'+r:''); const [dx,dy]=px(c.lon,c.lat); const dep=depOf(c.citycode); const comP=fetchCommune(c);
+  vitesseReveal=1; const r=rarete(c); rv.className='on'+(r>=4?' r'+r:''); const [dx,dy]=px(c.lon,c.lat); const dep=depOf(c.citycode); const comP=fetchCommune(c);
   const NS='http://www.w3.org/2000/svg'; const mk=(t,cls,d)=>{ const e=document.createElementNS(NS,t); e.setAttribute('class',cls); if(d) e.setAttribute('d',d); return e; };
   const addSil=(rings,hi,fill)=>{ const d=ringsPath(rings); const gl=mk('path','glow',d); const p=mk('path','sil'+(hi?' hi':''),d); if(fill) p.style.fill=fill; g.appendChild(gl); g.appendChild(p); return p; };
   const dotg=mk('circle','dotglow'); const dot=mk('circle','dot'); const ring=mk('circle','ring'); [dotg,dot,ring].forEach(e=>{ e.setAttribute('cx',dx); e.setAttribute('cy',dy); });
   const setDot=(rad)=>{ dot.setAttribute('r',rad); dotg.setAttribute('r',rad*2.6); ring.setAttribute('r',rad*2); };
   battement(1.0);
   // 1. la France
-  addSil(GEO.france,false); setVB(bboxOf(GEO.france,0.08)); await wait(300); label('rl1','France',true); await wait(600);
-  setDot(1.6); g.appendChild(dotg); g.appendChild(dot); g.appendChild(ring); sonTick(880); await wait(1000);
+  addSil(GEO.france,false); setVB(bboxOf(GEO.france,0.08)); await attendreR(300); label('rl1','France',true); await attendreR(600);
+  setDot(1.6); g.appendChild(dotg); g.appendChild(dot); g.appendChild(ring); sonTick(880); await attendreR(1000);
   // 2. le département
   if(dep){ addSil(dep.rings,true); g.appendChild(dotg); g.appendChild(dot); g.appendChild(ring); label('rl1', dep.nom + ' · ' + dep.code, true); sonTick(990); battement(1.6);
-    const bb=bboxOf(dep.rings,0.12); setDot(bb[2]/70); await animVB(bb, 900); await wait(600); }
+    const bb=bboxOf(dep.rings,0.12); setDot(bb[2]/70); await animVB(bb, 900); await attendreR(600); }
   // 3. la commune
   const com=await comP; if(com){ addSil(com.rings,true,'#3b58b8'); g.appendChild(dotg); g.appendChild(dot); g.appendChild(ring); label('rl1', com.nom, true); sonTick(1100); battement(2.6); rv.classList.add('fast');
-    const bb=bboxOf(com.rings,0.15); setDot(Math.max(0.05,bb[2]/50)); await animVB(bb, 900); await wait(500); }
+    const bb=bboxOf(com.rings,0.15); setDot(Math.max(0.05,bb[2]/50)); await animVB(bb, 900); await attendreR(500); }
   // 4. montée puis la rue
-  riser(1.1); await wait(1100); battement(0); boom(r); flash(); rv.classList.add('shake');
-  label('rl2', c.label, true); label('rl3', RARETES[r], true); await wait(1400);
+  riser(1.1); await attendreR(1100); battement(0); boom(r); flash(); rv.classList.add('shake');
+  label('rl2', c.label, true); label('rl3', RARETES[r], true); await attendreR(1400);
   rv.className=''; }
 // rythme : battement qui accélère (0 = stop)
 let beatTimer=null; function battement(speed){ clearTimeout(beatTimer); if(!speed) return; const a=audio(); const tick=()=>{ if(a){ const o=a.createOscillator(); const gn=a.createGain(); o.type='sine'; o.frequency.setValueAtTime(110,a.currentTime); o.frequency.exponentialRampToValueAtTime(45,a.currentTime+0.12); gn.gain.setValueAtTime(0.5,a.currentTime); gn.gain.exponentialRampToValueAtTime(0.0001,a.currentTime+0.16); o.connect(gn); gn.connect(a.destination); o.start(); o.stop(a.currentTime+0.18); } if(navigator.vibrate) navigator.vibrate(12); beatTimer=setTimeout(tick, 900/speed); }; tick(); }
@@ -745,25 +752,48 @@ function sortirCartes(){ const wrap=document.getElementById('pkcards'); const n=
   // la carte du dessus est cliquable ; les autres en dessous (z-index inversé)
   [...wrap.children].forEach((el,i)=>{ el.style.zIndex=n-i; });
   document.getElementById('pkhint').textContent='Touche la carte pour la retourner'; }
+// =================== tirage du pack (règles : src/regles/pack.js ; serveur simulé) ===================
+// Chaque carte : sa rareté tirée (60 / 26 / 11 / 3 %), puis un lieu libre de cette rareté n'importe où en France.
+//   Commun : l'adresse la plus proche d'un point au hasard ; Peu commun : une adresse d'une commune au standing 2 ;
+//   Rare : un lieu nommé (église, mairie, château, gare, musée) près d'un point au hasard ;
+//   Épique : un lieu célèbre (Wikipédia) ou une adresse d'une commune au standing 3. Jamais de monument.
+const BOITE_FR=[-5.2,41.3,9.6,51.1];
+function dansAnneau(pt, ring){ let c=false; for(let i=0,j=ring.length-1;i<ring.length;j=i++){ const [xi,yi]=ring[i],[xj,yj]=ring[j]; if(((yi>pt[1])!==(yj>pt[1])) && pt[0]<(xj-xi)*(pt[1]-yi)/(yj-yi)+xi) c=!c; } return c; }
+function pointAuHasard(rng){ for(let k=0;k<300;k++){ const p=[BOITE_FR[0]+rng()*(BOITE_FR[2]-BOITE_FR[0]), BOITE_FR[1]+rng()*(BOITE_FR[3]-BOITE_FR[1])]; if(GEO.france.some(r=>dansAnneau(p,r))) return p; } return FRANCE[0]; }
+const CODES_STANDING = { 2:Object.keys(STANDING).filter(c=>STANDING[c]===2), 3:Object.keys(STANDING).filter(c=>STANDING[c]===3) };
+// Paris, Lyon et Marseille sont regroupées dans la table : on tire un arrondissement
+function communeReelle(code, rng){ const n=Math.floor(rng()*20); if(code==='75056') return '751'+String(1+n).padStart(2,'0'); if(code==='69123') return '6938'+(1+n%9); if(code==='13055') return '132'+String(1+n%16).padStart(2,'0'); return code; }
+async function geoJSON(chemin){ const r=await fetch('https://data.geopf.fr/geocodage/'+chemin); if(!r.ok) throw new Error('géocodage '+r.status); return r.json(); }
+async function adresseProche(lon,lat){ const j=await geoJSON(`reverse?lon=${lon}&lat=${lat}&limit=1&index=address&type=housenumber`); const x=(j.features||[])[0]; return x ? Object.assign(mkAddr(x,null),{type:'adresse'}) : null; }
+async function adresseDansCommune(code, rng){ for(const mot of ['rue','route','chemin','place']){ const j=await geoJSON(`search?q=${mot}&citycode=${code}&index=address&limit=20`); const f=(j.features||[]).filter(x=>x.properties.citycode===code);
+    if(f.length){ const [lon,lat]=f[Math.floor(rng()*f.length)].geometry.coordinates; return adresseProche(lon,lat); } } return null; }
+async function lieuNommeProche(lon,lat,rng){ const kinds=['eglise','mairie','chateau','gare','musee']; const k=kinds[Math.floor(rng()*kinds.length)];
+  // seulement les lieux qui ont un vrai nom (pas « Zone d'activité ou d'intérêt » ni « Mairie » tout court)
+  const j=await geoJSON(`search?index=poi&q=${k}&lat=${lat}&lon=${lon}&limit=10`); const f=(j.features||[]).filter(x=>{ const n=(x.properties.toponym||'').trim(), cats=(x.properties.category||[]).map(t=>t.toLowerCase());
+    return n.length>3 && !cats.includes(n.toLowerCase()) && !/^zone d.activit/i.test(n) && Celebres.significatifs(n).filter(m=>!/^(gares|eglises|mairies|musees|chateaux|chapelles)$/.test(m)).length>0; }); if(!f.length) return null; const x=f[Math.floor(rng()*f.length)], p=x.properties;
+  let carte={ id:'poi'+hash(p.toponym+x.geometry.coordinates), label:p.toponym, lon:x.geometry.coordinates[0], lat:x.geometry.coordinates[1], citycode:(p.citycode||[])[0]||'', city:(p.city||[])[0]||'', type:'lieu', cat:k };
+  const e=Celebres.trouver(carte, await chargerCelebres(Celebres.departement(carte.citycode))); if(e) carte=Object.assign(Celebres.lieuDe(e),{city:carte.city}); return carte; }
+async function celebreAuHasard(rng){ const dep=DEP_BOITES[Math.floor(rng()*DEP_BOITES.length)].code; const l=await chargerCelebres(dep); if(!l.length) return null; const e=l[Math.floor(rng()*l.length)];
+  const a=await adresseProche(e[3],e[4]); return Object.assign(Celebres.lieuDe(e), {city:a?a.city:''}); }
+async function lieuDeRarete(r, rng){
+  if(r===1){ const [lon,lat]=pointAuHasard(rng); return adresseProche(lon,lat); }
+  if(r===3){ const [lon,lat]=pointAuHasard(rng); return lieuNommeProche(lon,lat,rng); }
+  if(r===4 && rng()<0.5) return celebreAuHasard(rng);
+  const codes=CODES_STANDING[r===2?2:3]; return adresseDansCommune(communeReelle(codes[Math.floor(rng()*codes.length)], rng), rng); }
+function estLibre(c){ return !state.owned[c.id] && ownerOf(c)===null; }
+// une carte de la rareté voulue (6 essais) ; si le réseau ou le hasard s'obstinent, une carte Commune
+async function tirerCarte(r, base, dejaTires){
+  for(const rv of (r===1?[1]:[r,1])) for(let essai=0; essai<6; essai++){ const rng=Pack.alea(Pack.graine(base+':'+rv+':'+essai));
+    try{ const c=await lieuDeRarete(rv, rng); if(Pack.convient(c, rv, rarete, estLibre, dejaTires)) return c; }catch(e){} }
+  return null; }
 async function ouvrirPack(){ if(!packDispo()) return; const btn=document.getElementById('packbtn'); btn.disabled=true; btn.textContent='Ouverture…'; openScene();
-  const cards=[]; let tries=0;
-  while(cards.length<5 && tries<12){ tries++;
-    try{
-      const [hx,hy]=FRANCE[hash(String(now())+tries)%FRANCE.length];
-      if(cards.length===4 && hash(String(jour()))%100<35 && !cards.some(c=>c.type==='lieu')){ // 35 % de chance d'un lieu en 5e carte
-        const kinds=['eglise','mairie','chateau','gare','musee']; const k=kinds[hash('k'+jour()+tries)%kinds.length];
-        const r=await fetch(`https://data.geopf.fr/geocodage/search?index=poi&q=${k}&lat=${hy}&lon=${hx}&limit=6`); const j=await r.json(); const f=j.features.filter(x=>!state.owned['poi'+hash(x.properties.toponym+x.geometry.coordinates)]);
-        if(f.length){ const x=f[hash(String(now()))%f.length]; const p=x.properties; const id='poi'+hash(p.toponym+x.geometry.coordinates);
-          let carte = { id, label:p.toponym, lon:x.geometry.coordinates[0], lat:x.geometry.coordinates[1], citycode:(p.citycode||[])[0]||'', city:(p.city||[])[0]||'', type:'lieu', cat:k };
-          const e = Celebres.trouver(carte, await chargerCelebres(Celebres.departement(carte.citycode)));
-          if(e && state.owned['wd:'+e[0]]) continue;  // déjà à moi : on tire autre chose
-          if(e) carte = Object.assign(Celebres.lieuDe(e), {city:carte.city});
-          cards.push(carte); continue; } }
-      const ang=Math.random()*Math.PI*2, d=100+Math.random()*1200; const lon=hx + d*Math.cos(ang)/(111320*Math.cos(hy*Math.PI/180)), lat=hy + d*Math.sin(ang)/110540;
-      const r=await fetch(`https://data.geopf.fr/geocodage/reverse?lon=${lon}&lat=${lat}&limit=1&index=address&type=housenumber`); const j=await r.json(); const x=j.features[0]; if(!x) continue;
-      const a=mkAddr(x, null); if(state.owned[a.id] || cards.find(c=>c.id===a.id)) continue; a.type='adresse'; cards.push(a);
-    }catch(e){ }
-  }
+  const base=(state.pseudo||'?')+':'+jour(); const raretes=Pack.raretes(ECO.pack.cartes, ECO.pack.chances, Pack.alea(Pack.graine(base)));
+  const cards=[];
+  // les cartes sont tirées en parallèle, puis les doublons éventuels retirés à la carte près
+  const tirees=await Promise.all(raretes.map((r,i)=>tirerCarte(r, base+':'+i, [])));
+  for(const c of tirees) if(c && !cards.some(x=>x.id===c.id)) cards.push(c);
+  // une carte manquante (réseau capricieux) : complétée par une carte Commune, pour que le pack ait toujours ses 5 cartes
+  for(let k=0; cards.length<ECO.pack.cartes && k<4; k++){ const c=await tirerCarte(1, base+':plus:'+k, cards); if(c) cards.push(c); }
   if(!cards.length){ btn.disabled=false; btn.textContent='🎁 Pack du jour'; finPack(); return toast('Impossible de tirer le pack (réseau)'); }
   encaisser(true); state.lastPack=jour(); for(const c of cards){ state.owned[c.id]=Object.assign({}, c, {niveau:0, depuis:now()}); state.seen[c.id]='libre'; setBadge(c,0); } save(); refreshTop();
   // tri : les communes d'abord, la meilleure carte en dernier (suspense)
