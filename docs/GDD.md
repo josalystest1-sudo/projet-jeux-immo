@@ -100,6 +100,8 @@ Pas de bonus de collection en V1. **[Décidé]** En V2 : « toute ma rue », « 
 
 ## 7. Les écrans **[Décidé]**
 
+Style et ergonomie (3 nov. 2026, demande de Gautier) : voir `docs/DESIGN.md` (« la plaque et la pièce »). La carte est l'accueil ; la barre du bas : Carte, Patrimoine, **le pack du jour au centre** (bouton rond doré, compte à rebours quand il n'est pas prêt), Enchères, Communes ; les notifications sous la cloche, en haut ; les réglages dans le profil (et la roue des notifications) ; un guide des premiers pas (6 bulles) après le premier pack, à revoir dans les réglages ; installable sur l'écran d'accueil (`manifest.webmanifest`). **[Proposé]**
+
 1. **Carte** (accueil) : ville 3D stylisée (bâtiments IGN extrudés, rues, parcs, eau), vue 3D ou 2D, recherche d'adresse ; parcelles colorées (moi / autres / partagée / libre), badges construction 🏠🏢🏙, badge 💰 en vente, monuments dorés avec halo et étiquette. Fiche d'une parcelle : Street View intégré (gratuit, rien n'est stocké), surface, plafond, la liste de ses lieux avec propriétaire (cliquable → profil), construction, mettre en vente, acheter, faire une offre.
 2. **Patrimoine** : lieux en cartes à bordure brillante selon la rareté, filtres, valeur totale, revenu/jour, récolte, mes ventes en cours.
 3. **Enchères** : les 3 enchères de la semaine, mises, historique, les prochains monuments.
