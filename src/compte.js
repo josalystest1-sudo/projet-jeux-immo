@@ -29,12 +29,12 @@
   function ecranCompte(mode, message) {
     bloquant = true;
     const inscription = mode !== 'connexion';
-    ouvrir(`<h2>${inscription ? 'Crée ton compte' : 'Connexion'}</h2>
+    ouvrir(`<div style="text-align:center;margin:-2px 0 8px"><div class="plaque" style="font-size:26px"><small>Collectionne la France</small>Cadastra</div></div><h2>${inscription ? 'Crée ton compte' : 'Connexion'}</h2>
       <div class="sub">${inscription ? 'Un compte par joueur : il garde ton pseudo. Bientôt, tes lieux et tes pièces te suivront aussi d’un appareil à l’autre.' : 'Content de te revoir !'}</div>
       <input class="txt" id="cpt-mail" type="email" autocomplete="email" placeholder="Ton e-mail" style="margin-bottom:8px">
       <input class="txt" id="cpt-mdp" type="password" autocomplete="${inscription ? 'new-password' : 'current-password'}" placeholder="Mot de passe${inscription ? ' (8 caractères au moins)' : ''}">
       <div class="err" id="cpt-err">${message ? echapper(message) : ''}</div>
-      <button class="btn" style="width:100%;margin-bottom:10px" id="cpt-ok">${inscription ? 'Créer mon compte' : 'Me connecter'}</button>
+      <button class="btn large" style="margin-bottom:10px" id="cpt-ok">${inscription ? 'Créer mon compte' : 'Me connecter'}</button>
       <div class="m" style="text-align:center">${inscription
         ? 'Déjà un compte ? <a href="#" id="cpt-bascule" style="color:var(--gold)">Me connecter</a>'
         : 'Pas encore de compte ? <a href="#" id="cpt-bascule" style="color:var(--gold)">Créer un compte</a> · <a href="#" id="cpt-oubli" style="color:var(--gold)">Mot de passe oublié</a>'}</div>`);

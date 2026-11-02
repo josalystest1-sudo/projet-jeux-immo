@@ -283,7 +283,8 @@ h2{margin:4px 0 2px;font-size:22px}
 .compte-a-rebours{display:inline-flex;align-items:center;gap:6px;background:var(--encre);color:#fff;border-radius:999px;padding:5px 12px;font-family:var(--titre);font-weight:800;font-size:15px}
 .lot .mise{font-family:var(--titre);font-weight:800;font-size:24px;display:flex;align-items:center;gap:6px;line-height:1.1}
 .lot .rapides{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin-top:10px}
-.lot .rapides .btn{padding:9px 6px 7px;font-size:14px}
+.lot .rapides .btn{flex-direction:column;gap:2px;white-space:normal;padding:8px 4px 6px;font-size:15px;line-height:1}
+.lot .rapides .btn .montant{font-size:13px}
 .lot details{margin-top:10px}
 .lot summary{cursor:pointer;color:var(--plaque);font-weight:900;font-size:14px}
 .couronne{font-size:20px}
@@ -348,3 +349,23 @@ h2{margin:4px 0 2px;font-size:22px}
 @keyframes jaillir{0%{transform:translate(-50%,-50%) scale(.4);opacity:0}12%{opacity:1}55%{transform:translate(calc(-50% + var(--dx)),calc(-50% + var(--dy))) scale(1.15);opacity:1}100%{transform:translate(calc(-50% + var(--dx) * 1.15),calc(-50% + var(--dy) + 160px)) scale(.85);opacity:0}}
 .montant{display:inline-flex;align-items:center;gap:3px;font-family:var(--titre);font-weight:800}
 .tag.bleu-lien{background:var(--plaque-clair);color:var(--plaque)}
+
+/* ---------------------------------------------------------------- le guide des premiers pas */
+#guide{position:absolute;inset:0;z-index:90}
+#guide .spot{position:absolute;box-shadow:0 0 0 9999px rgba(23,35,63,.66);outline:3px solid var(--piece);outline-offset:2px;transition:all .38s cubic-bezier(.2,.9,.3,1);pointer-events:none}
+#guide .bulle{position:absolute;left:14px;right:14px;background:#fff;border-radius:24px;padding:16px;box-shadow:var(--ombre-forte);animation:pop .32s cubic-bezier(.2,1.4,.4,1)}
+#guide .bulle .t{font-family:var(--titre);font-weight:800;font-size:21px;line-height:1.15}
+#guide .bulle .m{color:var(--encre2);font-weight:700;margin-top:4px;line-height:1.4}
+#guide .points{display:flex;gap:5px}
+#guide .points i{width:8px;height:8px;border-radius:50%;background:var(--trait)}
+#guide .points i.on{background:var(--plaque);width:20px;border-radius:9px}
+
+/* ---------------------------------------------------------------- l'écran d'accueil (pendant le chargement de la carte) */
+#accueil{position:absolute;inset:0;z-index:100;background:radial-gradient(circle at 50% 38%,#fff 0,var(--ciel) 55%,#CFE0FA 100%);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:26px;transition:opacity .5s ease}
+#accueil.fin{opacity:0;pointer-events:none}
+#accueil .logo{font-size:44px;padding:10px 26px 6px;animation:pop .5s cubic-bezier(.2,1.4,.4,1)}
+#accueil .logo small{font-size:14px}
+#accueil .chargement{display:flex;gap:10px}
+#accueil .chargement .pc{width:20px;height:20px;animation:saut 1s ease-in-out infinite}
+#accueil .chargement .pc:nth-child(2){animation-delay:.15s}#accueil .chargement .pc:nth-child(3){animation-delay:.3s}
+@keyframes saut{0%,100%{transform:translateY(0)}40%{transform:translateY(-12px)}}

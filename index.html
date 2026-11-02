@@ -31,6 +31,7 @@
 <meta name="theme-color" content="#EAF2FF">
 </head>
 <body>
+<div id="accueil"><div class="plaque logo"><small>Collectionne la France</small>Cadastra</div><div class="chargement"><i class="pc"></i><i class="pc"></i><i class="pc"></i></div></div>
 <div id="map"></div>
 <div id="top">
   <div class="row">
@@ -136,8 +137,9 @@ function dist(a,b){ const dx=(a[0]-b[0])*Math.cos(a[1]*Math.PI/180)*111320, dy=(
 // une petite fête (achat, construction, récolte) : pièces et étoiles qui jaillissent
 function fete(n){ n=n||14; const w=document.createElement('div'); w.className='fete';
   for(let i=0;i<n;i++){ const e=document.createElement('i'); e.textContent=['🪙','✨','🪙','⭐'][i%4]; e.style.setProperty('--dx',Math.round((Math.random()*2-1)*150)+'px'); e.style.setProperty('--dy',Math.round(-90-Math.random()*170)+'px'); e.style.animationDelay=Math.round(Math.random()*140)+'ms'; w.appendChild(e); }
-  document.body.appendChild(w); setTimeout(()=>w.remove(), 1500); try{ sonGain(); }catch(e){} if(navigator.vibrate) navigator.vibrate([12,40,18]); }
+  document.body.appendChild(w); setTimeout(()=>w.remove(), 1500); try{ sonGain(); }catch(e){} vibrer([12,40,18]); }
 function sonGain(){ const a=audio(); if(!a) return; [988,1319].forEach((f,i)=>{ const o=a.createOscillator(), g=a.createGain(); o.type='triangle'; o.frequency.value=f; const t=a.currentTime+i*0.09; g.gain.setValueAtTime(0.0001,t); g.gain.exponentialRampToValueAtTime(0.16,t+0.01); g.gain.exponentialRampToValueAtTime(0.0001,t+0.28); o.connect(g); g.connect(a.destination); o.start(t); o.stop(t+0.3); }); }
+function vibrer(motif){ if(state.prefs && state.prefs.vibrations===false) return; if(navigator.vibrate) navigator.vibrate(motif); }
 let toastMinuterie=0;
 function toast(t){ const el=document.getElementById('toast'); el.textContent=t; el.classList.add('on'); clearTimeout(toastMinuterie); toastMinuterie=setTimeout(()=>el.classList.remove('on'), 2300); }
 function communeName(citycode, city){ if(!citycode) return city||'?'; if(citycode.startsWith('751')) return 'Paris '+(parseInt(citycode.slice(3))+(parseInt(citycode.slice(3))===1?'er':'e')); return city||citycode; }
@@ -297,6 +299,9 @@ function paintBadges(idu){ const list=parcelAddrs[idu]; if(!list) return; list.f
 function restoreBadges(){ for(const a of Object.values(state.owned)) setBadge(a, a.niveau||0); }
 map.on('idle', ()=>{ seedVisible(); paintBuildings(); });
 map.on('load', restoreBadges);
+// l'écran d'accueil s'efface quand la carte est prête (au plus tard après 6 s)
+function finAccueil(){ const a=document.getElementById('accueil'); if(!a || a.classList.contains('fin')) return; a.classList.add('fin'); setTimeout(()=>a.remove(), 600); }
+map.once('idle', finAccueil); setTimeout(finAccueil, 6000);
 map.on('load', ()=>{ const at=document.querySelector('.maplibregl-ctrl-attrib'); if(at) at.classList.remove('maplibregl-compact-show'); });
 
 // clic
@@ -527,10 +532,10 @@ function askGyro(){ if(gyroOn) return; const D=window.DeviceOrientationEvent; co
   cv.addEventListener('pointerup',e=>{ if(x0!==null && !moved && packCards && !GL.torn && y0 < innerHeight*0.42) dechirer(); x0=null; });
   window.addEventListener('resize',()=>{ if(GL.r){ const c=document.getElementById('pkgl'); GL.r.setSize(c.clientWidth,c.clientHeight,false); GL.composer.setSize(c.clientWidth,c.clientHeight); GL.cam.aspect=c.clientWidth/c.clientHeight; GL.cam.updateProjectionMatrix(); } }); })();
 // sons synthétisés (aucun fichier)
-function audio(){ if(!GL.audio){ try{ GL.audio=new (window.AudioContext||window.webkitAudioContext)(); }catch(e){} } return GL.audio; }
+function audio(){ if(state.prefs && state.prefs.sons===false) return null; if(!GL.audio){ try{ GL.audio=new (window.AudioContext||window.webkitAudioContext)(); }catch(e){} } return GL.audio; }
 function sonDechirure(){ const a=audio(); if(!a) return; const n=a.sampleRate*0.35; const b=a.createBuffer(1,n,a.sampleRate); const d=b.getChannelData(0); for(let i=0;i<n;i++){ d[i]=(Math.random()*2-1)*Math.pow(1-i/n,1.6)*(0.5+0.5*Math.sin(i/40)); }
-  const src=a.createBufferSource(); src.buffer=b; const f=a.createBiquadFilter(); f.type='bandpass'; f.frequency.value=2200; f.Q.value=0.7; const g=a.createGain(); g.gain.value=0.5; src.connect(f); f.connect(g); g.connect(a.destination); src.start(); if(navigator.vibrate) navigator.vibrate([30,20,40]); }
-function sonCarte(r){ const a=audio(); if(!a) return; const notes = r>=4 ? [523,659,784,1046,1318] : (r===3 ? [523,659,784] : [660,880]); notes.forEach((fq,i)=>{ const o=a.createOscillator(); const g=a.createGain(); o.type='sine'; o.frequency.value=fq; g.gain.setValueAtTime(0.0001,a.currentTime+i*0.08); g.gain.exponentialRampToValueAtTime(0.25,a.currentTime+i*0.08+0.02); g.gain.exponentialRampToValueAtTime(0.0001,a.currentTime+i*0.08+0.6); o.connect(g); g.connect(a.destination); o.start(a.currentTime+i*0.08); o.stop(a.currentTime+i*0.08+0.7); }); if(navigator.vibrate) navigator.vibrate(r>=4?[20,30,60]:20); }
+  const src=a.createBufferSource(); src.buffer=b; const f=a.createBiquadFilter(); f.type='bandpass'; f.frequency.value=2200; f.Q.value=0.7; const g=a.createGain(); g.gain.value=0.5; src.connect(f); f.connect(g); g.connect(a.destination); src.start(); vibrer([30,20,40]); }
+function sonCarte(r){ const a=audio(); if(!a) return; const notes = r>=4 ? [523,659,784,1046,1318] : (r===3 ? [523,659,784] : [660,880]); notes.forEach((fq,i)=>{ const o=a.createOscillator(); const g=a.createGain(); o.type='sine'; o.frequency.value=fq; g.gain.setValueAtTime(0.0001,a.currentTime+i*0.08); g.gain.exponentialRampToValueAtTime(0.25,a.currentTime+i*0.08+0.02); g.gain.exponentialRampToValueAtTime(0.0001,a.currentTime+i*0.08+0.6); o.connect(g); g.connect(a.destination); o.start(a.currentTime+i*0.08); o.stop(a.currentTime+i*0.08+0.7); }); vibrer(r>=4?[20,30,60]:20); }
 
 
 // =================== révélation façon FIFA (France → département → commune → rue) ===================
@@ -579,9 +584,9 @@ async function revealSequence(c){ const rv=document.getElementById('reveal'); co
   label('rl2', c.label, true); label('rl3', RARETES[r], true); await attendreR(1400);
   rv.className=''; }
 // rythme : battement qui accélère (0 = stop)
-let beatTimer=null; function battement(speed){ clearTimeout(beatTimer); if(!speed) return; const a=audio(); const tick=()=>{ if(a){ const o=a.createOscillator(); const gn=a.createGain(); o.type='sine'; o.frequency.setValueAtTime(110,a.currentTime); o.frequency.exponentialRampToValueAtTime(45,a.currentTime+0.12); gn.gain.setValueAtTime(0.5,a.currentTime); gn.gain.exponentialRampToValueAtTime(0.0001,a.currentTime+0.16); o.connect(gn); gn.connect(a.destination); o.start(); o.stop(a.currentTime+0.18); } if(navigator.vibrate) navigator.vibrate(12); beatTimer=setTimeout(tick, 900/speed); }; tick(); }
+let beatTimer=null; function battement(speed){ clearTimeout(beatTimer); if(!speed) return; const a=audio(); const tick=()=>{ if(a){ const o=a.createOscillator(); const gn=a.createGain(); o.type='sine'; o.frequency.setValueAtTime(110,a.currentTime); o.frequency.exponentialRampToValueAtTime(45,a.currentTime+0.12); gn.gain.setValueAtTime(0.5,a.currentTime); gn.gain.exponentialRampToValueAtTime(0.0001,a.currentTime+0.16); o.connect(gn); gn.connect(a.destination); o.start(); o.stop(a.currentTime+0.18); } vibrer(12); beatTimer=setTimeout(tick, 900/speed); }; tick(); }
 function riser(sec){ const a=audio(); if(!a) return; const n=a.sampleRate*sec; const b=a.createBuffer(1,n,a.sampleRate); const d=b.getChannelData(0); for(let i=0;i<n;i++) d[i]=(Math.random()*2-1)*(i/n); const src=a.createBufferSource(); src.buffer=b; const f=a.createBiquadFilter(); f.type='bandpass'; f.Q.value=1.2; f.frequency.setValueAtTime(200,a.currentTime); f.frequency.exponentialRampToValueAtTime(4000,a.currentTime+sec); const gn=a.createGain(); gn.gain.value=0.35; src.connect(f); f.connect(gn); gn.connect(a.destination); src.start(); }
-function boom(r){ const a=audio(); if(!a) return; const o=a.createOscillator(); const gn=a.createGain(); o.type='sine'; o.frequency.setValueAtTime(140,a.currentTime); o.frequency.exponentialRampToValueAtTime(35,a.currentTime+0.5); gn.gain.setValueAtTime(0.9,a.currentTime); gn.gain.exponentialRampToValueAtTime(0.0001,a.currentTime+0.7); o.connect(gn); gn.connect(a.destination); o.start(); o.stop(a.currentTime+0.75); if(navigator.vibrate) navigator.vibrate(r>=4?[60,40,120]:[60]); }
+function boom(r){ const a=audio(); if(!a) return; const o=a.createOscillator(); const gn=a.createGain(); o.type='sine'; o.frequency.setValueAtTime(140,a.currentTime); o.frequency.exponentialRampToValueAtTime(35,a.currentTime+0.5); gn.gain.setValueAtTime(0.9,a.currentTime); gn.gain.exponentialRampToValueAtTime(0.0001,a.currentTime+0.7); o.connect(gn); gn.connect(a.destination); o.start(); o.stop(a.currentTime+0.75); vibrer(r>=4?[60,40,120]:[60]); }
 function flash(){ const f=document.getElementById('flash'); f.style.transition='none'; f.style.opacity=.9; requestAnimationFrame(()=>{ f.style.transition='opacity .6s ease'; f.style.opacity=0; }); }
 function sonTick(fq){ const a=audio(); if(!a) return; const o=a.createOscillator(); const gn=a.createGain(); o.type='triangle'; o.frequency.value=fq||880; gn.gain.setValueAtTime(0.0001,a.currentTime); gn.gain.exponentialRampToValueAtTime(0.18,a.currentTime+0.01); gn.gain.exponentialRampToValueAtTime(0.0001,a.currentTime+0.18); o.connect(gn); gn.connect(a.destination); o.start(); o.stop(a.currentTime+0.2); }
 let revealing=false;
@@ -589,12 +594,12 @@ let packCards=null, packTorn=false;
 function openScene(){ const sc=document.getElementById('packscene'); packTorn=false; packCards=null; document.getElementById('pkgl').style.display='block';
   document.getElementById('pkcards').innerHTML=''; document.getElementById('packdone').style.display='none'; document.getElementById('pkhint').textContent='Incline ton téléphone…'; document.getElementById('pkload').textContent='Le pack arrive…';
   sc.classList.add('on'); requestAnimationFrame(()=>{ sc.classList.add('show'); initGL(); }); }
-function finPack(){ const sc=document.getElementById('packscene'); sc.classList.remove('show'); setTimeout(()=>{ sc.classList.remove('on'); disposeGL(); }, 500); renderPatrimoine(); refreshTop(); }
+function finPack(){ const sc=document.getElementById('packscene'); sc.classList.remove('show'); setTimeout(()=>{ sc.classList.remove('on'); disposeGL(); }, 500); renderPatrimoine(); refreshTop(); if(!state.prefs.guideVu) setTimeout(()=>guide(0), 900); }
 function dechirer(){ packTorn=true; GL.torn=true; GL.tornAt=performance.now(); sonDechirure(); document.getElementById('pkhint').textContent='';
   setTimeout(()=>{ sortirCartes(); }, 650); setTimeout(()=>{ document.getElementById('pkgl').style.display='none'; disposeGL(); }, 1800); }
 function sortirCartes(){ const wrap=document.getElementById('pkcards'); const n=packCards.length; let revealed=0;
   packCards.forEach((c,i)=>{ const el=document.createElement('div'); const r=rarete(c); el.className='rcard r'+r;
-    el.innerHTML=`<div class="face back">🎁</div><div class="face front"><div class="rar">${RARETES[r]}</div><div class="big">${c.type==='lieu'?'⭐':'📍'}</div><div class="n">${c.label}</div><div class="m">${communeName(c.citycode,c.city)}</div><div class="m">plafond ${NIVEAUX[plafond(c)].nom} · ${fmt(valeur(c))}</div></div>`;
+    el.innerHTML=`<div class="face back">🎁</div><div class="face front"><div class="rar">${RARETES[r]}</div><div class="big">${iconeLieu(c)}</div><div class="n">${echapper(c.label)}</div><div class="m">${echapper(communeName(c.citycode,c.city))}</div><div class="chips" style="justify-content:center;margin:6px 0 0"><span class="chip or"><b>${nb(valeur(c))}</b><i class="pc"></i></span><span class="chip">Jusqu’à ${NIVEAUX[plafond(c)].icone} ${NIVEAUX[plafond(c)].nom}</span></div></div>`;
     // pile : chaque carte sort du pack, puis se range en éventail en bas
     el.style.setProperty('--x','0px'); el.style.setProperty('--y','0px'); el.style.setProperty('--r','0deg'); el.style.setProperty('--s','1');
     wrap.appendChild(el);
@@ -698,50 +703,110 @@ function ouvrirFicheLieu(id){ const a=state.owned[id]; const box=document.getEle
   box.appendChild(pied); document.getElementById('modal').classList.add('on'); }
 function recolter(){ const p=Math.floor(pendingRent()); if(p<1) return toast('Rien à récolter pour l’instant'); encaisser(true); fete(Math.min(22, 8+Math.floor(p/200))); toast(`+${nb(p)} 🪙 récoltées`); apresAction(); refreshTop(); }
 
+function arrondiMise(x){ return x<10000 ? Math.ceil(x/50)*50 : Math.ceil(x/100)*100; }
+function dureeTexte(ms){ const s=Math.max(0,Math.floor(ms/1000)); const j=Math.floor(s/86400), h=Math.floor(s%86400/3600), m=Math.floor(s%3600/60); return j ? `${j} j ${h} h` : (h ? `${h} h ${String(m).padStart(2,'0')}` : `${m} min ${String(s%60).padStart(2,'0')} s`); }
 function renderEncheres(){ const el=document.getElementById('s-encheres'); const idx=semaineEnCours(), debut=idx*SEMAINE, reste=debut+SEMAINE-now(), pct=100*(now()-debut)/SEMAINE;
-  let h=`<h1>Enchères</h1><div class="card"><div class="t">Les 3 monuments de la semaine</div><div class="m">1 monument national (légendaire) et 2 régionaux, pour toute la France.</div>
-    <div class="bar"><i style="width:${pct}%"></i></div><div class="m">Clôture dans ${Math.floor(reste/60000)} min ${Math.floor(reste/1000)%60} s (démo : 1 semaine = 7 min) · disponible pour miser : <b>${fmt(dispo())}</b></div></div>`;
+  let h=`<h1>Enchères <span class="act compte-a-rebours">⏳ ${dureeTexte(reste)}</span></h1>
+    <div class="card"><div class="t">Les 3 monuments de la semaine</div><div class="m">Un monument national (légendaire) et deux régionaux, pour toute la France. Démo : une semaine dure 7 minutes.</div>
+    <div class="bar"><i style="width:${pct}%"></i></div><div class="flex"><span class="m" style="margin:0">Disponible pour miser</span><span class="montant" style="font-size:20px">${nb(dispo())}<i class="pc"></i></span></div></div>`;
   for(const lot of lotsDe(idx)){ const mises=misesDe(lot), top=ENC.meilleure(mises), min=ENC.miseMin(lot.m, mises), nat=lot.palier==='national', id='bid-'+lot.cle.replace(':','-');
-    const moi=mesMises(lot.cle), derniere=moi.length?moi[moi.length-1].montant:0, valeur=saisieEnch[lot.cle]||min;
-    h+=`<div class="card" style="border-color:${nat?'var(--gold)':'#8fb8ff'}"><div class="t">${lot.m.icone} ${lot.m.nom} <span class="tag monument">${nat?'Légendaire national':'Monument régional'}</span></div>
-      <div class="m">${lot.m.ville} · mise de départ ${fmt(ENC.miseDepart(lot.m))}</div>
-      <div style="margin:10px 0"><b>Meilleure mise : ${top?fmt(top.montant)+' par '+(top.qui===ME?'toi 🎉':top.qui):'aucune'}</b></div>
-      <div class="flex"><input class="num" id="${id}" type="number" value="${valeur}" oninput="saisieEnch['${lot.cle}']=parseInt(this.value)||0"><button class="btn" onclick="encherir('${lot.cle}', parseInt(document.getElementById('${id}').value)||0)">Enchérir (min ${fmt(min)})</button></div>
-      ${derniere?`<div class="m" style="margin-top:6px">Ta dernière mise : ${fmt(derniere)} · ${top&&top.qui===ME?'tu mènes, fonds bloqués':'dépassée, fonds libérés'}</div>`:''}
-      <details style="margin-top:6px"><summary class="m">Historique des mises (${mises.length})</summary>${mises.slice().sort((a,b)=>b.ts-a.ts).map(b=>`<div class="rank"><span class="who" onclick="showPlayer('${b.qui}')">${disp(b.qui)}</span><b>${fmt(b.montant)}</b></div>`).join('')||'<div class="m">Aucune mise pour l’instant.</div>'}</details>
-      <div style="margin-top:8px"><button class="btn sm" onclick="showScreen('carte');map.flyTo({center:[${lot.m.lon},${lot.m.lat}],zoom:17,duration:1200})">Voir sur la carte</button></div></div>`; }
-  h+=`<div class="card"><div class="t">Les règles</div><div class="m">Ta mise doit être couverte par ton solde, moins ce que tu as déjà engagé sur les autres enchères où tu mènes. Si quelqu’un te dépasse, tes fonds sont libérés. À la clôture, si le meneur n’a plus les fonds, le monument va à la mise suivante.</div></div>`;
-  h+=`<div class="card"><div class="t">Prochains monuments</div>`; for(let k=1;k<=2;k++) for(const l of lotsDe(idx+k)) h+=`<div class="rank"><span class="pos">S+${k}</span><span class="who">${l.m.icone} ${l.m.nom}</span><span class="m">${l.palier==='national'?'national':'régional'} · dès ${fmt(ENC.miseDepart(l.m))}</span></div>`; h+=`</div>`;
+    const moi=mesMises(lot.cle), derniere=moi.length?moi[moi.length-1].montant:0, valeur=saisieEnch[lot.cle]||min, jeMene=top&&top.qui===ME;
+    const base = top ? top.montant : ENC.miseDepart(lot.m); const rapides=[min, Math.max(min, arrondiMise(base*1.10)), Math.max(min, arrondiMise(base*1.25))];
+    const statut = !derniere ? '' : (jeMene ? '<span class="chip vert">🏆 Tu mènes · fonds bloqués</span>' : '<span class="chip" style="background:#FDE3DE;color:var(--brique2)">⚠️ Dépassé · fonds libérés</span>');
+    h+=`<div class="card lot r5" style="border:3px solid ${nat?'var(--piece)':'#BFD3F5'}">
+      <div class="tete" style="display:flex;gap:12px;align-items:center"><div class="ico-lieu ${nat?'r5':'r3'}">${lot.m.icone}</div><div style="flex:1;min-width:0">
+        <span class="tag ${nat?'monument':'r3'}" style="margin:0 0 4px">${nat?'👑 Légendaire national':'Monument régional'}</span>
+        <div class="t" style="line-height:1.15">${echapper(lot.m.nom)}</div><div class="m">${echapper(lot.m.ville)} · départ ${nb(ENC.miseDepart(lot.m))} 🪙</div></div></div>
+      <div class="flex" style="margin-top:12px;align-items:flex-end"><div><div class="m" style="margin:0">Meilleure mise</div><div class="mise">${top?nb(top.montant):'—'}${top?'<i class="pc"></i>':''}</div></div>
+        <div style="text-align:right">${top?`<span class="own ${jeMene?'me':'other'}" onclick="showPlayer('${top.qui}')">${jeMene?'🎉 Toi':'👤 '+echapper(top.qui)}</span>`:'<span class="m">Aucune mise</span>'}</div></div>
+      ${statut?`<div style="margin-top:8px">${statut}</div>`:''}
+      <div class="rapides">${rapides.map((v,i)=>`<button class="btn${i===0?'':' clair'}" onclick="encherir('${lot.cle}', ${v})"><span>${i===0?'Miser':i===1?'+10 %':'+25 %'}</span><span class="montant">${nb(v)}<i class="pc"></i></span></button>`).join('')}</div>
+      <details><summary>Autre montant</summary><div class="offre" style="display:flex;gap:8px;margin-top:8px"><input class="num" id="${id}" type="number" inputmode="numeric" value="${valeur}" oninput="saisieEnch['${lot.cle}']=parseInt(this.value)||0" style="flex:1"><button class="btn bleu" onclick="encherir('${lot.cle}', parseInt(document.getElementById('${id}').value)||0)">Enchérir</button></div></details>
+      <details><summary>Historique des mises (${mises.length})</summary>${mises.slice().sort((a,b)=>b.ts-a.ts).map(b=>`<div class="rank"><span class="who" onclick="showPlayer('${b.qui}')">${echapper(disp(b.qui))}</span><b>${nb(b.montant)}<i class="pc"></i></b></div>`).join('')||'<div class="m">Aucune mise pour l’instant.</div>'}</details>
+      <button class="btn clair sm" style="margin-top:10px" onclick="showScreen('carte');map.flyTo({center:[${lot.m.lon},${lot.m.lat}],zoom:17,duration:1200})">🗺️ Voir sur la carte</button></div>`; }
+  h+=`<div class="card"><details><summary class="t" style="color:var(--encre)">Comment ça marche ?</summary><div class="m" style="margin-top:8px">Ta mise doit être couverte par tes pièces, moins ce que tu as déjà engagé sur les autres enchères où tu mènes. Si quelqu’un te dépasse, tes pièces sont libérées. À la clôture, si le meneur n’a plus les fonds, le monument va à la mise suivante.</div></details></div>`;
+  h+=`<h2 class="section">Les semaines suivantes</h2><div class="card">`; for(let k=1;k<=2;k++) for(const l of lotsDe(idx+k)) h+=`<div class="rank"><span class="pos">${k===1?'S+1':'S+2'}</span><span class="who">${l.m.icone} ${echapper(l.m.nom)}</span><b style="font-size:14px">${nb(ENC.miseDepart(l.m))}<i class="pc"></i></b></div>`; h+=`</div>`;
   el.innerHTML=h; }
 
+// Communes et Maires : le Maire possède le plus de lieux de la commune ; à égalité, deux Maires ; le titre dure tant qu'on reste en tête
 function renderCommunes(){ const el=document.getElementById('s-communes'); const mine={}; Object.values(state.owned).forEach(a=>{ const k=communeName(a.citycode,a.city); mine[k]=(mine[k]||0)+1; });
-  const communes = Object.keys(mine); if(!communes.length) communes.push('Paris 9e');
-  let h=`<h1>Communes</h1><div class="sub">Le Maire est le joueur qui possède le plus de lieux dans la commune. Classement remis à zéro chaque saison (90 jours).</div>`;
-  for(const k of communes){ const rows=FAKE.map(f=>({who:f, n:(hash(k+f)%9)+ (hash(k)%3===0?6:0)})); rows.push({who:ME, n:mine[k]||0}); rows.sort((a,b)=>b.n-a.n); const maire=rows[0];
-    h+=`<div class="card"><div class="t">${k} · Maire : <span style="color:var(--gold)">${maire.who===ME?'toi 🎉':maire.who}</span></div>`;
-    rows.forEach((r,i)=>{ h+=`<div class="rank"><span class="pos">${i+1}</span><span class="who" onclick="showPlayer('${r.who}')">${r.who===ME?disp(ME)+' (toi)':r.who}</span><b>${r.n} lieu${r.n>1?'x':''}</b></div>`; }); h+=`</div>`; }
-  h+=`<div class="card"><div class="m">Cherche une autre ville dans la barre de recherche de la carte pour y jouer ; elle apparaîtra ici dès que tu y possèdes un lieu.</div></div>`;
+  const communes = Object.keys(mine).sort((a,b)=>mine[b]-mine[a]); if(!communes.length) communes.push('Paris 9e');
+  let h=`<h1>Communes</h1><div class="card flex"><div class="couronne" style="font-size:38px">👑</div><div style="flex:1"><div class="t">Deviens Maire</div><div class="m">Le Maire d’une commune est le joueur qui y possède le plus de lieux. À égalité, il y a deux Maires. Le titre dure tant que tu restes en tête.</div></div></div>`;
+  const medailles=['🥇','🥈','🥉'];
+  for(const k of communes){ const rows=FAKE.map(f=>({who:f, n:(hash(k+f)%9)+ (hash(k)%3===0?6:0)})); rows.push({who:ME, n:mine[k]||0}); rows.sort((a,b)=>b.n-a.n || (a.who===ME?-1:b.who===ME?1:0));
+    const max=rows[0].n, maires=rows.filter(r=>r.n===max && max>0), jeSuisMaire=maires.some(r=>r.who===ME), moi=mine[k]||0;
+    const nomsMaires = maires.map(r=>r.who===ME?'toi':r.who).join(' et ');
+    h+=`<div class="card"><div style="text-align:center"><div class="plaque petite"><small>Commune</small>${echapper(k)}</div></div>
+      <div class="flex" style="margin:4px 0 6px"><div><div class="m" style="margin:0">Maire${maires.length>1?'s':''}</div><div class="t">👑 ${echapper(nomsMaires)}${jeSuisMaire?' 🎉':''}</div></div>
+      ${jeSuisMaire?'<span class="chip or">Tu tiens la mairie</span>':`<span class="chip bleu">Encore <b>${max-moi}</b> lieu${max-moi>1?'x':''}</span>`}</div>`;
+    rows.forEach((r,i)=>{ h+=`<div class="rank${r.who===ME?' moi':''}"><span class="pos">${i<3&&r.n>0?medailles[i]:i+1}</span><span class="who" onclick="showPlayer('${r.who}')">${r.who===ME?echapper(disp(ME))+' (toi)':echapper(r.who)}</span><b>${r.n} lieu${r.n>1?'x':''}</b></div>`; }); h+=`</div>`; }
+  h+=`<div class="card vide" style="padding:18px"><div class="ico">🔍</div><div class="m" style="margin:0 0 10px">Une commune apparaît ici dès que tu y possèdes un lieu. Cherche une ville sur la carte pour en découvrir d’autres.</div><button class="btn bleu" onclick="showScreen('carte');setTimeout(()=>document.getElementById('q').focus(),200)">Chercher une ville</button></div>`;
   el.innerHTML=h; }
 
 function setPref(k,v){ state.prefs[k]=v; save(); }
-function renderNotifs(){ const el=document.getElementById('s-notifs'); let h=`<h1>Notifications</h1>`;
-  h+=`<div class="card"><div class="t">Réglages</div>
+// les notifications : une icône par sorte, l'heure relative, les actions ; les réglages sont à part
+function iconeNotif(n){ const t=n.text||''; if(n.type==='enchere') return /remporté/.test(t)?'🏆':(/surenchéri/.test(t)?'⚠️':'🔨'); if(n.type==='offre') return /accepté/.test(t)?'✅':(/refusé/.test(t)?'❌':'📨'); if(n.type==='vente') return '💰'; return '🔔'; }
+function ilYa(ts){ const s=Math.max(0,Math.floor((now()-ts)/1000)); if(s<60) return 'à l’instant'; const m=Math.floor(s/60); if(m<60) return `il y a ${m} min`; const h=Math.floor(m/60); if(h<24) return `il y a ${h} h`; return `il y a ${Math.floor(h/24)} j`; }
+function renderNotifs(){ const el=document.getElementById('s-notifs'); let h=`<h1>Notifications <button class="act rond" style="width:44px;height:44px;font-size:20px" onclick="ouvrirReglages()" aria-label="Réglages">⚙️</button></h1>`;
+  if(!state.notifs.length) h+=`<div class="card vide"><div class="ico">🔔</div><div class="t">Rien de neuf</div><div class="m">Les offres reçues, les enchères et les ventes arrivent ici.</div></div>`;
+  let section='';
+  for(const n of state.notifs){ const s2 = n.read ? 'Plus tôt' : 'Nouveau'; if(s2!==section){ section=s2; h+=`<h2 class="section">${section}</h2>`; }
+    h+=`<div class="card notif ${n.read?'':'unread'}"><div class="ico">${iconeNotif(n)}</div><div style="flex:1;min-width:0"><div class="quand">${ilYa(n.ts)}</div><div class="texte">${n.text}</div>`;
+    if(n.offerId){ const o=state.offersIn.find(x=>x.id===n.offerId); if(o && o.status==='attente') h+=`<div class="build"><button class="btn vert sm" onclick="repondreOffre('${o.id}',true)">Accepter · ${nb(o.price)}<i class="pc"></i></button><button class="btn sm" onclick="repondreOffre('${o.id}',false)">Refuser</button></div>`; else if(o) h+=`<div class="chip" style="margin-top:6px">${o.status==='acceptee'?'✅ Acceptée':'❌ Refusée'}</div>`; }
+    if(n.addrId && state.owned[n.addrId]) h+=`<div class="build"><button class="btn clair sm" onclick="flyToAddr(state.owned['${n.addrId}'])">🗺️ Voir sur la carte</button></div>`;
+    h+=`</div></div>`; }
+  el.innerHTML=h; state.notifs.forEach(n=>n.read=true); save(); refreshTop(); }
+// ---- le guide des premiers pas : chaque élément important éclairé tour à tour, avec une bulle
+const GUIDE=[
+  { cible:'#packbtn', titre:'🎁 Ton pack du jour', texte:'Chaque jour, 5 lieux tirés dans toute la France. Le bouton brille quand un nouveau pack t’attend.' },
+  { centre:true, titre:'🗺️ Touche un bâtiment', texte:'Tu vois ses lieux, leur rareté et leur propriétaire. Chez toi, tu construis ; chez les autres, tu fais une offre.' },
+  { cible:'#walletpill', titre:'🪙 Tes pièces', texte:'Ton salaire et tes loyers s’accumulent pendant 24 h. Touche ta bourse pour récolter, et reviens chaque jour.' },
+  { cible:'#nav button[data-s="patrimoine"]', titre:'🏘️ Ta collection', texte:'Tes lieux en cartes. Maison, Immeuble, Tour : plus tu construis haut, plus le loyer monte.' },
+  { cible:'#nav button[data-s="encheres"]', titre:'🔨 Les monuments', texte:'Chaque semaine, trois monuments sont mis aux enchères pour toute la France.' },
+  { cible:'#nav button[data-s="communes"]', titre:'👑 Deviens Maire', texte:'Possède le plus de lieux d’une commune et tu en deviens le Maire.' } ];
+function guide(i){ let g=document.getElementById('guide'); if(i>=GUIDE.length || i<0){ if(g) g.remove(); state.prefs.guideVu=true; save(); return; }
+  if(document.querySelector('.screen.on')) showScreen('carte');
+  if(!g){ g=document.createElement('div'); g.id='guide'; g.innerHTML='<div class="spot"></div><div class="bulle"></div>'; document.body.appendChild(g); }
+  const e=GUIDE[i], spot=g.querySelector('.spot'), bulle=g.querySelector('.bulle'); let r;
+  if(e.centre){ const w=innerWidth, h=innerHeight; r={ left:w/2-70, top:h*0.42-70, width:140, height:140 }; spot.style.borderRadius='50%'; }
+  else { const el=document.querySelector(e.cible); const b=el.getBoundingClientRect(); const m=6; r={ left:b.left-m, top:b.top-m, width:b.width+2*m, height:b.height+2*m }; spot.style.borderRadius = e.cible==='#packbtn' ? '50%' : '22px';
+    if(e.cible==='#packbtn'){ const rond=el.querySelector('.pack-rond').getBoundingClientRect(); r={ left:rond.left-8, top:rond.top-8, width:rond.width+16, height:rond.height+16 }; } }
+  Object.assign(spot.style, { left:r.left+'px', top:r.top+'px', width:r.width+'px', height:r.height+'px' });
+  const enBas = r.top > innerHeight/2;
+  bulle.style.top = enBas ? '' : (r.top+r.height+16)+'px'; bulle.style.bottom = enBas ? (innerHeight-r.top+16)+'px' : '';
+  bulle.innerHTML=`<div class="t">${e.titre}</div><div class="m">${e.texte}</div><div class="flex" style="margin-top:12px"><span class="points">${GUIDE.map((_,k)=>`<i class="${k===i?'on':''}"></i>`).join('')}</span><span style="display:flex;gap:8px">${i<GUIDE.length-1?'<button class="btn clair sm" id="g-passer">Passer</button>':''}<button class="btn sm next" id="g-suite">${i<GUIDE.length-1?'Suivant':'C’est parti !'}</button></span></div>`;
+  bulle.style.animation='none'; void bulle.offsetWidth; bulle.style.animation='';
+  bulle.querySelector('#g-suite').onclick=()=>guide(i+1); const ps=bulle.querySelector('#g-passer'); if(ps) ps.onclick=()=>guide(99); }
+
+// les réglages (depuis le profil ou les notifications)
+function ouvrirReglages(){ const box=document.getElementById('modalbox');
+  box.innerHTML=`<h2>⚙️ Réglages</h2><div class="sub">Ce que le jeu te signale.</div>
     <div class="sw"><span>Recevoir les offres d’achat sur mes lieux</span><input type="checkbox" ${state.prefs.offres?'checked':''} onchange="setPref('offres',this.checked)"></div>
     <div class="sw"><span>Ignorer les offres sous la valeur du lieu</span><input type="checkbox" ${state.prefs.seuil?'checked':''} onchange="setPref('seuil',this.checked)"></div>
-    <div class="sw"><span>M’alerter quand je suis dépassé aux enchères</span><input type="checkbox" ${state.prefs.encheres?'checked':''} onchange="setPref('encheres',this.checked)"></div>${(state.signalements||[]).length?`<div class="m" style="margin-top:8px">🚩 Signalements envoyés : ${state.signalements.length}</div>`:''}</div>`; if(!state.notifs.length) h+=`<div class="card"><div class="m">Rien pour l’instant. Les offres reçues, les enchères et les ventes arrivent ici.</div></div>`;
-  for(const n of state.notifs){ const d=new Date(n.ts); h+=`<div class="card notif ${n.read?'':'unread'}"><div class="m">${d.getHours().toString().padStart(2,'0')}:${d.getMinutes().toString().padStart(2,'0')}</div><div>${n.text}</div>`;
-    if(n.offerId){ const o=state.offersIn.find(x=>x.id===n.offerId); if(o && o.status==='attente') h+=`<div class="build"><button class="btn sm next" onclick="repondreOffre('${o.id}',true)">Accepter ${fmt(o.price)}</button><button class="btn sm" onclick="repondreOffre('${o.id}',false)">Refuser</button></div>`; else if(o) h+=`<div class="m">${o.status==='acceptee'?'Acceptée':'Refusée'}</div>`; }
-    if(n.addrId && state.owned[n.addrId]) h+=`<div class="build"><button class="btn sm" onclick="flyToAddr(state.owned['${n.addrId}'])">Voir sur la carte</button></div>`;
-    h+=`</div>`; }
-  el.innerHTML=h; state.notifs.forEach(n=>n.read=true); save(); refreshTop(); }
+    <div class="sw"><span>M’alerter quand je suis dépassé aux enchères</span><input type="checkbox" ${state.prefs.encheres?'checked':''} onchange="setPref('encheres',this.checked)"></div>
+    <div class="sw"><span>Sons</span><input type="checkbox" ${state.prefs.sons!==false?'checked':''} onchange="setPref('sons',this.checked)"></div>
+    <div class="sw"><span>Vibrations</span><input type="checkbox" ${state.prefs.vibrations!==false?'checked':''} onchange="setPref('vibrations',this.checked)"></div>
+    ${(state.signalements||[]).length?`<div class="m" style="margin-top:10px">🚩 Signalements envoyés : ${state.signalements.length}</div>`:''}
+    <div class="liste-btn"><button class="btn bleu large" onclick="closeModal();setTimeout(()=>guide(0),300)">🧭 Revoir le guide</button><button class="btn clair large" onclick="closeModal()">Fermer</button></div>`;
+  document.getElementById('modal').classList.add('on'); }
 
+// le profil d'un joueur (le mien : icône, réglages, compte)
 function showPlayer(name){ const box=document.getElementById('modalbox'); let h;
-  if(name===ME){ const list=Object.values(state.owned); h=`<h2><span class="av">${state.avatar}</span> ${disp(ME)} (toi)</h2><div class="sub">Membre depuis aujourd’hui · <a href="#" onclick="creationProfil();return false" style="color:var(--gold)">changer mon icône</a></div><div class="kpis"><div class="kpi"><small>LIEUX</small><b>${list.length}</b></div><div class="kpi"><small>VALEUR</small><b>${fmt(list.reduce((s,a)=>s+valeur(a),0))}</b></div><div class="kpi"><small>CONSTRUITS</small><b>${list.filter(a=>a.niveau>0).length}</b></div></div>`; }
+  if(name===ME){ const list=Object.values(state.owned), maires=mesMairies();
+    h=`<div class="profil-tete"><span class="av">${state.avatar}</span><div class="plaque"><small>Joueur</small>${echapper(disp(ME))}</div><div class="sub">Membre depuis aujourd’hui</div></div>
+      <div class="kpis"><div class="kpi"><b>${list.length}</b><small>lieu${list.length>1?'x':''}</small></div><div class="kpi"><b>${nb(list.reduce((s,a)=>s+valeur(a),0))}<i class="pc"></i></b><small>de valeur</small></div><div class="kpi"><b>${list.filter(a=>a.niveau>0).length}</b><small>construit${list.filter(a=>a.niveau>0).length>1?'s':''}</small></div></div>
+      ${maires.length?`<div class="card" style="box-shadow:none;background:var(--piece-clair)"><div class="t">👑 Maire de ${maires.map(echapper).join(', ')}</div></div>`:''}
+      <div class="liste-btn"><button class="btn bleu large" onclick="creationProfil()">🎨 Changer mon icône</button><button class="btn clair large" onclick="ouvrirReglages()">⚙️ Réglages</button></div>`; }
   else { const n=5+hash(name)%40, c=1+hash(name+'c')%4, b=Math.floor(n*(0.3+ (hash(name+'b')%50)/100)); const v=n*1200+b*900;
-    h=`<h2>${name}</h2><div class="sub">Joueur simulé · membre depuis ${1+hash(name+'d')%60} jours</div><div class="kpis"><div class="kpi"><small>LIEUX</small><b>${n}</b></div><div class="kpi"><small>VALEUR</small><b>${fmt(v)}</b></div><div class="kpi"><small>CONSTRUITS</small><b>${b}</b></div></div><div class="card"><div class="t">Présent dans ${c} commune${c>1?'s':''}</div><div class="m">Ses lieux apparaissent en rouge sur la carte. Clique sur l’un d’eux pour lui faire une offre.</div></div>`; }
-  const signaler = name===ME ? '' : `<button class="btn sm" style="width:100%;margin-bottom:8px;background:transparent;border:1px solid var(--line);color:#ff8a8a" onclick="signaler('${name}')">🚩 Signaler ce joueur</button>`;
-  const compte = (name===ME && window.Compte && Compte.actif() && Compte.session) ? `<div class="card"><div class="m">Compte : ${Compte.session.user.email||''}</div><button class="btn sm" style="margin-top:8px" onclick="Compte.deconnecter()">Se déconnecter</button></div>` : '';
-  box.innerHTML = h + compte + signaler + `<button class="btn" style="width:100%" onclick="closeModal()">Fermer</button>`; document.getElementById('modal').classList.add('on'); }
+    h=`<div class="profil-tete"><span class="av">${['🦊','🐻','🐼','🐯','🐸','🦄'][hash(name)%6]}</span><div class="plaque"><small>Joueur</small>${echapper(name)}</div><div class="sub">Membre depuis ${1+hash(name+'d')%60} jours</div></div>
+      <div class="kpis"><div class="kpi"><b>${n}</b><small>lieux</small></div><div class="kpi"><b>${nb(v)}<i class="pc"></i></b><small>de valeur</small></div><div class="kpi"><b>${b}</b><small>construits</small></div></div>
+      <div class="card" style="box-shadow:none;background:var(--ciel)"><div class="t">📍 Présent dans ${c} commune${c>1?'s':''}</div><div class="m">Ses lieux sont en rouge sur la carte. Touche-en un pour lui faire une offre.</div></div>`; }
+  const signaler = name===ME ? '' : `<button class="btn danger large" style="margin-top:8px" onclick="signaler('${name}')">🚩 Signaler ce joueur</button>`;
+  const compte = (name===ME && window.Compte && Compte.actif() && Compte.session) ? `<div class="m" style="text-align:center;margin-top:12px">Compte : ${echapper(Compte.session.user.email||'')}</div><button class="btn clair large" style="margin-top:6px" onclick="Compte.deconnecter()">Se déconnecter</button>` : '';
+  box.innerHTML = h + signaler + compte + `<div class="liste-btn"><button class="btn clair large" onclick="closeModal()">Fermer</button></div>`; document.getElementById('modal').classList.add('on'); }
+// les communes où je suis Maire (mêmes règles que l'écran Communes)
+function mesMairies(){ const mine={}; Object.values(state.owned).forEach(a=>{ const k=communeName(a.citycode,a.city); mine[k]=(mine[k]||0)+1; });
+  return Object.keys(mine).filter(k=>{ const max=Math.max(...FAKE.map(f=>(hash(k+f)%9)+(hash(k)%3===0?6:0))); return mine[k]>=max; }); }
 // Signaler un joueur : une raison, un mot facultatif ; la file de signalements est traitée à la main par Gautier
 // (serveur simulé : gardée dans le profil ; avec Supabase : une table « signalements »).
 const RAISONS = { pseudo:'Pseudo inapproprié', triche:'Triche ou plusieurs comptes', comportement:'Comportement (offres, messages…)', autre:'Autre' };
@@ -755,7 +820,7 @@ function signaler(name){ const box=document.getElementById('modalbox'); const de
   box.querySelector('#sigok').onclick=()=>{ if(!raison){ box.querySelector('#sigerr').textContent='Choisis une raison'; return; }
     (state.signalements=state.signalements||[]).push({ qui:name, raison, texte:box.querySelector('#sigtxt').value.trim().slice(0,200), ts:now() }); save(); closeModal(); toast('Signalement envoyé. Merci, il sera examiné.'); }; }
 document.getElementById('mepill').onclick=()=>showPlayer(ME);
-document.getElementById('walletpill').onclick=()=>encaisser(false);
+document.getElementById('walletpill').onclick=()=>recolter();
 document.getElementById('modal').addEventListener('click', e=>{ if(e.target.id==='modal') closeModal(); });
 
 // le filtre des pseudos (src/regles/pseudo.js, listes data/moderation.json) ; pris = les joueurs connus du serveur simulé
@@ -795,15 +860,15 @@ function refreshTop(){ afficherBourse(dispo()); document.getElementById('meav').
   const unread=state.notifs.filter(n=>!n.read).length; const c=document.getElementById('cnt-notif'); c.style.display=unread?'block':'none'; c.textContent=unread; refreshPack(); }
 setInterval(()=>{ refreshTop(); tickOffers(); tickAuction(); }, 1000);
 // À la connexion : la récolte des loyers (24 h au plus), puis le pack du jour s'il est prêt
-function packAuDemarrage(){ if(!packDispo()) return; if(map.loaded()) setTimeout(ouvrirPack, 600); else map.once('idle', ()=>setTimeout(ouvrirPack, 900)); }
+function packAuDemarrage(){ if(!packDispo()){ if(!state.prefs.guideVu) setTimeout(()=>guide(0), 800); return; } if(map.loaded()) setTimeout(ouvrirPack, 600); else map.once('idle', ()=>setTimeout(ouvrirPack, 900)); }
 function recolteConnexion(ensuite){ const p=Math.floor(pendingRent()); if(p<1) return ensuite();
   const absent=now()-state.encaisse, plein=absent>=ECO.stock_loyer_heures*JOUR/24, lieux=Object.keys(state.owned).length;
   const box=document.getElementById('modalbox');
   box.innerHTML=`<h2>🌾 La récolte</h2><div class="sub">Pendant ton absence, ton salaire${lieux?` et les loyers de tes ${lieux} lieu${lieux>1?'x':''}`:''} ont rapporté :</div>
-    <div class="recolte">+${fmt(p)}</div><div class="m" style="text-align:center;margin-bottom:12px">${plein?'Ton stock était plein : les loyers s’arrêtent au bout de 24 h. Reviens chaque jour pour ne rien perdre.':'Les loyers s’accumulent jusqu’à 24 h, puis s’arrêtent.'}</div>
-    <button class="btn" style="width:100%" id="recolter">Récolter</button>`;
+    <div class="recolte">+${nb(p)}<i class="pc"></i></div><div class="m" style="text-align:center;margin-bottom:12px">${plein?'Ton stock était plein : les loyers s’arrêtent au bout de 24 h. Reviens chaque jour pour ne rien perdre.':'Les loyers s’accumulent jusqu’à 24 h, puis s’arrêtent.'}</div>
+    <button class="btn vert large" id="recolter">🌾 Récolter</button>`;
   document.getElementById('modal').classList.add('on');
-  box.querySelector('#recolter').onclick=()=>{ encaisser(false); closeModal(); ensuite(); }; }
+  box.querySelector('#recolter').onclick=()=>{ closeModal(); recolter(); setTimeout(ensuite, 1000); }; }
 // sans serveur (data/serveur.json vide) : le profil local ; avec serveur, src/compte.js passe d'abord par le compte
 function demarrageLocal(){ if(!state.pseudo) setTimeout(creationProfil, 600); else setTimeout(()=>recolteConnexion(packAuDemarrage), 500); }
 refreshTop(); tickAuction();
