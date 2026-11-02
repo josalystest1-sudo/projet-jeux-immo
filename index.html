@@ -20,6 +20,7 @@
 <script src="data/standing.js"></script>
 <script src="data/monuments.js"></script>
 <script src="src/regles/lieu.js"></script>
+<script src="src/regles/celebres.js"></script>
 <style>
   :root{--bg:#11131c;--panel:#171a26;--card:#1c1f2c;--line:#2a2e40;--txt:#f3f4f8;--muted:#9aa0b8;--gold:#ffd65a;--me:#3b82f6;--other:#ef4444;--mixed:#a855f7;--ok:#7ee787;--nav:64px}
   *{box-sizing:border-box}
@@ -427,6 +428,27 @@ map.on('load', ()=>{
   map.on('click','mon-halo', (e)=>{ const f=e.features[0]; const m=LISTE_MON.find(x=>x.id===f.properties.id); if(!m) return;
     const enJeu = auctionOf(auctionIndex()).m.id===m.id; toast(`${m.icone} ${m.nom} · monument ${m.palier==='national'?'national (légendaire)':'régional'}${enJeu?' · aux enchères cette semaine !':''}`); if(enJeu) setTimeout(()=>showScreen('encheres'), 900); });
 });
+// Les lieux célèbres (article Wikipédia) : un fichier par département (data/celebres/), chargé à la demande.
+const CELEBRES = {};
+function chargerCelebres(dep){ if(!dep) return Promise.resolve([]); if(!CELEBRES[dep]) CELEBRES[dep] = fetch(`data/celebres/${dep}.json`).then(r=>r.ok?r.json():{lieux:[]}).then(j=>j.lieux||[]).catch(()=>[]); return CELEBRES[dep]; }
+const DEP_BOITES = Object.entries(GEO.deps).map(([code,d])=>{ let b=[180,90,-180,-90]; for(const ring of d.rings) for(const [x,y] of ring){ b=[Math.min(b[0],x),Math.min(b[1],y),Math.max(b[2],x),Math.max(b[3],y)]; } return {code, b}; });
+let celebresAffiches = '';
+async function afficherCelebres(){ const src = map.getSource('celebres'); if(!src) return;
+  if(map.getZoom() < 13){ if(celebresAffiches){ src.setData({type:'FeatureCollection', features:[]}); celebresAffiches=''; } return; }
+  const bb = map.getBounds(); const deps = DEP_BOITES.filter(d=>d.b[0]<=bb.getEast() && d.b[2]>=bb.getWest() && d.b[1]<=bb.getNorth() && d.b[3]>=bb.getSouth()).map(d=>d.code).slice(0,6);
+  const listes = await Promise.all(deps.map(chargerCelebres)); const features = [];
+  for(const l of listes) for(const e of l){ if(bb.contains([e[3],e[4]])) features.push({ type:'Feature', properties:{ id:e[0], nom:e[1] }, geometry:{ type:'Point', coordinates:[e[3],e[4]] } }); }
+  const cle = features.map(f=>f.properties.id).join(','); if(cle===celebresAffiches) return; celebresAffiches = cle;
+  src.setData({ type:'FeatureCollection', features }); }
+map.on('load', ()=>{
+  map.addSource('celebres', { type:'geojson', data:{ type:'FeatureCollection', features:[] } });
+  map.addLayer({ id:'cel-point', type:'circle', source:'celebres', minzoom:13, paint:{ 'circle-color':'#8fb8ff', 'circle-stroke-color':'#ffffff', 'circle-stroke-width':1.5,
+    'circle-radius':['interpolate',['linear'],['zoom'],13,3,16,6,19,10] } });
+  map.addLayer({ id:'cel-nom', type:'symbol', source:'celebres', minzoom:16,
+    layout:{ 'text-field':['concat','⭐ ',['get','nom']], 'text-font':['Open Sans Regular'], 'text-size':12, 'text-offset':[0,-1.4], 'text-anchor':'bottom', 'text-allow-overlap':false },
+    paint:{ 'text-color':'#1d3a6e', 'text-halo-color':'#ffffff', 'text-halo-width':2 } });
+  afficherCelebres(); });
+map.on('moveend', afficherCelebres);
 const badges = {};
 function setBadge(a, lv){ const key=a.id; const vente = enVente(a); if(vente){ if(!badges[key]){ const el=document.createElement('div'); el.className='badge vente'; badges[key]=new maplibregl.Marker({element:el}).setLngLat([a.lon,a.lat]).addTo(map); } const el=badges[key].getElement(); el.classList.add('badge','vente'); /* classList : ne pas effacer la classe maplibregl-marker (sinon le badge perd sa position et s'étale en ellipse) */ el.textContent = lv>0 ? NIVEAUX[lv].icone+'💰' : '💰'; el.style.width='auto'; el.style.padding='0 6px'; return; } if(badges[key] && badges[key].getElement().classList.contains('vente')){ badges[key].remove(); delete badges[key]; }
   if(lv>0){ if(!badges[key]){ const el=document.createElement('div'); el.className='badge'; badges[key]=new maplibregl.Marker({element:el}).setLngLat([a.lon,a.lat]).addTo(map); } badges[key].getElement().textContent=NIVEAUX[lv].icone; } else if(badges[key]){ badges[key].remove(); delete badges[key]; } }
@@ -455,6 +477,10 @@ async function openParcel(f){ const p = f.properties, idu = f.id; currentParcel 
       let all = j.features.map(x=>mkAddr(x, idu)); let within = all.filter(a=>inside([a.lon,a.lat], f.geometry));
       if(!within.length){ all.sort((a,b)=>dist([a.lon,a.lat],c)-dist([b.lon,b.lat],c)); within = all.filter(a=>dist([a.lon,a.lat],c)<25).slice(0,2); if(!within.length && all.length) within=[all[0]]; }
       addrs = within; }catch(err){ addrs = []; } parcelAddrs[idu] = addrs; }
+  // les lieux célèbres (Wikipédia) de cette parcelle, en tête
+  try{ const liste = await chargerCelebres(Celebres.departement(p.code_insee));
+    for(const e of liste){ if(Math.abs(e[4]-c[1])>0.01 || Math.abs(e[3]-c[0])>0.015) continue;
+      if(inside([e[3],e[4]], f.geometry) && !addrs.find(x=>x.id==='wd:'+e[0])) addrs.unshift(Object.assign(Celebres.lieuDe(e), {city:p.nom_com, idu})); } }catch(err){}
   // les lieux (POI) que je possède sur cette parcelle
   for(const a of Object.values(state.owned)){ if(a.type==='lieu' && inside([a.lon,a.lat], f.geometry) && !addrs.find(x=>x.id===a.id)) addrs.push(a); }
   renderAddrs(); paintParcel(idu); }
@@ -471,7 +497,7 @@ function renderAddrs(){ const {p, idu, geometry} = currentParcel; const addrs = 
 function addrRow(a, withBuild){
   const o = ownerOf(a); const lv = levelOf(a); const rec = state.owned[a.id] || Object.assign({}, a, {niveau:lv}); const pl = plafond(a);
   const row = document.createElement('div'); row.className='addr';
-  row.innerHTML = `<div class="flex"><div><div class="n">${a.label}${lv?' '+NIVEAUX[lv].icone:''}<span class="tag r${rarete(a)}" style="color:var(--rc)">${RARETES[rarete(a)]}</span>${enVente(a)?'<span class="tag" style="color:var(--ok)">💰 en vente</span>':''}</div>
+  row.innerHTML = `<div class="flex"><div><div class="n">${a.label}${lv?' '+NIVEAUX[lv].icone:''}<span class="tag r${rarete(a)}" style="color:var(--rc)">${RARETES[rarete(a)]}</span>${a.qid?`<a class="tag" style="color:#8fb8ff;text-decoration:none" target="_blank" rel="noopener" href="https://www.wikidata.org/wiki/Special:GoToLinkedPage/frwiki/${a.qid}">⭐ Célèbre · Wikipédia</a>`:''}${enVente(a)?'<span class="tag" style="color:var(--ok)">💰 en vente</span>':''}</div>
     <div class="m">${communeName(a.citycode,a.city)} · valeur ${fmt(valeur(rec))} · ${NIVEAUX[lv].nom} · loyer +${loyer(rec)} ₳/j · plafond ${NIVEAUX[pl].nom}</div></div></div>`;
   const top=row.querySelector('.flex');
   if(o===ME){ top.insertAdjacentHTML('beforeend', `<span class="own me">À moi</span>`);
@@ -708,7 +734,11 @@ async function ouvrirPack(){ if(!packDispo()) return; const btn=document.getElem
         const kinds=['eglise','mairie','chateau','gare','musee']; const k=kinds[hash('k'+jour()+tries)%kinds.length];
         const r=await fetch(`https://data.geopf.fr/geocodage/search?index=poi&q=${k}&lat=${hy}&lon=${hx}&limit=6`); const j=await r.json(); const f=j.features.filter(x=>!state.owned['poi'+hash(x.properties.toponym+x.geometry.coordinates)]);
         if(f.length){ const x=f[hash(String(now()))%f.length]; const p=x.properties; const id='poi'+hash(p.toponym+x.geometry.coordinates);
-          cards.push({ id, label:p.toponym, lon:x.geometry.coordinates[0], lat:x.geometry.coordinates[1], citycode:(p.citycode||[])[0]||'', city:(p.city||[])[0]||'', type:'lieu', cat:(p.category||[])[0]||'' }); continue; } }
+          let carte = { id, label:p.toponym, lon:x.geometry.coordinates[0], lat:x.geometry.coordinates[1], citycode:(p.citycode||[])[0]||'', city:(p.city||[])[0]||'', type:'lieu', cat:k };
+          const e = Celebres.trouver(carte, await chargerCelebres(Celebres.departement(carte.citycode)));
+          if(e && state.owned['wd:'+e[0]]) continue;  // déjà à moi : on tire autre chose
+          if(e) carte = Object.assign(Celebres.lieuDe(e), {city:carte.city});
+          cards.push(carte); continue; } }
       const ang=Math.random()*Math.PI*2, d=100+Math.random()*1200; const lon=hx + d*Math.cos(ang)/(111320*Math.cos(hy*Math.PI/180)), lat=hy + d*Math.sin(ang)/110540;
       const r=await fetch(`https://data.geopf.fr/geocodage/reverse?lon=${lon}&lat=${lat}&limit=1&index=address&type=housenumber`); const j=await r.json(); const x=j.features[0]; if(!x) continue;
       const a=mkAddr(x, null); if(state.owned[a.id] || cards.find(c=>c.id===a.id)) continue; a.type='adresse'; cards.push(a);

@@ -2,11 +2,14 @@
 
 - data/standing.json et data/standing.js : le standing (1, 2 ou 3) de chaque commune qui n'est pas au standing 1.
 - data/monuments.json et data/monuments.js : les monuments (nationaux et régionaux), avec leur code INSEE.
+- data/celebres/<département>.json : les lieux célèbres (article Wikipédia), un fichier par département,
+  chargé par le jeu à la demande. Source : data/sources/celebres_wikidata.txt (tools/wikidata_celebres.py).
 
 Les codes INSEE manquants des monuments sont retrouvés par géocodage inverse (géoplateforme IGN).
-Relancer après toute modification de data/sources/ :  python3 tools/gen_donnees.py
+Relancer après toute modification de data/sources/ :  python3 tools/gen_donnees.py [standing] [monuments] [celebres]
+(sans argument : tout ; « monuments » interroge l'IGN pour chaque monument et prend une minute.)
 """
-import json, pathlib, time, urllib.request, urllib.parse
+import json, math, pathlib, sys, time, urllib.request, urllib.parse
 
 RACINE = pathlib.Path(__file__).resolve().parent.parent
 SOURCES = RACINE / 'data' / 'sources'
@@ -122,6 +125,47 @@ def monuments():
     return sortie
 
 
+# ---------------------------------------------------------------- lieux célèbres
+CELEBRES_PRES_MONUMENT = 60  # mètres : une entrée aussi proche d'un monument est ce monument (ou une de ses parties)
+
+
+def celebres(monuments_liste):
+    ids = {m['id'] for m in monuments_liste}
+    grille = {}
+    for m in monuments_liste:
+        grille.setdefault((round(m['lon'], 2), round(m['lat'], 2)), []).append(m)
+
+    def pres_d_un_monument(lon, lat):
+        for dx in (-0.01, 0, 0.01):
+            for dy in (-0.01, 0, 0.01):
+                for m in grille.get((round(lon + dx, 2), round(lat + dy, 2)), []):
+                    d = math.hypot((lon - m['lon']) * math.cos(math.radians(lat)) * 111320, (lat - m['lat']) * 110540)
+                    if d < CELEBRES_PRES_MONUMENT:
+                        return True
+        return False
+
+    par_dep, ecartes = {}, 0
+    for ligne in (SOURCES / 'celebres_wikidata.txt').read_text(encoding='utf-8').splitlines():
+        if not ligne.strip() or ligne.startswith('#'):
+            continue
+        qid, nom, cat, lon, lat, insee, _liens = ligne.split('|')
+        lon, lat = float(lon), float(lat)
+        if qid in ids or qid in EXCLUS or not insee or pres_d_un_monument(lon, lat):
+            ecartes += 1
+            continue
+        dep = insee[:3] if insee.startswith('97') else insee[:2]
+        par_dep.setdefault(dep, []).append([qid, nom[0].upper() + nom[1:], cat, round(lon, 5), round(lat, 5), insee])
+
+    dossier = RACINE / 'data' / 'celebres'
+    dossier.mkdir(exist_ok=True)
+    for vieux in dossier.glob('*.json'):
+        vieux.unlink()
+    for dep, lieux in sorted(par_dep.items()):
+        (dossier / f'{dep}.json').write_text(
+            json.dumps({'dep': dep, 'lieux': lieux}, ensure_ascii=False, separators=(',', ':')) + '\n', encoding='utf-8')
+    return par_dep, ecartes
+
+
 def ecrire(nom, constante, valeur, commentaire):
     (RACINE / 'data' / f'{nom}.json').write_text(json.dumps(valeur, ensure_ascii=False, indent=1) + '\n', encoding='utf-8')
     (RACINE / 'data' / f'{nom}.js').write_text(
@@ -130,9 +174,17 @@ def ecrire(nom, constante, valeur, commentaire):
 
 
 if __name__ == '__main__':
-    s = standing()
-    ecrire('standing', 'STANDING', s, 'standing des communes, sources DVF')
-    print('standing :', sum(1 for v in s.values() if v == 3), 'communes au 3,', sum(1 for v in s.values() if v == 2), 'au 2')
-    m = monuments()
-    ecrire('monuments', 'MONUMENTS', m, 'monuments, source Wikidata')
-    print('monuments :', len(m), '(', sum(1 for x in m if x['palier'] == 'national'), 'nationaux ), sans code INSEE :', [x['nom'] for x in m if not x['insee']], 'sans ville :', [x['nom'] for x in m if not x['ville']])
+    quoi = set(sys.argv[1:]) or {'standing', 'monuments', 'celebres'}
+    if 'standing' in quoi:
+        s = standing()
+        ecrire('standing', 'STANDING', s, 'standing des communes, sources DVF')
+        print('standing :', sum(1 for v in s.values() if v == 3), 'communes au 3,', sum(1 for v in s.values() if v == 2), 'au 2')
+    if 'monuments' in quoi:
+        m = monuments()
+        ecrire('monuments', 'MONUMENTS', m, 'monuments, source Wikidata')
+        print('monuments :', len(m), '(', sum(1 for x in m if x['palier'] == 'national'), 'nationaux ), sans code INSEE :', [x['nom'] for x in m if not x['insee']], 'sans ville :', [x['nom'] for x in m if not x['ville']])
+    else:
+        m = json.loads((RACINE / 'data' / 'monuments.json').read_text(encoding='utf-8'))
+    if 'celebres' in quoi:
+        c, ecartes = celebres(m)
+        print('lieux célèbres :', sum(len(v) for v in c.values()), 'dans', len(c), 'départements ;', ecartes, 'écartés (monuments, sans commune)')
