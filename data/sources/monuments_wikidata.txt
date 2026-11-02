@@ -1,0 +1,473 @@
+# Monuments historiques (classés, inscrits) et sites UNESCO de France métropolitaine, extraits de Wikidata le 2 nov. 2026,
+# triés par nombre d'articles Wikipédia (toutes langues), au moins 9. Les 470 premiers.
+# Format : identifiant Wikidata | nom | longitude | latitude | code INSEE (vide si inconnu) | nombre d'articles
+Q2981|cathédrale Notre-Dame de Paris|2.3498|48.8530|75104|125
+Q2946|château de Versailles|2.1203|48.8047|78646|109
+Q1143049|château de Montsoreau|0.0622|47.2156|49219|100
+Q64436|arc de triomphe de l'Étoile|2.2950|48.8738|75116|86
+Q180274|cathédrale Notre-Dame de Chartres|1.4878|48.4478|28085|73
+Q311|cimetière du Père-Lachaise|2.3942|48.8611|75120|71
+Q172125|grotte de Lascaux|1.1710|45.0538|24291|69
+Q188190|palais de l'Élysée|2.3164|48.8703|75108|66
+Q187840|palais Garnier|2.3317|48.8719||63
+Q189503|place de la Concorde|2.3212|48.8656||62
+Q188856|Panthéon|2.3461|48.8462|75105|61
+Q184407|basilique Saint-Denis|2.3597|48.9356|93066|60
+Q206823|cathédrale Notre-Dame de Reims|4.0342|49.2539|51454|60
+Q28785|basilique du Sacré-Cœur de Montmartre|2.3430|48.8867|75118|60
+Q189764|pont du Gard|4.5355|43.9473|30346|59
+Q374096|grotte Chauvet|4.4161|44.3881|07330|59
+Q214654|Sorbonne|2.3436|48.8486||59
+Q193193|Sainte-Chapelle|2.3450|48.8554|75101|58
+Q202494|canal du Midi|1.4183|43.6111|11069|58
+Q106934|cathédrale Notre-Dame d'Amiens|2.3021|49.8946|80021|57
+Q188977|hôtel des Invalides|2.3125|48.8550||57
+Q201428|château de Fontainebleau|2.7006|48.4022|77186|56
+Q205367|château de Chambord|1.5172|47.6161|41034|55
+Q329852|palais du Luxembourg|2.3375|48.8483||53
+Q4580|sites palafittiques préhistoriques autour des Alpes|9.1210|47.6746||53
+Q476516|cathédrale Notre-Dame de Rouen|1.0950|49.4402|76540|52
+Q745460|cathédrale Notre-Dame de Strasbourg|7.7511|48.5819|67482|51
+Q207985|cathédrale Saint-Étienne de Bourges|2.3992|47.0822|18033|51
+Q220301|abbaye de Cluny|4.6592|46.4341|71137|51
+Q329948|Palais-Royal|2.3369|48.8633||51
+Q457318|Grand Palais|2.3125|48.8661||51
+Q818517|jardin des Tuileries|2.3261|48.8639|75101|48
+Q330564|église de la Madeleine|2.3244|48.8700|75108|47
+Q143463|palais des papes|4.8075|43.9508|84007|46
+Q193215|château de Chenonceau|1.0706|47.3250|37070|46
+Q335277|pont Neuf|2.3417|48.8575|75106|45
+Q390418|pont Alexandre-III|2.3136|48.8636|75107|45
+Q138101|conciergerie de Paris|2.3456|48.8564|75101|44
+Q750675|beffrois de Belgique et de France|3.5148|50.6353||43
+Q746647|cimetière de Montmartre|2.3303|48.8878|75118|42
+Q677659|maison carrée|4.3561|43.8382|30189|42
+Q16064866|grandes villes d'eaux d'Europe|5.8669|50.4922||42
+Q55619850|œuvre architecturale de Le Corbusier|6.8293|46.4684||42
+Q739976|château de Vaux-le-Vicomte|2.7142|48.5658|77269|41
+Q663673|château de Vincennes|2.4358|48.8428|94080|41
+Q217452|basilique Sainte-Marie-Madeleine|3.7483|47.4664|89446|41
+Q4055|château de Blois|1.3310|47.5855|41018|41
+Q622500|château d'If|5.3251|43.2799||41
+Q747541|Paris-Lyon|2.3736|48.8447|75112|40
+Q898629|place des Vosges|2.3656|48.8556|75103|40
+Q464918|abbaye de Fontenay|4.3893|47.6397|21389|40
+Q1075988|palais du Louvre|2.3359|48.8610|75101|39
+Q958961|théâtre antique d'Orange|4.8089|44.1358|84087|39
+Q638250|chapelle Notre-Dame-du-Haut de Ronchamp|6.6206|47.7045|70451|39
+Q284444|pont d'Avignon|4.8050|43.9539|84007|38
+Q389269|cité de Carcassonne|2.3638|43.2064|11069|38
+Q389908|château d'Amboise|0.9860|47.4137|37003|38
+Q1414059|parc Monceau|2.3092|48.8794||38
+Q833850|alignements de Carnac|-3.0797|47.5933|56034|37
+Q513300|cathédrale Saint-Pierre de Beauvais|2.0814|49.4325|60057|37
+Q656054|hôtel Ritz Paris|2.3289|48.8680|75101|37
+Q295844|église Saint-Sulpice de Paris|2.3349|48.8510|75106|37
+Q1423005|cathédrale Saint-Pierre-et-Saint-Paul|-1.5502|47.2184|44109|36
+Q1520841|château de Saint-Germain-en-Laye|2.0964|48.8981|78551|35
+Q1774129|abbaye de Saint-Savin-sur-Gartempe|0.8660|46.5648|86246|35
+Q649055|saline royale d'Arc-et-Senans|5.7778|47.0328|25021|35
+Q730948|jardin des plantes de Paris|2.3597|48.8439|75105|35
+Q833781|Fortifications de Vauban|2.7589|50.2825||35
+Q1338207|église Saint-Eustache de Paris|2.3450|48.8633|75101|34
+Q835966|site archéologique d'Alésia|4.5006|47.5392|21008|34
+Q13360213|palais de Chaillot|2.2881|48.8623|75116|34
+Q912192|hôtel de Matignon|2.3208|48.8544||34
+Q939883|hôpital de la Salpêtrière|2.3650|48.8370|75113|33
+Q426064|place Stanislas|6.1833|48.6936|54395|33
+Q585947|cathédrale Notre-Dame de Laon|3.6250|49.5643|02408|33
+Q283254|abbaye de Fontevraud|0.0517|47.1814|49140|33
+Q578771|palais du Tau|4.0344|49.2531|51454|32
+Q113389|château d'Azay-le-Rideau|0.4658|47.2590|37014|32
+Q199234|phare de Cordouan|-1.1733|45.5863|33544|32
+Q1503331|obélisque de Louxor|2.3211|48.8655|75108|31
+Q477613|château de Villandry|0.5145|47.3405|37272|31
+Q508362|observatoire de Nice|7.2991|43.7274|06088|31
+Q94744|cathédrale Sainte-Cécile d'Albi|2.1426|43.9285|81004|31
+Q273480|École militaire|2.3036|48.8525||31
+Q726531|théâtre des Champs-Élysées|2.3031|48.8658||31
+Q1122731|château du Clos Lucé|0.9920|47.4102|37003|30
+Q1133501|théâtre de l'Odéon|2.3388|48.8495|75106|30
+Q1141086|synagogue de Besançon|6.0214|47.2413|25056|30
+Q766938|château de Chantilly|2.4858|49.1939|60141|30
+Q912447|forteresse royale de Chinon|0.2361|47.1681|37072|30
+Q1777218|arc antique d'Orange|4.8048|44.1422|84087|30
+Q650053|Bibracte|4.0350|46.9244|58140|30
+Q1048155|Château d'Angers|-0.5600|47.4700|49007|29
+Q843261|abbaye de Cîteaux|5.0933|47.1281|21564|29
+Q940746|villa Savoye|2.0283|48.9244|78498|29
+Q639319|camp de concentration de Natzweiler-Struthof|7.2546|48.4550|67314|29
+Q647070|abbaye de Clairvaux|4.7889|48.1472|10426|29
+Q1636244|cathédrale Notre-Dame de Bayeux|-0.7033|49.2756|14047|28
+Q334233|basilique Saint-Remi de Reims|4.0419|49.2431|51454|28
+Q1429394|église Saint-Germain-l'Auxerrois|2.3411|48.8594|75101|28
+Q1431547|tour Saint-Jacques|2.3488|48.8578|75104|28
+Q392215|bassin minier du Nord-Pas-de-Calais|3.5461|50.4625||28
+Q641548|arènes de Lutèce|2.3531|48.8450||28
+Q1150222|château de Saumur|-0.0725|47.2561|49328|27
+Q1362670|place des Victoires|2.3411|48.8658|75101|27
+Q1552366|château du Haut-Koenigsbourg|7.3442|48.2494|67362|27
+Q583251|église Saint-Étienne-du-Mont|2.3480|48.8465|75105|27
+Q143080|palais de justice de Paris|2.3451|48.8557|75101|27
+Q179656|arènes de Nîmes|4.3596|43.8349|30189|27
+Q269641|colonne de Juillet|2.3692|48.8531|75104|27
+Q376699|château de Pierrefonds|2.9803|49.3469|60491|27
+Q1521|primatiale Saint-Jean de Lyon|4.8272|45.7608|69385|27
+Q1419757|cathédrale Sainte-Marie-Majeure|5.3649|43.2998|13202|27
+Q684594|porte Saint-Denis|2.3525|48.8697||27
+Q1111051|colonne Vendôme|2.3294|48.8675|75101|26
+Q747588|trophée des Alpes|7.4018|43.7448|06150|26
+Q926536|Lion de Belfort|6.8647|47.6367|90010|26
+Q652981|abbaye de Port-Royal-des-Champs à Magny-les-Hameaux|2.0158|48.7451|78356|26
+Q185479|château d'Ussé|0.2911|47.2497|37197|26
+Q291093|pont Mirabeau|2.2764|48.8464|75115|26
+Q1516|basilique Notre-Dame de Fourvière|4.8226|45.7623|69385|26
+Q1061061|château de Loches|0.9969|47.1248|37132|25
+Q1090492|Château-Gaillard|1.4028|49.2381|27016|25
+Q1143558|château de Langeais|0.4061|47.3248|37123|25
+Q1010268|basilique Saint-Sernin de Toulouse|1.4421|43.6085|31555|25
+Q1514062|basilique Sainte-Clotilde|2.3192|48.8583|75107|25
+Q656738|cathédrale Saint-André de Bordeaux|-0.5778|44.8376|33063|25
+Q671066|cathédrale Saint-Étienne de Metz|6.1756|49.1203|57463|25
+Q2249113|port de la Lune|-0.5722|44.8389|33063|25
+Q463159|sites préhistoriques et grottes ornées de la vallée de la Vézère|1.1700|45.0575||25
+Q1333442|viaduc de Garabit|3.1772|44.9754|15168|24
+Q774570|bibliothèque Mazarine|2.3369|48.8572|75106|24
+Q427340|église Saint-Gervais-Saint-Protais|2.3544|48.8556|75104|24
+Q522779|château de Chaumont-sur-Loire|1.1819|47.4792|41045|24
+Q576534|château de Coucy|3.3186|49.5217|02217|24
+Q180709|Grande Chartreuse|5.7936|45.3633|38442|24
+Q331409|abri de Cro-Magnon|1.0097|44.9403|24172|24
+Q1032205|cathédrale Notre-Dame-de-l'Assomption de Clermont-Ferrand|3.0858|45.7787|63113|23
+Q1141846|château de Cheverny|1.4581|47.5003|41050|23
+Q1142363|château de Valençay|1.5633|47.1575|36228|23
+Q1235554|Maxim's|2.3222|48.8673|75108|23
+Q1366553|cathédrale Sainte-Croix d'Orléans|1.9104|47.9019|45234|23
+Q914743|grotte de Font-de-Gaume|1.0289|44.9347|24172|23
+Q489014|cathédrale Saint-Étienne de Sens|3.2840|48.1980|89387|23
+Q547013|cathédrale Saint-Gatien de Tours|0.6944|47.3956|37261|23
+Q653307|manufacture nationale de Sèvres|2.2225|48.8286|92072|23
+Q2189282|cathédrale Saint-Étienne de Limoges|1.2667|45.8289|87085|23
+Q2942447|cathédrale Saint-Sacerdos de Sarlat|1.2169|44.8889|24520|23
+Q1200500|cathédrale Notre-Dame-des-Doms d'Avignon|4.8075|43.9517|84007|22
+Q747992|grotte Cosquer|5.4492|43.2028|13209|22
+Q932828|cathédrale Notre-Dame de Noyon|3.0006|49.5821|60471|22
+Q956741|abbaye de Saint-Benoît-sur-Loire|2.3059|47.8095|45270|22
+Q1011806|château de Foix|1.6050|42.9656|09122|22
+Q1470842|château de Sully-sur-Loire|2.3752|47.7677|45315|22
+Q1736213|cathédrale Saint-Front|0.7228|45.1836|24322|22
+Q550157|église Saint-Augustin de Paris|2.3189|48.8762|75108|22
+Q2300245|église Saint-Pierre de Montmartre|2.3419|48.8867|75118|22
+Q2351013|capitole de Toulouse|1.4440|43.6044|31555|22
+Q63524|abbaye royale d’Hautecombe|5.8397|45.7528|73273|22
+Q1013191|château de Montségur|1.8325|42.8756|09211|22
+Q1245463|abbaye Notre-Dame de Sénanque|5.1869|43.9283|84050|21
+Q786075|château de Brissac|-0.4497|47.3531|49050|21
+Q1493222|cathédrale Saint-Alexandre-Nevsky|2.3020|48.8776|75108|21
+Q1563071|cathédrale Saint-Julien du Mans|0.1989|48.0092|72181|21
+Q1758497|pont Royal|2.3297|48.8600|75101|21
+Q586142|église de la Sainte-Trinité de Paris|2.3314|48.8773|75109|21
+Q611944|cathédrale Saint-Lazare d'Autun|4.2992|46.9450|71014|21
+Q651388|abbaye du Mont-Saint-Michel|-1.5114|48.6361|50353|21
+Q692768|hôtel de Crillon|2.3211|48.8673|75108|21
+Q1289258|château des ducs de Bretagne|-1.5491|47.2161|44109|20
+Q743147|hôtel Negresco|7.2584|43.6945|06088|20
+Q1011357|château de Castelnaud|1.1489|44.8158|24086|20
+Q1711691|cathédrale Saint-Bénigne de Dijon|5.0344|47.3214|21231|20
+Q1736169|cathédrale Saint-Pierre d'Angoulême|0.1517|45.6489|16015|20
+Q1788518|ancienne cathédrale Saint-Trophime à Arles|4.6281|43.6767|13004|20
+Q473121|cathédrale Saint-Just-et-Saint-Pasteur de Narbonne|3.0039|43.1847|11262|20
+Q525891|église Saint-Merri|2.3508|48.8591|75104|20
+Q648534|château de Rambouillet|1.8178|48.6456|78517|20
+Q181189|arènes d'Arles|4.6309|43.6777|13004|20
+Q2419151|cathédrale Saint-Corentin de Quimper|-4.1022|47.9956|29232|20
+Q2737833|cathédrale Saint-Étienne de Toulouse|1.4504|43.5999|31555|20
+Q247958|camp de Drancy|2.4453|48.9258|93029|20
+Q333980|abbaye Royale Saint-Pierre de Jumièges|0.8192|49.4319|76378|20
+Q1130784|hôpital Lariboisière|2.3531|48.8831|75110|19
+Q1243760|église Saint-Julien-le-Pauvre|2.3471|48.8520|75105|19
+Q1279597|Monuments romains et romans d'Arles|4.6307|43.6776|13004|19
+Q993659|baptistère Saint-Jean|0.3486|46.5794|86194|19
+Q1011026|château de Beynac|1.1453|44.8403|24040|19
+Q1480604|château de Pau|-0.3750|43.2947|64445|19
+Q1577630|église Saint-Nicolas-du-Chardonnet|2.3503|48.8492|75105|19
+Q1710383|église Saint-Vincent-de-Paul|2.3517|48.8789|75110|19
+Q1758359|grotte du Pech Merle|1.6444|44.5081|46040|19
+Q547789|maison de Balzac|2.2808|48.8553|75116|19
+Q2256147|bibliothèque de l'Arsenal|2.3635|48.8503|75104|19
+Q2443243|cathédrale Saint-Pierre-et-Saint-Paul de Troyes|4.0814|48.3003|10387|19
+Q376932|abbaye Royale aux Hommes|-0.3728|49.1817|14118|19
+Q3129160|église Saint-Michel d'Aiguilhe|3.8825|45.0500|43002|19
+Q8399|Vieux Lyon|4.8281|45.7631|69123|19
+Q950217|porte Saint-Martin|2.3556|48.8692||19
+Q1436962|église Saint-Roch de Paris|2.3326|48.8653||19
+Q1049348|cathédrale Sainte-Marie d'Auch|0.5858|43.6464|32013|18
+Q1049728|cathédrale Saint-Pierre de Rennes|-1.6833|48.1117|35238|18
+Q1063236|château Margaux|-0.6687|45.0444|33268|18
+Q1191209|cathédrale Saint-Maurice d'Angers|-0.5550|47.4706|49007|18
+Q808456|cairn de Barnenez|-3.8586|48.6675|29186|18
+Q963509|pont Marie|2.3575|48.8528|75104|18
+Q1479356|château de Talcy|1.4444|47.7697|41253|18
+Q1539168|cathédrale Saint-Sauveur d'Aix-en-Provence|5.4472|43.5319|13001|18
+Q1710376|église Saint-Séverin|2.3457|48.8521|75105|18
+Q516697|château de Compiègne|2.8311|49.4192|60159|18
+Q519572|abbaye de Murbach|7.1581|47.9233|68229|18
+Q550252|grotte de Rouffignac|0.9876|45.0088|24356|18
+Q551959|abri de la Madeleine|1.0364|44.9669|24559|18
+Q667763|château de Quéribus|2.6217|42.8367|11113|18
+Q2092716|château de Maisons|2.1538|48.9472|78358|18
+Q2111621|palais des ducs de Bourgogne|5.0414|47.3219|21231|18
+Q264242|grotte de Niaux|1.5936|42.8208|09217|18
+Q306131|abbaye Saint-Pierre de Solesmes|-0.3031|47.8521|72336|18
+Q1815544|château de châteaudun|1.3236|48.0706|28088|18
+Q2962473|chemins de Saint-Jacques-de-Compostelle en France|-0.7229|45.1841||18
+Q10444176|Les Causses et les Cévennes, paysage culturel de l’agro-pastoralisme méditerranéen|3.4731|44.2203||18
+Q1102200|cathédrale Saint-Louis de Blois|1.3365|47.5885|41018|17
+Q1358886|grande synagogue de Paris|2.3364|48.8756|75109|17
+Q1374604|hôtel des archevêques de Sens|2.3592|48.8533|75104|17
+Q1377160|Château du Plessis-Bourré|-0.5444|47.6010|49130|17
+Q782969|basilique Notre-Dame-des-Victoires|2.3408|48.8667|75102|17
+Q919028|cathédrale Saint-Pierre de Vannes|-2.7569|47.6578|56260|17
+Q1466299|machine de Marly|2.1247|48.8711|78092|17
+Q1481233|cathédrale Saint-Pierre de Poitiers|0.3493|46.5805|86194|17
+Q1487492|grotte des Combarelles I|1.0422|44.9436|24172|17
+Q1516747|château de Commarque|1.1019|44.9417|24172|17
+Q1586486|cathédrale Saint-Jean de Besançon|6.0306|47.2336|25056|17
+Q1736197|cathédrale Saint-Pierre de Montpellier|3.8742|43.6133|34172|17
+Q1736223|cathédrale Saint-Gervais-et-Saint-Protais de Soissons|3.3252|49.3808|02722|17
+Q591296|abbaye de Pontigny|3.7145|47.9094|89307|17
+Q1858504|abbaye Saint-Victor de Marseille|5.3656|43.2903|13207|17
+Q2060046|château de Roquetaillade|-0.2698|44.4926|33279|17
+Q2093924|château d'Abbadia|-1.7492|43.3775|64260|17
+Q2124804|cathédrale Saint-Louis de Versailles|2.1242|48.7983|78646|17
+Q2310816|cathédrale Sainte-Marie d'Oloron|-0.6161|43.1878|64422|17
+Q2437680|cathédrale Notre-Dame-de-l'Assomption d'Ajaccio|8.7380|41.9175|2A004|17
+Q2601262|église du Val-de-Grâce|2.3419|48.8406|75105|17
+Q333888|abbaye Saint-Pierre de Corbie|2.5101|49.9090|80212|17
+Q334208|abbaye Saint-Pierre de Moissac|1.0847|44.1056|82112|17
+Q334263|abbaye Sainte-Marie de Fontfroide|2.8983|43.1274|11262|17
+Q2887024|basilique Saint-Michel de Bordeaux|-0.5649|44.8344|33063|17
+Q2942292|cathédrale Notre-Dame de Rodez|2.5741|44.3508|12202|17
+Q2968752|château de Caen|-0.3628|49.1864|14118|17
+Q27969085|abbaye Royale de Saint-Remi de Reims|4.0413|49.2434|51454|17
+Q32989|abbaye Notre-Dame du Bec|0.7215|49.2287|27052|17
+Q705054|ossuaire de Douaumont|5.4237|49.2083|55189|17
+Q736185|château de Marly|2.1000|48.8639|78372|17
+Q1817122|château d'Écouen|2.3783|49.0175|95205|17
+Q1435791|fontaine des Innocents|2.3480|48.8606||17
+Q1643082|hôtel Lambert|2.3596|48.8509||17
+Q1643144|hôtel de Sully|2.3638|48.8546||17
+Q1084011|cathédrale Sainte-Réparate de Nice|7.2758|43.6972|06088|16
+Q1247969|église Saint-Paul-Saint-Louis de Paris|2.3616|48.8547|75104|16
+Q1581356|église Saint-Jean de Montmartre|2.3379|48.8841|75118|16
+Q1710369|Notre-Dame-de-Lorette|2.3389|48.8764|75109|16
+Q1736175|cathédrale Saint-Michel de Carcassonne|2.3512|43.2110|11069|16
+Q1736217|cathédrale Notre-Dame de Senlis|2.5861|49.2069|60612|16
+Q1754399|abbaye aux Dames de Caen|-0.3529|49.1864|14118|16
+Q428765|musée des Beaux-Arts de Nancy|6.1823|48.6935|54395|16
+Q450348|Les Alyscamps|4.6369|43.6714|13004|16
+Q586471|cathédrale Saint-Étienne de Meaux|2.8789|48.9600|77284|16
+Q670092|abbatiale Sainte-Foy de Conques|2.3979|44.5993|12218|16
+Q674543|Glanum|4.8325|43.7739|13100|16
+Q186536|fort de Douaumont|5.4389|49.2167|55537|16
+Q2661168|place de la Carrière|6.1817|48.6958|54395|16
+Q273482|école normale de musique de Paris|2.3089|48.8839|75117|16
+Q306146|abbaye de Silvacane|5.3292|43.7161|13084|16
+Q306155|abbaye du Thoronet|6.2639|43.4603|83136|16
+Q334008|abbaye de Lérins|7.0472|43.5066|06029|16
+Q334243|abbaye royale de Saint-Wandrille de Fontenelle|0.7665|49.5296|76164|16
+Q2887040|basilique Saint-Urbain de Troyes|4.0767|48.2981|10387|16
+Q2887166|basilique de la Daurade de Toulouse|1.4399|43.6010|31555|16
+Q2914748|place d'Alliance|6.1863|48.6938|54395|16
+Q3162464|jardin de Versailles|2.1083|48.8081|78646|16
+Q20650698|Coteaux, maisons et caves de Champagne|3.9461|49.0775|51454|16
+Q22924354|hôpital René-Huguenin|2.2175|48.8448|92064|16
+Q1062732|chapelle expiatoire|2.3228|48.8737|75108|15
+Q1192381|château de Menars|1.4104|47.6388|41134|15
+Q1284848|hospices de Beaune|4.8367|47.0219|21054|15
+Q1316358|grande synagogue de Bordeaux|-0.5739|44.8336|33063|15
+Q1351690|cathédrale Saint-Étienne de Toul|5.8944|48.6753|54528|15
+Q761920|château de Gien|2.6319|47.6847|45155|15
+Q769303|château du Rivau|0.3233|47.1039|37125|15
+Q922303|chartreuse de Champmol|5.0174|47.3217|21231|15
+Q944597|château de Peyrepertuse|2.5554|42.8708|11123|15
+Q1011692|château de Falaise|-0.2039|48.8932|14258|15
+Q1468594|cathédrale Notre-Dame de Coutances|-1.4442|49.0475|50147|15
+Q1518999|cathédrale Saint-Étienne d'Auxerre|3.5729|47.7979|89024|15
+Q1589963|abbatiale de Saint-Ouen de Rouen|1.0997|49.4425|76540|15
+Q1626747|château de Meudon|2.2311|48.8050|92048|15
+Q1736171|cathédrale Sainte-Marie de Bayonne|-1.4772|43.4906|64102|15
+Q1736174|cathédrale Saint-Nazaire-et-Saint-Celse de Béziers|3.2100|43.3414|34032|15
+Q1766069|abbaye Sainte-Geneviève de Paris|2.3478|48.8459|75105|15
+Q1785858|église Saint-Thomas de Strasbourg|7.7453|48.5797|67482|15
+Q571282|cathédrale Saint-Cyr-et-Sainte-Julitte de Nevers|3.1572|46.9872|58194|15
+Q602572|Le Moustier|1.0600|44.9939|24443|15
+Q1902867|couvent Sainte-Marie de La Tourette|4.6225|45.8194|69083|15
+Q2032524|château d'Anet|1.4386|48.8583|28007|15
+Q2233532|rives de la Seine à Paris|2.3589|48.8500|75056|15
+Q2633625|château de Brest|-4.4947|48.3813|29019|15
+Q205659|château de Lunéville|6.4925|48.5947|54329|15
+Q2942319|cathédrale Saint-Caprais d'Agen|0.6192|44.2067|47001|15
+Q3117121|grotte de Bruniquel|1.6762|44.0620|82026|15
+Q516|hôtel de ville de Lyon|4.8350|45.7678|69381|15
+Q1013541|château de Puilaurens|2.2994|42.8038|11302|15
+Q1799090|La Roche-aux-Fées|-1.4047|47.9364|35108|15
+Q1229917|palais de la Légion d'honneur|2.3244|48.8604||15
+Q1569396|hôpital Saint-Louis|2.3683|48.8747||15
+Q1136951|cathédrale Notre-Dame-de-l'Annonciation de Nancy|6.1861|48.6914|54395|14
+Q1232116|abbaye de Luxeuil|6.3814|47.8164|70311|14
+Q1339429|basilique Saint-Quentin|3.2900|49.8478|02691|14
+Q810098|basilique Sainte-Thérèse de Lisieux|0.2366|49.1396|14366|14
+Q847628|cathédrale Saint-Étienne de Cahors|1.4431|44.4472|46042|14
+Q1461848|château de Ferrières|2.7119|48.8197|77181|14
+Q1488512|église Saint-Nicolas-des-Champs|2.3542|48.8655|75103|14
+Q1541186|Grand-Théâtre de Bordeaux|-0.5736|44.8425|33063|14
+Q1561438|palais Rohan|7.7520|48.5810|67482|14
+Q1567798|synagogue Nazareth|2.3601|48.8669|75103|14
+Q456181|abbaye Saint-Philibert de Tournus|4.9091|46.5656|71543|14
+Q574970|église Saint-Médard|2.3505|48.8399|75105|14
+Q576569|château de Beauregard|1.3836|47.5369|41031|14
+Q584590|cathédrale Saint-Pierre de Lisieux|0.2269|49.1465|14366|14
+Q597090|cathédrale Notre-Dame-et-Saint-Vaast d'Arras|2.7747|50.2931|62041|14
+Q117210|arc de Germanicus|-0.6290|45.7459|17415|14
+Q2205594|cathédrale Saint-Nicolas|7.2539|43.7039|06088|14
+Q2561040|mémorial national du Canada à Vimy|2.7736|50.3794|62371|14
+Q2714663|fort de Brégançon|6.3221|43.0928|83019|14
+Q306139|abbaye de Valmagne|3.5623|43.4869|34341|14
+Q2887041|basilique Saint-Seurin de Bordeaux|-0.5857|44.8432|33063|14
+Q2918846|cathédrale Notre-Dame d'Évreux|1.1508|49.0242|27229|14
+Q2942243|cathédrale Notre-Dame-de-l'Assomption de Montauban|1.3553|44.0153|82121|14
+Q2942355|cathédrale Saint-Jean-Baptiste de Perpignan|2.8969|42.7006|66136|14
+Q3330218|musée des Beaux-Arts Jules Chéret|7.2489|43.6945|06088|14
+Q3124|amphithéâtre des Trois Gaules|4.8306|45.7706|69381|14
+Q25063|grottes de Gargas|0.5363|43.0556|65051|14
+Q63504|cathédrale Notre-Dame-de-l'Annonciation de Moulins|3.3317|46.5667|03190|14
+Q1438801|fort de Vaux|5.4700|49.1999|55537|14
+Q1816823|pont Valentré|1.4318|44.4451|46042|14
+Q1841842|basilique Saint-Nazaire-et-Saint-Celse de Carcassonne|2.3628|43.2053|11069|14
+Q1025950|Filitosa|8.8714|41.7472|2A284|13
+Q1165266|cathédrale Saint-Mammès de Langres|5.3353|47.8642|52269|13
+Q1231132|abbaye de La Ferté|4.8592|46.6914|71384|13
+Q1242068|Donon|7.1650|48.5133|67165|13
+Q1329976|citadelle de Besançon|6.0325|47.2314|25056|13
+Q1344947|cathédrale Notre-Dame-de-Grâce de Cambrai|3.2333|50.1722|59122|13
+Q1383413|temple protestant du Marais|2.3662|48.8533|75104|13
+Q779678|abbaye de La Trappe|0.5733|48.6372|61475|13
+Q787927|cathédrale Saint-Étienne de Saint-Brieuc|-2.7642|48.5142|22278|13
+Q805255|salle du Jeu de paume|2.1239|48.8010|78646|13
+Q907505|cathédrale Notre-Dame de Sées|0.1726|48.6053|61464|13
+Q939114|église Notre-Dame-la-Grande de Poitiers|0.3439|46.5833|86194|13
+Q972128|théâtre antique d'Arles|4.6297|43.6764|13004|13
+Q1011361|château de Châlus-Chabrol|0.9793|45.6576|87032|13
+Q1011390|château de Clisson|-1.2808|47.0867|44043|13
+Q1483632|tombe de Vix|4.5434|47.9025|21711|13
+Q1537302|cathédrale Notre-Dame du Puy-en-Velay|3.8848|45.0456|43157|13
+Q508651|grand menhir brisé d'Er Grah|-2.9502|47.5713|56116|13
+Q579961|château d'Ancy-le-Franc|4.1617|47.7739|89005|13
+Q588555|église Saint-Joseph du Havre|0.1011|49.4910|76351|13
+Q623540|phare d'Ar-Men|-4.9972|48.0503|29083|13
+Q1905802|fort Saint-Jean|5.3625|43.2947|13202|13
+Q2032139|château de Serrant|-0.7439|47.4150|49283|13
+Q2054341|château de Saché|0.5444|47.2458|37205|13
+Q2080602|église Saint-Pierre de Caen|-0.3608|49.1842|14118|13
+Q2241121|château de Fénelon|1.3503|44.8423|24470|13
+Q2385003|cathédrale Saint-Vincent de Saint-Malo|-2.0256|48.6494|35288|13
+Q2418225|château de Vitré|-1.2153|48.1244|35360|13
+Q2452513|villa Ephrussi de Rothschild|7.3285|43.6967|06121|13
+Q2561189|cathédrale Saint-Étienne d'Agde|3.4692|43.3139|34003|13
+Q2640697|église Saint-Maclou de Rouen|1.0983|49.4398|76540|13
+Q2759640|couvent des Jacobins de Toulouse|1.4402|43.6039|31555|13
+Q2762952|cathédrale Notre-Dame-de-l'Assomption de Lescar|-0.4333|43.3328|64335|13
+Q279151|église Notre-Dame-de-Bonne-Nouvelle|2.3500|48.8695|75102|13
+Q306121|abbaye Saint-Michel de Cuxa|2.4167|42.5950|66052|13
+Q312445|château de Dinan|-2.0449|48.4503|22050|13
+Q371069|forteresse de Salses|2.9183|42.8397|66190|13
+Q377882|abbaye de Royaumont|2.3819|49.1475|95026|13
+Q2942311|cathédrale Saint-Apollinaire de Valence|4.8894|44.9317|26362|13
+Q2942348|cathédrale Saint-Jean-Baptiste de Bazas|-0.2097|44.4314|33036|13
+Q2942383|cathédrale Saint-Louis de La Rochelle|-1.1533|46.1614|17300|13
+Q2942437|cathédrale Saint-Pierre de Saintes|-0.6319|45.7444|17415|13
+Q3076041|fontaine Médicis|2.3392|48.8481|75106|13
+Q3116957|Gros-Horloge|1.0912|49.4416|76540|13
+Q3278824|maison La Roche|2.2653|48.8519|75116|13
+Q4819026|auberge Ravoux|2.1715|49.0707|95039|13
+Q15217751|hôpital Bicêtre|2.3561|48.8100|94043|13
+Q1510|théâtre antique de Lyon|4.8197|45.7597|69385|13
+Q39656|La Ferrassie|0.9381|44.9518|24524|13
+Q1392601|château de Hautefort|1.1450|45.2596|24210|13
+Q1410336|cathédrale Saint-Maurice de Vienne|4.8731|45.5242|38544|13
+Q1436883|château de Maintenon|1.5783|48.5854|28227|13
+Q1451798|château de Josselin|-2.5475|47.9524|56091|13
+Q1013167|château de Murol|2.9453|45.5783|63247|13
+Q1807058|église Notre-Dame de Dijon|5.0415|47.3227|21231|13
+Q1808966|château de Villesavin|1.5142|47.5467|41262|13
+Q1810254|Le Train bleu|2.3733|48.8450|75112|13
+Q479218|mémorial de la Shoah|2.3562|48.8548||13
+Q1643105|hôtel de Beauvais|2.3583|48.8552||13
+Q2698691|Orsay|2.3254|48.8603||13
+Q1131080|hôpital Cochin|2.3403|48.8369|75114|12
+Q1232844|grotte du Mas-d'Azil|1.3547|43.0694|09181|12
+Q1249452|cathédrale Saint-Pierre-et-Saint-Paul de Maguelone|3.8836|43.5125|34337|12
+Q1349239|cathédrale Saint-Alain de Lavaur|1.8219|43.6992|81140|12
+Q740250|château de Tarascon|4.6550|43.8066|13108|12
+Q745084|abbaye de la Trinité de Vendôme|1.0690|47.7912|41269|12
+Q747306|Fort la Latte|-2.2844|48.6683|22201|12
+Q753011|porte des Allemands|6.1856|49.1178|57463|12
+Q769365|château de Montpoupon|1.1411|47.2531|37046|12
+Q915291|abbaye de Maubuisson|2.1168|49.0462|95572|12
+Q981723|abbaye de Gellone|3.5495|43.7339|34261|12
+Q1504491|église Saint-Paul de Strasbourg|7.7597|48.5864|67482|12
+Q1518981|château de Puymartin|1.1425|44.9106|24255|12
+Q1575733|église Saint-Eugène-Sainte-Cécile|2.3471|48.8733|75109|12
+Q1579344|château de Sceaux|2.3000|48.7744|92071|12
+Q1581390|collégiale Saint-Martin de Colmar|7.3583|48.0772|68066|12
+Q1629790|église Sainte-Élisabeth-de-Hongrie|2.3605|48.8661|75103|12
+Q1643777|caune de l'Arago|2.7550|42.8394|66205|12
+Q1658766|cathédrale Saint-Jean-Baptiste d'Aire|-0.2622|43.7006|40001|12
+Q1736177|cathédrale Notre-Dame de Dax|-1.0531|43.7083|40088|12
+Q628375|château de Puivert|2.0550|42.9211|11303|12
+Q654569|château de Montreuil-Bellay|-0.1550|47.1331|49215|12
+Q672917|abbaye royale de l'Épau|0.2419|47.9911|72386|12
+Q1859459|château de La Brède|-0.5442|44.6792|33213|12
+Q1861419|mémorial de Thiepval|2.6858|50.0506|80045|12
+Q1992203|temple de Diane|4.3486|43.8399|30189|12
+Q2206135|château de Bonaguil|1.0143|44.5381|47242|12
+Q2259452|château d'Annecy|6.1261|45.8975|74010|12
+Q287751|abbaye Saint-Martin du Canigou|2.4008|42.5281|66043|12
+Q333837|abbaye de Beauport|-3.0194|48.7678|22162|12
+Q333850|abbaye de Cadouin|0.8738|44.8115|24068|12
+Q334060|abbaye Saint-Pierre de Montmajour|4.6639|43.7056|13004|12
+Q334124|abbaye de Remiremont|6.5914|48.0156|88383|12
+Q334199|monastère Saint-Paul-de-Mausole|4.8352|43.7767|13100|12
+Q370664|châteaux de Lastours|2.3783|43.3364|11194|12
+Q2887149|basilique de Saint-Nicolas-de-Port|6.3039|48.6317|54483|12
+Q2942253|cathédrale Notre-Dame-de-la-Platea d'Antibes|7.1283|43.5811|06004|12
+Q2942293|cathédrale Notre-Dame de Verdun|5.3823|49.1595|55545|12
+Q2942457|cathédrale Saint-Vincent de Viviers|4.6906|44.4819|07346|12
+Q2942470|cathédrale Sainte-Anne d'Apt|5.3969|43.8761|84003|12
+Q2970742|château de Suscinio|-2.7294|47.5128|56240|12
+Q3107709|musée de Picardie|2.2953|49.8905|80021|12
+Q3396772|pont Vieux|2.1446|43.9312|81004|12
+Q3517516|temple d'Auguste et de Livie|4.8742|45.5255|38544|12
+Q24739|cratère Lochnagar|2.6974|50.0156|80615|12
+Q724929|château de Fougères|-1.2094|48.3536|35115|12
+Q739028|cathédrale Saint-Paul-Aurélien de Saint-Pol-de-Léon|-3.9864|48.6850|29259|12
+Q1013196|château de Najac|1.9733|44.2183|12167|12
+Q1013993|château de Sedan|4.9494|49.7019|08409|12
+Q1014245|château de Termes|2.5567|43.0022|11388|12
+Q1064995|abbatiale Sainte-Croix de Bordeaux|-0.5611|44.8311|33063|11
+Q1243526|porte de Mars|4.0299|49.2606|51454|11
+Q1318314|château d'Ainay-le-Vieil|2.5497|46.6682|18002|11
+Q1384443|collégiale Notre-Dame-en-Vaux|4.3636|48.9576|51108|11
+Q769842|chapelle Notre-Dame-de-la-Médaille-miraculeuse|2.3229|48.8508|75107|11
+Q841839|abbaye royale de Notre-Dame et Toussaints de Chaalis|2.6861|49.1475|60241|11
+Q924757|pont transbordeur de Rochefort|-0.9607|45.9163|17299|11
+Q968431|Roquepertuse|5.2715|43.5327|13112|11
+Q998451|cathédrale Saint-Étienne|4.3578|48.9553|51108|11
+Q1010703|château d'Aguilar|2.7469|42.8906|11401|11
+Q1457391|galerie de Paléontologie et d'Anatomie comparée|2.3560|48.8411|75105|11
+Q1534869|église protestante Saint-Pierre-le-Jeune de Strasbourg|7.7464|48.5856|67482|11
+Q1548414|château d'Azay-le-Ferron|1.0700|46.8511|36010|11
+Q1619084|palais Longchamp|5.3945|43.3043|13204|11
+Q1629670|église Saint-Leu-Saint-Gilles|2.3501|48.8629|75101|11
+Q1709616|église Saint-Louis-en-l'Île|2.3576|48.8513|75104|11

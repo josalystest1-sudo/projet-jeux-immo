@@ -6,13 +6,17 @@
 
 - 2 nov. 2026 (phase 0) : dépôt `projet-jeux-immo`, publication GitHub Pages, page du jeu = prototype ; **moteur de règles** `src/regles/lieu.js` (standing, notoriété, plafond, rareté, valeur, loyer, encaissement 24 h) avec ses réglages dans `data/economie.json` (copie `data/economie.js` générée par `tools/gen_economie.py`) et 7 tests (`npm test`) ; la page du jeu utilise ce moteur.
 
+- 2 nov. 2026 (phase 1.5, données) : **standing réel de chaque commune** à partir des prix DVF (`data/standing.json`, 615 communes au 3, 5 146 au 2) et **458 monuments** de Wikidata (`data/monuments.json`, 60 nationaux + 398 régionaux, avec code INSEE et ville), fabriqués par `tools/gen_donnees.py` depuis `data/sources/` ; le moteur de règles prend la table de standing (arrondissements ramenés à leur ville) ; la carte affiche les 458 monuments (halo doré, nom dès le zoom 15) ; l'enchère de la semaine tourne sur les 60 nationaux. 10 tests.
+
 ## En cours
-- Phase 1 : la carte et le modèle des lieux reconstruits en modules (`src/`), à partir du prototype.
+- Phase 1.1 à 1.4 : la carte et le modèle des lieux reconstruits en modules (`src/`) à partir du prototype ; puis les 3 enchères par semaine (phase 5).
 
 ## À faire
 - Voir `docs/PLAN.md` (phases 1 à 11).
 
 ## Questions ouvertes
+- Relire la liste des 60 monuments nationaux (`data/monuments.json`, `palier: national`).
+- Seuils du standing (4 500 et 2 500 €/m²) : à valider.
 - Nom : « Cadastra » a des domaines pris (.fr, .com, .app) et une marque française « CadastrA » en immobilier/logiciel (voir GDD § 12) : garder ou changer, à décider par Gautier.
 - Capacité de gestion (limite de lieux par niveau) : à valider après simulation.
 - Fin de l'interview : volets 3 à 6 (lieux et packs, technique, graphismes, lancement).

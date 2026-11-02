@@ -17,6 +17,8 @@
 <script src="https://unpkg.com/three@0.147.0/examples/js/postprocessing/UnrealBloomPass.js"></script>
 <script src="geo.js"></script>
 <script src="data/economie.js"></script>
+<script src="data/standing.js"></script>
+<script src="data/monuments.js"></script>
 <script src="src/regles/lieu.js"></script>
 <style>
   :root{--bg:#11131c;--panel:#171a26;--card:#1c1f2c;--line:#2a2e40;--txt:#f3f4f8;--muted:#9aa0b8;--gold:#ffd65a;--me:#3b82f6;--other:#ef4444;--mixed:#a855f7;--ok:#7ee787;--nav:64px}
@@ -268,16 +270,12 @@ const AVATARS=['🦊','🐻','🐼','🦁','🐯','🐸','🐙','🦄','🐲','�
 function disp(n){ return n===ME ? (state.pseudo||'Moi') : n; }
 const FAKE = ['Léa','Marco','Inès','Yanis','Chloé','Sacha'];
 const JOUR = 60*1000;            // démo : un jour = une minute
-const R = Regles.creer(ECO);       // le moteur de règles (src/regles/lieu.js), réglages dans data/economie.json
+const R = Regles.creer(ECO, STANDING); // moteur de règles (src/regles/lieu.js) : réglages data/economie.json, standing réel data/standing.json
 const NIVEAUX = R.NIVEAUX; const SALAIRE = ECO.salaire_par_jour; const LOYER_BASE = ECO.loyer_terrain; const RARETES = ECO.raretes;
-const MONUMENTS = [
-  { nom:'Basilique du Sacré-Cœur', icone:'⛪', ville:'Paris 18e', lon:2.3431, lat:48.8867, depart:20000 },
-  { nom:'Opéra Garnier', icone:'🎭', ville:'Paris 9e', lon:2.3316, lat:48.8719, depart:25000 },
-  { nom:'Tour Eiffel', icone:'🗼', ville:'Paris 7e', lon:2.2945, lat:48.8584, depart:100000 },
-  { nom:'Arc de Triomphe', icone:'🏛️', ville:'Paris 8e', lon:2.2950, lat:48.8738, depart:40000 },
-  { nom:'Mont-Saint-Michel', icone:'🏰', ville:'Le Mont-Saint-Michel', lon:-1.5115, lat:48.6360, depart:60000 },
-  { nom:'Château de Chambord', icone:'🏰', ville:'Chambord', lon:1.5170, lat:47.6161, depart:35000 }
-];
+// Les 458 monuments (data/monuments.json) : 60 nationaux (légendaires, enchère chaque semaine) et 398 régionaux.
+function iconeMonument(n){ n=n.toLowerCase(); if(/tour eiffel/.test(n)) return '🗼'; if(/cathédrale|basilique|église|chapelle|abbaye|abbatiale|primatiale|collégiale|monastère|synagogue|temple|couvent|chartreuse/.test(n)) return '⛪'; if(/château|forteresse|citadelle|fort |cité de/.test(n)) return '🏰'; if(/pont|viaduc/.test(n)) return '🌉'; if(/grotte|abri|caune/.test(n)) return '🪨'; if(/théâtre|opéra|palais garnier/.test(n)) return '🎭'; if(/phare/.test(n)) return '🗼'; if(/jardin|parc/.test(n)) return '🌳'; return '🏛️'; }
+const LISTE_MON = MONUMENTS.map(m=>({ ...m, icone: iconeMonument(m.nom), depart: Math.round((10000 + m.articles*600)/1000)*1000 }));
+const MON_NATIONAUX = LISTE_MON.filter(m=>m.palier==='national');
 const SEMAINE = 7*JOUR;
 // points de tirage des packs : toute la France (villes et villages), en vrai : tirage dans la BAN entière
 const FRANCE = [[2.3522,48.8566],[2.2945,48.8584],[2.3912,48.8600],[2.3200,48.8300],[4.8357,45.7640],[5.3698,43.2965],[1.4442,43.6047],[-1.5536,47.2184],[7.2620,43.7102],[-0.5792,44.8378],[3.0573,50.6292],[7.7521,48.5734],[3.8767,43.6108],[-1.6778,48.1173],[4.3872,45.4397],[5.7245,45.1885],[-0.3708,49.1829],[-1.0993,49.4432],[2.8794,42.6887],[4.0333,49.2583],[6.1757,48.6921],[3.0863,45.7772],[0.6889,47.3941],[1.9093,47.9029],[6.0240,47.2378],[-4.4861,48.3904],[-1.1511,46.1591],[5.9304,43.1242],[3.1764,50.6919],[1.2622,45.8336],[2.2137,48.7138],[1.3871,48.5467],[2.0330,47.0826],[-0.3661,43.2951],[5.4474,43.5297],[6.6335,46.0558],[4.0744,46.2857],[-2.7574,47.6582],[0.1079,49.4944],[3.1550,43.3442],[1.8370,50.9513],[0.3400,46.5802],[6.2280,45.8992],[2.1500,44.9300],[3.4166,46.5569],[-0.4800,48.0700],[4.0800,44.1300],[1.5200,43.3400],[5.1600,44.9300],[-1.2000,45.7100],[6.4500,48.1700],[2.9000,47.4200],[0.7000,45.1800],[3.6000,47.8000],[4.3600,47.0500],[1.0800,49.4400],[5.0400,47.3200],[-0.8200,47.1800],[3.4100,43.6300],[2.4600,50.3700]];
@@ -409,16 +407,26 @@ function seedVisible(){ if(map.getZoom()<15) return; const feats = map.queryRend
     let st = parcelSeed(idu); const mine = Object.values(state.owned).some(a=>a.idu===idu); if(mine){ st = (st==='free') ? 'me' : 'mixed'; }
     map.setFeatureState({source:'pci', sourceLayer:'parcelle', id:idu}, {st}); } }
 const batiParcel = {}; let selected = null;
-function paintBuildings(){ const feats = map.queryRenderedFeatures({layers:['bati-3d']}); const parcels = map.queryRenderedFeatures({layers:['parcel-fill']});
+let monVisibles=[];
+function paintBuildings(){ const bb=map.getBounds(); monVisibles = LISTE_MON.filter(m=>bb.contains([m.lon,m.lat])); const feats = map.queryRenderedFeatures({layers:['bati-3d']}); const parcels = map.queryRenderedFeatures({layers:['parcel-fill']});
   for(const b of feats){ const id=b.id; if(!id) continue; let idu = batiParcel[id];
     if(idu===undefined){ const c=centroid(b.geometry); idu=null; for(const pf of parcels){ if(inside(c, pf.geometry)){ idu=pf.id; break; } } batiParcel[id]=idu; }
     const st = idu ? (map.getFeatureState({source:'pci', sourceLayer:'parcelle', id:idu}).st || 'free') : 'free';
     const bonus = idu ? parcelBonus(idu) : 0;
-    const c=centroid(b.geometry); const mon = MONUMENTS.some(m=>dist(c,[m.lon,m.lat])<70);
+    const c=centroid(b.geometry); const mon = monVisibles.some(m=>dist(c,[m.lon,m.lat])<70);
     map.setFeatureState({source:'topo', sourceLayer:'batiment', id}, {st, sel: !!idu && idu===selected, bonus, monument:mon}); } }
-// halo + étiquette de chaque monument
-MONUMENTS.forEach((m,i)=>{ const h=document.createElement('div'); h.className='halo'; new maplibregl.Marker({element:h}).setLngLat([m.lon,m.lat]).addTo(map);
-  const l=document.createElement('div'); l.className='mlabel'; l.textContent=`${m.icone} ${m.nom}`; l.onclick=()=>{ showScreen('encheres'); }; new maplibregl.Marker({element:l, anchor:'bottom', offset:[0,-44]}).setLngLat([m.lon,m.lat]).addTo(map); });
+// Les monuments sur la carte : un halo doré et le nom (couches légères, valables pour les 458).
+map.on('load', ()=>{
+  map.addSource('monuments', { type:'geojson', data:{ type:'FeatureCollection', features: LISTE_MON.map(m=>({ type:'Feature', properties:{ id:m.id, nom:m.nom, national: m.palier==='national' }, geometry:{ type:'Point', coordinates:[m.lon,m.lat] } })) } });
+  map.addLayer({ id:'mon-halo', type:'circle', source:'monuments', paint:{ 'circle-color':'#ffd65a', 'circle-opacity':0.22, 'circle-stroke-color':'#ffb627', 'circle-stroke-width':3, 'circle-stroke-opacity':0.9,
+    'circle-radius':['interpolate',['linear'],['zoom'],15,['case',['get','national'],22,14],19,['case',['get','national'],70,45]], 'circle-pitch-alignment':'map' } });
+  map.addLayer({ id:'mon-nom', type:'symbol', source:'monuments', minzoom:15,
+    layout:{ 'text-field':['get','nom'], 'text-font':['Open Sans Regular'], 'text-size':['case',['get','national'],15,13], 'text-offset':[0,-2.2], 'text-anchor':'bottom', 'text-allow-overlap':false },
+    paint:{ 'text-color':'#5a3d00', 'text-halo-color':'#ffd65a', 'text-halo-width':2.2 } });
+  let t=0; setInterval(()=>{ t+=0.12; if(map.getLayer('mon-halo')) map.setPaintProperty('mon-halo','circle-opacity', 0.15+0.15*(1+Math.sin(t))); }, 120);
+  map.on('click','mon-halo', (e)=>{ const f=e.features[0]; const m=LISTE_MON.find(x=>x.id===f.properties.id); if(!m) return;
+    const enJeu = auctionOf(auctionIndex()).m.id===m.id; toast(`${m.icone} ${m.nom} · monument ${m.palier==='national'?'national (légendaire)':'régional'}${enJeu?' · aux enchères cette semaine !':''}`); if(enJeu) setTimeout(()=>showScreen('encheres'), 900); });
+});
 const badges = {};
 function setBadge(a, lv){ const key=a.id; const vente = enVente(a); if(vente){ if(!badges[key]){ const el=document.createElement('div'); el.className='badge vente'; badges[key]=new maplibregl.Marker({element:el}).setLngLat([a.lon,a.lat]).addTo(map); } const el=badges[key].getElement(); el.className='badge vente'; el.textContent = lv>0 ? NIVEAUX[lv].icone+'💰' : '💰'; el.style.width='auto'; el.style.padding='0 6px'; return; } if(badges[key] && badges[key].getElement().classList.contains('vente')){ badges[key].remove(); delete badges[key]; }
   if(lv>0){ if(!badges[key]){ const el=document.createElement('div'); el.className='badge'; badges[key]=new maplibregl.Marker({element:el}).setLngLat([a.lon,a.lat]).addTo(map); } badges[key].getElement().textContent=NIVEAUX[lv].icone; } else if(badges[key]){ badges[key].remove(); delete badges[key]; } }
@@ -468,7 +476,7 @@ function addrRow(a, withBuild){
   const top=row.querySelector('.flex');
   if(o===ME){ top.insertAdjacentHTML('beforeend', `<span class="own me">À moi</span>`);
     if(withBuild){ const build=document.createElement('div'); build.className='build';
-      NIVEAUX.forEach((n,i)=>{ if(i===0) return; const b=document.createElement('button'); b.className='btn sm'+(i===lv+1&&i<=pl?' next':''); const cost=coutNiveau(rec,i);
+      NIVEAUX.forEach((n,i)=>{ if(i===0 || (i===4 && pl<4)) return; const b=document.createElement('button'); b.className='btn sm'+(i===lv+1&&i<=pl?' next':''); const cost=coutNiveau(rec,i);
         if(i>pl){ b.textContent=`${n.icone} ${n.nom} · hors plafond`; b.disabled=true; }
         else { b.textContent = i<=lv ? `${n.icone} ${n.nom} ✓` : `${n.icone} ${n.nom} · ${fmt(cost)}`; b.disabled = i!==lv+1 || dispo()<cost; b.onclick=()=>construire(a.id, i, cost); }
         build.appendChild(b); });
@@ -511,7 +519,7 @@ function repondreOffre(id, ok){ const o=state.offersIn.find(x=>x.id===id); if(!o
 
 // =================== enchères ===================
 function auctionIndex(){ return Math.floor(now()/SEMAINE); }
-function auctionOf(idx){ const m = MONUMENTS[idx % MONUMENTS.length]; const start = idx*SEMAINE; const bids=[]; const nmax = 4 + hash('n'+idx)%6; // 4 à 9 mises simulées
+function auctionOf(idx){ const m = MON_NATIONAUX[idx % MON_NATIONAUX.length]; const start = idx*SEMAINE; const bids=[]; const nmax = 4 + hash('n'+idx)%6; // 4 à 9 mises simulées
   for(let k=0;k<nmax;k++){ const t = start + 25000 + k*42000; if(t>now()) break; bids.push({ who:FAKE[(hash('w'+idx)+k)%FAKE.length], amount:Math.round(m.depart*(1+0.12*k)), ts:t }); }
   return { idx, m, start, end:start+SEMAINE, bids }; }
 function topBid(auc){ let top=null; for(const b of auc.bids){ if(!top || b.amount>top.amount) top=b; }
@@ -523,7 +531,7 @@ function encherir(amount){ const auc=auctionOf(auctionIndex()); const top=topBid
 function tickAuction(){ const idx=auctionIndex(); const a=state.auction;
   // clôture d'une enchère passée
   if(a.idx!==undefined && a.idx<idx && !a.closed){ const auc=auctionOf(a.idx); const top=topBid(auc);
-    if(top && top.who===ME && state.wallet>=top.amount){ state.wallet-=top.amount; const m=auc.m; const id='mon'+a.idx; state.owned[id]={ id, label:m.nom, lon:m.lon, lat:m.lat, citycode:'', city:m.ville, type:'monument', niveau:0, depuis:now() }; notify('enchere', `🏆 Tu as remporté ${m.nom} pour ${fmt(top.amount)} !`); setBadge(state.owned[id],0); }
+    if(top && top.who===ME && state.wallet>=top.amount){ state.wallet-=top.amount; const m=auc.m; const id='mon'+a.idx; state.owned[id]={ id, label:m.nom, lon:m.lon, lat:m.lat, citycode:m.insee, city:m.ville, type:'monument', niveau:0, depuis:now() }; notify('enchere', `🏆 Tu as remporté ${m.nom} pour ${fmt(top.amount)} !`); setBadge(state.owned[id],0); }
     else if(a.myBid){ notify('enchere', `Enchère terminée : ${auc.m.nom} va à ${top?top.who:'personne'} (${top?fmt(top.amount):'—'})`); }
     a.closed=true; save(); refreshTop(); }
   if(a.idx===idx && a.myBid && !a.outbidNotified){ const auc=auctionOf(idx); const top=topBid(auc); if(top && top.who!==ME){ a.outbidNotified=true; if(state.prefs.encheres) notify('enchere', `${top.who} a surenchéri à ${fmt(top.amount)} sur ${auc.m.nom}. Tes fonds sont libérés.`); save(); } }
@@ -746,7 +754,7 @@ function renderEncheres(){ const el=document.getElementById('s-encheres'); const
     <div style="margin-top:8px"><button class="btn sm" onclick="showScreen('carte');map.flyTo({center:[${auc.m.lon},${auc.m.lat}],zoom:17,duration:1200})">Voir sur la carte</button></div></div>`;
   h+=`<div class="card"><div class="t">Historique des mises</div>`; const all=[...auc.bids]; if(state.auction.idx===idx&&state.auction.myBid) all.push({who:ME,amount:state.auction.myBid,ts:state.auction.ts}); all.sort((a,b)=>b.ts-a.ts);
   h+= all.length ? all.map(b=>`<div class="rank"><span class="who" onclick="showPlayer('${b.who}')">${disp(b.who)}</span><b>${fmt(b.amount)}</b></div>`).join('') : '<div class="m">Aucune mise pour l’instant.</div>'; h+=`</div>`;
-  h+=`<div class="card"><div class="t">Prochains monuments</div>`; for(let k=1;k<=3;k++){ const m=MONUMENTS[(idx+k)%MONUMENTS.length]; h+=`<div class="rank"><span class="pos">S+${k}</span><span class="who">${m.nom}</span><span class="m">${m.ville} · dès ${fmt(m.depart)}</span></div>`; } h+=`</div>`;
+  h+=`<div class="card"><div class="t">Prochains monuments</div>`; for(let k=1;k<=3;k++){ const m=MON_NATIONAUX[(idx+k)%MON_NATIONAUX.length]; h+=`<div class="rank"><span class="pos">S+${k}</span><span class="who">${m.nom}</span><span class="m">${m.ville} · dès ${fmt(m.depart)}</span></div>`; } h+=`</div>`;
   el.innerHTML=h; }
 
 function renderCommunes(){ const el=document.getElementById('s-communes'); const mine={}; Object.values(state.owned).forEach(a=>{ const k=communeName(a.citycode,a.city); mine[k]=(mine[k]||0)+1; });

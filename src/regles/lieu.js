@@ -1,19 +1,22 @@
 // Règles d'un lieu : standing, notoriété, plafond, rareté, valeur, loyer.
 // Module pur : aucun réseau, aucun DOM, aucun hasard. Utilisable dans le navigateur (global `Regles`) et dans Node (tests).
 (function (racine) {
-  function creer(eco) {
+  function creer(eco, table) {
     const NIVEAUX = eco.niveaux;
     const idx = (id) => NIVEAUX.findIndex((n) => n.id === id);
 
-    // Standing provisoire par code INSEE (le vrai vient de DVF, phase 1.5).
+    // Standing d'une commune (1 Maison, 2 Immeuble, 3 Tour), d'après les prix immobiliers réels (data/standing.json).
+    // Les arrondissements de Paris, Lyon et Marseille prennent le standing de leur ville (DVF est agrégé par ville).
+    function communeDvf(code) {
+      const c = String(code || '');
+      if (/^751\d\d$/.test(c)) return '75056';
+      if (/^6938\d$/.test(c)) return '69123';
+      if (/^132\d\d$/.test(c)) return '13055';
+      return c;
+    }
     function standing(lieu) {
       if (lieu.standing) return lieu.standing;
-      const c = String(lieu.citycode || '');
-      if (c.startsWith('751')) { const a = parseInt(c.slice(3), 10); return (a <= 8 || a === 16 || a === 17) ? 3 : 2; }
-      if (/^(92|69|13|33|31|44|59|67|06|35|34|38|54|21|76|45|49|63|30|83|84|87|37|72|29|56|64|66|68|25|51|57|80|86|14|17|19|24|26|27|28|36|39|40|41|42|43|46|47|48|50|52|53|55|58|60|61|62|65|70|71|73|74|77|78|79|81|82|85|88|89|90|91|93|94|95)/.test(c)) {
-        return /^(92|69|13|33|31|44|59|67|06|35|34|38|77|78|91|93|94|95)/.test(c) ? 2 : 1;
-      }
-      return 1;
+      return (table && table[communeDvf(lieu.citycode || lieu.insee)]) || 1;
     }
     function notoriete(lieu) { return lieu.notoriete || (lieu.type === 'monument' ? 'monument' : (lieu.type === 'lieu' ? 'connue' : 'commune')); }
     function plafond(lieu) {
@@ -40,7 +43,7 @@
     }
     function nomRarete(r) { return eco.raretes[String(r)]; }
     function texteNiveau(n) { return NIVEAUX[n].nom; }
-    return { standing, notoriete, plafond, rarete, valeurBase, coutNiveau, peutConstruire, valeur, loyerParJour, loyerTotal, aEncaisser, nomRarete, texteNiveau, NIVEAUX, eco };
+    return { communeDvf, standing, notoriete, plafond, rarete, valeurBase, coutNiveau, peutConstruire, valeur, loyerParJour, loyerTotal, aEncaisser, nomRarete, texteNiveau, NIVEAUX, eco };
   }
   const api = { creer };
   if (typeof module !== 'undefined' && module.exports) module.exports = api; else racine.Regles = api;

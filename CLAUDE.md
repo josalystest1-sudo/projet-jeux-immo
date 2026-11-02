@@ -59,4 +59,5 @@ Ce fichier dit **ce qu'est le jeu, comment on travaille, ce qui est décidé et 
 - **Street View** : jamais stocker d'image (interdit) ; intégration dynamique seulement.
 - **La fenêtre interne de l'app Claude** ne fait pas tourner WebGL : tester dans Safari/Chrome.
 - **Performance de la révélation** : pas de filtres SVG animés, contours simplifiés, arrêter la boucle Three.js dès qu'elle n'est plus visible.
+- **Données ouvertes hors IGN** (data.gouv.fr, Wikidata) : l'espace de travail cloud ne les joint pas (liste blanche réseau) ; les sources brutes sont donc versionnées dans `data/sources/` et `tools/gen_donnees.py` ne fait appel qu'à l'IGN. Pour rafraîchir DVF ou Wikidata, récupérer les sources par le navigateur, ou demander à Gautier d'autoriser `www.data.gouv.fr`, `static.data.gouv.fr`, `query.wikidata.org`.
 - **Faille packs → revente → ₳** : ne jamais ajouter de rachat par la banque ni de récompense en ₳ à la revente.

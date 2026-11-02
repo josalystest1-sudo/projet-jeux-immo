@@ -23,7 +23,7 @@ Un **lieu** = une adresse (Base Adresse Nationale, 26 millions) **ou** un point 
 
 Chaque lieu porte :
 - sa **commune** (code INSEE ; à Paris, Lyon, Marseille : l'arrondissement) ;
-- son **standing** : le niveau de prix du quartier, calculé avec les ventes immobilières réelles (DVF, open data), mis à jour chaque semestre. Trois paliers : 1 (Maison), 2 (Immeuble), 3 (Tour). **[Décidé]**
+- son **standing** : le niveau de prix de la commune, calculé avec les ventes immobilières réelles (DVF, open data), mis à jour chaque année. Trois paliers : 1 (Maison), 2 (Immeuble), 3 (Tour). **[Décidé]** Calcul (2 nov. 2026, `data/sources/standing_dvf.txt`) : prix moyen au m² 2022-2024 pondéré par les ventes ; **3 si ≥ 4 500 €/m²** (615 communes : Paris, Lyon, Bordeaux, Nice, petite couronne chère, Côte d'Azur, stations), **2 si ≥ 2 500 €/m²** (5 146 communes), 1 sinon (≈ 29 000). Paris, Lyon, Marseille : le prix de la ville vaut pour tous ses arrondissements. Alsace-Moselle (pas de DVF) : Strasbourg et Colmar au 2, le reste au 1. **[Proposé]**
 - sa **notoriété** : Commune / Connue / Célèbre / Monument, calculée automatiquement (article Wikipédia du lieu ou de la rue, catégorie IGN/OSM, photos Commons), monuments vérifiés à la main. **[Décidé]**
 - son **plafond de construction** = standing + bonus de notoriété (Connue +1, Célèbre +2), au plus la Tour ; les monuments ont en plus le niveau « Prestige ». **[Décidé]**
 - sa **rareté** (visuelle, celle des cartes) :
@@ -51,6 +51,9 @@ Chaque lieu porte :
 - Aucune taxe, aucun délai de blocage. **[Décidé]**
 
 ### Les enchères de monuments **[Décidé]**
+
+La liste (`data/monuments.json`, 2 nov. 2026) : 458 monuments tirés de Wikidata (monuments historiques et sites UNESCO de métropole, classés par nombre d'articles Wikipédia) ; les **60 premiers sont nationaux** (légendaires), les **398 suivants régionaux**. Retirés : les ensembles qui ne sont pas un lieu (canal du Midi, chemins de Saint-Jacques, fortifications de Vauban…). Ajoutés à la main : tour Eiffel, Notre-Dame-de-la-Garde, viaduc de Millau. Mont-Saint-Michel forcé en national, château de Montsoreau en régional. **[Proposé, à relire par Gautier]**
+
 - **3 enchères par semaine pour toute la France** : 1 monument **légendaire national** (liste d'environ 60 : tour Eiffel, Mont-Saint-Michel, Chambord…) + 2 monuments **régionaux** (liste d'environ 400, mise de départ plus basse). **[Proposé pour la répartition]**
 - Mises pendant 7 jours. Une mise doit être couverte par le solde ; elle bloque les fonds tant qu'on mène ; si le meneur n'a plus les fonds à la clôture, l'enchère passe à la mise suivante, et ainsi de suite.
 - Une fois attribués, les monuments circulent par offres entre joueurs.
