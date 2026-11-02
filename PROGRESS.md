@@ -13,7 +13,7 @@
 - Voir `docs/PLAN.md` (phases 1 à 11).
 
 ## Questions ouvertes
-- Vérifier la marque « Cadastra » (INPI, EUIPO) et réserver cadastra.fr si libre.
+- Nom : « Cadastra » a des domaines pris (.fr, .com, .app) et une marque française « CadastrA » en immobilier/logiciel (voir GDD § 12) : garder ou changer, à décider par Gautier.
 - Capacité de gestion (limite de lieux par niveau) : à valider après simulation.
 - Fin de l'interview : volets 3 à 6 (lieux et packs, technique, graphismes, lancement).
 

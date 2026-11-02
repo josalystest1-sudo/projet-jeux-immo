@@ -137,7 +137,9 @@ Tout le game design d'abord (fonctions complètes, serveur simulé → vrai serv
 ## 12. Nom, monnaie, style, lancement **[Décidé le 2 nov.]**
 
 - **Monnaie : les « pièces »**.
-- **Nom : Cadastra.** **[Décidé le 2 nov.]** Homonyme connu : Cadastra S.A., agence de marketing brésilienne (cadastra.com), autre secteur. À vérifier avant le lancement : marque à l'INPI et à l'EUIPO (classes 9 et 41 : logiciels de jeu, divertissement), domaine cadastra.fr, nom libre sur les stores (V2).
+- **Nom : Cadastra.** **[Décidé le 2 nov., à confirmer]** Vérifications du 2 nov. :
+  - Domaines : cadastra.fr pris (février 2026, site inactif), cadastra.com pris (agence brésilienne Cadastra), cadastra.app pris (avril 2026, site en erreur). Libre : cadastra-jeu.fr.
+  - Marques (base INPI, qui couvre aussi les marques européennes et internationales visant la France) : « CadastrA » **enregistrée en France** (2021, société DEPGA) en classes 6, 19, 35, 36 (immobilier), 37, 42 (logiciels / informatique), 45 ; « Cadastra » internationale (2024, Cadastra Marketing Digital) en classe 35. Aucune en classes 9 / 41 (jeux), mais la proximité immobilier + logiciel crée un risque d'opposition. Avis d'un professionnel conseillé avant dépôt.
 - **Style visuel : cartoon** (ville 3D stylisée aux couleurs franches, pochette et cartes illustrées façon jeu mobile), **tout produit avec des outils d'IA**, Claude guide la chaîne d'outils (comme pour Arena : image → modèle 3D, textures, animations).
 - **Lancement public direct**, sans date fixée ; pas de bêta amis.
 - **Rythme** : toutes les soirées de Gautier, ce projet passe devant Arena.
