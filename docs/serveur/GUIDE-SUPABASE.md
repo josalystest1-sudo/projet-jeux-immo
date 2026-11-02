@@ -2,7 +2,11 @@
 
 Tant que `data/serveur.json` n'a pas d'adresse, le jeu tourne avec un **serveur simulé** sur l'appareil. Le vrai serveur est un projet Supabase : gratuit (palier « Free », sans carte bancaire), dix minutes, créé par toi depuis ton compte. À la fin, tu me donnes deux textes et je branche le jeu.
 
-## Étape 1 — le compte et le projet (ce soir)
+**Fait le 2 nov. 2026** (par Claude dans ton Chrome, à ta demande) : projet `cadastra` dans l'organisation Josalys, région Paris, gratuit ; tables exposées seulement sur autorisation, sécurité par ligne activée d'office ; tables créées (`supabase.sql`, « Success ») ; Site URL = l'adresse du jeu ; adresse et clé publique dans `data/serveur.json`. Le mot de passe de la base a été généré par Supabase et n'a été copié nulle part : si un jour il en faut un, **Project Settings → Database → Reset database password**.
+
+Ton organisation gratuite a droit à **deux projets actifs** : « Agent de synthèse d'actualités » et « cadastra ». Pour le serveur d'Arena, il faudra mettre l'un des deux en pause ou passer à la formule Pro.
+
+## Étape 1 — le compte et le projet
 
 1. Ouvre **https://supabase.com** et touche **Start your project**.
 2. Choisis **Continue with GitHub** (ton compte josalystest1-sudo) et accepte.
@@ -19,7 +23,7 @@ Tant que `data/serveur.json` n'a pas d'adresse, le jeu tourne avec un **serveur 
 
    Cette clé est faite pour être dans le jeu. **Ne m'envoie jamais** la clé **secret** / **service_role**, ni le mot de passe de la base.
 
-## Étape 2 — les tables (je te prépare le texte)
+## Étape 2 — les tables
 
 Dans **SQL Editor** → **New query**, tu colles le texte que je t'envoie (`docs/serveur/supabase.sql`) puis **Run** : « Success » doit s'afficher. Il crée les tables du jeu et leurs règles de sécurité (un joueur ne modifie que ce qui est à lui).
 

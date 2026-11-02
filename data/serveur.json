@@ -1,5 +1,5 @@
 {
-  "url": "",
-  "cle_publique": "",
-  "note": "Vide = serveur simulé. Renseigner l'URL et la clé anon/public du projet Supabase (jamais la clé service_role)."
+  "url": "https://hxtyecwofajiozmnfyxt.supabase.co",
+  "cle_publique": "sb_publishable_DDJc_ZW3SoB9Vh_7nJe8BA_zQgzAII3",
+  "note": "Projet Supabase « cadastra » (organisation Josalys, Paris, gratuit), créé le 2 nov. 2026. Clé publishable : faite pour être dans le jeu, la sécurité vient des règles des tables (docs/serveur/supabase.sql). Jamais la clé secrète ici."
 }

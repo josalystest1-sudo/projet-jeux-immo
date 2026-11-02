@@ -16,9 +16,11 @@
 
 - 2 nov. 2026 (soir), phase 2 sans le serveur : **filtre des pseudos** (`src/regles/pseudo.js`, `data/moderation.json`, 6 tests ; refus expliqué sous le champ) ; **Signaler** sur le profil d'un joueur (raison + détail, file gardée dans le profil en attendant Supabase) ; **la récolte à la connexion** (fenêtre « La récolte », stock plein signalé, puis le pack) ; **patrimoine** : filtre par rareté, « Mes ventes en cours » avec « Retirer ». 34 tests.
 
+- 2 nov. 2026 (nuit) : **le vrai serveur existe** : projet Supabase `cadastra` (Paris, gratuit) créé dans l'organisation Josalys ; tables `profils` (pseudo unique sans majuscules ni accents, avatar, banni) et `signalements` (lisibles seulement par Gautier) avec leurs règles de sécurité (`docs/serveur/supabase.sql`) ; vérifié : profils lisibles, `pseudo_libre` répond, signalements et colonnes cachées refusés au jeu ; inscription par e-mail ouverte avec confirmation. `data/serveur.json` rempli ; le jeu ne s'en sert pas encore.
+
 ## En cours
 - Lieux célèbres : les autres catégories (châteaux, mairies, gares, musées, ponts, phares, moulins…) dès que Wikidata répond (`python3 tools/wikidata_celebres.py`, puis `--fusion` et `gen_donnees.py celebres`).
-- Phase 1.1 à 1.4 : la carte et le modèle des lieux reconstruits en modules (`src/`) à partir du prototype ; puis le marché (phase 4 : historique des ventes d'un lieu) et les communes et Maires (phase 6). L'inscription (e-mail, Google/Apple) attend le projet Supabase (phase 8).
+- Phase 1.1 à 1.4 : la carte et le modèle des lieux reconstruits en modules (`src/`) à partir du prototype ; puis le marché (phase 4 : historique des ventes d'un lieu) et les communes et Maires (phase 6). Prochaine étape : **l'inscription** (e-mail + mot de passe) branchée sur le projet Supabase, le profil (pseudo, avatar) publié, Signaler envoyé au serveur ; ensuite Google, puis un service d'envoi d'e-mails avant le lancement (le service de Supabase n'écrit qu'aux membres de l'équipe).
 
 ## À faire
 - Voir `docs/PLAN.md` (phases 1 à 11).
