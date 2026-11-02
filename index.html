@@ -24,6 +24,7 @@
 <script src="src/regles/encheres.js"></script>
 <script src="src/regles/pack.js"></script>
 <script src="src/regles/pseudo.js"></script>
+<script src="https://unpkg.com/@supabase/supabase-js@2.118.0/dist/umd/supabase.js"></script>
 <style>
   :root{--bg:#11131c;--panel:#171a26;--card:#1c1f2c;--line:#2a2e40;--txt:#f3f4f8;--muted:#9aa0b8;--gold:#ffd65a;--me:#3b82f6;--other:#ef4444;--mixed:#a855f7;--ok:#7ee787;--nav:64px}
   *{box-sizing:border-box}
@@ -879,7 +880,8 @@ function showPlayer(name){ const box=document.getElementById('modalbox'); let h;
   else { const n=5+hash(name)%40, c=1+hash(name+'c')%4, b=Math.floor(n*(0.3+ (hash(name+'b')%50)/100)); const v=n*1200+b*900;
     h=`<h2>${name}</h2><div class="sub">Joueur simulé · membre depuis ${1+hash(name+'d')%60} jours</div><div class="kpis"><div class="kpi"><small>LIEUX</small><b>${n}</b></div><div class="kpi"><small>VALEUR</small><b>${fmt(v)}</b></div><div class="kpi"><small>CONSTRUITS</small><b>${b}</b></div></div><div class="card"><div class="t">Présent dans ${c} commune${c>1?'s':''}</div><div class="m">Ses lieux apparaissent en rouge sur la carte. Clique sur l’un d’eux pour lui faire une offre.</div></div>`; }
   const signaler = name===ME ? '' : `<button class="btn sm" style="width:100%;margin-bottom:8px;background:transparent;border:1px solid var(--line);color:#ff8a8a" onclick="signaler('${name}')">🚩 Signaler ce joueur</button>`;
-  box.innerHTML = h + signaler + `<button class="btn" style="width:100%" onclick="closeModal()">Fermer</button>`; document.getElementById('modal').classList.add('on'); }
+  const compte = (name===ME && window.Compte && Compte.actif() && Compte.session) ? `<div class="card"><div class="m">Compte : ${Compte.session.user.email||''}</div><button class="btn sm" style="margin-top:8px" onclick="Compte.deconnecter()">Se déconnecter</button></div>` : '';
+  box.innerHTML = h + compte + signaler + `<button class="btn" style="width:100%" onclick="closeModal()">Fermer</button>`; document.getElementById('modal').classList.add('on'); }
 // Signaler un joueur : une raison, un mot facultatif ; la file de signalements est traitée à la main par Gautier
 // (serveur simulé : gardée dans le profil ; avec Supabase : une table « signalements »).
 const RAISONS = { pseudo:'Pseudo inapproprié', triche:'Triche ou plusieurs comptes', comportement:'Comportement (offres, messages…)', autre:'Autre' };
@@ -904,7 +906,12 @@ function creationProfil(){ const box=document.getElementById('modalbox'); let av
   const grid=box.querySelector('#avgrid'); AVATARS.forEach(e=>{ const b=document.createElement('button'); b.textContent=e; b.className=e===av?'on':''; b.onclick=()=>{ av=e; grid.querySelectorAll('button').forEach(x=>x.classList.toggle('on',x.textContent===e)); }; grid.appendChild(b); });
   const champ=box.querySelector('#pseudo'), err=box.querySelector('#pseudoerr');
   champ.oninput=()=>{ const v=champ.value; const r=v.trim().length<3 ? {ok:true} : verifierPseudo(v); err.textContent = r.ok ? '' : 'Pseudo refusé : '+r.texte; };
-  box.querySelector('#okprofil').onclick=()=>{ const r=verifierPseudo(champ.value); if(!r.ok){ err.textContent='Pseudo refusé : '+r.texte; return; } const ps=r.pseudo; state.pseudo=ps; state.avatar=av; save(); closeModal(); refreshTop(); toast(`Bienvenue, ${ps} !`); if(packDispo()) setTimeout(ouvrirPack, 900); };
+  const bouton=box.querySelector('#okprofil'), premiere=!state.pseudo;
+  bouton.onclick=async()=>{ const r=verifierPseudo(champ.value); if(!r.ok){ err.textContent='Pseudo refusé : '+r.texte; return; } const ps=r.pseudo;
+    if(window.Compte && Compte.actif() && Compte.session){ bouton.disabled=true; bouton.textContent='…'; const s=await Compte.enregistrerProfil(ps, av); bouton.disabled=false; bouton.textContent='C’est parti';
+      if(!s.ok){ err.textContent='Pseudo refusé : '+s.texte; return; } }
+    state.pseudo=ps; state.avatar=av; save(); closeModal(); refreshTop(); toast(premiere?`Bienvenue, ${ps} !`:'Profil enregistré');
+    if(window.Compte && Compte.actif()) Compte.apresProfil(); else if(packDispo()) setTimeout(ouvrirPack, 900); };
   document.getElementById('modal').classList.add('on'); }
 function refreshTop(){ document.getElementById('wallet').textContent = fmt(dispo()); document.getElementById('meav').textContent=state.avatar||'🙂'; document.getElementById('mename').textContent=disp(ME); document.getElementById('count').textContent = Object.keys(state.owned).length;
   const p=Math.floor(pendingRent()); document.getElementById('pending').textContent = p>0 ? `+${p}` : '';
@@ -920,7 +927,10 @@ function recolteConnexion(ensuite){ const p=Math.floor(pendingRent()); if(p<1) r
     <button class="btn" style="width:100%" id="recolter">Récolter</button>`;
   document.getElementById('modal').classList.add('on');
   box.querySelector('#recolter').onclick=()=>{ encaisser(false); closeModal(); ensuite(); }; }
-refreshTop(); tickAuction(); if(!state.pseudo) setTimeout(creationProfil, 600); else setTimeout(()=>recolteConnexion(packAuDemarrage), 500);
+// sans serveur (data/serveur.json vide) : le profil local ; avec serveur, src/compte.js passe d'abord par le compte
+function demarrageLocal(){ if(!state.pseudo) setTimeout(creationProfil, 600); else setTimeout(()=>recolteConnexion(packAuDemarrage), 500); }
+refreshTop(); tickAuction();
 </script>
+<script src="src/compte.js"></script>
 </body>
 </html>

@@ -18,9 +18,11 @@
 
 - 2 nov. 2026 (nuit) : **le vrai serveur existe** : projet Supabase `cadastra` (Paris, gratuit) créé dans l'organisation Josalys ; tables `profils` (pseudo unique sans majuscules ni accents, avatar, banni) et `signalements` (lisibles seulement par Gautier) avec leurs règles de sécurité (`docs/serveur/supabase.sql`) ; vérifié : profils lisibles, `pseudo_libre` répond, signalements et colonnes cachées refusés au jeu ; inscription par e-mail ouverte avec confirmation. `data/serveur.json` rempli ; le jeu ne s'en sert pas encore.
 
+- 2 nov. 2026 (nuit) : **l'inscription** branchée sur Supabase (`src/compte.js`, bibliothèque officielle supabase-js 2.118 depuis unpkg) : créer un compte (e-mail + mot de passe), confirmer par le lien de l'e-mail, se connecter, renvoyer l'e-mail, mot de passe oublié, puis pseudo + avatar enregistrés dans `profils` (unicité vérifiée par le serveur) ; session gardée ; « Se déconnecter » ; sans serveur, le profil local comme avant. Parcours complet vérifié dans un téléphone simulé avec un faux serveur aux mêmes réponses (14 étapes).
+
 ## En cours
 - Lieux célèbres : les autres catégories (châteaux, mairies, gares, musées, ponts, phares, moulins…) dès que Wikidata répond (`python3 tools/wikidata_celebres.py`, puis `--fusion` et `gen_donnees.py celebres`).
-- Phase 1.1 à 1.4 : la carte et le modèle des lieux reconstruits en modules (`src/`) à partir du prototype ; puis le marché (phase 4 : historique des ventes d'un lieu) et les communes et Maires (phase 6). Prochaine étape : **l'inscription** (e-mail + mot de passe) branchée sur le projet Supabase, le profil (pseudo, avatar) publié, Signaler envoyé au serveur ; ensuite Google, puis un service d'envoi d'e-mails avant le lancement (le service de Supabase n'écrit qu'aux membres de l'équipe).
+- Phase 1.1 à 1.4 : la carte et le modèle des lieux reconstruits en modules (`src/`) à partir du prototype ; puis le marché (phase 4 : historique des ventes d'un lieu) et les communes et Maires (phase 6). Ensuite : Signaler envoyé au serveur dès qu'il y aura de vrais joueurs à l'écran ; Google ; un service d'envoi d'e-mails avant le lancement (le service de Supabase n'écrit qu'aux membres de l'équipe Supabase, deux e-mails par heure).
 
 ## À faire
 - Voir `docs/PLAN.md` (phases 1 à 11).

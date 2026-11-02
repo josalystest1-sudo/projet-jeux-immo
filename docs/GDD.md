@@ -107,6 +107,7 @@ Pas de bonus de collection en V1. **[Décidé]** En V2 : « toute ma rue », « 
 5. **Profil d'un joueur** : pseudo, avatar, patrimoine, titres de Maire, collections.
 6. **Notifications** : offres reçues (accepter / refuser), surenchère, vente conclue, pack prêt ; réglages (recevoir les offres, ignorer les offres sous la valeur, alertes d'enchères).
 7. **Création de compte** : **inscription obligatoire** (e-mail + mot de passe, ou Google/Apple), puis pseudo + avatar. **[Décidé]**
+   Mise en œuvre (2 nov. 2026, `src/compte.js`, Supabase) : e-mail + mot de passe (8 caractères au moins), confirmation par un lien reçu par e-mail qui ramène dans le jeu connecté (le lien marche même ouvert dans une autre application), « Renvoyer l'e-mail », « Mot de passe oublié » ; l'écran de compte ne se ferme pas tant qu'on n'est pas connecté ; puis le pseudo (filtre + unicité vérifiée par le serveur) et l'avatar, obligatoires ; la session reste ouverte d'une visite à l'autre ; « Se déconnecter » dans son profil. Les lieux et les pièces restent sur l'appareil jusqu'à la phase serveur ; un autre compte sur le même appareil repart d'un état neuf. Google et Apple : plus tard. **[Proposé]**
 8. **Boutique** : packs, Pass mensuel. **[V1 fin]**
 
 ## 8. Les données et leur source (toutes ouvertes et gratuites)
