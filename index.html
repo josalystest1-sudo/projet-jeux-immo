@@ -118,6 +118,10 @@
   .avgrid button{font-size:24px;background:#1c1f2c;border:2px solid var(--line);border-radius:12px;padding:8px;cursor:pointer}
   .avgrid button.on{border-color:var(--gold)}
   input.txt{width:100%;background:#0f1118;border:1px solid var(--line);color:var(--txt);border-radius:10px;padding:10px;font-size:15px}
+  .cel{display:flex;align-items:center;gap:4px;cursor:pointer}
+  .cel-pt{width:24px;height:24px;border-radius:50%;background:#2f6fe0;border:2px solid #fff;display:flex;align-items:center;justify-content:center;font-size:12px;box-shadow:0 2px 6px rgba(0,0,0,.4)}
+  .cel-nom{display:none;background:rgba(255,255,255,.94);color:#1d3a6e;font-size:11px;font-weight:700;padding:2px 7px;border-radius:9px;white-space:nowrap;max-width:170px;overflow:hidden;text-overflow:ellipsis;box-shadow:0 1px 4px rgba(0,0,0,.3)}
+  #map.cel-noms .cel-nom{display:block}
   .badge.vente{background:#1b1e2b;border-color:var(--ok);color:var(--ok);font-size:13px;font-weight:800}
   .sw{display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--line)}
   .sw:last-child{border-bottom:0}
@@ -432,22 +436,23 @@ map.on('load', ()=>{
 const CELEBRES = {};
 function chargerCelebres(dep){ if(!dep) return Promise.resolve([]); if(!CELEBRES[dep]) CELEBRES[dep] = fetch(`data/celebres/${dep}.json`).then(r=>r.ok?r.json():{lieux:[]}).then(j=>j.lieux||[]).catch(()=>[]); return CELEBRES[dep]; }
 const DEP_BOITES = Object.entries(GEO.deps).map(([code,d])=>{ let b=[180,90,-180,-90]; for(const ring of d.rings) for(const [x,y] of ring){ b=[Math.min(b[0],x),Math.min(b[1],y),Math.max(b[2],x),Math.max(b[3],y)]; } return {code, b}; });
-let celebresAffiches = '';
-async function afficherCelebres(){ const src = map.getSource('celebres'); if(!src) return;
-  if(map.getZoom() < 13){ if(celebresAffiches){ src.setData({type:'FeatureCollection', features:[]}); celebresAffiches=''; } return; }
+// Un repère ⭐ (élément HTML, toujours au-dessus des bâtiments en 3D) par lieu célèbre visible ; son nom dès le zoom 16,5.
+const celMarqueurs = {}; const CEL_MAX = 60;
+async function afficherCelebres(){
   const bb = map.getBounds(); const deps = DEP_BOITES.filter(d=>d.b[0]<=bb.getEast() && d.b[2]>=bb.getWest() && d.b[1]<=bb.getNorth() && d.b[3]>=bb.getSouth()).map(d=>d.code).slice(0,6);
-  const listes = await Promise.all(deps.map(chargerCelebres)); const features = [];
-  for(const l of listes) for(const e of l){ if(bb.contains([e[3],e[4]])) features.push({ type:'Feature', properties:{ id:e[0], nom:e[1] }, geometry:{ type:'Point', coordinates:[e[3],e[4]] } }); }
-  const cle = features.map(f=>f.properties.id).join(','); if(cle===celebresAffiches) return; celebresAffiches = cle;
-  src.setData({ type:'FeatureCollection', features }); }
-map.on('load', ()=>{
-  map.addSource('celebres', { type:'geojson', data:{ type:'FeatureCollection', features:[] } });
-  map.addLayer({ id:'cel-point', type:'circle', source:'celebres', minzoom:13, paint:{ 'circle-color':'#8fb8ff', 'circle-stroke-color':'#ffffff', 'circle-stroke-width':1.5,
-    'circle-radius':['interpolate',['linear'],['zoom'],13,3,16,6,19,10] } });
-  map.addLayer({ id:'cel-nom', type:'symbol', source:'celebres', minzoom:16,
-    layout:{ 'text-field':['concat','⭐ ',['get','nom']], 'text-font':['Open Sans Regular'], 'text-size':12, 'text-offset':[0,-1.4], 'text-anchor':'bottom', 'text-allow-overlap':false },
-    paint:{ 'text-color':'#1d3a6e', 'text-halo-color':'#ffffff', 'text-halo-width':2 } });
-  afficherCelebres(); });
+  const listes = await Promise.all(deps.map(chargerCelebres)); const garder = new Set();
+  for(const l of listes) for(const e of l){ if(garder.size>=CEL_MAX || !bb.contains([e[3],e[4]])) continue; garder.add(e[0]);
+    if(!celMarqueurs[e[0]]){ const el=document.createElement('div'); el.className='cel';
+      const pt=document.createElement('span'); pt.className='cel-pt'; pt.textContent='⭐'; const nom=document.createElement('span'); nom.className='cel-nom'; nom.textContent=e[1];
+      el.append(pt, nom); el.onclick=(ev)=>{ ev.stopPropagation(); ouvrirCelebre(e); };
+      celMarqueurs[e[0]] = new maplibregl.Marker({element:el, anchor:'left', offset:[-12,0]}).setLngLat([e[3],e[4]]).addTo(map); } }
+  for(const q of Object.keys(celMarqueurs)) if(!garder.has(q)){ celMarqueurs[q].remove(); delete celMarqueurs[q]; }
+  map.getContainer().classList.toggle('cel-noms', map.getZoom()>=16.5); }
+// toucher un repère : la parcelle du lieu s'ouvre (le lieu y est proposé)
+function parcelleDe(lon, lat){ return map.querySourceFeatures('pci',{sourceLayer:'parcelle'}).find(f=>inside([lon,lat], f.geometry)); }
+function ouvrirCelebre(e){ const pf = parcelleDe(e[3], e[4]); if(pf) return selectParcel(pf);
+  map.flyTo({center:[e[3],e[4]], zoom:18, duration:800}); map.once('idle', ()=>{ const pf2 = parcelleDe(e[3], e[4]); if(pf2) selectParcel(pf2); else toast('⭐ '+e[1]); }); }
+map.on('load', afficherCelebres);
 map.on('moveend', afficherCelebres);
 const badges = {};
 function setBadge(a, lv){ const key=a.id; const vente = enVente(a); if(vente){ if(!badges[key]){ const el=document.createElement('div'); el.className='badge vente'; badges[key]=new maplibregl.Marker({element:el}).setLngLat([a.lon,a.lat]).addTo(map); } const el=badges[key].getElement(); el.classList.add('badge','vente'); /* classList : ne pas effacer la classe maplibregl-marker (sinon le badge perd sa position et s'étale en ellipse) */ el.textContent = lv>0 ? NIVEAUX[lv].icone+'💰' : '💰'; el.style.width='auto'; el.style.padding='0 6px'; return; } if(badges[key] && badges[key].getElement().classList.contains('vente')){ badges[key].remove(); delete badges[key]; }
