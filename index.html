@@ -29,6 +29,14 @@
 <link rel="preload" href="fonts/nunito-latin-800-normal.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="style.css">
 <meta name="theme-color" content="#EAF2FF">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/png" href="icones/icone-192.png">
+<link rel="apple-touch-icon" href="icones/apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Cadastra">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="description" content="Collectionne les lieux réels de France, construis et deviens Maire de ta commune.">
 </head>
 <body>
 <div id="accueil"><div class="plaque logo"><small>Collectionne la France</small>Cadastra</div><div class="chargement"><i class="pc"></i><i class="pc"></i><i class="pc"></i></div></div>
@@ -166,8 +174,8 @@ function levelOf(a){ if(state.owned[a.id]) return state.owned[a.id].niveau||0; r
 const ST = ['coalesce',['feature-state','st'],'free'];
 const SEL = ['boolean',['feature-state','sel'],false];
 const TEINTE = ['%',['to-number',['slice',['get','cleabs'],-2]],5];
-const COULEUR_LIBRE = ['match',TEINTE, 0,'#f3ead9', 1,'#ece0cc', 2,'#f6efe3', 3,'#e9dfd0', 4,'#f0e6d6', '#f1e8d8'];
-const COULEUR_BATI = ['case', ['boolean',['feature-state','monument'],false], ['interpolate',['linear'],['coalesce',['get','hauteur'],9], 0,'#ffb627', 60,'#ffd65a', 200,'#fff1b8'], SEL, '#ffd65a', ['match',ST,'me','#5b93ff','other','#ff7b72','mixed','#c08cff', COULEUR_LIBRE]];
+const COULEUR_LIBRE = ['match',TEINTE, 0,'#FBF1DE', 1,'#F5E7D0', 2,'#FFF6E8', 3,'#F2E5D1', 4,'#F9EEDC', '#F8ECD9'];
+const COULEUR_BATI = ['case', ['boolean',['feature-state','monument'],false], ['interpolate',['linear'],['coalesce',['get','hauteur'],9], 0,'#ffb627', 60,'#ffd65a', 200,'#fff1b8'], SEL, '#FFC233', ['match',ST,'me','#4F86F0','other','#F2735B','mixed','#B07BEA', COULEUR_LIBRE]];
 const HAUTEUR = ['+', ['coalesce',['get','hauteur'],9], ['coalesce',['feature-state','bonus'],0]];
 const IMPORTANT = ['<=',['to-number',['coalesce',['get','importance'],'5']],3];
 const map = new maplibregl.Map({
@@ -180,29 +188,29 @@ const map = new maplibregl.Map({
       pci:{ type:'vector', tiles:['https://data.geopf.fr/tms/1.0.0/PCI/{z}/{x}/{y}.pbf'], minzoom:15, maxzoom:19, promoteId:{parcelle:'idu'}, attribution:'© DGFiP/IGN' }
     },
     layers:[
-      { id:'bg', type:'background', paint:{ 'background-color':'#dcd6c6' } },
-      { id:'ilot', type:'fill', source:'pci', 'source-layer':'parcelle', paint:{ 'fill-color':'#e7e0cf' } },
-      { id:'veget', type:'fill', source:'topo', 'source-layer':'zone_de_vegetation', paint:{ 'fill-color':'#b9d79a', 'fill-opacity':0.9 } },
-      { id:'parc', type:'fill', source:'topo', 'source-layer':'parc_ou_reserve', paint:{ 'fill-color':'#a9cf8c', 'fill-opacity':0.5 } },
-      { id:'sport', type:'fill', source:'topo', 'source-layer':'terrain_de_sport', paint:{ 'fill-color':'#9fd3b0' } },
-      { id:'water', type:'fill', source:'topo', 'source-layer':'surface_hydrographique', paint:{ 'fill-color':'#8fc3e6' } },
+      { id:'bg', type:'background', paint:{ 'background-color':'#DCE5D2' } },
+      { id:'ilot', type:'fill', source:'pci', 'source-layer':'parcelle', paint:{ 'fill-color':'#EFE9DA' } },
+      { id:'veget', type:'fill', source:'topo', 'source-layer':'zone_de_vegetation', paint:{ 'fill-color':'#A6DA88', 'fill-opacity':0.92 } },
+      { id:'parc', type:'fill', source:'topo', 'source-layer':'parc_ou_reserve', paint:{ 'fill-color':'#94D27A', 'fill-opacity':0.55 } },
+      { id:'sport', type:'fill', source:'topo', 'source-layer':'terrain_de_sport', paint:{ 'fill-color':'#8BD8A6' } },
+      { id:'water', type:'fill', source:'topo', 'source-layer':'surface_hydrographique', paint:{ 'fill-color':'#79C5F2' } },
       { id:'parcel-fill', type:'fill', source:'pci', 'source-layer':'parcelle',
-        paint:{ 'fill-color':['match',ST,'me','#3b82f6','other','#ef4444','mixed','#a855f7','#ffffff'], 'fill-opacity':['match',ST,'free',0.0,0.25] } },
+        paint:{ 'fill-color':['match',ST,'me','#4F86F0','other','#E4573D','mixed','#9B51E0','#ffffff'], 'fill-opacity':['match',ST,'free',0.0,0.25] } },
       { id:'parcel-line', type:'line', source:'pci', 'source-layer':'parcelle',
         paint:{ 'line-color':['case',SEL,'#e0a800','#8f8775'], 'line-width':['case',SEL,3,1.4] } },
       { id:'rail', type:'line', source:'topo', 'source-layer':'troncon_de_voie_ferree', paint:{ 'line-color':'#8d877c', 'line-width':2, 'line-dasharray':[3,2] } },
       { id:'road-side', type:'line', source:'topo', 'source-layer':'troncon_de_route', layout:{ 'line-cap':'round','line-join':'round' },
-        paint:{ 'line-color':'#cfc8b8', 'line-width':['interpolate',['exponential',1.6],['zoom'],15,['case',IMPORTANT,9,4.5],19,['case',IMPORTANT,46,26]] } },
+        paint:{ 'line-color':'#D3DBE7', 'line-width':['interpolate',['exponential',1.6],['zoom'],15,['case',IMPORTANT,9,4.5],19,['case',IMPORTANT,46,26]] } },
       { id:'road-casing', type:'line', source:'topo', 'source-layer':'troncon_de_route', layout:{ 'line-cap':'round','line-join':'round' },
-        paint:{ 'line-color':'#a39d91', 'line-width':['interpolate',['exponential',1.6],['zoom'],15,['case',IMPORTANT,7,3.4],19,['case',IMPORTANT,36,19]] } },
+        paint:{ 'line-color':'#B6C1D4', 'line-width':['interpolate',['exponential',1.6],['zoom'],15,['case',IMPORTANT,7,3.4],19,['case',IMPORTANT,36,19]] } },
       { id:'road', type:'line', source:'topo', 'source-layer':'troncon_de_route', layout:{ 'line-cap':'round','line-join':'round' },
-        paint:{ 'line-color':['case',IMPORTANT,'#fbf3df','#f7f3ea'], 'line-width':['interpolate',['exponential',1.6],['zoom'],15,['case',IMPORTANT,6,2.8],19,['case',IMPORTANT,32,16]] } },
-      { id:'road-axis', type:'line', source:'topo', 'source-layer':'troncon_de_route', minzoom:17, filter:IMPORTANT, paint:{ 'line-color':'#d9cfae', 'line-width':1.2, 'line-dasharray':[4,4] } },
+        paint:{ 'line-color':['case',IMPORTANT,'#FFFFFF','#FBFCFE'], 'line-width':['interpolate',['exponential',1.6],['zoom'],15,['case',IMPORTANT,6,2.8],19,['case',IMPORTANT,32,16]] } },
+      { id:'road-axis', type:'line', source:'topo', 'source-layer':'troncon_de_route', minzoom:17, filter:IMPORTANT, paint:{ 'line-color':'#F4CC5E', 'line-width':1.6, 'line-dasharray':[4,4] } },
       { id:'bati-3d', type:'fill-extrusion', source:'topo', 'source-layer':'batiment', filter:['!=',['get','construction_legere'],true],
         paint:{ 'fill-extrusion-color':COULEUR_BATI, 'fill-extrusion-height':['case',['boolean',['feature-state','monument'],false],['*',HAUTEUR,1.15],HAUTEUR], 'fill-extrusion-base':0, 'fill-extrusion-opacity':0.97, 'fill-extrusion-vertical-gradient':true } },
       { id:'road-label', type:'symbol', source:'topo', 'source-layer':'troncon_de_route', minzoom:16,
         layout:{ 'symbol-placement':'line', 'text-field':['coalesce',['get','nom_voie_ban_droite'],['get','nom_voie_ban_gauche'],''], 'text-font':['Open Sans Regular'], 'text-size':12, 'symbol-spacing':320 },
-        paint:{ 'text-color':'#5f584e', 'text-halo-color':'#ffffff', 'text-halo-width':1.3 } }
+        paint:{ 'text-color':'#43506E', 'text-halo-color':'#ffffff', 'text-halo-width':1.6 } }
     ] }
 });
 map.addControl(new maplibregl.NavigationControl({showCompass:false}), 'bottom-right');
@@ -475,15 +483,30 @@ void main(){
   if(uStrip>0.5 && vUv.y<0.09 && mod(vUv.x*24.0,1.0)<0.55) col=mix(col,vec3(1.0),0.85);
   col*=0.85+0.15*uReady;
   gl_FragColor=vec4(col,1.0); }`;
-function makeArt(){ // recto de la pochette : dégradé + logo (en attendant une illustration)
+function makeArt(){ // recto de la pochette : bleu émaillé, lignes de parcelles, la plaque « Cadastra », PACK DU JOUR en or
   const c=document.createElement('canvas'); c.width=1024; c.height=1400; const g=c.getContext('2d');
-  const gr=g.createLinearGradient(0,0,1024,1400); gr.addColorStop(0,'#1b2a6b'); gr.addColorStop(0.45,'#4a2a9a'); gr.addColorStop(0.75,'#a8318f'); gr.addColorStop(1,'#ff8a3d'); g.fillStyle=gr; g.fillRect(0,0,1024,1400);
-  // rayons diagonaux
-  g.globalAlpha=0.12; g.fillStyle='#fff'; for(let i=-8;i<14;i++){ g.beginPath(); g.moveTo(i*140,0); g.lineTo(i*140+70,0); g.lineTo(i*140+70+900,1400); g.lineTo(i*140+900,1400); g.closePath(); g.fill(); } g.globalAlpha=1;
-  // skyline stylisée en bas
-  g.fillStyle='rgba(10,8,30,.55)'; let x=0; let k=0; while(x<1024){ const w=60+((k*53)%90), h=140+((k*97)%260); g.fillRect(x,1400-h,w,h); x+=w+8; k++; }
-  g.textAlign='center'; g.fillStyle='#fff'; g.shadowColor='rgba(0,0,0,.6)'; g.shadowBlur=24; g.font='900 150px Inter, system-ui, sans-serif'; g.fillText('PACK DU',512,520); g.fillText('JOUR',512,680);
-  g.font='600 54px Inter, system-ui, sans-serif'; g.globalAlpha=.92; g.fillText('5  L I E U X  ·  F R A N C E',512,790); g.globalAlpha=1; g.font='300px serif'; g.fillText('🎁',512,1180);
+  const fond=g.createRadialGradient(512,560,80,512,640,980); fond.addColorStop(0,'#3566CC'); fond.addColorStop(0.45,'#1E4598'); fond.addColorStop(1,'#0B1F4D'); g.fillStyle=fond; g.fillRect(0,0,1024,1400);
+  // un plan de cadastre : des parcelles irrégulières en traits fins
+  let gr=7; const rnd=()=>{ gr=(gr*16807)%2147483647; return gr/2147483647; };
+  g.strokeStyle='rgba(255,255,255,.13)'; g.lineWidth=3;
+  for(let y=-60;y<1460;y+=150){ for(let x=-60;x<1100;x+=170){ const j=()=> (rnd()-0.5)*70; g.beginPath(); g.moveTo(x+j(),y+j()); g.lineTo(x+170+j(),y+j()); g.lineTo(x+170+j(),y+150+j()); g.lineTo(x+j(),y+150+j()); g.closePath(); g.stroke(); } }
+  // des immeubles en silhouette, en bas
+  g.fillStyle='rgba(8,20,56,.75)'; let x=0, k=0; while(x<1024){ const w=70+((k*53)%80), h=150+((k*97)%220); g.fillRect(x,1400-h,w,h); g.fillRect(x+8,1400-h-26,w-16,26); x+=w+6; k++; }
+  g.fillStyle='rgba(255,213,110,.55)'; x=12; k=0; while(x<1010){ for(let r=0;r<4;r++) if(((k+r)*31)%3) g.fillRect(x, 1400-60-r*44, 14, 20); x+=34; k++; }
+  // la plaque de rue
+  const arr=(px,py,w,h,r)=>{ g.beginPath(); g.moveTo(px+r,py); g.arcTo(px+w,py,px+w,py+h,r); g.arcTo(px+w,py+h,px,py+h,r); g.arcTo(px,py+h,px,py,r); g.arcTo(px,py,px+w,py,r); g.closePath(); };
+  g.shadowColor='rgba(0,0,0,.45)'; g.shadowBlur=30; g.shadowOffsetY=12;
+  arr(152,250,720,300,46); g.fillStyle='#2E8B57'; g.fill(); g.shadowColor='transparent';
+  arr(170,268,684,264,36); g.fillStyle='#FFFFFF'; g.fill();
+  arr(184,282,656,236,28); g.fillStyle='#1E4598'; g.fill();
+  g.textAlign='center'; g.fillStyle='#fff'; g.font='800 46px "Nunito", system-ui, sans-serif'; g.globalAlpha=.88; g.fillText('Collectionne la France',512,348); g.globalAlpha=1;
+  g.font='800 150px "Baloo 2", system-ui, sans-serif'; g.fillText('Cadastra',512,478);
+  // PACK DU JOUR, en or
+  g.font='800 142px "Baloo 2", system-ui, sans-serif'; g.lineJoin='round'; g.lineWidth=22; g.strokeStyle='#0B1F4D';
+  const or=g.createLinearGradient(0,620,0,820); or.addColorStop(0,'#FFE58A'); or.addColorStop(0.5,'#FFC233'); or.addColorStop(1,'#E79A12');
+  g.strokeText('PACK DU JOUR',512,720); g.fillStyle=or; g.fillText('PACK DU JOUR',512,720);
+  g.font='800 56px "Nunito", system-ui, sans-serif'; g.fillStyle='#fff'; g.fillText('5 lieux · toute la France',512,810);
+  g.shadowColor='rgba(0,0,0,.4)'; g.shadowBlur=24; g.font='250px serif'; g.fillText('🎁',512,1110); g.shadowColor='transparent';
   const t=new THREE.CanvasTexture(c); t.anisotropy=8; t.encoding=THREE.sRGBEncoding; return t; }
 function makeNormal(){ // reliefs du foil : micro-plis + crantage des bords, générés
   const S=512; const c=document.createElement('canvas'); c.width=S; c.height=S; const g=c.getContext('2d'); const img=g.createImageData(S,S); const d=img.data;

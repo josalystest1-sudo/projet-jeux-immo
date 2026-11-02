@@ -20,7 +20,7 @@
   --ombre:0 6px 18px rgba(23,35,63,.13); --ombre-forte:0 12px 34px rgba(23,35,63,.22);
   --nav:70px;
   /* couleurs de la carte (inchangées) */
-  --me:#3b82f6; --other:#ef4444; --mixed:#a855f7;
+  --me:#4F86F0; --other:#E4573D; --mixed:#9B51E0;
   /* anciens noms, encore utilisés dans quelques textes générés */
   --bg:var(--ciel); --panel:var(--blanc); --card:var(--blanc); --line:var(--trait); --txt:var(--encre); --muted:var(--gris);
   --gold:#A86F00; --ok:#1F7A4A;
