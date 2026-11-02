@@ -25,214 +25,33 @@
 <script src="src/regles/pack.js"></script>
 <script src="src/regles/pseudo.js"></script>
 <script src="https://unpkg.com/@supabase/supabase-js@2.118.0/dist/umd/supabase.js"></script>
-<style>
-  :root{--bg:#11131c;--panel:#171a26;--card:#1c1f2c;--line:#2a2e40;--txt:#f3f4f8;--muted:#9aa0b8;--gold:#ffd65a;--me:#3b82f6;--other:#ef4444;--mixed:#a855f7;--ok:#7ee787;--nav:64px}
-  *{box-sizing:border-box}
-  html,body{margin:0;height:100%;background:var(--bg);color:var(--txt);font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,sans-serif;overflow:hidden}
-  #map{position:absolute;inset:0;bottom:calc(var(--nav) + env(safe-area-inset-bottom))}
-  button{font-family:inherit}
-  /* haut */
-  #top{position:absolute;top:0;left:0;right:0;padding:calc(10px + env(safe-area-inset-top)) 12px 0;display:flex;flex-direction:column;gap:8px;pointer-events:none;z-index:5}
-  #top > *{pointer-events:auto}
-  .row{display:flex;gap:8px;align-items:center;justify-content:space-between}
-  .pill{background:rgba(17,19,28,.92);border:1px solid var(--line);border-radius:999px;padding:8px 14px;font-size:14px;display:flex;gap:8px;align-items:center;backdrop-filter:blur(6px);white-space:nowrap}
-  .pill b{color:var(--gold)}
-  .dot{width:10px;height:10px;border-radius:50%;display:inline-block}
-  #search{display:flex;gap:6px;background:rgba(17,19,28,.94);border:1px solid var(--line);border-radius:14px;padding:6px 6px 6px 12px;backdrop-filter:blur(6px);align-items:center}
-  #search input{flex:1;background:transparent;border:0;color:var(--txt);font-size:15px;outline:none;min-width:0}
-  #search button{background:var(--gold);border:0;border-radius:10px;padding:8px 12px;font-weight:700;cursor:pointer}
-  #sugg{background:rgba(17,19,28,.96);border:1px solid var(--line);border-radius:12px;overflow:hidden;display:none}
-  #sugg div{padding:10px 12px;font-size:14px;border-bottom:1px solid var(--line);cursor:pointer}
-  #sugg div:last-child{border-bottom:0}
-  #sugg small{color:var(--muted);display:block;font-size:12px}
-  #ctrls{position:absolute;right:12px;top:calc(118px + env(safe-area-inset-top));display:flex;flex-direction:column;gap:8px;z-index:5}
-  .rbtn{width:46px;height:46px;border-radius:12px;background:rgba(17,19,28,.92);border:1px solid var(--line);color:var(--txt);font-weight:800;font-size:13px;cursor:pointer;backdrop-filter:blur(6px)}
-  .rbtn.on{background:var(--gold);color:#111;border-color:var(--gold)}
-  #packbtn{position:absolute;left:12px;bottom:calc(var(--nav) + 14px + env(safe-area-inset-bottom));z-index:5;background:var(--gold);color:#111;border:0;border-radius:14px;padding:12px 16px;font-weight:800;font-size:15px;box-shadow:0 6px 20px rgba(0,0,0,.4);cursor:pointer}
-  #packbtn:disabled{background:rgba(17,19,28,.92);color:var(--muted);border:1px solid var(--line)}
-  #legend{position:absolute;right:12px;bottom:calc(var(--nav) + 14px + env(safe-area-inset-bottom));background:rgba(17,19,28,.9);border:1px solid var(--line);border-radius:10px;padding:6px 10px;font-size:11px;z-index:5;display:flex;gap:8px}
-  #legend span{display:flex;align-items:center;gap:4px}
-  /* nav */
-  #nav{position:absolute;left:0;right:0;bottom:0;height:calc(var(--nav) + env(safe-area-inset-bottom));padding-bottom:env(safe-area-inset-bottom);background:var(--panel);border-top:1px solid var(--line);display:flex;z-index:40}
-  #nav button{flex:1;background:transparent;border:0;color:var(--muted);font-size:11px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;position:relative;cursor:pointer}
-  #nav button i{font-style:normal;font-size:20px}
-  #nav button.on{color:var(--gold)}
-  #nav .cnt{position:absolute;top:8px;right:calc(50% - 22px);background:var(--other);color:#fff;font-size:10px;font-weight:800;border-radius:999px;padding:1px 6px;display:none}
-  /* écrans */
-  .screen{position:absolute;inset:0;bottom:calc(var(--nav) + env(safe-area-inset-bottom));background:var(--bg);z-index:20;overflow:auto;padding:calc(12px + env(safe-area-inset-top)) 14px 24px;display:none}
-  .screen.on{display:block}
-  .screen h1{font-size:22px;margin:6px 0 12px}
-  .card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px;margin-bottom:10px}
-  .card .t{font-weight:700;font-size:15px}
-  .card .m{color:var(--muted);font-size:12px;margin-top:2px}
-  .kpis{display:flex;gap:8px;margin-bottom:12px}
-  .kpi{flex:1;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px 8px;text-align:center}
-  .kpi small{display:block;color:var(--muted);font-size:10px;letter-spacing:.04em}
-  .kpi b{font-size:16px}
-  .btn{background:var(--gold);color:#111;border:0;border-radius:10px;padding:9px 14px;font-weight:700;font-size:14px;cursor:pointer;white-space:nowrap}
-  .btn.sm{padding:7px 10px;font-size:13px;background:#2a2e40;color:var(--txt)}
-  .btn.sm.next{background:var(--gold);color:#111}
-  .btn.ghost{background:transparent;border:1px solid var(--line);color:var(--txt)}
-  .btn:disabled{opacity:.4;cursor:default}
-  .own{font-size:13px;padding:6px 10px;border-radius:8px;white-space:nowrap;font-weight:600;cursor:pointer}
-  .own.me{background:rgba(59,130,246,.2);color:#8ab4ff}
-  .own.other{background:rgba(239,68,68,.2);color:#ff9b9b}
-  .tag{display:inline-block;font-size:11px;padding:2px 8px;border-radius:999px;background:#2a2e40;color:var(--muted);margin-left:6px;vertical-align:middle}
-  .tag.lieu{background:rgba(255,214,90,.18);color:var(--gold)}
-  .tag.monument{background:rgba(255,214,90,.35);color:#fff}
-  .flex{display:flex;align-items:center;justify-content:space-between;gap:8px}
-  .build{display:flex;gap:6px;margin-top:8px;flex-wrap:wrap}
-  input.num{width:110px;background:#0f1118;border:1px solid var(--line);color:var(--txt);border-radius:8px;padding:8px;font-size:14px}
-  /* fiche (bottom sheet) */
-  #sheet{position:absolute;left:0;right:0;bottom:calc(var(--nav) + env(safe-area-inset-bottom));max-height:78%;background:var(--panel);border-top:2px solid var(--gold);border-radius:22px 22px 0 0;transform:translateY(110%);transition:transform .25s ease;z-index:30;overflow:auto;padding:14px 16px 16px;box-shadow:0 -10px 40px rgba(0,0,0,.5)}
-  #sheet.open{transform:translateY(0)}
-  .close{position:absolute;right:12px;top:10px;background:var(--line);border:0;color:var(--txt);width:34px;height:34px;border-radius:50%;font-size:18px;cursor:pointer}
-  h2{margin:4px 0 2px;font-size:20px}
-  .sub{color:var(--muted);font-size:13px;margin-bottom:10px}
-  .sv{width:100%;aspect-ratio:16/9;border:0;border-radius:14px;background:#000;display:block}
-  .svwrap{position:relative;margin-bottom:10px}
-  .svwrap a.ext{position:absolute;right:8px;bottom:8px;background:rgba(0,0,0,.65);color:#fff;font-size:12px;padding:5px 9px;border-radius:8px;text-decoration:none}
-  .addr{padding:10px 12px;border:1px solid var(--line);border-radius:12px;margin-bottom:8px;background:var(--card)}
-  .addr .n{font-weight:600;font-size:15px}
-  .addr .m{color:var(--muted);font-size:12px}
-  /* modales */
-  #modal{position:absolute;inset:0;background:rgba(0,0,0,.6);z-index:50;display:none;align-items:center;justify-content:center;padding:16px}
-  #modal.on{display:flex}
-  #modal .box{background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:16px;width:100%;max-width:420px;max-height:90%;overflow:auto}
-  .pack{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:10px 0}
-  .pcard{background:linear-gradient(160deg,#20243a,#141726);border:1px solid var(--line);border-radius:12px;padding:10px;min-height:88px;transform:rotateY(90deg);transition:transform .35s ease}
-  .pcard.flip{transform:rotateY(0)}
-  .pcard.lieu{border-color:var(--gold);box-shadow:0 0 14px rgba(255,214,90,.3)}
-  .pcard .n{font-weight:700;font-size:13px}
-  .pcard .m{font-size:11px;color:var(--muted)}
-  #toast{position:absolute;top:40%;left:50%;transform:translate(-50%,-50%);background:var(--gold);color:#111;padding:12px 18px;border-radius:12px;font-weight:700;z-index:60;display:none;text-align:center;max-width:80%}
-  #diag{position:absolute;left:12px;right:12px;top:calc(130px + env(safe-area-inset-top));background:rgba(120,20,20,.92);border-radius:10px;padding:10px 12px;font-size:12px;z-index:30;display:none;white-space:pre-wrap}
-  .badge{width:30px;height:30px;border-radius:50%;background:#fff;border:2px solid var(--gold);display:flex;align-items:center;justify-content:center;font-size:16px;box-shadow:0 2px 8px rgba(0,0,0,.4)}
-  .r1{--rc:#9aa0b8}.r2{--rc:#5fd38d}.r3{--rc:#4fa3ff}.r4{--rc:#c26bff}.r5{--rc:#ffd65a}
-  .pcard,.acard{position:relative}
-  .acard{background:linear-gradient(165deg,#1f2335,#141726);border:2px solid var(--rc);border-radius:16px;padding:12px;margin-bottom:10px;box-shadow:0 0 0 1px rgba(0,0,0,.4), 0 0 18px color-mix(in srgb, var(--rc) 45%, transparent)}
-  .acard.r5{background:linear-gradient(165deg,#3a2f12,#1a1608)} .acard.r4{background:linear-gradient(165deg,#2a1f3d,#151226)}
-  .acard .rar{position:absolute;right:10px;top:10px;font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--rc);font-weight:800}
-  .acard .n{font-weight:800;font-size:16px;padding-right:90px}
-  .acard .m{color:var(--muted);font-size:12px;margin-top:2px}
-  .acard .big{font-size:34px;margin:6px 0 2px}
-  .pcard.r1,.pcard.r2,.pcard.r3,.pcard.r4,.pcard.r5{border-color:var(--rc);box-shadow:0 0 14px color-mix(in srgb, var(--rc) 50%, transparent)}
-  .av{width:34px;height:34px;border-radius:50%;background:#2a2e40;display:inline-flex;align-items:center;justify-content:center;font-size:18px}
-  .avgrid{display:grid;grid-template-columns:repeat(6,1fr);gap:6px;margin:10px 0}
-  .avgrid button{font-size:24px;background:#1c1f2c;border:2px solid var(--line);border-radius:12px;padding:8px;cursor:pointer}
-  .avgrid button.on{border-color:var(--gold)}
-  .err{color:#ff8a8a;font-size:12px;min-height:16px;margin-top:4px}
-  .raisons button{display:block;width:100%;text-align:left;margin:6px 0;background:#1c1f2c;border:2px solid var(--line);border-radius:12px;padding:10px;color:#fff;font-size:14px;cursor:pointer}
-  .raisons button.on{border-color:var(--gold)}
-  .recolte{font-size:40px;font-weight:900;color:var(--ok);text-align:center;margin:10px 0 4px}
-  .filtre{cursor:pointer;opacity:.55} .filtre.on{opacity:1;outline:2px solid currentColor}
-  input.txt{width:100%;background:#0f1118;border:1px solid var(--line);color:var(--txt);border-radius:10px;padding:10px;font-size:15px}
-  .cel{display:flex;align-items:center;gap:4px;cursor:pointer}
-  .cel-pt{width:24px;height:24px;border-radius:50%;background:#2f6fe0;border:2px solid #fff;display:flex;align-items:center;justify-content:center;font-size:12px;box-shadow:0 2px 6px rgba(0,0,0,.4)}
-  .cel-nom{display:none;background:rgba(255,255,255,.94);color:#1d3a6e;font-size:11px;font-weight:700;padding:2px 7px;border-radius:9px;white-space:nowrap;max-width:170px;overflow:hidden;text-overflow:ellipsis;box-shadow:0 1px 4px rgba(0,0,0,.3)}
-  #map.cel-noms .cel-nom{display:block}
-  .badge.vente{background:#1b1e2b;border-color:var(--ok);color:var(--ok);font-size:13px;font-weight:800}
-  .sw{display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--line)}
-  .sw:last-child{border-bottom:0}
-  .sw input{width:22px;height:22px}
-  .halo{width:70px;height:70px;border-radius:50%;border:3px solid var(--gold);box-shadow:0 0 30px 8px rgba(255,214,90,.55), inset 0 0 20px rgba(255,214,90,.4);animation:pulse 2.2s ease-in-out infinite;pointer-events:none}
-  @keyframes pulse{0%{transform:scale(.85);opacity:.9}50%{transform:scale(1.15);opacity:.45}100%{transform:scale(.85);opacity:.9}}
-  .mlabel{background:linear-gradient(135deg,#ffd65a,#ff9f1c);color:#1a1200;font-weight:800;font-size:13px;padding:6px 10px;border-radius:999px;box-shadow:0 4px 14px rgba(0,0,0,.45);white-space:nowrap;cursor:pointer}
-
-  /* ---- scène d'ouverture de pack ---- */
-  #packscene{position:absolute;inset:0;z-index:70;display:none;background:#000;opacity:0;transition:opacity .45s ease;overflow:hidden;touch-action:none}
-  #packscene.on{display:block} #packscene.show{opacity:1}
-  #packscene .stage{position:absolute;inset:0}
-  #packscene .hint{position:absolute;bottom:calc(40px + env(safe-area-inset-bottom));left:0;right:0;text-align:center;color:#fff;opacity:.85;font-size:15px}
-  .pk{width:230px;height:340px;position:relative;transform-style:preserve-3d;animation:float 3.2s ease-in-out infinite}
-  @keyframes float{0%{transform:translateY(0) rotateY(-6deg) rotateX(4deg)}50%{transform:translateY(-12px) rotateY(6deg) rotateX(-3deg)}100%{transform:translateY(0) rotateY(-6deg) rotateX(4deg)}}
-  .pk.ready{animation:float 2.4s ease-in-out infinite}
-  .pk .body,.pk .top{position:absolute;left:0;right:0;background:linear-gradient(160deg,#1b2a6b 0%,#3a2c8f 35%,#7a2fb0 65%,#ff8a3d 100%);box-shadow:0 30px 60px rgba(0,0,0,.6)}
-  .pk .body{top:54px;bottom:0;border-radius:0 0 18px 18px}
-  .pk .top{top:0;height:56px;border-radius:18px 18px 0 0;border-bottom:2px dashed rgba(255,255,255,.55);transition:transform .5s cubic-bezier(.3,1.4,.5,1),opacity .5s}
-  .pk .top::after{content:'↔ glisse pour déchirer';position:absolute;left:0;right:0;top:18px;text-align:center;font-size:12px;color:#fff;opacity:.9;letter-spacing:.04em}
-  .pk .shine{position:absolute;inset:0;border-radius:18px;background:linear-gradient(115deg,transparent 35%,rgba(255,255,255,.45) 48%,rgba(120,255,255,.35) 52%,transparent 65%);background-size:250% 250%;animation:shine 2.6s linear infinite;pointer-events:none;mix-blend-mode:screen}
-  @keyframes shine{0%{background-position:120% 0}100%{background-position:-60% 0}}
-  .pk .logo{position:absolute;left:0;right:0;top:105px;text-align:center;color:#fff;font-weight:900;font-size:30px;letter-spacing:.06em;text-shadow:0 4px 16px rgba(0,0,0,.5)}
-  .pk .logo small{display:block;font-size:12px;font-weight:600;opacity:.85;letter-spacing:.2em;margin-top:6px}
-  .pk .ico{position:absolute;left:0;right:0;top:215px;text-align:center;font-size:64px;filter:drop-shadow(0 8px 14px rgba(0,0,0,.5))}
-  .pk .load{position:absolute;left:0;right:0;bottom:22px;text-align:center;color:#fff;font-size:12px;opacity:.8}
-  .pk.torn .top{transform:translateY(-120px) rotate(-14deg);opacity:0}
-  .pk.gone{animation:none;transform:scale(.6) translateY(80px);opacity:0;transition:all .6s ease}
-  .cards{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none}
-  .rcard{position:absolute;width:220px;height:320px;border-radius:18px;transform-style:preserve-3d;transition:transform .7s cubic-bezier(.2,.9,.3,1.1),opacity .4s;opacity:0;pointer-events:auto;cursor:pointer}
-  .rcard .face{position:absolute;inset:0;border-radius:18px;backface-visibility:hidden;overflow:hidden}
-  .rcard .back{background:linear-gradient(160deg,#1b2a6b,#7a2fb0);display:flex;align-items:center;justify-content:center;font-size:54px;border:3px solid rgba(255,255,255,.25)}
-  .rcard .front{transform:rotateY(180deg);background:linear-gradient(165deg,#1f2335,#101320);border:3px solid var(--rc);box-shadow:0 0 40px color-mix(in srgb,var(--rc) 70%,transparent);padding:16px;display:flex;flex-direction:column;align-items:center;text-align:center;justify-content:center;gap:6px}
-  .rcard .front .big{font-size:70px}
-  .rcard .front .n{font-weight:800;font-size:18px;color:#fff}
-  .rcard .front .m{font-size:12px;color:var(--muted)}
-  .rcard .front .rar{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--rc);font-weight:900}
-  .rcard.r5 .front{background:radial-gradient(circle at 30% 20%,#5a4a12,#1a1608 70%)} .rcard.r4 .front{background:radial-gradient(circle at 30% 20%,#3b2a5e,#141026 70%)}
-  .rcard.r4 .front::before,.rcard.r5 .front::before{content:'';position:absolute;inset:-40%;background:conic-gradient(from 0deg,transparent 0 70%,rgba(255,255,255,.18) 75%,transparent 80%);animation:spin 3s linear infinite;pointer-events:none}
-  @keyframes spin{to{transform:rotate(360deg)}}
-  .rcard.in{opacity:1}
-  .rcard.flip{transform:translateX(var(--x)) translateY(var(--y)) rotate(var(--r)) rotateY(180deg) scale(var(--s))}
-  .rcard.pos{transform:translateX(var(--x)) translateY(var(--y)) rotate(var(--r)) scale(var(--s))}
-  #packdone{position:absolute;left:16px;right:16px;bottom:calc(24px + env(safe-area-inset-bottom));display:none}
-
-  /* ---- révélation façon FIFA ---- */
-  #reveal{position:absolute;inset:0;z-index:5;display:none;background:radial-gradient(circle at 50% 40%,#101a3a,#000 70%)}
-  #reveal::before{content:'';position:absolute;inset:0;background:radial-gradient(circle at 50% 45%,rgba(95,141,255,.25),transparent 60%);animation:beat 1.1s ease-in-out infinite;pointer-events:none}
-  @keyframes beat{0%,100%{opacity:.35;transform:scale(1)}50%{opacity:.8;transform:scale(1.08)}}
-  #reveal.fast::before{animation-duration:.45s}
-  #reveal.r4::before{background:radial-gradient(circle at 50% 45%,rgba(192,107,255,.45),transparent 60%)} #reveal.r5::before{background:radial-gradient(circle at 50% 45%,rgba(255,214,90,.5),transparent 60%)}
-  #flash{position:absolute;inset:0;background:#fff;opacity:0;pointer-events:none;z-index:6}
-  #reveal.shake{animation:shake .5s ease-out}
-  @keyframes shake{0%{transform:translate(0,0)}15%{transform:translate(-8px,5px)}30%{transform:translate(7px,-6px)}45%{transform:translate(-5px,4px)}60%{transform:translate(4px,-3px)}80%{transform:translate(-2px,2px)}100%{transform:translate(0,0)}}
-  #reveal svg g{will-change:transform}
-  #reveal.on{display:block}
-  #reveal svg{position:absolute;inset:0;width:100%;height:100%}
-  #reveal .sil{fill:#1d2b5e;stroke:#7fa6ff;stroke-width:1.2;vector-effect:non-scaling-stroke;stroke-linejoin:round}
-  #reveal .glow{fill:none;stroke:rgba(95,141,255,.35);stroke-width:7;vector-effect:non-scaling-stroke;stroke-linejoin:round}
-  #reveal .sil.hi{fill:#2a3f8a;stroke:#9fd0ff}
-  #reveal .dot{fill:#ffd65a}
-  #reveal .dotglow{fill:rgba(255,214,90,.35)}
-  #reveal .ring{fill:none;stroke:#ffd65a;stroke-width:0.5;vector-effect:non-scaling-stroke;opacity:0;transform-box:fill-box;transform-origin:center;animation:ring 1.4s ease-out infinite}
-  @keyframes ring{0%{transform:scale(.2);opacity:.9}100%{transform:scale(3);opacity:0}}
-  #rlabels{position:absolute;left:0;right:0;bottom:calc(120px + env(safe-area-inset-bottom));text-align:center;pointer-events:none}
-  #rlabels .l{color:#fff;font-weight:900;letter-spacing:.12em;text-transform:uppercase;font-size:14px;opacity:0;transform:translateY(12px);transition:all .45s ease;text-shadow:0 2px 16px rgba(0,0,0,.6)}
-  #rlabels .l.on{opacity:1;transform:translateY(0)}
-  #rhint{position:absolute;left:0;right:0;bottom:calc(40px + env(safe-area-inset-bottom));text-align:center;color:rgba(255,255,255,.45);font-size:12px;letter-spacing:.08em;pointer-events:none;transition:opacity .3s}
-  #reveal.vite #rhint{opacity:0}
-  #rlabels .l.big{font-size:30px;letter-spacing:.04em;text-transform:none;margin-top:6px}
-  #rlabels .l.rar{font-size:12px;letter-spacing:.3em;margin-top:10px}
-  .notif{border-left:3px solid var(--line)}
-  .notif.unread{border-left-color:var(--gold)}
-  .bar{height:8px;background:#2a2e40;border-radius:999px;overflow:hidden;margin:8px 0}
-  .bar i{display:block;height:100%;background:var(--gold)}
-  .rank{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--line)}
-  .rank:last-child{border-bottom:0}
-  .rank .pos{width:26px;font-weight:800;color:var(--muted)}
-  .rank .who{flex:1;font-weight:600;cursor:pointer}
-</style>
+<link rel="preload" href="fonts/baloo-2-latin-800-normal.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="fonts/nunito-latin-800-normal.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="style.css">
+<meta name="theme-color" content="#EAF2FF">
 </head>
 <body>
 <div id="map"></div>
 <div id="top">
   <div class="row">
-    <div class="pill" id="mepill" style="cursor:pointer"><span id="meav">🙂</span> <span id="mename">Moi</span> · <span id="count">0</span> lieux</div>
-    <div class="pill" id="walletpill" style="cursor:pointer" title="Encaisser">Solde <b id="wallet">0 ₳</b> <span id="pending" style="color:var(--ok);font-size:12px"></span></div>
+    <button class="pill moi" id="mepill" aria-label="Mon profil"><span id="meav" class="av">🙂</span><span class="moi-t"><b id="mename">Moi</b><small id="count">0 lieu</small></span></button>
+    <button class="pill bourse" id="walletpill" aria-label="Mes pièces : récolter"><i class="pc"></i><b id="wallet">0</b><span id="pending" class="gain"></span></button>
   </div>
-  <div id="search"><input id="q" type="search" placeholder="Chercher une adresse ou une ville" autocomplete="off"><button id="go">OK</button></div>
+  <div class="barre">
+    <div id="search"><span class="loupe">🔍</span><input id="q" type="search" placeholder="Adresse, ville…" autocomplete="off" enterkeyhint="search"><button id="go">OK</button></div>
+    <button class="rond" id="cloche" aria-label="Notifications">🔔<span class="cnt" id="cnt-notif"></span></button>
+  </div>
   <div id="sugg"></div>
 </div>
 <div id="ctrls">
-  <button class="rbtn on" id="b3d">3D</button>
-  <button class="rbtn" id="b2d">2D</button>
-  <button class="rbtn" id="bnorth">N</button>
+  <div class="seg"><button class="rbtn on" id="b3d">3D</button><button class="rbtn" id="b2d">2D</button></div>
+  <button class="rbtn" id="bnorth" aria-label="Remettre le nord en haut">N</button>
 </div>
-<button id="packbtn">🎁 Pack du jour</button>
 <div id="legend">
-  <span><i class="dot" style="background:var(--me)"></i>Moi</span>
+  <span><i class="dot" style="background:var(--me)"></i>À moi</span>
   <span><i class="dot" style="background:var(--other)"></i>Autres</span>
   <span><i class="dot" style="background:var(--mixed)"></i>Partagée</span>
-  <span>💰 en vente</span>
+  <span>💰 En vente</span>
 </div>
 
 <!-- écrans -->
@@ -244,26 +63,20 @@
 <div id="nav">
   <button data-s="carte" class="on"><i>🗺️</i>Carte</button>
   <button data-s="patrimoine"><i>🏘️</i>Patrimoine</button>
+  <button id="packbtn" class="pack-nav attente" aria-label="Pack du jour"><span class="pack-rond">🎁</span><span class="pack-t" id="packt">Pack</span></button>
   <button data-s="encheres"><i>🔨</i>Enchères<span class="cnt" id="cnt-ench"></span></button>
   <button data-s="communes"><i>🏛️</i>Communes</button>
-  <button data-s="notifs"><i>🔔</i>Notifs<span class="cnt" id="cnt-notif"></span></button>
 </div>
 
 <div id="sheet">
-  <button class="close" onclick="closeSheet()">×</button>
-  <h2 id="title">Parcelle</h2>
-  <div class="sub" id="subtitle"></div>
+  <button class="close" onclick="closeSheet()" aria-label="Fermer">✕</button>
+  <div style="text-align:center;padding:0 34px"><div id="title" class="plaque">…</div></div>
   <div class="svwrap">
-    <iframe id="sv" class="sv" loading="lazy" referrerpolicy="no-referrer-when-downgrade" allowfullscreen></iframe>
-    <a class="ext" id="svlink" target="_blank" rel="noopener">Ouvrir Street View ↗</a>
-  </div>
-  <div class="kpis">
-    <div class="kpi"><small>SURFACE</small><b id="surf">—</b></div>
-    <div class="kpi"><small>PLAFOND</small><b id="plafond">—</b></div>
-    <div class="kpi"><small>ADRESSES</small><b id="nb">—</b></div>
+    <iframe id="sv" class="sv" loading="lazy" referrerpolicy="no-referrer-when-downgrade" allowfullscreen title="Street View"></iframe>
+    <a class="ext" id="svlink" target="_blank" rel="noopener">Plein écran ↗</a>
   </div>
   <div id="addrs"></div>
-  <div class="sub" style="margin-top:8px">Devanture : Street View intégré. Bâtiments et rues © IGN BD TOPO · Parcelles © DGFiP/IGN · Adresses BAN. Démo : 1 jour = 1 minute.</div>
+  <div class="parcelle-info">📐 Parcelle <span id="subtitle"></span> · <span id="surf">—</span> · <span id="nb">0</span> lieu(x) · plafond <span id="plafond">—</span><br>Bâtiments et rues © IGN BD TOPO · Parcelles © DGFiP/IGN · Adresses BAN · Devanture : Google Street View.</div>
 </div>
 <div id="modal"><div class="box" id="modalbox"></div></div>
 <div id="packscene">
@@ -311,13 +124,22 @@ function dsay(m){ if(diagMsgs.includes(m)) return; diagMsgs.push(m); diag.textCo
 window.addEventListener('error', e=>dsay('Erreur JS : '+e.message));
 
 // =================== aides ===================
-function fmt(n){ return Math.round(n).toLocaleString('fr-FR') + ' ₳'; }
+function nb(n){ return Math.round(n).toLocaleString('fr-FR').replace(/\u202f/g,'\u00a0'); } // espace insécable ordinaire (la police n'a pas l'espace fine)
+// un montant : en texte (bandeaux, notifications) avec 🪙, en page avec la pièce dessinée (pcs)
+function fmt(n){ return nb(n) + ' 🪙'; }
+function pcs(n){ return `<span class="montant">${nb(n)}<i class="pc"></i></span>`; }
 function hash(s){ let h=0; for(const c of String(s)) h=(h*31+c.charCodeAt(0))|0; return Math.abs(h); }
 function centroid(geom){ const ring = geom.type==='Polygon' ? geom.coordinates[0] : geom.coordinates[0][0]; let x=0,y=0; for(const [a,b] of ring){x+=a;y+=b;} return [x/ring.length, y/ring.length]; }
 function inside(pt, geom){ const rings = geom.type==='Polygon' ? [geom.coordinates[0]] : geom.coordinates.map(p=>p[0]);
   return rings.some(r=>{ let ins=false; for(let i=0,j=r.length-1;i<r.length;j=i++){ const [xi,yi]=r[i],[xj,yj]=r[j]; if(((yi>pt[1])!==(yj>pt[1])) && (pt[0] < (xj-xi)*(pt[1]-yi)/(yj-yi)+xi)) ins=!ins; } return ins; }); }
 function dist(a,b){ const dx=(a[0]-b[0])*Math.cos(a[1]*Math.PI/180)*111320, dy=(a[1]-b[1])*110540; return Math.hypot(dx,dy); }
-function toast(t){ const el=document.getElementById('toast'); el.textContent=t; el.style.display='block'; setTimeout(()=>el.style.display='none',1700); }
+// une petite fête (achat, construction, récolte) : pièces et étoiles qui jaillissent
+function fete(n){ n=n||14; const w=document.createElement('div'); w.className='fete';
+  for(let i=0;i<n;i++){ const e=document.createElement('i'); e.textContent=['🪙','✨','🪙','⭐'][i%4]; e.style.setProperty('--dx',Math.round((Math.random()*2-1)*150)+'px'); e.style.setProperty('--dy',Math.round(-90-Math.random()*170)+'px'); e.style.animationDelay=Math.round(Math.random()*140)+'ms'; w.appendChild(e); }
+  document.body.appendChild(w); setTimeout(()=>w.remove(), 1500); try{ sonGain(); }catch(e){} if(navigator.vibrate) navigator.vibrate([12,40,18]); }
+function sonGain(){ const a=audio(); if(!a) return; [988,1319].forEach((f,i)=>{ const o=a.createOscillator(), g=a.createGain(); o.type='triangle'; o.frequency.value=f; const t=a.currentTime+i*0.09; g.gain.setValueAtTime(0.0001,t); g.gain.exponentialRampToValueAtTime(0.16,t+0.01); g.gain.exponentialRampToValueAtTime(0.0001,t+0.28); o.connect(g); g.connect(a.destination); o.start(t); o.stop(t+0.3); }); }
+let toastMinuterie=0;
+function toast(t){ const el=document.getElementById('toast'); el.textContent=t; el.classList.add('on'); clearTimeout(toastMinuterie); toastMinuterie=setTimeout(()=>el.classList.remove('on'), 2300); }
 function communeName(citycode, city){ if(!citycode) return city||'?'; if(citycode.startsWith('751')) return 'Paris '+(parseInt(citycode.slice(3))+(parseInt(citycode.slice(3))===1?'er':'e')); return city||citycode; }
 // standing (plafond de construction) : démo, en vrai calculé avec DVF
 function rarete(a){ return R.rarete(a); }
@@ -347,7 +169,7 @@ const COULEUR_BATI = ['case', ['boolean',['feature-state','monument'],false], ['
 const HAUTEUR = ['+', ['coalesce',['get','hauteur'],9], ['coalesce',['feature-state','bonus'],0]];
 const IMPORTANT = ['<=',['to-number',['coalesce',['get','importance'],'5']],3];
 const map = new maplibregl.Map({
-  container:'map', center:[2.3396,48.8818], zoom:17, pitch:58, bearing:-17, minZoom:15, maxZoom:19.5, attributionControl:true, antialias:true,
+  container:'map', center:[2.3396,48.8818], zoom:17, pitch:58, bearing:-17, minZoom:15, maxZoom:19.5, attributionControl:{compact:true}, antialias:true,
   style:{ version:8,
     glyphs:'https://data.geopf.fr/annexes/ressources/vectorTiles/fonts/{fontstack}/{range}.pbf',
     light:{ anchor:'viewport', color:'#fff7e6', intensity:0.45, position:[1.3,200,40] },
@@ -475,6 +297,7 @@ function paintBadges(idu){ const list=parcelAddrs[idu]; if(!list) return; list.f
 function restoreBadges(){ for(const a of Object.values(state.owned)) setBadge(a, a.niveau||0); }
 map.on('idle', ()=>{ seedVisible(); paintBuildings(); });
 map.on('load', restoreBadges);
+map.on('load', ()=>{ const at=document.querySelector('.maplibregl-ctrl-attrib'); if(at) at.classList.remove('maplibregl-compact-show'); });
 
 // clic
 map.on('click', (e)=>{ if(sugg.style.display==='block'){ sugg.style.display='none'; }
@@ -486,10 +309,10 @@ function selectParcel(f){ if(selected) map.setFeatureState({source:'pci', source
   selected = f.id; map.setFeatureState({source:'pci', sourceLayer:'parcelle', id:selected}, {sel:true}); paintBuildings(); openParcel(f); }
 let currentParcel = null;
 async function openParcel(f){ const p = f.properties, idu = f.id; currentParcel = {p, idu, geometry:f.geometry};
-  document.getElementById('title').textContent = `Parcelle ${p.section} ${p.numero}`;
-  document.getElementById('subtitle').textContent = `${communeName(p.code_insee, p.nom_com)} · ${p.code_insee}`;
+  document.getElementById('title').innerHTML = `<small>${echapper(communeName(p.code_insee, p.nom_com))}</small>${echapper(p.nom_com||'Parcelle')}`;
+  document.getElementById('subtitle').textContent = `${p.section} ${p.numero}`;
   document.getElementById('surf').textContent = (p.contenance||'—') + ' m²';
-  document.getElementById('addrs').innerHTML = '<div class="sub">Recherche des adresses…</div>';
+  document.getElementById('addrs').innerHTML = '<div class="sub" style="text-align:center">Recherche des lieux de cette parcelle…</div>';
   document.getElementById('sheet').classList.add('open');
   const c = centroid(f.geometry); let addrs = parcelAddrs[idu];
   if(!addrs){ try{ const r = await fetch(`https://data.geopf.fr/geocodage/reverse?lon=${c[0]}&lat=${c[1]}&limit=10&index=address&type=housenumber`); const j = await r.json();
@@ -511,35 +334,59 @@ function renderAddrs(){ const {p, idu, geometry} = currentParcel; const addrs = 
   document.getElementById('svlink').href = `https://www.google.com/maps/@?api=1&map_action=pano&viewpoint=${sv[0]},${sv[1]}`;
   const box = document.getElementById('addrs'); box.innerHTML='';
   document.getElementById('plafond').textContent = addrs[0] ? NIVEAUX[plafond(addrs[0])].nom : '—';
-  if(!nb){ box.innerHTML = '<div class="sub">Aucune adresse sur cette parcelle (cour, voirie…). Non achetable.</div>'; return; }
+  const adr = addrs.find(x=>x.type==='adresse'), rue = adr ? String(adr.label).replace(/^\s*\d+\s*(bis|ter|[a-z])?\s+/i,'') : (addrs[0] ? addrs[0].label : '');
+  document.getElementById('title').innerHTML = `<small>${echapper(communeName((adr||addrs[0]||{}).citycode||p.code_insee, (adr||addrs[0]||{}).city||p.nom_com))}</small>${echapper(rue || p.nom_com || 'Parcelle')}`;
+  if(!nb){ box.innerHTML = '<div class="vide"><div class="ico">🌳</div><div class="t">Rien à posséder ici</div><div class="m">Cette parcelle n’a pas d’adresse (cour, voirie, jardin…). Touche un bâtiment voisin.</div></div>'; return; }
   addrs.forEach(a=>box.appendChild(addrRow(a, true))); }
+// ---- un lieu : icône, nom, rareté, chiffres, échelle de construction, actions (fiche de parcelle et détail d'une carte)
+const ICONES_CAT = { eglise:'⛪', chapelle:'⛪', cathedrale:'⛪', abbaye:'⛪', monastere:'⛪', prieure:'⛪', basilique:'⛪', temple:'⛪', synagogue:'🕍', mairie:'🏛️', gare:'🚉', musee:'🖼️', chateau:'🏰', chateau_fort:'🏰', fort:'🏯', manoir:'🏡', phare:'🗼', tour:'🗼', pont:'🌉', moulin_vent:'🌾', moulin_eau:'🌾', theatre:'🎭', fontaine:'⛲', stade:'🏟️', porte:'🚪' };
+function iconeLieu(a){ if(a.type==='monument') return iconeMonument(a.label||''); if(a.type==='lieu') return ICONES_CAT[a.cat] || (a.qid?'⭐':'📌'); const lv=a.niveau||levelOf(a)||0; return lv ? NIVEAUX[lv].icone : '📍'; }
+function echapper(t){ return String(t==null?'':t).replace(/[&<>"]/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
+// après une action sur un lieu : tout ce qui l'affiche se redessine
+function apresAction(){ if(currentParcel) renderAddrs(); if(document.getElementById('s-patrimoine').classList.contains('on')) renderPatrimoine(); if(ficheOuverte) ouvrirFicheLieu(ficheOuverte); }
+let ficheOuverte=null;
+function echelleHTML(a, lv, pl, moi, rec){ let h='<div class="echelle">';
+  const max = pl>=4 ? 4 : 3;
+  for(let i=0;i<=max;i++){ const n=NIVEAUX[i]; let etat = i<=lv ? 'fait' : (i>pl ? 'bloque' : (moi && i===lv+1 ? 'suivant' : 'futur'));
+    const icone = i===0 ? '🌱' : (etat==='bloque' ? '🔒' : n.icone);
+    const texte = etat==='bloque' ? 'Hors plafond' : (moi && etat!=='fait' ? `${n.nom}<br><span class="prix">${nb(coutNiveau(rec,i))}<i class="pc"></i></span>` : n.nom);
+    h+=`<div class="pas ${etat}"${etat==='suivant' ? ` role="button" data-construire="${i}"` : ''}><div class="rond-pas">${icone}</div><div>${texte}</div></div>`; }
+  return h+'</div>'; }
 function addrRow(a, withBuild){
-  const o = ownerOf(a); const lv = levelOf(a); const rec = state.owned[a.id] || Object.assign({}, a, {niveau:lv}); const pl = plafond(a);
-  const row = document.createElement('div'); row.className='addr';
-  row.innerHTML = `<div class="flex"><div><div class="n">${a.label}${lv?' '+NIVEAUX[lv].icone:''}<span class="tag r${rarete(a)}" style="color:var(--rc)">${RARETES[rarete(a)]}</span>${a.qid?`<a class="tag" style="color:#8fb8ff;text-decoration:none" target="_blank" rel="noopener" href="https://www.wikidata.org/wiki/Special:GoToLinkedPage/frwiki/${a.qid}">⭐ Célèbre · Wikipédia</a>`:''}${enVente(a)?'<span class="tag" style="color:var(--ok)">💰 en vente</span>':''}</div>
-    <div class="m">${communeName(a.citycode,a.city)} · valeur ${fmt(valeur(rec))} · ${NIVEAUX[lv].nom} · loyer +${loyer(rec)} ₳/j · plafond ${NIVEAUX[pl].nom}</div></div></div>`;
-  const top=row.querySelector('.flex');
-  if(o===ME){ top.insertAdjacentHTML('beforeend', `<span class="own me">À moi</span>`);
-    if(withBuild){ const build=document.createElement('div'); build.className='build';
-      NIVEAUX.forEach((n,i)=>{ if(i===0 || (i===4 && pl<4)) return; const b=document.createElement('button'); b.className='btn sm'+(i===lv+1&&i<=pl?' next':''); const cost=coutNiveau(rec,i);
-        if(i>pl){ b.textContent=`${n.icone} ${n.nom} · hors plafond`; b.disabled=true; }
-        else { b.textContent = i<=lv ? `${n.icone} ${n.nom} ✓` : `${n.icone} ${n.nom} · ${fmt(cost)}`; b.disabled = i!==lv+1 || dispo()<cost; b.onclick=()=>construire(a.id, i, cost); }
-        build.appendChild(b); });
-      const sell=document.createElement('button'); sell.className='btn sm'; sell.textContent = rec.enVente ? 'Retirer de la vente' : 'Mettre en vente'; sell.onclick=()=>{ state.owned[a.id].enVente=!state.owned[a.id].enVente; save(); setBadge(state.owned[a.id], lv); toast(state.owned[a.id].enVente?`${a.label} en vente à ${fmt(valeur(rec))}`:'Retirée de la vente'); if(currentParcel) renderAddrs(); renderPatrimoine(); }; build.appendChild(sell);
-      row.appendChild(build); } }
-  else if(o){ const s=document.createElement('span'); s.className='own other'; s.textContent=o; s.onclick=()=>showPlayer(o); top.appendChild(s);
-    const off=document.createElement('div'); off.className='build'; const existing = state.offersOut.find(x=>x.addrId===a.id && x.status==='attente');
-    if(enVente(a)){ const b=document.createElement('button'); b.className='btn sm next'; b.textContent=`💰 En vente · Acheter ${fmt(valeur(rec))}`; b.disabled=dispo()<valeur(rec); b.onclick=()=>{ encaisser(true); state.wallet-=valeur(rec); state.owned[a.id]=Object.assign({}, a, {niveau:lv, depuis:now()}); state.seen[a.id]='libre'; save(); refreshTop(); setBadge(a,lv); if(a.idu) paintParcel(a.idu); toast(`${a.label} achetée à ${o}`); if(currentParcel) renderAddrs(); }; off.appendChild(b); row.appendChild(off); return row; }
-    if(existing){ off.innerHTML=`<span class="m">Offre envoyée : ${fmt(existing.price)} (en attente)</span>`; }
-    else { const inp=document.createElement('input'); inp.className='num'; inp.type='number'; inp.value=Math.round(valeur(rec)*1.1); const b=document.createElement('button'); b.className='btn sm next'; b.textContent='Faire une offre'; b.onclick=()=>faireOffre(a, parseInt(inp.value)||0); off.appendChild(inp); off.appendChild(b); }
-    row.appendChild(off); }
-  else { const b=document.createElement('button'); b.className='btn'; b.textContent=`Acheter · ${fmt(valeur(rec))}`; b.disabled = dispo() < valeur(rec); b.onclick = ()=>buy(a, valeur(rec)); top.appendChild(b); }
+  const o = ownerOf(a); const lv = levelOf(a); const rec = state.owned[a.id] || Object.assign({}, a, {niveau:lv}); const pl = plafond(a); const r = rarete(a);
+  const vente = enVente(a), moi = o===ME;
+  const row = document.createElement('div'); row.className='addr r'+r;
+  const proprio = moi ? `<span class="own me">À moi</span>` : (o ? `<span class="own other" data-joueur="${echapper(o)}">👤 ${echapper(o)}</span>` : `<span class="own libre">Libre</span>`);
+  row.innerHTML = `<div class="tete"><div class="ico-lieu r${r}">${iconeLieu(rec)}</div><div class="corps">
+      <div class="n">${echapper(a.label)}</div><div class="m">${echapper(communeName(a.citycode,a.city))}</div>
+      <div class="lignes"><span class="tag r${r}">${RARETES[r]}</span>${a.qid?`<a class="tag bleu-lien" target="_blank" rel="noopener" href="https://www.wikidata.org/wiki/Special:GoToLinkedPage/frwiki/${a.qid}">📖 Wikipédia</a>`:''}${vente?'<span class="tag" style="background:#DDF3E6;color:var(--cadre2)">💰 En vente</span>':''}${proprio}</div>
+    </div></div>
+    <div class="chips"><span class="chip or">Valeur <b>${nb(valeur(rec))}</b><i class="pc"></i></span><span class="chip vert">Loyer <b>+${nb(loyer(rec))}</b>/jour</span>${a.type==='lieu'||a.type==='monument'?'':`<span class="chip">Quartier <b>${'★'.repeat(R.standing(a))}${'☆'.repeat(3-R.standing(a))}</b></span>`}</div>
+    ${echelleHTML(a, lv, pl, moi && withBuild, rec)}`;
+  const joueur=row.querySelector('[data-joueur]'); if(joueur) joueur.onclick=()=>showPlayer(o);
+  const actions=document.createElement('div'); actions.className='actions';
+  if(moi){
+    if(withBuild){ const suiv=lv+1, peut = suiv<=pl && suiv<NIVEAUX.length && !(suiv===4 && pl<4);
+      if(peut){ const cost=coutNiveau(rec,suiv); const b=document.createElement('button'); b.className='btn'; b.innerHTML=`${NIVEAUX[suiv].icone} Construire · ${pcs(cost)}`; b.disabled=dispo()<cost; b.onclick=()=>construire(a.id, suiv, cost); actions.appendChild(b);
+        row.querySelectorAll('[data-construire]').forEach(p=>p.onclick=()=>{ if(dispo()>=cost) construire(a.id, suiv, cost); else toast(`Il te manque ${fmt(cost-dispo())} pour construire`); }); }
+      else { const t=document.createElement('div'); t.className='chip vert'; t.textContent = lv>=pl ? '✓ Construit jusqu’au plafond' : ''; if(t.textContent) actions.appendChild(t); }
+      const sell=document.createElement('button'); sell.className='btn clair'; sell.textContent = rec.enVente ? 'Retirer de la vente' : '💰 Mettre en vente';
+      sell.onclick=()=>{ state.owned[a.id].enVente=!state.owned[a.id].enVente; save(); setBadge(state.owned[a.id], lv); toast(state.owned[a.id].enVente?`${a.label} en vente à ${fmt(valeur(rec))}`:'Retiré de la vente'); apresAction(); };
+      actions.appendChild(sell); row.appendChild(actions); } }
+  else if(o){ const existing = state.offersOut.find(x=>x.addrId===a.id && x.status==='attente');
+    if(vente){ const b=document.createElement('button'); b.className='btn'; b.innerHTML=`Acheter · ${pcs(valeur(rec))}`; b.disabled=dispo()<valeur(rec);
+      b.onclick=()=>{ encaisser(true); state.wallet-=valeur(rec); state.owned[a.id]=Object.assign({}, a, {niveau:lv, depuis:now()}); state.seen[a.id]='libre'; save(); refreshTop(); setBadge(a,lv); if(a.idu) paintParcel(a.idu); toast(`${a.label} achetée à ${o} !`); fete(); apresAction(); };
+      actions.appendChild(b); row.appendChild(actions); }
+    else if(existing){ const t=document.createElement('div'); t.className='chip bleu'; t.innerHTML=`📨 Offre envoyée : <b>${nb(existing.price)}</b><i class="pc"></i> · en attente`; actions.appendChild(t); row.appendChild(actions); }
+    else { const off=document.createElement('div'); off.className='offre'; const inp=document.createElement('input'); inp.className='num'; inp.type='number'; inp.inputMode='numeric'; inp.value=Math.round(valeur(rec)*1.1);
+      const b=document.createElement('button'); b.className='btn bleu'; b.textContent='📨 Faire une offre'; b.onclick=()=>faireOffre(a, parseInt(inp.value)||0); off.appendChild(inp); off.appendChild(b); row.appendChild(off); } }
+  else { const b=document.createElement('button'); b.className='btn'; b.innerHTML=`Acheter · ${pcs(valeur(rec))}`; b.disabled = dispo() < valeur(rec); b.onclick = ()=>buy(a, valeur(rec)); actions.appendChild(b); row.appendChild(actions); }
   return row; }
 function buy(a, price){ if(dispo() < price) return; encaisser(true); state.wallet -= price;
-  state.owned[a.id] = Object.assign({}, a, { niveau:0, depuis:now() }); save(); refreshTop(); if(currentParcel) renderAddrs(); if(a.idu) paintParcel(a.idu); setBadge(a,0); toast(`${a.label} est à toi !`); }
-function retirerVente(id){ const a=state.owned[id]; if(!a) return; a.enVente=false; save(); setBadge(a, a.niveau||0); toast('Retiré de la vente'); renderPatrimoine(); }
+  state.owned[a.id] = Object.assign({}, a, { niveau:0, depuis:now() }); save(); refreshTop(); if(a.idu) paintParcel(a.idu); setBadge(a,0); toast(`${a.label} est à toi !`); fete(); apresAction(); }
+function retirerVente(id){ const a=state.owned[id]; if(!a) return; a.enVente=false; save(); setBadge(a, a.niveau||0); toast('Retiré de la vente'); apresAction(); }
 function construire(id, niveau, cost){ const a=state.owned[id]; if(!a || dispo()<cost) return; encaisser(true); state.wallet -= cost; a.niveau = niveau; save(); refreshTop();
-  if(currentParcel) renderAddrs(); if(a.idu) paintParcel(a.idu); setBadge(a, niveau); toast(`${NIVEAUX[niveau].icone} ${NIVEAUX[niveau].nom} construit·e : ${a.label}`); }
+  if(a.idu) paintParcel(a.idu); setBadge(a, niveau); toast(`${NIVEAUX[niveau].icone} ${NIVEAUX[niveau].nom} construit${niveau===1?'e':''} : ${a.label}`); fete(); apresAction(); }
 function closeSheet(){ document.getElementById('sheet').classList.remove('open'); document.getElementById('sv').src='about:blank'; if(selected){ map.setFeatureState({source:'pci', sourceLayer:'parcelle', id:selected}, {sel:false}); selected=null; paintBuildings(); } }
 
 // =================== offres ===================
@@ -794,7 +641,7 @@ async function tirerCarte(r, base, dejaTires){
   for(const rv of (r===1?[1]:[r,1])) for(let essai=0; essai<6; essai++){ const rng=Pack.alea(Pack.graine(base+':'+rv+':'+essai));
     try{ const c=await lieuDeRarete(rv, rng); if(Pack.convient(c, rv, rarete, estLibre, dejaTires)) return c; }catch(e){} }
   return null; }
-async function ouvrirPack(){ if(!packDispo()) return; const btn=document.getElementById('packbtn'); btn.disabled=true; btn.textContent='Ouverture…'; openScene();
+async function ouvrirPack(){ if(!packDispo()){ const s=Math.max(0,Math.ceil(((jour()+1)*JOUR-now())/1000)); return toast(`Prochain pack dans ${s} s (démo : un jour = une minute)`); } const btn=document.getElementById('packbtn'); btn.dataset.ouverture='1'; document.getElementById('packt').textContent='…'; openScene();
   const base=(state.pseudo||'?')+':'+jour(); const raretes=Pack.raretes(ECO.pack.cartes, ECO.pack.chances, Pack.alea(Pack.graine(base)));
   const cards=[];
   // les cartes sont tirées en parallèle, puis les doublons éventuels retirés à la carte près
@@ -802,41 +649,54 @@ async function ouvrirPack(){ if(!packDispo()) return; const btn=document.getElem
   for(const c of tirees) if(c && !cards.some(x=>x.id===c.id)) cards.push(c);
   // une carte manquante (réseau capricieux) : complétée par une carte Commune, pour que le pack ait toujours ses 5 cartes
   for(let k=0; cards.length<ECO.pack.cartes && k<4; k++){ const c=await tirerCarte(1, base+':plus:'+k, cards); if(c) cards.push(c); }
-  if(!cards.length){ btn.disabled=false; btn.textContent='🎁 Pack du jour'; finPack(); return toast('Impossible de tirer le pack (réseau)'); }
+  delete btn.dataset.ouverture; refreshPack();
+  if(!cards.length){ finPack(); return toast('Pack impossible à tirer : vérifie ta connexion'); }
   encaisser(true); state.lastPack=jour(); for(const c of cards){ state.owned[c.id]=Object.assign({}, c, {niveau:0, depuis:now()}); state.seen[c.id]='libre'; setBadge(c,0); } save(); refreshTop();
   // tri : les communes d'abord, la meilleure carte en dernier (suspense)
   cards.sort((a,b)=>rarete(a)-rarete(b)); packCards=cards; cards.forEach(c=>fetchCommune(c)); document.getElementById('pkload').textContent=''; if(GL.uni) GL.uni.uReady.value=1; document.getElementById('pkhint').textContent='Glisse ton doigt sur le haut du pack pour l’ouvrir'; }
-function closeModal(){ document.getElementById('modal').classList.remove('on'); }
+function closeModal(){ document.getElementById('modal').classList.remove('on'); ficheOuverte=null; }
 document.getElementById('packbtn').onclick=ouvrirPack;
-function refreshPack(){ const b=document.getElementById('packbtn'); if(packDispo()){ b.disabled=false; b.textContent='🎁 Pack du jour'; } else { b.disabled=true; const s=Math.ceil(((jour()+1)*JOUR-now())/1000); b.textContent=`🎁 Prochain pack dans ${s} s`; } }
+function refreshPack(){ const b=document.getElementById('packbtn'), t=document.getElementById('packt'); if(!b||b.dataset.ouverture) return;
+  if(packDispo()){ b.classList.add('pret'); b.classList.remove('attente'); t.textContent='Ouvrir !'; }
+  else { b.classList.remove('pret'); b.classList.add('attente'); const s=Math.max(0,Math.ceil(((jour()+1)*JOUR-now())/1000)); t.textContent = s>=60 ? `${Math.floor(s/60)} min ${String(s%60).padStart(2,'0')}` : `${s} s`; } }
 
 // =================== écrans ===================
-function showScreen(name){ document.querySelectorAll('.screen').forEach(s=>s.classList.remove('on')); document.querySelectorAll('#nav button').forEach(b=>b.classList.toggle('on', b.dataset.s===name));
-  const hide = name!=='carte'; ['top','ctrls','packbtn','legend'].forEach(id=>document.getElementById(id).style.display = hide?'none':''); closeSheet();
+function showScreen(name){ document.querySelectorAll('.screen').forEach(s=>s.classList.remove('on')); document.querySelectorAll('#nav button[data-s]').forEach(b=>b.classList.toggle('on', b.dataset.s===name));
+  const hide = name!=='carte'; ['top','ctrls','legend'].forEach(id=>document.getElementById(id).style.display = hide?'none':''); closeSheet(); closeModal();
   if(name==='patrimoine') renderPatrimoine(); if(name==='encheres') renderEncheres(); if(name==='communes') renderCommunes(); if(name==='notifs') renderNotifs();
   if(hide) document.getElementById('s-'+name).classList.add('on'); else map.resize(); }
-document.querySelectorAll('#nav button').forEach(b=>b.onclick=()=>showScreen(b.dataset.s));
+document.querySelectorAll('#nav button[data-s]').forEach(b=>b.onclick=()=>showScreen(b.dataset.s));
+document.getElementById('cloche').onclick=()=>showScreen('notifs');
 
 let filtrePatri=0; // 0 = toutes les raretés
 function filtrerPatri(r){ filtrePatri = filtrePatri===r ? 0 : r; renderPatrimoine(); }
+// Mon patrimoine : une collection de cartes (cadre de la couleur de la rareté) ; toucher une carte ouvre son détail
 function renderPatrimoine(){ const el=document.getElementById('s-patrimoine'); const tous=Object.values(state.owned); const total=tous.reduce((s,a)=>s+valeur(a),0);
   const list = filtrePatri ? tous.filter(a=>rarete(a)===filtrePatri) : tous.slice();
-  const byCommune={}; list.forEach(a=>{ const k=communeName(a.citycode,a.city); byCommune[k]=(byCommune[k]||0)+1; });
-  let h=`<h1>Mon patrimoine</h1><div class="kpis"><div class="kpi"><small>LIEUX</small><b>${tous.length}</b></div><div class="kpi"><small>VALEUR</small><b>${fmt(total)}</b></div><div class="kpi"><small>REVENU / JOUR</small><b>+${SALAIRE+loyerTotal()} ₳</b></div></div>`;
-  h+=`<div class="card"><div class="t">Revenus</div><div class="m">Salaire ${SALAIRE} ₳/j + loyers ${loyerTotal()} ₳/j · à encaisser : <b style="color:var(--ok)">${fmt(pendingRent())}</b></div><div style="margin-top:8px"><button class="btn sm next" onclick="encaisser(false);renderPatrimoine()">Encaisser</button></div></div>`;
-  const pending=state.offersIn.filter(o=>o.status==='attente'); if(pending.length) h+=`<div class="card"><div class="t">${pending.length} offre(s) reçue(s)</div><div class="m">Réponds depuis l’onglet Notifs.</div></div>`;
-  if(!tous.length) h+=`<div class="card"><div class="t">Aucun lieu pour l’instant</div><div class="m">Ouvre ton pack du jour sur la carte.</div></div>`;
+  const p=Math.floor(pendingRent());
+  let h=`<h1>Mon patrimoine</h1><div class="kpis"><div class="kpi"><i>🏘️</i><b>${tous.length}</b><small>lieu${tous.length>1?'x':''}</small></div><div class="kpi"><i>💎</i><b>${nb(total)}<i class="pc"></i></b><small>de valeur</small></div><div class="kpi"><i>📈</i><b style="color:var(--cadre2)">+${nb(SALAIRE+loyerTotal())}</b><small>par jour</small></div></div>`;
+  h+=`<div class="card flex"><div><div class="t">🌾 ${p>=1?`<span style="color:var(--cadre2)">+${nb(p)}</span> à récolter`:'Les loyers poussent…'}</div><div class="m">Salaire ${nb(SALAIRE)} + loyers ${nb(loyerTotal())} par jour, stockés 24 h au plus.</div></div>${p>=1?`<button class="btn vert" onclick="recolter()">Récolter</button>`:''}</div>`;
+  const offres=state.offersIn.filter(o=>o.status==='attente');
+  if(offres.length) h+=`<div class="card flex"><div><div class="t">📨 ${offres.length} offre${offres.length>1?'s':''} pour tes lieux</div><div class="m">Accepte ou refuse dans tes notifications.</div></div><button class="btn bleu sm" onclick="showScreen('notifs')">Voir</button></div>`;
   const ventes=tous.filter(a=>a.enVente);
-  if(ventes.length) h+=`<div class="card"><div class="t">💰 Mes ventes en cours (${ventes.length})</div>${ventes.map(a=>`<div class="rank"><span class="who" onclick="flyToAddr(state.owned['${a.id}'])">${a.label}</span><b>${fmt(valeur(a))}</b><button class="btn sm" onclick="retirerVente('${a.id}')">Retirer</button></div>`).join('')}</div>`;
+  if(ventes.length) h+=`<div class="card"><div class="t">💰 En vente (${ventes.length})</div>${ventes.map(a=>`<div class="rank"><span class="who" onclick="ouvrirFicheLieu('${a.id}')">${echapper(a.label)}</span><b>${nb(valeur(a))}<i class="pc"></i></b><button class="btn sm" onclick="retirerVente('${a.id}')">Retirer</button></div>`).join('')}</div>`;
+  if(!tous.length){ h+=`<div class="card vide"><div class="ico">🎁</div><div class="t">Ta collection est vide</div><div class="m">Ton pack du jour contient 5 lieux de toute la France.</div>${packDispo()?`<button class="btn large" onclick="ouvrirPack()">Ouvrir mon pack</button>`:`<button class="btn bleu large" onclick="showScreen('carte')">Explorer la carte</button>`}</div>`; el.innerHTML=h; return; }
   const counts={}; tous.forEach(a=>{ counts[rarete(a)]=(counts[rarete(a)]||0)+1; });
-  h+=`<div class="card"><div class="m" style="margin-bottom:6px">Touche une rareté pour filtrer${filtrePatri?` · <a href="#" style="color:var(--gold)" onclick="filtrerPatri(0);return false">tout voir</a>`:''}</div><div class="flex" style="flex-wrap:wrap;gap:6px">${[5,4,3,2,1].map(r=>`<span class="tag r${r} filtre${!filtrePatri||filtrePatri===r?' on':''}" style="color:var(--rc)" onclick="filtrerPatri(${r})">${RARETES[r]} ${counts[r]||0}</span>`).join('')}</div></div>`;
-  if(filtrePatri && !list.length) h+=`<div class="card"><div class="m">Aucun lieu ${RARETES[filtrePatri]} pour l’instant.</div></div>`;
-  h+=`<div id="cards"></div>`; el.innerHTML=h; const g=el.querySelector('#cards');
-  list.sort((a,b)=>rarete(b)-rarete(a) || valeur(b)-valeur(a)).forEach(a=>{ const lv=a.niveau||0; const r=rarete(a); const c=document.createElement('div'); c.className='acard r'+r;
-    c.innerHTML=`<div class="rar">${RARETES[r]}</div><div class="big">${a.type==='monument'?'🏛️':(lv?NIVEAUX[lv].icone:(a.type==='lieu'?'⭐':'📍'))}</div><div class="n">${a.label}</div><div class="m">${communeName(a.citycode,a.city)}${a.enVente?' · <b style="color:var(--ok)">💰 en vente</b>':''}</div>
-      <div class="m">${NIVEAUX[lv].nom} · plafond ${NIVEAUX[plafond(a)].nom} · valeur ${fmt(valeur(a))} · loyer +${loyer(a)} ₳/j</div><div id="x-${hash(a.id)}"></div>`;
-    c.querySelector('.n').onclick=()=>flyToAddr(a); c.querySelector('.n').style.cursor='pointer';
-    const row=addrRow(a,true); const build=row.querySelector('.build'); if(build) c.querySelector('#x-'+hash(a.id)).appendChild(build); g.appendChild(c); }); }
+  h+=`<h2 class="section">Ma collection</h2><div class="filtres"><button class="filtre${filtrePatri?'':' on'}" onclick="filtrerPatri(0)">Toutes <b>${tous.length}</b></button>${[5,4,3,2,1].map(r=>`<button class="filtre r${r}${filtrePatri===r?' on':''}" onclick="filtrerPatri(${r})"><i class="dot"></i>${RARETES[r]} <b>${counts[r]||0}</b></button>`).join('')}</div>`;
+  if(!list.length) h+=`<div class="card vide"><div class="ico">🔍</div><div class="t">Aucune carte ${RARETES[filtrePatri]}</div><div class="m">Elles tombent dans les packs${filtrePatri===5?' ; les monuments se gagnent aux enchères':''}.</div></div>`;
+  h+=`<div class="collection">`;
+  list.sort((a,b)=>rarete(b)-rarete(a) || valeur(b)-valeur(a)).forEach(a=>{ const lv=a.niveau||0, r=rarete(a);
+    h+=`<div class="ccarte r${r}" role="button" onclick="ouvrirFicheLieu('${a.id}')"><span class="rar">${RARETES[r]}</span>${lv?`<span class="niv">${NIVEAUX[lv].icone}</span>`:''}${a.enVente?'<span class="vente">En vente</span>':''}
+      <div class="big">${iconeLieu(a)}</div><div class="n">${echapper(a.label)}</div><div class="m">${echapper(communeName(a.citycode,a.city))}</div>
+      <div class="pied"><span>${nb(valeur(a))}<i class="pc"></i></span><span class="loyer">+${nb(loyer(a))}/j</span></div></div>`; });
+  h+=`</div>`; el.innerHTML=h; }
+// le détail d'une carte : le lieu complet et ses actions
+function ouvrirFicheLieu(id){ const a=state.owned[id]; const box=document.getElementById('modalbox'); if(!a){ if(ficheOuverte) closeModal(); return; }
+  ficheOuverte=id; box.innerHTML=''; box.appendChild(addrRow(a, true));
+  const pied=document.createElement('div'); pied.className='liste-btn';
+  pied.innerHTML=`<button class="btn bleu large" onclick="flyToAddr(state.owned['${a.id}'])">🗺️ Voir sur la carte</button><button class="btn clair large" onclick="closeModal()">Fermer</button>`;
+  box.appendChild(pied); document.getElementById('modal').classList.add('on'); }
+function recolter(){ const p=Math.floor(pendingRent()); if(p<1) return toast('Rien à récolter pour l’instant'); encaisser(true); fete(Math.min(22, 8+Math.floor(p/200))); toast(`+${nb(p)} 🪙 récoltées`); apresAction(); refreshTop(); }
 
 function renderEncheres(){ const el=document.getElementById('s-encheres'); const idx=semaineEnCours(), debut=idx*SEMAINE, reste=debut+SEMAINE-now(), pct=100*(now()-debut)/SEMAINE;
   let h=`<h1>Enchères</h1><div class="card"><div class="t">Les 3 monuments de la semaine</div><div class="m">1 monument national (légendaire) et 2 régionaux, pour toute la France.</div>
@@ -924,8 +784,14 @@ function creationProfil(){ const box=document.getElementById('modalbox'); let av
     state.pseudo=ps; state.avatar=av; save(); closeModal(); refreshTop(); toast(`Bienvenue, ${ps} !`);
     if(window.Compte && Compte.actif()) Compte.apresProfil(); else if(packDispo()) setTimeout(ouvrirPack, 900); };
   document.getElementById('modal').classList.add('on'); }
-function refreshTop(){ document.getElementById('wallet').textContent = fmt(dispo()); document.getElementById('meav').textContent=state.avatar||'🙂'; document.getElementById('mename').textContent=disp(ME); document.getElementById('count').textContent = Object.keys(state.owned).length;
-  const p=Math.floor(pendingRent()); document.getElementById('pending').textContent = p>0 ? `+${p}` : '';
+// la bourse : le chiffre défile jusqu'au nouveau solde
+let bourseAffichee=null, bourseAnim=0;
+function afficherBourse(cible){ const el=document.getElementById('wallet'); cible=Math.round(cible);
+  if(bourseAffichee===null || Math.abs(cible-bourseAffichee)<2){ bourseAffichee=cible; el.textContent=nb(cible); return; }
+  cancelAnimationFrame(bourseAnim); const depart=bourseAffichee, t0=performance.now(), duree=Math.min(900, 300+Math.abs(cible-depart)/20);
+  const pas=()=>{ const t=Math.min(1,(performance.now()-t0)/duree), e=1-Math.pow(1-t,3); bourseAffichee=Math.round(depart+(cible-depart)*e); el.textContent=nb(bourseAffichee); if(t<1) bourseAnim=requestAnimationFrame(pas); }; pas(); }
+function refreshTop(){ afficherBourse(dispo()); document.getElementById('meav').textContent=state.avatar||'🙂'; document.getElementById('mename').textContent=disp(ME); const n=Object.keys(state.owned).length; document.getElementById('count').textContent = `${n} lieu${n>1?'x':''}`;
+  const p=Math.floor(pendingRent()); document.getElementById('pending').textContent = p>0 ? `+${nb(p)}` : '';
   const unread=state.notifs.filter(n=>!n.read).length; const c=document.getElementById('cnt-notif'); c.style.display=unread?'block':'none'; c.textContent=unread; refreshPack(); }
 setInterval(()=>{ refreshTop(); tickOffers(); tickAuction(); }, 1000);
 // À la connexion : la récolte des loyers (24 h au plus), puis le pack du jour s'il est prêt
