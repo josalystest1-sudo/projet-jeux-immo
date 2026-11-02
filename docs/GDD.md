@@ -75,7 +75,7 @@ La liste (`data/monuments.json`, 2 nov. 2026) : 458 monuments tirés de Wikidata
 
 - **Salaire quotidien** identique pour tous. **[Décidé]**
 - **Loyer** par lieu, selon ce qui est construit : Terrain, Maison, Immeuble, Tour, Prestige (monuments seulement). Le loyer **ne dépend pas de la chance** : une belle adresse permet de construire plus haut, elle ne rapporte pas plus toute seule. **[Décidé]**
-- **Récolte à la connexion** : le loyer s'accumule hors ligne, au plus **24 h**, puis s'arrête. Se connecter chaque jour est donc le geste de base. **[Décidé]**
+- **Récolte à la connexion** : le loyer s'accumule hors ligne, au plus **24 h**, puis s'arrête. Se connecter chaque jour est donc le geste de base. **[Décidé]** À l'ouverture du jeu, une fenêtre « La récolte » montre le montant gagné pendant l'absence (et prévient quand le stock était plein), un bouton « Récolter », puis le pack du jour s'ouvre. **[Proposé]**
 - **Construction instantanée**, payée en ₳ : Maison → Immeuble → Tour → Prestige. **[Décidé]**
 - Le ₳ sert à : construire, acheter des lieux à des joueurs, faire des offres, enchérir. **[Décidé]** (V2 possible : projets de quartier, cosmétiques.)
 - Chiffres de départ (à régler avec la simulation, § 10) **[Proposé]** :
@@ -131,6 +131,7 @@ Règles : jamais de nom de personne, jamais de lien adresse ↔ identité, le do
 - **Multi-comptes** : on accepte le risque en V1 (limites simples par appareil et par IP côté serveur, sans numéro de téléphone).
 - **Notifications push** : V2. En V1, le centre de notifications dans le jeu suffit.
 - **Modération** : filtre automatique des pseudos ; un bouton **Signaler** sur chaque profil ; Gautier traite les signalements lui-même (bannissement manuel).
+  - Mise en œuvre (2 nov. 2026) **[Proposé]** : pseudo de 3 à 16 caractères (lettres, chiffres, espace, tiret, point, tiret bas ; deux lettres au moins), unique sans tenir compte des majuscules ni des accents. Le filtre (`src/regles/pseudo.js`, listes `data/moderation.json`) bloque les racines interdites partout dans le pseudo (« putain », « salope »…) et les mots courts seulement quand ils forment un mot entier (« con » dans « GrosCon », pas dans « Conrad » ni « Calcul »), y compris déguisés (chiffres pour des lettres, points entre les lettres, lettres répétées) ; il réserve « admin », « modo », « Cadastra », « officiel », « support »… Signaler : une raison (pseudo inapproprié, triche ou plusieurs comptes, comportement, autre) et un détail facultatif ; un même joueur au plus une fois par jour ; le joueur signalé ne sait pas qui l'a signalé.
 
 ## 9. Monétisation **[Décidé]**
 

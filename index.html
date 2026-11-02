@@ -23,6 +23,7 @@
 <script src="src/regles/celebres.js"></script>
 <script src="src/regles/encheres.js"></script>
 <script src="src/regles/pack.js"></script>
+<script src="src/regles/pseudo.js"></script>
 <style>
   :root{--bg:#11131c;--panel:#171a26;--card:#1c1f2c;--line:#2a2e40;--txt:#f3f4f8;--muted:#9aa0b8;--gold:#ffd65a;--me:#3b82f6;--other:#ef4444;--mixed:#a855f7;--ok:#7ee787;--nav:64px}
   *{box-sizing:border-box}
@@ -119,6 +120,11 @@
   .avgrid{display:grid;grid-template-columns:repeat(6,1fr);gap:6px;margin:10px 0}
   .avgrid button{font-size:24px;background:#1c1f2c;border:2px solid var(--line);border-radius:12px;padding:8px;cursor:pointer}
   .avgrid button.on{border-color:var(--gold)}
+  .err{color:#ff8a8a;font-size:12px;min-height:16px;margin-top:4px}
+  .raisons button{display:block;width:100%;text-align:left;margin:6px 0;background:#1c1f2c;border:2px solid var(--line);border-radius:12px;padding:10px;color:#fff;font-size:14px;cursor:pointer}
+  .raisons button.on{border-color:var(--gold)}
+  .recolte{font-size:40px;font-weight:900;color:var(--ok);text-align:center;margin:10px 0 4px}
+  .filtre{cursor:pointer;opacity:.55} .filtre.on{opacity:1;outline:2px solid currentColor}
   input.txt{width:100%;background:#0f1118;border:1px solid var(--line);color:var(--txt);border-radius:10px;padding:10px;font-size:15px}
   .cel{display:flex;align-items:center;gap:4px;cursor:pointer}
   .cel-pt{width:24px;height:24px;border-radius:50%;background:#2f6fe0;border:2px solid #fff;display:flex;align-items:center;justify-content:center;font-size:12px;box-shadow:0 2px 6px rgba(0,0,0,.4)}
@@ -530,6 +536,7 @@ function addrRow(a, withBuild){
   return row; }
 function buy(a, price){ if(dispo() < price) return; encaisser(true); state.wallet -= price;
   state.owned[a.id] = Object.assign({}, a, { niveau:0, depuis:now() }); save(); refreshTop(); if(currentParcel) renderAddrs(); if(a.idu) paintParcel(a.idu); setBadge(a,0); toast(`${a.label} est à toi !`); }
+function retirerVente(id){ const a=state.owned[id]; if(!a) return; a.enVente=false; save(); setBadge(a, a.niveau||0); toast('Retiré de la vente'); renderPatrimoine(); }
 function construire(id, niveau, cost){ const a=state.owned[id]; if(!a || dispo()<cost) return; encaisser(true); state.wallet -= cost; a.niveau = niveau; save(); refreshTop();
   if(currentParcel) renderAddrs(); if(a.idu) paintParcel(a.idu); setBadge(a, niveau); toast(`${NIVEAUX[niveau].icone} ${NIVEAUX[niveau].nom} construit·e : ${a.label}`); }
 function closeSheet(){ document.getElementById('sheet').classList.remove('open'); document.getElementById('sv').src='about:blank'; if(selected){ map.setFeatureState({source:'pci', sourceLayer:'parcelle', id:selected}, {sel:false}); selected=null; paintBuildings(); } }
@@ -809,14 +816,20 @@ function showScreen(name){ document.querySelectorAll('.screen').forEach(s=>s.cla
   if(hide) document.getElementById('s-'+name).classList.add('on'); else map.resize(); }
 document.querySelectorAll('#nav button').forEach(b=>b.onclick=()=>showScreen(b.dataset.s));
 
-function renderPatrimoine(){ const el=document.getElementById('s-patrimoine'); const list=Object.values(state.owned); const total=list.reduce((s,a)=>s+valeur(a),0);
+let filtrePatri=0; // 0 = toutes les raretés
+function filtrerPatri(r){ filtrePatri = filtrePatri===r ? 0 : r; renderPatrimoine(); }
+function renderPatrimoine(){ const el=document.getElementById('s-patrimoine'); const tous=Object.values(state.owned); const total=tous.reduce((s,a)=>s+valeur(a),0);
+  const list = filtrePatri ? tous.filter(a=>rarete(a)===filtrePatri) : tous.slice();
   const byCommune={}; list.forEach(a=>{ const k=communeName(a.citycode,a.city); byCommune[k]=(byCommune[k]||0)+1; });
-  let h=`<h1>Mon patrimoine</h1><div class="kpis"><div class="kpi"><small>LIEUX</small><b>${list.length}</b></div><div class="kpi"><small>VALEUR</small><b>${fmt(total)}</b></div><div class="kpi"><small>REVENU / JOUR</small><b>+${SALAIRE+loyerTotal()} ₳</b></div></div>`;
+  let h=`<h1>Mon patrimoine</h1><div class="kpis"><div class="kpi"><small>LIEUX</small><b>${tous.length}</b></div><div class="kpi"><small>VALEUR</small><b>${fmt(total)}</b></div><div class="kpi"><small>REVENU / JOUR</small><b>+${SALAIRE+loyerTotal()} ₳</b></div></div>`;
   h+=`<div class="card"><div class="t">Revenus</div><div class="m">Salaire ${SALAIRE} ₳/j + loyers ${loyerTotal()} ₳/j · à encaisser : <b style="color:var(--ok)">${fmt(pendingRent())}</b></div><div style="margin-top:8px"><button class="btn sm next" onclick="encaisser(false);renderPatrimoine()">Encaisser</button></div></div>`;
   const pending=state.offersIn.filter(o=>o.status==='attente'); if(pending.length) h+=`<div class="card"><div class="t">${pending.length} offre(s) reçue(s)</div><div class="m">Réponds depuis l’onglet Notifs.</div></div>`;
-  if(!list.length) h+=`<div class="card"><div class="t">Aucun lieu pour l’instant</div><div class="m">Ouvre ton pack du jour sur la carte.</div></div>`;
-  const counts={}; list.forEach(a=>{ counts[rarete(a)]=(counts[rarete(a)]||0)+1; });
-  h+=`<div class="card"><div class="flex" style="flex-wrap:wrap;gap:6px">${[5,4,3,2,1].map(r=>`<span class="tag r${r}" style="color:var(--rc)">${RARETES[r]} ${counts[r]||0}</span>`).join('')}</div></div>`;
+  if(!tous.length) h+=`<div class="card"><div class="t">Aucun lieu pour l’instant</div><div class="m">Ouvre ton pack du jour sur la carte.</div></div>`;
+  const ventes=tous.filter(a=>a.enVente);
+  if(ventes.length) h+=`<div class="card"><div class="t">💰 Mes ventes en cours (${ventes.length})</div>${ventes.map(a=>`<div class="rank"><span class="who" onclick="flyToAddr(state.owned['${a.id}'])">${a.label}</span><b>${fmt(valeur(a))}</b><button class="btn sm" onclick="retirerVente('${a.id}')">Retirer</button></div>`).join('')}</div>`;
+  const counts={}; tous.forEach(a=>{ counts[rarete(a)]=(counts[rarete(a)]||0)+1; });
+  h+=`<div class="card"><div class="m" style="margin-bottom:6px">Touche une rareté pour filtrer${filtrePatri?` · <a href="#" style="color:var(--gold)" onclick="filtrerPatri(0);return false">tout voir</a>`:''}</div><div class="flex" style="flex-wrap:wrap;gap:6px">${[5,4,3,2,1].map(r=>`<span class="tag r${r} filtre${!filtrePatri||filtrePatri===r?' on':''}" style="color:var(--rc)" onclick="filtrerPatri(${r})">${RARETES[r]} ${counts[r]||0}</span>`).join('')}</div></div>`;
+  if(filtrePatri && !list.length) h+=`<div class="card"><div class="m">Aucun lieu ${RARETES[filtrePatri]} pour l’instant.</div></div>`;
   h+=`<div id="cards"></div>`; el.innerHTML=h; const g=el.querySelector('#cards');
   list.sort((a,b)=>rarete(b)-rarete(a) || valeur(b)-valeur(a)).forEach(a=>{ const lv=a.niveau||0; const r=rarete(a); const c=document.createElement('div'); c.className='acard r'+r;
     c.innerHTML=`<div class="rar">${RARETES[r]}</div><div class="big">${a.type==='monument'?'🏛️':(lv?NIVEAUX[lv].icone:(a.type==='lieu'?'⭐':'📍'))}</div><div class="n">${a.label}</div><div class="m">${communeName(a.citycode,a.city)}${a.enVente?' · <b style="color:var(--ok)">💰 en vente</b>':''}</div>
@@ -854,7 +867,7 @@ function renderNotifs(){ const el=document.getElementById('s-notifs'); let h=`<h
   h+=`<div class="card"><div class="t">Réglages</div>
     <div class="sw"><span>Recevoir les offres d’achat sur mes lieux</span><input type="checkbox" ${state.prefs.offres?'checked':''} onchange="setPref('offres',this.checked)"></div>
     <div class="sw"><span>Ignorer les offres sous la valeur du lieu</span><input type="checkbox" ${state.prefs.seuil?'checked':''} onchange="setPref('seuil',this.checked)"></div>
-    <div class="sw"><span>M’alerter quand je suis dépassé aux enchères</span><input type="checkbox" ${state.prefs.encheres?'checked':''} onchange="setPref('encheres',this.checked)"></div></div>`; if(!state.notifs.length) h+=`<div class="card"><div class="m">Rien pour l’instant. Les offres reçues, les enchères et les ventes arrivent ici.</div></div>`;
+    <div class="sw"><span>M’alerter quand je suis dépassé aux enchères</span><input type="checkbox" ${state.prefs.encheres?'checked':''} onchange="setPref('encheres',this.checked)"></div>${(state.signalements||[]).length?`<div class="m" style="margin-top:8px">🚩 Signalements envoyés : ${state.signalements.length}</div>`:''}</div>`; if(!state.notifs.length) h+=`<div class="card"><div class="m">Rien pour l’instant. Les offres reçues, les enchères et les ventes arrivent ici.</div></div>`;
   for(const n of state.notifs){ const d=new Date(n.ts); h+=`<div class="card notif ${n.read?'':'unread'}"><div class="m">${d.getHours().toString().padStart(2,'0')}:${d.getMinutes().toString().padStart(2,'0')}</div><div>${n.text}</div>`;
     if(n.offerId){ const o=state.offersIn.find(x=>x.id===n.offerId); if(o && o.status==='attente') h+=`<div class="build"><button class="btn sm next" onclick="repondreOffre('${o.id}',true)">Accepter ${fmt(o.price)}</button><button class="btn sm" onclick="repondreOffre('${o.id}',false)">Refuser</button></div>`; else if(o) h+=`<div class="m">${o.status==='acceptee'?'Acceptée':'Refusée'}</div>`; }
     if(n.addrId && state.owned[n.addrId]) h+=`<div class="build"><button class="btn sm" onclick="flyToAddr(state.owned['${n.addrId}'])">Voir sur la carte</button></div>`;
@@ -865,21 +878,49 @@ function showPlayer(name){ const box=document.getElementById('modalbox'); let h;
   if(name===ME){ const list=Object.values(state.owned); h=`<h2><span class="av">${state.avatar}</span> ${disp(ME)} (toi)</h2><div class="sub">Membre depuis aujourd’hui · <a href="#" onclick="creationProfil();return false" style="color:var(--gold)">modifier mon profil</a></div><div class="kpis"><div class="kpi"><small>LIEUX</small><b>${list.length}</b></div><div class="kpi"><small>VALEUR</small><b>${fmt(list.reduce((s,a)=>s+valeur(a),0))}</b></div><div class="kpi"><small>CONSTRUITS</small><b>${list.filter(a=>a.niveau>0).length}</b></div></div>`; }
   else { const n=5+hash(name)%40, c=1+hash(name+'c')%4, b=Math.floor(n*(0.3+ (hash(name+'b')%50)/100)); const v=n*1200+b*900;
     h=`<h2>${name}</h2><div class="sub">Joueur simulé · membre depuis ${1+hash(name+'d')%60} jours</div><div class="kpis"><div class="kpi"><small>LIEUX</small><b>${n}</b></div><div class="kpi"><small>VALEUR</small><b>${fmt(v)}</b></div><div class="kpi"><small>CONSTRUITS</small><b>${b}</b></div></div><div class="card"><div class="t">Présent dans ${c} commune${c>1?'s':''}</div><div class="m">Ses lieux apparaissent en rouge sur la carte. Clique sur l’un d’eux pour lui faire une offre.</div></div>`; }
-  box.innerHTML = h + `<button class="btn" style="width:100%" onclick="closeModal()">Fermer</button>`; document.getElementById('modal').classList.add('on'); }
+  const signaler = name===ME ? '' : `<button class="btn sm" style="width:100%;margin-bottom:8px;background:transparent;border:1px solid var(--line);color:#ff8a8a" onclick="signaler('${name}')">🚩 Signaler ce joueur</button>`;
+  box.innerHTML = h + signaler + `<button class="btn" style="width:100%" onclick="closeModal()">Fermer</button>`; document.getElementById('modal').classList.add('on'); }
+// Signaler un joueur : une raison, un mot facultatif ; la file de signalements est traitée à la main par Gautier
+// (serveur simulé : gardée dans le profil ; avec Supabase : une table « signalements »).
+const RAISONS = { pseudo:'Pseudo inapproprié', triche:'Triche ou plusieurs comptes', comportement:'Comportement (offres, messages…)', autre:'Autre' };
+function signaler(name){ const box=document.getElementById('modalbox'); const deja=(state.signalements||[]).find(x=>x.qui===name && now()-x.ts<JOUR);
+  if(deja) return toast('Tu as déjà signalé ce joueur aujourd’hui. Merci !');
+  let raison='';
+  box.innerHTML=`<h2>Signaler ${name}</h2><div class="sub">Pourquoi ? Ton signalement est anonyme pour ce joueur.</div><div class="raisons" id="raisons">${Object.entries(RAISONS).map(([k,t])=>`<button data-r="${k}">${t}</button>`).join('')}</div>
+    <input class="txt" id="sigtxt" maxlength="200" placeholder="Un détail (facultatif)"><div class="err" id="sigerr"></div>
+    <button class="btn" style="width:100%;margin-bottom:8px" id="sigok">Envoyer le signalement</button><button class="btn sm" style="width:100%" onclick="showPlayer('${name}')">Annuler</button>`;
+  box.querySelectorAll('#raisons button').forEach(b=>b.onclick=()=>{ raison=b.dataset.r; box.querySelectorAll('#raisons button').forEach(x=>x.classList.toggle('on', x===b)); box.querySelector('#sigerr').textContent=''; });
+  box.querySelector('#sigok').onclick=()=>{ if(!raison){ box.querySelector('#sigerr').textContent='Choisis une raison'; return; }
+    (state.signalements=state.signalements||[]).push({ qui:name, raison, texte:box.querySelector('#sigtxt').value.trim().slice(0,200), ts:now() }); save(); closeModal(); toast('Signalement envoyé. Merci, il sera examiné.'); }; }
 document.getElementById('mepill').onclick=()=>showPlayer(ME);
 document.getElementById('walletpill').onclick=()=>encaisser(false);
 document.getElementById('modal').addEventListener('click', e=>{ if(e.target.id==='modal') closeModal(); });
 
+// le filtre des pseudos (src/regles/pseudo.js, listes data/moderation.json) ; pris = les joueurs connus du serveur simulé
+let FILTRE=null; fetch('data/moderation.json').then(r=>r.json()).then(m=>{ FILTRE=Pseudo.creer(m); }).catch(()=>{});
+function verifierPseudo(ps){ if(!FILTRE) return { ok: ps.trim().length>=3, pseudo: ps.trim(), texte:'3 caractères au moins' }; return FILTRE.valider(ps, FAKE.filter(f=>f!==state.pseudo)); }
 function creationProfil(){ const box=document.getElementById('modalbox'); let av=state.avatar||AVATARS[0];
-  box.innerHTML=`<h2>${state.pseudo?'Mon profil':'Bienvenue !'}</h2><div class="sub">Choisis ton pseudo et ton icône, visibles par les autres joueurs.</div><input class="txt" id="pseudo" maxlength="16" placeholder="Ton pseudo" value="${state.pseudo||''}"><div class="avgrid" id="avgrid"></div><button class="btn" style="width:100%" id="okprofil">C’est parti</button>`;
+  box.innerHTML=`<h2>${state.pseudo?'Mon profil':'Bienvenue !'}</h2><div class="sub">Choisis ton pseudo et ton icône, visibles par les autres joueurs.</div><input class="txt" id="pseudo" maxlength="16" placeholder="Ton pseudo" value="${state.pseudo||''}"><div class="err" id="pseudoerr"></div><div class="avgrid" id="avgrid"></div><button class="btn" style="width:100%" id="okprofil">C’est parti</button>`;
   const grid=box.querySelector('#avgrid'); AVATARS.forEach(e=>{ const b=document.createElement('button'); b.textContent=e; b.className=e===av?'on':''; b.onclick=()=>{ av=e; grid.querySelectorAll('button').forEach(x=>x.classList.toggle('on',x.textContent===e)); }; grid.appendChild(b); });
-  box.querySelector('#okprofil').onclick=()=>{ const ps=box.querySelector('#pseudo').value.trim(); if(ps.length<3) return toast('Pseudo : 3 caractères minimum'); state.pseudo=ps; state.avatar=av; save(); closeModal(); refreshTop(); toast(`Bienvenue, ${ps} !`); if(packDispo()) setTimeout(ouvrirPack, 900); };
+  const champ=box.querySelector('#pseudo'), err=box.querySelector('#pseudoerr');
+  champ.oninput=()=>{ const v=champ.value; const r=v.trim().length<3 ? {ok:true} : verifierPseudo(v); err.textContent = r.ok ? '' : 'Pseudo refusé : '+r.texte; };
+  box.querySelector('#okprofil').onclick=()=>{ const r=verifierPseudo(champ.value); if(!r.ok){ err.textContent='Pseudo refusé : '+r.texte; return; } const ps=r.pseudo; state.pseudo=ps; state.avatar=av; save(); closeModal(); refreshTop(); toast(`Bienvenue, ${ps} !`); if(packDispo()) setTimeout(ouvrirPack, 900); };
   document.getElementById('modal').classList.add('on'); }
 function refreshTop(){ document.getElementById('wallet').textContent = fmt(dispo()); document.getElementById('meav').textContent=state.avatar||'🙂'; document.getElementById('mename').textContent=disp(ME); document.getElementById('count').textContent = Object.keys(state.owned).length;
   const p=Math.floor(pendingRent()); document.getElementById('pending').textContent = p>0 ? `+${p}` : '';
   const unread=state.notifs.filter(n=>!n.read).length; const c=document.getElementById('cnt-notif'); c.style.display=unread?'block':'none'; c.textContent=unread; refreshPack(); }
 setInterval(()=>{ refreshTop(); tickOffers(); tickAuction(); }, 1000);
-refreshTop(); tickAuction(); if(!state.pseudo) setTimeout(creationProfil, 600); else if(packDispo()) map.once('idle', ()=>setTimeout(ouvrirPack, 900));
+// À la connexion : la récolte des loyers (24 h au plus), puis le pack du jour s'il est prêt
+function packAuDemarrage(){ if(!packDispo()) return; if(map.loaded()) setTimeout(ouvrirPack, 600); else map.once('idle', ()=>setTimeout(ouvrirPack, 900)); }
+function recolteConnexion(ensuite){ const p=Math.floor(pendingRent()); if(p<1) return ensuite();
+  const absent=now()-state.encaisse, plein=absent>=ECO.stock_loyer_heures*JOUR/24, lieux=Object.keys(state.owned).length;
+  const box=document.getElementById('modalbox');
+  box.innerHTML=`<h2>🌾 La récolte</h2><div class="sub">Pendant ton absence, ton salaire${lieux?` et les loyers de tes ${lieux} lieu${lieux>1?'x':''}`:''} ont rapporté :</div>
+    <div class="recolte">+${fmt(p)}</div><div class="m" style="text-align:center;margin-bottom:12px">${plein?'Ton stock était plein : les loyers s’arrêtent au bout de 24 h. Reviens chaque jour pour ne rien perdre.':'Les loyers s’accumulent jusqu’à 24 h, puis s’arrêtent.'}</div>
+    <button class="btn" style="width:100%" id="recolter">Récolter</button>`;
+  document.getElementById('modal').classList.add('on');
+  box.querySelector('#recolter').onclick=()=>{ encaisser(false); closeModal(); ensuite(); }; }
+refreshTop(); tickAuction(); if(!state.pseudo) setTimeout(creationProfil, 600); else setTimeout(()=>recolteConnexion(packAuDemarrage), 500);
 </script>
 </body>
 </html>

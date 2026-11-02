@@ -1,0 +1,15 @@
+{
+  "pseudo": { "min": 3, "max": 16 },
+  "racines": [
+    "putain", "salope", "encul", "connard", "connasse", "batard", "enfoire", "tapette", "pedophil", "pedoph",
+    "negre", "nigg", "bougnoul", "youpin", "nazi", "hitler", "fuck", "bitch", "faggot", "whore", "porno",
+    "terroris", "jihad", "daech", "bamboula", "fiottes"
+  ],
+  "mots": [
+    "pute", "putes", "nique", "niquer", "ntm", "fdp", "pd", "pede", "con", "conne", "cons", "cul", "bite", "bites",
+    "chatte", "couille", "couilles", "viol", "violeur", "sexe", "sex", "negro", "shit", "dick", "cock", "cunt",
+    "slut", "isis", "ss", "kkk", "merde", "salaud", "abruti", "debile", "gouine", "travelo", "fiotte", "zob", "teub"
+  ],
+  "reserves_racines": ["admin", "moderat", "cadastra", "officiel", "support", "staff"],
+  "reserves_mots": ["modo", "mod", "systeme", "bot", "equipe"]
+}

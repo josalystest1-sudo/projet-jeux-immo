@@ -14,9 +14,11 @@
 
 - 2 nov. 2026 (soir) : **le pack tiré par rareté** (60 / 26 / 11 / 3 %, `src/regles/pack.js`, graine joueur + jour) : Commun = adresse près d'un point au hasard de la France, Peu commun = adresse d'une commune au standing 2, Rare = lieu nommé (vrai nom seulement), Épique = lieu célèbre ou adresse d'une commune au standing 3 ; toujours 5 cartes. **Toucher l'écran accélère la révélation** (×4 puis ×12, demande de Gautier). 28 tests.
 
+- 2 nov. 2026 (soir), phase 2 sans le serveur : **filtre des pseudos** (`src/regles/pseudo.js`, `data/moderation.json`, 6 tests ; refus expliqué sous le champ) ; **Signaler** sur le profil d'un joueur (raison + détail, file gardée dans le profil en attendant Supabase) ; **la récolte à la connexion** (fenêtre « La récolte », stock plein signalé, puis le pack) ; **patrimoine** : filtre par rareté, « Mes ventes en cours » avec « Retirer ». 34 tests.
+
 ## En cours
 - Lieux célèbres : les autres catégories (châteaux, mairies, gares, musées, ponts, phares, moulins…) dès que Wikidata répond (`python3 tools/wikidata_celebres.py`, puis `--fusion` et `gen_donnees.py celebres`).
-- Phase 1.1 à 1.4 : la carte et le modèle des lieux reconstruits en modules (`src/`) à partir du prototype ; puis le compte et le patrimoine (phase 2).
+- Phase 1.1 à 1.4 : la carte et le modèle des lieux reconstruits en modules (`src/`) à partir du prototype ; puis le marché (phase 4 : historique des ventes d'un lieu) et les communes et Maires (phase 6). L'inscription (e-mail, Google/Apple) attend le projet Supabase (phase 8).
 
 ## À faire
 - Voir `docs/PLAN.md` (phases 1 à 11).
