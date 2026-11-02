@@ -16,6 +16,8 @@
 <script src="https://unpkg.com/three@0.147.0/examples/js/postprocessing/ShaderPass.js"></script>
 <script src="https://unpkg.com/three@0.147.0/examples/js/postprocessing/UnrealBloomPass.js"></script>
 <script src="geo.js"></script>
+<script src="data/economie.js"></script>
+<script src="src/regles/lieu.js"></script>
 <style>
   :root{--bg:#11131c;--panel:#171a26;--card:#1c1f2c;--line:#2a2e40;--txt:#f3f4f8;--muted:#9aa0b8;--gold:#ffd65a;--me:#3b82f6;--other:#ef4444;--mixed:#a855f7;--ok:#7ee787;--nav:64px}
   *{box-sizing:border-box}
@@ -266,15 +268,8 @@ const AVATARS=['🦊','🐻','🐼','🦁','🐯','🐸','🐙','🦄','🐲','�
 function disp(n){ return n===ME ? (state.pseudo||'Moi') : n; }
 const FAKE = ['Léa','Marco','Inès','Yanis','Chloé','Sacha'];
 const JOUR = 60*1000;            // démo : un jour = une minute
-const SALAIRE = 200;             // ₳ par jour pour tout le monde
-const LOYER_BASE = 10;           // ₳ par jour par lieu nu
-const NIVEAUX = [
-  { nom:'Terrain',  icone:'',   cout:0,   loyer:0,   hauteur:0 },
-  { nom:'Maison',   icone:'🏠', cout:1,   loyer:30,  hauteur:6 },
-  { nom:'Immeuble', icone:'🏢', cout:2.5, loyer:100, hauteur:18 },
-  { nom:'Tour',     icone:'🏙', cout:6,   loyer:300, hauteur:45 }
-];
-const STANDING = { 1:{nom:'Maison', base:500}, 2:{nom:'Immeuble', base:1500}, 3:{nom:'Tour', base:4000} };
+const R = Regles.creer(ECO);       // le moteur de règles (src/regles/lieu.js), réglages dans data/economie.json
+const NIVEAUX = R.NIVEAUX; const SALAIRE = ECO.salaire_par_jour; const LOYER_BASE = ECO.loyer_terrain; const RARETES = ECO.raretes;
 const MONUMENTS = [
   { nom:'Basilique du Sacré-Cœur', icone:'⛪', ville:'Paris 18e', lon:2.3431, lat:48.8867, depart:20000 },
   { nom:'Opéra Garnier', icone:'🎭', ville:'Paris 9e', lon:2.3316, lat:48.8719, depart:25000 },
@@ -308,17 +303,15 @@ function dist(a,b){ const dx=(a[0]-b[0])*Math.cos(a[1]*Math.PI/180)*111320, dy=(
 function toast(t){ const el=document.getElementById('toast'); el.textContent=t; el.style.display='block'; setTimeout(()=>el.style.display='none',1700); }
 function communeName(citycode, city){ if(!citycode) return city||'?'; if(citycode.startsWith('751')) return 'Paris '+(parseInt(citycode.slice(3))+(parseInt(citycode.slice(3))===1?'er':'e')); return city||citycode; }
 // standing (plafond de construction) : démo, en vrai calculé avec DVF
-function standing(citycode){ if(!citycode) return 1; const c=String(citycode); if(c.startsWith('751')){ const a=parseInt(c.slice(3)); return (a<=8||a===16||a===17) ? 3 : 2; } if(c.startsWith('92')||c.startsWith('69')||c.startsWith('13')||c.startsWith('33')||c.startsWith('31')||c.startsWith('44')||c.startsWith('59')) return 2; return 1; }
-const RARETES = {1:'Commun',2:'Peu commun',3:'Rare',4:'Épique',5:'Légendaire'};
-function rarete(a){ if(a.type==='monument') return 5; const pl=plafond(a); if(pl>=3) return 4; if(a.type==='lieu') return 3; if(standing(a.citycode)>=2) return 2; return 1; }
+function rarete(a){ return R.rarete(a); }
 function enVente(a){ if(state.owned[a.id]) return !!state.owned[a.id].enVente; const o=ownerOf(a); return !!o && hash(a.id+'v')%100<25; }
-function plafond(a){ return Math.min(3, standing(a.citycode) + (a.type==='lieu'?1:0)); }
-function baseValue(a){ return STANDING[standing(a.citycode)].base * (a.type==='lieu'?2:1); }
-function coutNiveau(a, n){ return Math.round(baseValue(a)*NIVEAUX[n].cout); }
-function valeur(a){ let v=baseValue(a); for(let n=1;n<=(a.niveau||0);n++) v+=coutNiveau(a,n); return v; }
-function loyer(a){ return LOYER_BASE + NIVEAUX[a.niveau||0].loyer; }
+function plafond(a){ return R.plafond(a); }
+function baseValue(a){ return R.valeurBase(a); }
+function coutNiveau(a, n){ return R.coutNiveau(a, n); }
+function valeur(a){ return R.valeur(a); }
+function loyer(a){ return R.loyerParJour(a); }
 function loyerTotal(){ return Object.values(state.owned).reduce((s,a)=>s+loyer(a),0); }
-function pendingRent(){ return (SALAIRE + loyerTotal()) * (now()-state.encaisse)/JOUR; }
+function pendingRent(){ return R.aEncaisser(Object.values(state.owned), state.encaisse, now(), JOUR); }
 function encaisser(silent){ const p=pendingRent(); if(p>=1){ state.wallet += Math.floor(p); state.encaisse = now(); save(); if(!silent) toast(`+${Math.floor(p)} ₳ encaissés (salaire + loyers)`); } else if(!silent) toast('Rien à encaisser pour l’instant'); refreshTop(); }
 function dispo(){ return state.wallet - (state.auction.myBid && isTop(state.auction) ? state.auction.myBid : 0); }
 function notify(type, text, extra){ state.notifs.unshift({ts:now(), type, text, read:false, ...(extra||{})}); if(state.notifs.length>60) state.notifs.length=60; save(); refreshTop(); }

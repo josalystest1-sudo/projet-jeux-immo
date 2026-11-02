@@ -1,0 +1,99 @@
+// Généré par tools/gen_economie.py depuis data/economie.json : ne pas modifier à la main.
+const ECO = {
+ "monnaie": "pièces",
+ "salaire_par_jour": 200,
+ "stock_loyer_heures": 24,
+ "loyer_terrain": 10,
+ "niveaux": [
+  {
+   "id": "terrain",
+   "nom": "Terrain",
+   "icone": "",
+   "cout": 0,
+   "loyer": 0,
+   "hauteur": 0
+  },
+  {
+   "id": "maison",
+   "nom": "Maison",
+   "icone": "🏠",
+   "cout": 1,
+   "loyer": 40,
+   "hauteur": 6
+  },
+  {
+   "id": "immeuble",
+   "nom": "Immeuble",
+   "icone": "🏢",
+   "cout": 2.5,
+   "loyer": 110,
+   "hauteur": 18
+  },
+  {
+   "id": "tour",
+   "nom": "Tour",
+   "icone": "🏙",
+   "cout": 6,
+   "loyer": 310,
+   "hauteur": 45
+  },
+  {
+   "id": "prestige",
+   "nom": "Prestige",
+   "icone": "🏛️",
+   "cout": 15,
+   "loyer": 1000,
+   "hauteur": 60
+  }
+ ],
+ "standing": {
+  "1": {
+   "nom": "Maison",
+   "base": 500
+  },
+  "2": {
+   "nom": "Immeuble",
+   "base": 1500
+  },
+  "3": {
+   "nom": "Tour",
+   "base": 4000
+  }
+ },
+ "notoriete": {
+  "commune": 0,
+  "connue": 1,
+  "celebre": 2,
+  "monument": 3
+ },
+ "multiplicateur_valeur": {
+  "commune": 1,
+  "connue": 2,
+  "celebre": 4,
+  "monument": 10
+ },
+ "pack": {
+  "cartes": 5,
+  "par_jour": 1,
+  "chances": {
+   "1": 60,
+   "2": 26,
+   "3": 11,
+   "4": 3
+  }
+ },
+ "raretes": {
+  "1": "Commun",
+  "2": "Peu commun",
+  "3": "Rare",
+  "4": "Épique",
+  "5": "Légendaire"
+ },
+ "boutique": {
+  "pack_1": 1.99,
+  "pack_5": 7.99,
+  "pack_12": 16.99,
+  "pass_mensuel": 4.99
+ },
+ "solde_depart": 1500
+};

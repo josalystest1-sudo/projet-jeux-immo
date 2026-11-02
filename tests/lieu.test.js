@@ -1,0 +1,25 @@
+const test = require('node:test'); const assert = require('node:assert');
+const eco = require('../data/economie.json'); const { creer } = require('../src/regles/lieu.js'); const R = creer(eco);
+const JOUR = 86400000;
+const martyrs = { id: '75109_6147_00067', type: 'adresse', citycode: '75109' };   // Paris 9e
+const clevilliers = { id: '28105_x', type: 'adresse', citycode: '28105' };          // village d'Eure-et-Loir
+const egliseClev = { id: 'poi1', type: 'lieu', citycode: '28105' };
+const bordeaux = { id: '33063_x', type: 'adresse', citycode: '33063' };
+const eiffel = { id: 'mon1', type: 'monument', citycode: '75107' };
+const seizieme = { id: '75116_x', type: 'adresse', citycode: '75116' };
+test('standing : Paris 9e = 2, Paris 16e = 3, village = 1, Bordeaux = 2', () => {
+  assert.equal(R.standing(martyrs), 2); assert.equal(R.standing({ citycode: '75116' }), 3); assert.equal(R.standing(clevilliers), 1); assert.equal(R.standing(bordeaux), 2); });
+test('plafond : village = Maison, église du village = Immeuble, Paris 9e = Immeuble, Paris 16e = Tour, monument = Prestige', () => {
+  assert.equal(R.texteNiveau(R.plafond(clevilliers)), 'Maison'); assert.equal(R.texteNiveau(R.plafond(egliseClev)), 'Immeuble');
+  assert.equal(R.texteNiveau(R.plafond(martyrs)), 'Immeuble'); assert.equal(R.texteNiveau(R.plafond(seizieme)), 'Tour'); assert.equal(R.texteNiveau(R.plafond(eiffel)), 'Prestige'); });
+test('rareté : village commun, Paris 9e peu commun, église rare, Paris 16e épique, monument légendaire', () => {
+  assert.equal(R.rarete(clevilliers), 1); assert.equal(R.rarete(martyrs), 2); assert.equal(R.rarete(egliseClev), 3); assert.equal(R.rarete(seizieme), 4); assert.equal(R.rarete(eiffel), 5); });
+test('valeur et construction : la valeur grandit avec les niveaux, on ne saute pas de niveau, pas au-delà du plafond', () => {
+  const l = { ...clevilliers, niveau: 0 }; assert.equal(R.valeur(l), 500); assert.ok(R.peutConstruire(l, 1)); assert.ok(!R.peutConstruire(l, 2));
+  l.niveau = 1; assert.equal(R.valeur(l), 1000); assert.ok(!R.peutConstruire(l, 2), 'plafond Maison au village'); });
+test('loyer : plat par niveau, indépendant du lieu', () => {
+  assert.equal(R.loyerParJour({ ...clevilliers, niveau: 1 }), R.loyerParJour({ ...martyrs, niveau: 1 })); assert.equal(R.loyerParJour({ niveau: 0 }), 10); });
+test('encaissement : salaire + loyers, plafonné à 24 h', () => {
+  const lieux = [{ ...martyrs, niveau: 2 }];
+  assert.equal(R.aEncaisser(lieux, 0, JOUR / 2, JOUR), Math.floor((200 + 120) / 2));
+  assert.equal(R.aEncaisser(lieux, 0, 3 * JOUR, JOUR), 320, 'trois jours absent = un seul jour encaissé'); });
