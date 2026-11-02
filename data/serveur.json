@@ -1,0 +1,5 @@
+{
+  "url": "",
+  "cle_publique": "",
+  "note": "Vide = serveur simulé. Renseigner l'URL et la clé anon/public du projet Supabase (jamais la clé service_role)."
+}
