@@ -101,15 +101,17 @@ const TIRAGE = Tirage.creer({
   Celebres, Pack, rarete: (l: Ligne) => R.rarete(l), estLibre,
 });
 
+// ma partie : pièces, lieux, ce qui attend d'être récolté (rendue aussi après chaque action : le jeu se recale dessus)
+async function etatDe(j: string) {
+  const jr = await joueur(j), lieux = await mesLieux(j), maintenant = Date.now();
+  return {
+    pieces: Number(jr.pieces), encaisse: ms(jr.encaisse), dernierPack: jr.dernier_pack, aujourdhui: aujourdhui(), lieux, maintenant,
+    aRecolter: R.aEncaisser(lieux, ms(jr.encaisse), maintenant, JOUR_MS), jourMs: JOUR_MS,
+  };
+}
+
 const ACTIONS: Record<string, (j: string, corps: Ligne) => Promise<Ligne>> = {
-  // ma partie : pièces, lieux, ce qui attend d'être récolté
-  async etat(j) {
-    const jr = await joueur(j), lieux = await mesLieux(j), maintenant = Date.now();
-    return {
-      pieces: Number(jr.pieces), encaisse: ms(jr.encaisse), dernierPack: jr.dernier_pack, aujourdhui: aujourdhui(), lieux, maintenant,
-      aRecolter: R.aEncaisser(lieux, ms(jr.encaisse), maintenant, JOUR_MS), jourMs: JOUR_MS,
-    };
-  },
+  etat: async (j) => etatDe(j),
   recolter: async (j) => recolter(j),
   // construire le niveau suivant : on récolte d'abord (comme le jeu), puis on paie le coût des règles
   async construire(j, corps) {
@@ -153,7 +155,10 @@ Deno.serve(async (req: Request) => {
     const corps = await req.json().catch(() => ({}));
     const action = ACTIONS[String(corps.action || '')];
     if (!action) throw new Refus('action', 'Action inconnue.');
-    return repondre({ ok: true, ...(await action(data.user.id, corps)) });
+    const res = await action(data.user.id, corps);
+    // après une action qui change la partie, sa partie à jour (pièces, lieux, récolte) pour que le jeu se recale
+    if (corps.action !== 'etat') res.etat = await etatDe(data.user.id);
+    return repondre({ ok: true, ...res });
   } catch (e) {
     if (e instanceof Refus) return repondre({ ok: false, code: e.code, message: e.message });
     console.error(e);
