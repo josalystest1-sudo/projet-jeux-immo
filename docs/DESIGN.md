@@ -1,6 +1,6 @@
 # Le style de Cadastra — « la plaque et la pièce »
 
-Référence pour tout écran nouveau ou refait (3 nov. 2026, demande de Gautier : « le jeu doit être super beau », ergonomie des meilleurs jeux mobiles). Fichier de style : `style.css`.
+Référence pour tout écran nouveau ou refait (3 nov. 2026, demande de Gautier : « le jeu doit être super beau », ergonomie des meilleurs jeux mobiles). Fichier de style : `style.css`. Pour les illustrations (pack, cartes, monuments, icône) et le style « jeu mobile coloré » choisi par Gautier le 3 nov. au soir : `docs/BIBLE-GRAPHIQUE.md`.
 
 ## L'idée
 

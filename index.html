@@ -825,7 +825,8 @@ function carteArt(a, bandeau){ const adr=estAdresse(a), commune=echapper(commune
   if(adr){ const { numero, voie } = Regles.numeroEtVoie(a.label);
     sujet=`<div class="plaque${taillePlaque(voie)}"><small>${commune}</small>${echapper(voie)}</div>${numero?`<span class="numero">${echapper(numero)}</span>`:''}`; }
   else sujet=`<div class="icone">${iconeLieu(a)}</div><div class="plaque nom${taillePlaque(a.label)}"><small>${commune}</small>${echapper(a.label)}</div>`;
-  return `<div class="art ${adr?'fond-brique':'fond-ciel'}"><div class="sujet${adr?' adresse':''}">${sujet}</div><div class="bandeau">${bandeau}</div></div>`; }
+  // par-dessus : l'anneau de la rareté, et les effets des cartes rares (reflet, étincelles, irisé : docs/BIBLE-GRAPHIQUE.md)
+  return `<div class="art ${adr?'fond-brique':'fond-ciel'}"><div class="sujet${adr?' adresse':''}">${sujet}</div><div class="bandeau">${bandeau}</div><i class="cadre"></i><i class="reflet"></i><i class="eclats"></i><i class="holo"></i></div>`; }
 function icoLieuHTML(a){ if(!estAdresse(a)) return iconeLieu(a); const { numero } = Regles.numeroEtVoie(a.label); return numero ? `<span class="numero">${echapper(numero.split(' ')[0])}</span>` : '<span class="mini-plaque"></span>'; }
 function echapper(t){ return String(t==null?'':t).replace(/[&<>"]/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
 // après une action sur un lieu : tout ce qui l'affiche se redessine
@@ -1106,30 +1107,69 @@ void main(){
   if(uStrip>0.5 && vUv.y<0.09 && mod(vUv.x*24.0,1.0)<0.55) col=mix(col,vec3(1.0),0.85);
   col*=0.85+0.15*uReady;
   gl_FragColor=vec4(col,1.0); }`;
-function makeArt(){ // recto de la pochette : bleu émaillé, lignes de parcelles, la plaque « Cadastra », PACK DU JOUR en or
-  const c=document.createElement('canvas'); c.width=1024; c.height=1400; const g=c.getContext('2d');
-  const fond=g.createRadialGradient(512,560,80,512,640,980); fond.addColorStop(0,'#3566CC'); fond.addColorStop(0.45,'#1E4598'); fond.addColorStop(1,'#0B1F4D'); g.fillStyle=fond; g.fillRect(0,0,1024,1400);
-  // un plan de cadastre : des parcelles irrégulières en traits fins
-  let gr=7; const rnd=()=>{ gr=(gr*16807)%2147483647; return gr/2147483647; };
-  g.strokeStyle='rgba(255,255,255,.13)'; g.lineWidth=3;
-  for(let y=-60;y<1460;y+=150){ for(let x=-60;x<1100;x+=170){ const j=()=> (rnd()-0.5)*70; g.beginPath(); g.moveTo(x+j(),y+j()); g.lineTo(x+170+j(),y+j()); g.lineTo(x+170+j(),y+150+j()); g.lineTo(x+j(),y+150+j()); g.closePath(); g.stroke(); } }
-  // des immeubles en silhouette, en bas
-  g.fillStyle='rgba(8,20,56,.75)'; let x=0, k=0; while(x<1024){ const w=70+((k*53)%80), h=150+((k*97)%220); g.fillRect(x,1400-h,w,h); g.fillRect(x+8,1400-h-26,w-16,26); x+=w+6; k++; }
-  g.fillStyle='rgba(255,213,110,.55)'; x=12; k=0; while(x<1010){ for(let r=0;r<4;r++) if(((k+r)*31)%3) g.fillRect(x, 1400-60-r*44, 14, 20); x+=34; k++; }
-  // la plaque de rue
+function makeArt(){ // recto de la pochette, style « jeu mobile coloré » (docs/BIBLE-GRAPHIQUE.md, choix de Gautier du 3 nov.) :
+  // bleu vif et rayons, pièces-maisons qui flottent, la plaque « Cadastra », PACK DU JOUR en lettres d'or cernées d'encre,
+  // un ruban rouge, une ville de dessin animé avec la tour Eiffel. Tout est dessiné ici (aucun fichier d'image).
+  const W=1024, H=1400, ENCRE='#17233F'; const c=document.createElement('canvas'); c.width=W; c.height=H; const g=c.getContext('2d');
+  g.lineJoin='round'; g.lineCap='round';
   const arr=(px,py,w,h,r)=>{ g.beginPath(); g.moveTo(px+r,py); g.arcTo(px+w,py,px+w,py+h,r); g.arcTo(px+w,py+h,px,py+h,r); g.arcTo(px,py+h,px,py,r); g.arcTo(px,py,px+w,py,r); g.closePath(); };
-  g.shadowColor='rgba(0,0,0,.45)'; g.shadowBlur=30; g.shadowOffsetY=12;
-  arr(152,250,720,300,46); g.fillStyle='#2E8B57'; g.fill(); g.shadowColor='transparent';
-  arr(170,268,684,264,36); g.fillStyle='#FFFFFF'; g.fill();
-  arr(184,282,656,236,28); g.fillStyle='#1E4598'; g.fill();
-  g.textAlign='center'; g.fillStyle='#fff'; g.font='800 46px "Nunito", system-ui, sans-serif'; g.globalAlpha=.88; g.fillText('Collectionne la France',512,348); g.globalAlpha=1;
-  g.font='800 150px "Baloo 2", system-ui, sans-serif'; g.fillText('Cadastra',512,478);
-  // PACK DU JOUR, en or
-  g.font='800 142px "Baloo 2", system-ui, sans-serif'; g.lineJoin='round'; g.lineWidth=22; g.strokeStyle='#0B1F4D';
-  const or=g.createLinearGradient(0,620,0,820); or.addColorStop(0,'#FFE58A'); or.addColorStop(0.5,'#FFC233'); or.addColorStop(1,'#E79A12');
-  g.strokeText('PACK DU JOUR',512,720); g.fillStyle=or; g.fillText('PACK DU JOUR',512,720);
-  g.font='800 56px "Nunito", system-ui, sans-serif'; g.fillStyle='#fff'; g.fillText('5 lieux · toute la France',512,810);
-  g.shadowColor='rgba(0,0,0,.4)'; g.shadowBlur=24; g.font='250px serif'; g.fillText('🎁',512,1110); g.shadowColor='transparent';
+  const degrade=(y0,y1,stops)=>{ const d=g.createLinearGradient(0,y0,0,y1); stops.forEach(([o,col])=>d.addColorStop(o,col)); return d; };
+  // le fond : bleu vif, des rayons qui partent du logo, les bords plus sombres
+  g.fillStyle=degrade(0,H,[[0,'#5AAAFF'],[0.45,'#2F66EA'],[1,'#1A2D92']]); g.fillRect(0,0,W,H);
+  g.save(); g.translate(512,470); g.fillStyle='rgba(255,255,255,.12)'; for(let k=0;k<24;k++){ const a=k*Math.PI/12; g.beginPath(); g.moveTo(0,0); g.arc(0,0,1600,a,a+Math.PI/26); g.closePath(); g.fill(); } g.restore();
+  const vig=g.createRadialGradient(512,620,320,512,700,1050); vig.addColorStop(0,'rgba(8,16,60,0)'); vig.addColorStop(1,'rgba(8,16,60,.6)'); g.fillStyle=vig; g.fillRect(0,0,W,H);
+  // la pièce-maison (icones/piece.svg) et l'étincelle, en dessin animé : contour encre, ombre pleine
+  const MAISON=new Path2D('M16 2.3 29.7 13.5V27.3Q29.7 29.7 27.3 29.7H4.7Q2.3 29.7 2.3 27.3V13.5Z'), LETTRE=new Path2D('M19.8 17.3A4.8 4.8 0 1 0 19.8 23.9'), REFLET=new Path2D('M5.2 12.6 15.2 4.5');
+  const piece=(x,y,s,rot)=>{ g.save(); g.translate(x,y); g.rotate(rot); g.scale(s/32,s/32); g.translate(-16,-16);
+    g.save(); g.translate(0,2.2); g.fillStyle='rgba(12,22,70,.55)'; g.fill(MAISON); g.restore();
+    const or=g.createLinearGradient(0,0,28,32); or.addColorStop(0,'#FFF4BF'); or.addColorStop(.42,'#FFC93D'); or.addColorStop(1,'#DE8A08');
+    g.lineWidth=4.4; g.strokeStyle=ENCRE; g.stroke(MAISON); g.fillStyle=or; g.fill(MAISON);
+    g.lineWidth=1.8; g.strokeStyle='rgba(255,255,255,.8)'; g.stroke(REFLET); g.lineWidth=3.2; g.strokeStyle='#9A5F00'; g.stroke(LETTRE); g.restore(); };
+  const etincelle=(x,y,s)=>{ g.save(); g.translate(x,y); g.scale(s,s); g.beginPath(); g.moveTo(0,-1); g.bezierCurveTo(.1,-.3,.3,-.1,1,0); g.bezierCurveTo(.3,.1,.1,.3,0,1); g.bezierCurveTo(-.1,.3,-.3,.1,-1,0); g.bezierCurveTo(-.3,-.1,-.1,-.3,0,-1); g.closePath();
+    g.shadowColor='rgba(255,255,255,.9)'; g.shadowBlur=18; g.fillStyle='#fff'; g.fill(); g.restore(); };
+  // la ville : la tour Eiffel derrière, des immeubles crème aux toits d'ardoise façon Paris, fenêtres allumées
+  const BASE=1336;
+  g.save(); const tour=new Path2D('M428 1336Q468 1262 462 1214L472 1214L492 1088L501 1088L508 958L512 905L516 958L523 1088L532 1088L552 1214L562 1214Q556 1262 596 1336L560 1336Q512 1258 464 1336Z');
+  g.fillStyle=degrade(905,1336,[[0,'#6F86D6'],[1,'#33479C']]); g.lineWidth=7; g.strokeStyle=ENCRE; g.stroke(tour); g.fill(tour);
+  g.strokeStyle='rgba(23,35,63,.45)'; g.lineWidth=3; [[472,1214,552,1150],[552,1214,472,1150],[492,1088,532,1040],[532,1088,492,1040]].forEach(([a,b,c2,d])=>{ g.beginPath(); g.moveTo(a,b); g.lineTo(c2,d); g.stroke(); });
+  [[446,1204,132,20],[484,1080,56,14]].forEach(([x,y,w,h])=>{ arr(x,y,w,h,6); g.fillStyle='#FFC233'; g.fill(); g.lineWidth=5; g.strokeStyle=ENCRE; g.stroke(); }); g.restore();
+  const IMM=[[-24,152,262],[124,124,338],[244,150,276],[390,72,152],[562,72,164],[630,152,306],[778,124,246],[898,150,326]];
+  const FACADES=['#FFE9C7','#FFD9A8','#FFF1DA','#F9CF95'], TOITS=['#5D74B8','#4C60A4'];
+  IMM.forEach(([x,w,h],i)=>{ const haut=BASE-h, toit=Math.min(54,h*0.22);
+    // le toit mansardé, une cheminée, une lucarne
+    g.beginPath(); g.moveTo(x-8,haut); g.lineTo(x+16,haut-toit); g.lineTo(x+w-16,haut-toit); g.lineTo(x+w+8,haut); g.closePath(); g.fillStyle=TOITS[i%2]; g.fill(); g.lineWidth=6; g.strokeStyle=ENCRE; g.stroke();
+    arr(x+w-46,haut-toit-30,22,32,4); g.fillStyle='#E07A5F'; g.fill(); g.stroke();
+    if(w>100){ arr(x+w/2-15,haut-toit+8,30,34,8); g.fillStyle='#FFD54A'; g.fill(); g.lineWidth=5; g.stroke(); }
+    // la façade et ses fenêtres (allumées ou non, toujours les mêmes)
+    g.fillStyle=FACADES[i%4]; g.fillRect(x,haut,w,h); g.lineWidth=6; g.strokeRect(x,haut,w,h);
+    const cols=Math.max(1,Math.floor((w-24)/44)), pas=(w-cols*26)/(cols+1);
+    for(let r=0, y=haut+28; y+40<BASE-14; r++, y+=64) for(let k=0;k<cols;k++){ const fx=x+pas+k*(26+pas); arr(fx,y,26,38,5); g.fillStyle=((i*7+r*3+k)%3) ? '#FFD54A' : '#8FA9E8'; g.fill(); g.lineWidth=4; g.stroke(); } });
+  g.fillStyle='#2A3B86'; g.fillRect(0,BASE,W,H-BASE); g.lineWidth=6; g.strokeStyle=ENCRE; g.beginPath(); g.moveTo(0,BASE+3); g.lineTo(W,BASE+3); g.stroke();
+  g.fillStyle='rgba(255,213,74,.55)'; for(let x=30;x<W;x+=120) g.fillRect(x,BASE+30,60,10);
+  // les pièces et les étincelles qui flottent
+  [[96,548,92,-.32],[904,556,88,.36],[92,912,68,.22],[934,884,78,-.26],[318,1010,52,.4],[716,1000,58,-.3]].forEach(p=>piece(...p));
+  [[236,520,24],[792,452,18],[700,930,16],[290,920,20],[880,720,14],[150,760,15]].forEach(p=>etincelle(...p));
+  // la plaque « Cadastra », cernée d'encre, avec son ombre pleine et ses deux vis
+  arr(148,232,728,292,56); g.fillStyle='rgba(12,22,70,.6)'; g.fill();
+  arr(144,212,736,292,56); g.fillStyle=ENCRE; g.fill();
+  arr(154,222,716,272,48); g.fillStyle=degrade(222,494,[[0,'#3FAE73'],[1,'#22744A']]); g.fill();
+  arr(170,238,684,240,38); g.fillStyle='#FFFFFF'; g.fill();
+  arr(184,252,656,212,30); g.fillStyle=degrade(252,464,[[0,'#3E73DA'],[1,'#1A3E8F']]); g.fill();
+  g.save(); arr(184,252,656,212,30); g.clip(); g.fillStyle='rgba(255,255,255,.12)'; g.fillRect(184,252,656,92); g.restore();
+  [[206,300],[818,300]].forEach(([x,y])=>{ g.beginPath(); g.arc(x,y,9,0,Math.PI*2); g.fillStyle='#D8E3FA'; g.fill(); g.lineWidth=4; g.strokeStyle=ENCRE; g.stroke(); });
+  g.textAlign='center'; g.fillStyle='#fff'; g.font='800 44px "Nunito", system-ui, sans-serif'; g.globalAlpha=.92; g.fillText('Collectionne la France',512,322); g.globalAlpha=1;
+  g.font='800 148px "Baloo 2", system-ui, sans-serif'; g.lineWidth=14; g.strokeStyle=ENCRE; g.strokeText('Cadastra',512,446); g.fillText('Cadastra',512,446);
+  // PACK DU JOUR : lettres d'or, relief (encre empilée), contour encre épais
+  let taille=160; g.font=`800 ${taille}px "Baloo 2", system-ui, sans-serif`; while(g.measureText('PACK DU JOUR').width>930 && taille>100){ taille-=4; g.font=`800 ${taille}px "Baloo 2", system-ui, sans-serif`; }
+  const yT=712; g.fillStyle=ENCRE; for(let d=20; d>0; d-=4) g.fillText('PACK DU JOUR',512,yT+d);
+  g.lineWidth=26; g.strokeStyle=ENCRE; g.strokeText('PACK DU JOUR',512,yT);
+  g.fillStyle=degrade(yT-taille*0.75,yT,[[0,'#FFF4B0'],[0.45,'#FFD23F'],[1,'#F29A0B']]); g.fillText('PACK DU JOUR',512,yT);
+  // le ruban rouge : « 5 lieux · toute la France »
+  const yR=776, hR=96;
+  [[236,110,150],[788,914,874]].forEach(([dedans,bout,encoche])=>{ g.beginPath(); g.moveTo(dedans,yR+18); g.lineTo(bout,yR+18); g.lineTo(encoche,yR+18+hR/2); g.lineTo(bout,yR+18+hR); g.lineTo(dedans,yR+18+hR); g.closePath();
+    g.fillStyle='#A8331F'; g.fill(); g.lineWidth=7; g.strokeStyle=ENCRE; g.stroke(); });
+  arr(176,yR,672,hR,18); g.fillStyle=degrade(yR,yR+hR,[[0,'#FF7A5C'],[0.5,'#E4573D'],[1,'#B83E27']]); g.fill(); g.lineWidth=7; g.strokeStyle=ENCRE; g.stroke();
+  g.font='800 52px "Baloo 2", system-ui, sans-serif'; g.lineWidth=11; g.strokeText('5 lieux · toute la France',512,yR+66); g.fillStyle='#fff'; g.fillText('5 lieux · toute la France',512,yR+66);
   const t=new THREE.CanvasTexture(c); t.anisotropy=8; t.encoding=THREE.sRGBEncoding; return t; }
 function makeNormal(){ // reliefs du foil : micro-plis + crantage des bords, générés
   const S=512; const c=document.createElement('canvas'); c.width=S; c.height=S; const g=c.getContext('2d'); const img=g.createImageData(S,S); const d=img.data;
@@ -1253,7 +1293,7 @@ function dechirer(){ packTorn=true; GL.torn=true; GL.tornAt=performance.now(); s
   setTimeout(()=>{ sortirCartes(); }, 650); setTimeout(()=>{ document.getElementById('pkgl').style.display='none'; disposeGL(); }, 1800); }
 function sortirCartes(){ const wrap=document.getElementById('pkcards'); const sc=document.getElementById('packscene'); const n=packCards.length; let revealed=0;
   packCards.forEach((c,i)=>{ const el=document.createElement('div'); const r=rarete(c); el.className='rcard r'+r;
-    el.innerHTML=`<div class="face back">🎁</div><div class="face front"><span class="rar">${RARETES[r]}</span>${carteArt(c, `<span class="valeur">${pcs(valeur(c))}</span><span class="plafond">Jusqu’à ${NIVEAUX[plafond(c)].icone} ${NIVEAUX[plafond(c)].nom}</span>`)}</div>`;
+    el.innerHTML=`<div class="face back"><i class="pc dos-piece"></i><span class="dos-nom">Cadastra</span></div><div class="face front"><span class="rar">${RARETES[r]}</span>${carteArt(c, `<span class="valeur">${pcs(valeur(c))}</span><span class="plafond">Jusqu’à ${NIVEAUX[plafond(c)].icone} ${NIVEAUX[plafond(c)].nom}</span>`)}</div>`;
     el.style.setProperty('--x','0px'); el.style.setProperty('--y','0px'); el.style.setProperty('--r','0deg'); el.style.setProperty('--s','1');
     wrap.appendChild(el);
     setTimeout(()=>{ el.classList.add('in','pos'); }, 120+i*140);

@@ -637,3 +637,55 @@ body.promenade #sheet .svwrap{display:none}
 .marcheur{width:110px;height:110px;pointer-events:none}
 .marcheur .cone{position:absolute;left:50%;top:0;width:84px;height:55px;transform:translateX(-50%);background:linear-gradient(to top,rgba(79,134,240,.6),rgba(79,134,240,0));clip-path:polygon(50% 100%,0 0,100% 0)}
 .marcheur .pt{position:absolute;left:50%;top:50%;width:20px;height:20px;margin:-10px 0 0 -10px;border-radius:50%;background:#4F86F0;border:3px solid #fff;box-shadow:0 2px 6px rgba(0,0,0,.35)}
+
+/* ================================================================ graphismes, la preuve (phase 10, 3 nov. 2026)
+   Le pack et les cartes en style « jeu mobile coloré » (choix de Gautier) : contour encre épais, anneau de la rareté en
+   relief, étiquette en onglet, chiffres en relief, effets qui montent avec la rareté. Référence : docs/BIBLE-GRAPHIQUE.md */
+.ccarte,.rcard .front{border:3px solid var(--encre)!important;background:var(--encre)}
+.ccarte{box-shadow:0 5px 0 var(--encre),var(--ombre)}
+.ccarte:active{box-shadow:0 2px 0 var(--encre),var(--ombre)}
+.rcard .front{border-width:4px!important;box-shadow:0 0 46px color-mix(in srgb,var(--rc) 70%,transparent)}
+/* l'anneau de la rareté (dégradé, lumière en haut à gauche) et le filet blanc à l'intérieur */
+.art .cadre{position:absolute;inset:0;z-index:3;border-radius:inherit;pointer-events:none;padding:6px;
+  background:linear-gradient(150deg,color-mix(in srgb,var(--rc) 40%,#fff) 0%,var(--rc) 34%,var(--rc2) 100%);
+  -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask:linear-gradient(#000 0 0) content-box exclude,linear-gradient(#000 0 0)}
+.art::after{content:'';position:absolute;inset:6px;z-index:3;border-radius:12px;pointer-events:none;box-shadow:inset 0 0 0 2px rgba(255,255,255,.8),inset 0 0 0 3.5px rgba(23,35,63,.45)}
+.rcard .art .cadre{padding:8px}.rcard .art::after{inset:8px;border-radius:13px}
+/* l'étiquette de rareté : un onglet qui pend du haut de la carte */
+.ccarte .rar,.rcard .front .rar{z-index:5;top:0;left:50%;right:auto;transform:translateX(-50%);padding:2px 12px 4px;border-radius:0 0 11px 11px;border:2.5px solid var(--encre);border-top:0;
+  background:linear-gradient(180deg,color-mix(in srgb,var(--rc) 45%,#fff),var(--rc) 55%,var(--rc2));font-family:var(--titre);font-weight:800;letter-spacing:.02em;white-space:nowrap;color:#fff;
+  text-shadow:0 1.5px 0 var(--encre),1px 0 0 var(--encre),-1px 0 0 var(--encre),0 -1px 0 var(--encre);box-shadow:0 3px 0 rgba(23,35,63,.35)}
+.ccarte .rar{font-size:10.5px;padding:2px 10px 4px}.rcard .front .rar{font-size:12.5px;padding:3px 16px 5px}
+.ccarte.r6 .rar,.rcard.r6 .front .rar{background:var(--arc);background-size:200% 100%;animation:arc 6s linear infinite}
+.ccarte .niv{top:25px;right:9px;width:26px;height:26px;font-size:14px;border:2.5px solid var(--encre);box-shadow:0 2px 0 var(--encre)}
+/* le bandeau du bas : chiffres or, cernés d'encre, en relief */
+.art .bandeau{z-index:2;background:linear-gradient(180deg,rgba(14,22,48,0) 0%,rgba(14,22,48,.86) 38%,#0E1630 100%)}
+.art .bandeau .valeur{color:#FFD54A;text-shadow:2px 0 var(--encre),-2px 0 var(--encre),0 2px var(--encre),0 -2px var(--encre),1.5px 1.5px var(--encre),-1.5px 1.5px var(--encre),1.5px -1.5px var(--encre),-1.5px -1.5px var(--encre),0 4px 0 var(--encre)}
+.rcard .art .bandeau .valeur{font-size:24px}
+.art .bandeau .valeur .pc{filter:drop-shadow(0 2px 0 var(--encre))}
+.art .bandeau .loyer,.art .bandeau .plafond{text-shadow:0 1.5px 0 var(--encre),1px 0 0 var(--encre),-1px 0 0 var(--encre)}
+/* les effets montent avec la rareté (bible § 3) */
+.ccarte.r4::after,.ccarte.r5::after,.ccarte.r6::after{display:none}
+.r3 .art .reflet,.r4 .art .reflet,.r5 .art .reflet,.r6 .art .reflet{position:absolute;inset:0;z-index:4;pointer-events:none;border-radius:inherit;
+  background:linear-gradient(115deg,transparent 38%,rgba(255,255,255,.55) 48%,rgba(255,255,255,.15) 52%,transparent 60%);background-size:280% 100%;animation:reflet 5s ease-in-out infinite}
+.r4 .art .eclats,.r5 .art .eclats,.r6 .art .eclats{position:absolute;inset:0;z-index:4;pointer-events:none;
+  --etoile:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3E%3Cpath d='M10 0C11 6.5 13.5 9 20 10C13.5 11 11 13.5 10 20C9 13.5 6.5 11 0 10C6.5 9 9 6.5 10 0Z' fill='%23fff'/%3E%3C/svg%3E");
+  background:var(--etoile) 14% 20%/13px no-repeat,var(--etoile) 86% 34%/9px no-repeat,var(--etoile) 18% 64%/8px no-repeat,var(--etoile) 82% 70%/12px no-repeat;
+  filter:drop-shadow(0 0 3px rgba(255,255,255,.9));animation:scintille 2.6s ease-in-out infinite}
+.r4 .art .eclats::after,.r5 .art .eclats::after,.r6 .art .eclats::after{content:'';position:absolute;inset:0;background:var(--etoile) 30% 12%/8px no-repeat,var(--etoile) 70% 16%/11px no-repeat,var(--etoile) 50% 82%/9px no-repeat;animation:scintille 2.6s ease-in-out 1.3s infinite}
+@keyframes scintille{0%,100%{opacity:.15;transform:scale(.85)}50%{opacity:1;transform:scale(1)}}
+.ccarte.r5,.rcard.r5 .front{animation:halo-or 2.8s ease-in-out infinite}
+@keyframes halo-or{0%,100%{box-shadow:0 5px 0 var(--encre),0 0 0 0 rgba(255,170,40,0)}50%{box-shadow:0 5px 0 var(--encre),0 0 18px 3px rgba(255,170,40,.75)}}
+.r5 .fond-ciel::before,.r6 .fond-ciel::before{animation:spin 26s linear infinite}
+.r6 .art .cadre{background:var(--arc);background-size:200% 100%;animation:arc 6s linear infinite}
+.r6 .art .holo{position:absolute;inset:0;z-index:4;pointer-events:none;border-radius:inherit;mix-blend-mode:overlay;opacity:.6;
+  background:linear-gradient(115deg,transparent 15%,rgba(255,77,109,.55) 25%,rgba(255,225,77,.55) 35%,rgba(61,220,132,.55) 45%,rgba(47,155,255,.55) 55%,rgba(142,92,255,.55) 65%,transparent 75%);background-size:300% 100%;animation:holo 7s linear infinite}
+@keyframes holo{from{background-position:120% 0}to{background-position:-180% 0}}
+/* le dos des cartes : bleu vif, rayons, double cadre or et encre, la pièce-maison en grand qui respire */
+.rcard .back{border:4px solid var(--encre);outline:none;flex-direction:column;gap:10px;
+  background:repeating-conic-gradient(from 0deg at 50% 44%,rgba(255,255,255,.10) 0 7deg,rgba(255,255,255,0) 7deg 18deg),radial-gradient(circle at 50% 44%,#5C9BFF 0%,#2B5BE0 38%,#16318F 78%,#0E2266 100%);
+  box-shadow:inset 0 0 0 5px #fff,inset 0 0 0 9px var(--piece),inset 0 0 0 12px var(--encre),0 8px 0 rgba(0,0,0,.35)}
+.rcard .back .dos-piece{width:104px;height:104px;filter:drop-shadow(0 5px 0 var(--encre)) drop-shadow(0 0 16px rgba(255,214,90,.75));animation:respire 2.4s ease-in-out infinite}
+.rcard .back .dos-nom{font-family:var(--titre);font-weight:800;font-size:22px;color:#fff;background:linear-gradient(180deg,#2A57C0,var(--plaque));border:3px solid #fff;outline:3px solid var(--cadre);border-radius:10px;padding:0 16px 1px;box-shadow:0 4px 0 var(--encre);text-shadow:0 2px 0 var(--encre)}
+@keyframes respire{0%,100%{transform:scale(1)}50%{transform:scale(1.07)}}
+@media (prefers-reduced-motion: reduce){.art .reflet,.art .eclats,.art .eclats::after,.art .holo,.r5 .fond-ciel::before,.r6 .fond-ciel::before,.ccarte.r5,.rcard.r5 .front,.rcard .back .dos-piece,.r6 .art .cadre{animation:none!important}}
