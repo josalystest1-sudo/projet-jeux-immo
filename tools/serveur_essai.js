@@ -24,6 +24,16 @@ async function cles() {
   return { publique, secrete };
 }
 const entetesSecrets = (k) => (k.startsWith('sb_') ? { apikey: k } : { apikey: k, Authorization: `Bearer ${k}` });
+// un joueur jetable de plus : connecté, avec son appel à la fonction « jeu » et sa suppression
+async function nouveauJoueur(publique, secrete) {
+  const mail = `essai-${Date.now()}-${crypto.randomBytes(3).toString('hex')}@example.com`, mdp = crypto.randomBytes(18).toString('base64url');
+  const cree = await requete(`${URL}/auth/v1/admin/users`, { method: 'POST', headers: { ...entetesSecrets(secrete), 'Content-Type': 'application/json' }, body: JSON.stringify({ email: mail, password: mdp, email_confirm: true }) });
+  if (!cree.corps || !cree.corps.id) throw new Error('joueur d’essai non créé (HTTP ' + cree.statut + ')');
+  const cnx = await requete(`${URL}/auth/v1/token?grant_type=password`, { method: 'POST', headers: { apikey: publique, 'Content-Type': 'application/json' }, body: JSON.stringify({ email: mail, password: mdp }) });
+  const acces = cnx.corps && cnx.corps.access_token;
+  return { id: cree.corps.id, jeu: (corps) => requete(`${URL}/functions/v1/jeu`, { method: 'POST', headers: { apikey: publique, Authorization: `Bearer ${acces}`, 'Content-Type': 'application/json' }, body: JSON.stringify(corps) }),
+    supprimer: async () => { const sup = await requete(`${URL}/auth/v1/admin/users/${cree.corps.id}`, { method: 'DELETE', headers: entetesSecrets(secrete) }); verifier(sup.statut < 300, 'deuxième joueur d’essai supprimé', sup.statut); } };
+}
 
 (async () => {
   if (!JETON) { console.log('SUPABASE_ACCESS_TOKEN absent : essai sauté.'); return; }
@@ -60,6 +70,40 @@ const entetesSecrets = (k) => (k.startsWith('sb_') ? { apikey: k } : { apikey: k
       else verifier(cons1.corps && cons1.corps.ok === false && cons1.corps.code === 'fonds', `construire sans assez de pièces (${cout} pour ${avant}) : refusé`, cons1);
       const saut = await jeu({ action: 'construire', id: c.id, niveau: 3 });
       verifier(saut.corps && saut.corps.ok === false, 'sauter un niveau : refusé', saut);
+    }
+    // le marché, avec un deuxième joueur jetable : vente, achat, offres refusée, acceptée, trop chère, annulée
+    if (cartes.length >= 3) {
+      const B = await nouveauJoueur(publique, secrete);
+      try {
+        const [L, M, N] = cartes;
+        const vente = await jeu({ action: 'vendre', id: L.id, prix: '100' });
+        verifier(vente.corps && vente.corps.ok && vente.corps.etat.lieux.find((x) => x.id === L.id).prixVente === 100, 'mettre en vente à 100', vente);
+        const mauvais = await B.jeu({ action: 'acheter', id: L.id, prix: 90 });
+        verifier(mauvais.corps && mauvais.corps.ok === false && mauvais.corps.code === 'prix_change', 'acheter à un autre prix que celui affiché : refusé', mauvais);
+        const achat = await B.jeu({ action: 'acheter', id: L.id, prix: 100 });
+        verifier(achat.corps && achat.corps.ok && achat.corps.etat.lieux.some((x) => x.id === L.id) && achat.corps.pieces <= ECO.solde_depart - 100 + 5, 'un autre joueur l’achète : il est à lui, il a payé', achat);
+        const apresVente = await jeu({ action: 'etat' });
+        verifier(apresVente.corps.ok && !apresVente.corps.lieux.some((x) => x.id === L.id) && apresVente.corps.notifs.some((n) => n.type === 'vente'), 'le vendeur ne l’a plus et en est prévenu', apresVente.corps.notifs);
+        const pasAMoi = await jeu({ action: 'vendre', id: L.id, prix: 5 });
+        verifier(pasAMoi.corps && pasAMoi.corps.ok === false && pasAMoi.corps.code === 'pas_a_toi', 'vendre un lieu qui n’est plus à moi : refusé', pasAMoi);
+        const o1 = await B.jeu({ action: 'offrir', id: M.id, prix: 50 });
+        verifier(o1.corps && o1.corps.ok && o1.corps.offre, 'faire une offre de 50', o1);
+        const recue = await jeu({ action: 'etat' }); const enAttente = recue.corps.offresRecues.find((o) => o.id === o1.corps.offre);
+        verifier(enAttente && enAttente.status === 'attente' && recue.corps.notifs.some((n) => n.offerId === o1.corps.offre), 'le propriétaire reçoit l’offre (et une notification)', recue.corps.offresRecues);
+        const refus = await jeu({ action: 'repondre_offre', offre: o1.corps.offre, accepter: false });
+        verifier(refus.corps && refus.corps.ok && refus.corps.accepte === false, 'refuser l’offre', refus);
+        const o2 = await B.jeu({ action: 'offrir', id: M.id, prix: 60 });
+        const accord = await jeu({ action: 'repondre_offre', offre: o2.corps.offre, accepter: true });
+        verifier(accord.corps && accord.corps.ok && accord.corps.accepte && !accord.corps.etat.lieux.some((x) => x.id === M.id), 'accepter une nouvelle offre de 60 : le lieu part', accord);
+        const etatB = await B.jeu({ action: 'etat' });
+        verifier(etatB.corps.lieux.some((x) => x.id === M.id) && etatB.corps.offresEnvoyees.some((o) => o.id === o1.corps.offre && o.status === 'refusee'), 'l’acheteur a le lieu ; sa première offre est refusée', etatB.corps.offresEnvoyees);
+        const tropCher = await B.jeu({ action: 'offrir', id: N.id, prix: 1000000000 });
+        verifier(tropCher.corps && tropCher.corps.ok === false && tropCher.corps.code === 'fonds', 'une offre plus chère que ses pièces : refusée', tropCher);
+        const o3 = await B.jeu({ action: 'offrir', id: N.id, prix: 20 }), annul = await B.jeu({ action: 'annuler_offre', offre: o3.corps.offre });
+        verifier(annul.corps && annul.corps.ok && annul.corps.etat.offresEnvoyees.some((o) => o.id === o3.corps.offre && o.status === 'annulee'), 'annuler son offre', annul);
+        const relire = await jeu({ action: 'notifs_lues' });
+        verifier(relire.corps && relire.corps.ok && relire.corps.etat.notifs.every((n) => n.read), 'marquer les notifications lues', relire.corps.etat && relire.corps.etat.notifs);
+      } finally { await B.supprimer(); }
     }
     const inconnu = await jeu({ action: 'tricher' });
     verifier(inconnu.corps && inconnu.corps.ok === false && inconnu.corps.code === 'action', 'action inconnue : refusée', inconnu);

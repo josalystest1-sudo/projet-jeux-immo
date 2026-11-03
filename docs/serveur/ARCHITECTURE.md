@@ -16,6 +16,8 @@
 | `signalements` | les signalements (traités par Gautier) | en envoyer |
 | `joueurs` | pièces, dernière récolte, dernier pack | lire **le sien** |
 | `lieux` | chaque lieu possédé : propriétaire, niveau, prix de vente, commune, parcelle | lire tous |
+| `offres` | offres en attente et réglées (une seule en attente par acheteur et par lieu) | lire les siennes (acheteur ou vendeur) |
+| `notifications` | offres reçues, ventes, réponses | lire les siennes |
 | (fonctions) `classement_commune(c)`, `maires(communes)` | qui possède combien dans une commune ; ses Maires | appeler (lecture seule) |
 
 ## Côté jeu : le mode serveur
@@ -23,7 +25,8 @@
 - `MODE_SERVEUR` (Réglages → « Jouer sur le vrai serveur (essai) », gardé dans `localStorage['cadastra-mode']`) : la partie vit sur le serveur (`CLE_ETAT` = `cadastra-serveur-v1` pour ce qui reste sur l'appareil : réglages, notifications vues…), en vrais jours (`JOUR` = 24 h ; le pack se renouvelle à minuit, heure de Paris). Sans lui, la démo locale d'avant (un jour = une minute, joueurs simulés).
 - `agir(action, corps)` appelle la fonction `jeu` et, si tout va bien, se recale sur la partie qu'elle renvoie (`appliquerEtat`) ; un refus s'affiche tel quel. `synchroniser()` au démarrage, avant la récolte.
 - Le monde réel (`PROPRIOS`, `JOUEURS`, `MAIRES`, `CLASSEMENTS`, `REEL`) : `chargerZone()` lit les lieux du quartier à l'écran (après chaque déplacement), `chargerProprios()` ceux d'une parcelle ouverte, `calculerReel()` place chaque lieu sur sa parcelle (dedans, sinon la plus proche à 12 m : les points d'adresse tombent sur le trottoir) pour la couleur ; `ownerOf`, `levelOf`, `enVente`, `prixDemande` lisent ces données au lieu des joueurs simulés.
-- Ce qui n'est pas encore sur le serveur (vente, achat, offres, échanges, enchères) répond `bientot()` ; les minuteries de la démo (offres et enchères simulées) sont arrêtées.
+- `surveiller()` toutes les minutes (page visible, pas pendant un pack) : la partie, les offres et notifications à jour, un bandeau pour une nouvelle notification.
+- Ce qui n'est pas encore sur le serveur (échanges, enchères) répond `bientot()` ; les minuteries de la démo (offres et enchères simulées) sont arrêtées.
 
 ## La mise à jour
 
@@ -37,7 +40,7 @@
 | 8.1b | Le jeu connecté joue sur le serveur : pièces, patrimoine, récolte, construction, pack (interrupteur « Jouer sur le vrai serveur (essai) » dans les Réglages) | fait |
 | 8.1c | Le pack du jour tiré par le serveur (raretés, lieux libres, un par jour, heure de Paris) : action `pack`, tirage partagé `src/tirage.js` | fait |
 | 8.1d | Le monde réel : sur la carte, les parcelles des vrais joueurs (rouge, violet) et leurs lieux en vente ; dans une fiche, le vrai propriétaire ; le profil d'un vrai joueur ; les Maires et classements des communes (fonctions `classement_commune`, `maires`) | fait |
-| 8.1e | Le marché : vente à prix libre, achat direct, offres (et leurs notifications) | à faire |
+| 8.1e | Le marché : vente à prix libre, achat direct (au prix affiché), offres sans expiration (changer, annuler ; acceptées si l'acheteur a encore les pièces), notifications ; le jeu regarde le serveur chaque minute | fait |
 | 8.1f | Les échanges | à faire |
 | 8.1g | Les enchères (clôture, fonds bloqués) | à faire |
 | 8.2 | Mode serveur par défaut ; fin des joueurs simulés ; premiers amis | à faire |
