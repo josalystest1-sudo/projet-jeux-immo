@@ -33,7 +33,7 @@ async function cles() {
     const cree = await requete(`${URL}/auth/v1/admin/users`, { method: 'POST', headers: json, body: JSON.stringify({ email: mail, password: crypto.randomBytes(24).toString('base64url'), email_confirm: true, user_metadata: { robot: true } }) });
     const id = cree.corps && cree.corps.id; if (!id) throw new Error(`${nom} : compte non créé (HTTP ${cree.statut})`);
     const profil = await requete(`${URL}/rest/v1/profils`, { method: 'POST', headers: json, body: JSON.stringify({ id, pseudo: nom, avatar: '🤖' }) });
-    if (profil.statut >= 300) throw new Error(`${nom} : profil refusé (HTTP ${profil.statut})`);
+    if (profil.statut >= 300) { await requete(`${URL}/auth/v1/admin/users/${id}`, { method: 'DELETE', headers: H }); throw new Error(`${nom} : profil refusé (HTTP ${profil.statut}) ; compte retiré`); }
     const joueur = await requete(`${URL}/rest/v1/rpc/jeu_nouveau_joueur`, { method: 'POST', headers: json, body: JSON.stringify({ j: id, depart: ECO.solde_depart }) });
     if (joueur.statut >= 300) throw new Error(`${nom} : partie refusée (HTTP ${joueur.statut})`);
     const robot = await requete(`${URL}/rest/v1/robots`, { method: 'POST', headers: json, body: JSON.stringify({ id, nom }) });

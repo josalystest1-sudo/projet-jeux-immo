@@ -53,6 +53,7 @@ grant select (id, pseudo, avatar, cree_le) on public.profils to anon, authentica
 -- le pseudo se choisit à la création seulement ; ensuite, seule l'icône change
 revoke update on public.profils from authenticated;
 grant insert (id, pseudo, avatar), update (avatar) on public.profils to authenticated;
+grant all on public.profils to service_role;   -- le serveur (robots du serveur d'essai, fonction « jeu »)
 
 -- un pseudo est-il libre ? (sans tenir compte des majuscules ni des accents)
 create or replace function public.pseudo_libre(p text) returns boolean
