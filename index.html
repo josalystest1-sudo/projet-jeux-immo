@@ -28,7 +28,7 @@
 <link rel="preload" href="fonts/baloo-2-latin-800-normal.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="fonts/nunito-latin-800-normal.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="fonts/barlow-condensed-latin-700-normal.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="style.css?v=20261103c">
+<link rel="stylesheet" href="style.css?v=20261103d">
 <meta name="theme-color" content="#EAF2FF">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" type="image/png" href="icones/icone-192.png">
@@ -420,8 +420,15 @@ function iconeLieu(a){ if(a.type==='monument') return iconeMonument(a.label||'')
 // Une adresse se montre comme dans la rue : la plaque émaillée de la voie (la commune en tête), vissée sur un pan de façade,
 // et la petite plaque bleue du numéro en dessous (demande de Gautier : plutôt qu'une épingle rouge).
 function estAdresse(a){ return a.type!=='lieu' && a.type!=='monument'; }
-function facadeHTML(a){ const { numero, voie } = Regles.numeroEtVoie(a.label); const n=voie.length;
-  return `<div class="facade${n>26?' xl':(n>16?' l':'')}"><div class="plaque"><small>${echapper(communeName(a.citycode,a.city))}</small>${echapper(voie)}</div>${numero?`<span class="numero">${echapper(numero)}</span>`:''}</div>`; }
+// Une carte « full art » : le fond occupe toute la carte (un mur de briques pour une adresse, un ciel aux couleurs de la rareté
+// pour un lieu nommé ou un monument) ; dessus, le sujet en grand (plaque de la voie + numéro, ou icône + plaque du nom),
+// et un bandeau sombre en bas pour que les chiffres restent lisibles.
+function taillePlaque(t){ const n=String(t||'').length; return n>26?' xl':(n>16?' l':''); }
+function carteArt(a, bandeau){ const adr=estAdresse(a), commune=echapper(communeName(a.citycode,a.city)); let sujet;
+  if(adr){ const { numero, voie } = Regles.numeroEtVoie(a.label);
+    sujet=`<div class="plaque${taillePlaque(voie)}"><small>${commune}</small>${echapper(voie)}</div>${numero?`<span class="numero">${echapper(numero)}</span>`:''}`; }
+  else sujet=`<div class="icone">${iconeLieu(a)}</div><div class="plaque nom${taillePlaque(a.label)}"><small>${commune}</small>${echapper(a.label)}</div>`;
+  return `<div class="art ${adr?'fond-brique':'fond-ciel'}"><div class="sujet${adr?' adresse':''}">${sujet}</div><div class="bandeau">${bandeau}</div></div>`; }
 function icoLieuHTML(a){ if(!estAdresse(a)) return iconeLieu(a); const { numero } = Regles.numeroEtVoie(a.label); return numero ? `<span class="numero">${echapper(numero.split(' ')[0])}</span>` : '<span class="mini-plaque"></span>'; }
 function echapper(t){ return String(t==null?'':t).replace(/[&<>"]/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
 // après une action sur un lieu : tout ce qui l'affiche se redessine
@@ -726,7 +733,7 @@ function dechirer(){ packTorn=true; GL.torn=true; GL.tornAt=performance.now(); s
   setTimeout(()=>{ sortirCartes(); }, 650); setTimeout(()=>{ document.getElementById('pkgl').style.display='none'; disposeGL(); }, 1800); }
 function sortirCartes(){ const wrap=document.getElementById('pkcards'); const sc=document.getElementById('packscene'); const n=packCards.length; let revealed=0;
   packCards.forEach((c,i)=>{ const el=document.createElement('div'); const r=rarete(c); el.className='rcard r'+r;
-    el.innerHTML=`<div class="face back">🎁</div><div class="face front"><div class="rar">${RARETES[r]}</div>${estAdresse(c) ? facadeHTML(c) : `<div class="big">${iconeLieu(c)}</div><div class="n">${echapper(c.label)}</div><div class="m">${echapper(communeName(c.citycode,c.city))}</div>`}<div class="chips" style="justify-content:center;margin:6px 0 0"><span class="chip or"><b>${nb(valeur(c))}</b><i class="pc"></i></span><span class="chip">Jusqu’à ${NIVEAUX[plafond(c)].icone} ${NIVEAUX[plafond(c)].nom}</span></div></div>`;
+    el.innerHTML=`<div class="face back">🎁</div><div class="face front"><span class="rar">${RARETES[r]}</span>${carteArt(c, `<span class="valeur">${pcs(valeur(c))}</span><span class="plafond">Jusqu’à ${NIVEAUX[plafond(c)].icone} ${NIVEAUX[plafond(c)].nom}</span>`)}</div>`;
     el.style.setProperty('--x','0px'); el.style.setProperty('--y','0px'); el.style.setProperty('--r','0deg'); el.style.setProperty('--s','1');
     wrap.appendChild(el);
     setTimeout(()=>{ el.classList.add('in','pos'); }, 120+i*140);
@@ -843,8 +850,7 @@ function renderPatrimoine(){ const el=document.getElementById('s-patrimoine'); c
   h+=`<div class="collection">`;
   list.sort(TRIS[triPatri][1]).forEach(a=>{ const lv=a.niveau||0, r=rarete(a);
     h+=`<div class="ccarte r${r}" role="button" onclick="ouvrirFicheLieu('${a.id}')"><span class="rar">${RARETES[r]}</span>${lv?`<span class="niv">${NIVEAUX[lv].icone}</span>`:''}${a.enVente?'<span class="vente">En vente</span>':''}
-      ${estAdresse(a) ? facadeHTML(a) : `<div class="big">${iconeLieu(a)}</div><div class="n">${echapper(a.label)}</div><div class="m">${echapper(communeName(a.citycode,a.city))}</div>`}
-      <div class="pied"><span>${nb(valeur(a))}<i class="pc"></i></span><span class="loyer">+${nb(loyer(a))}/j</span></div></div>`; });
+      ${carteArt(a, `<span class="valeur">${pcs(valeur(a))}</span><span class="loyer">+${nb(loyer(a))}/j</span>`)}</div>`; });
   h+=`</div>`; el.innerHTML=h; }
 // le détail d'une carte : le lieu complet et ses actions
 function ouvrirFicheLieu(id){ const a=state.owned[id]; const box=document.getElementById('modalbox'); if(!a){ if(ficheOuverte) closeModal(); return; }
