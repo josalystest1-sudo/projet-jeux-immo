@@ -40,6 +40,9 @@ Embarquées dans `fonts/` (licence OFL), pas de service extérieur.
 - **Numéro** `.numero` : la petite plaque bleue du numéro de la maison.
 - **Cartes « full art »** `carteArt(a, bandeau)` (pack et collection ; demande de Gautier, 3 nov. : « trop de blanc, l'illustration trop petite ») : l'illustration occupe toute la carte, seul le contour garde la couleur de la rareté. Une adresse : un mur de briques rouges (teintes de vraies briques, joints de mortier clair) avec la plaque de la voie en grand et la plaque bleue du numéro dessous. Un lieu nommé ou un monument : un ciel aux couleurs de la rareté avec des rayons, la grande icône et son nom sur une plaque. La lisibilité tient à trois choses : la rareté dans une pastille pleine bordée de blanc en haut à gauche, la plaque (fort contraste), et un bandeau sombre dégradé en bas pour la valeur (or), le plafond ou le loyer (vert clair).
 - **Pastille** `.chip` : un chiffre avec son icône (valeur, loyer, niveau) ; jamais de longue ligne « A · B · C ».
+- **Chiffres d'un lieu** `.stats` / `.stat` : deux ou trois cases côte à côte (Valeur sur fond or, Loyer sur fond vert, Quartier en étoiles), l'étiquette en petites capitales au-dessus, le chiffre en dessous ; jamais de pastilles qui passent à la ligne.
+- **Montants rapides** `.vite` / `.raccourci` : grille de trois colonnes, l'étiquette (« +10 % ») au-dessus du montant ; la dernière case s'étire si la ligne est incomplète.
+- **Pied de fenêtre** `.pied-modal` : collé en bas d'une fenêtre longue (échange) : le bilan et les boutons (Annuler à gauche, l'action à droite) restent visibles.
 - **Échelle de construction** `.echelle` : Terrain → Maison → Immeuble → Tour (→ Prestige), étapes faites, suivante, hors plafond (cadenas).
 - **Carte de collection** `.ccarte` : cadre de la couleur de la rareté, icône, nom, commune.
 - **Feuille** `#sheet` : glisse du bas, poignée, se ferme vers le bas.
@@ -51,4 +54,6 @@ Embarquées dans `fonts/` (licence OFL), pas de service extérieur.
 - La carte reste l'écran d'accueil ; le pack du jour est le bouton central de la barre du bas.
 - Les notifications sont sous la cloche, en haut ; les réglages dans le profil.
 - Des cibles de 44 px au moins ; texte de 13 px au moins.
+- Sur téléphone, une fiche ouverte cache la recherche, les boutons de la carte et la légende (`body.fiche-ouverte`) ; la légende est repliée par défaut ; pas de boutons de zoom sur un écran tactile.
+- Tout écran se vérifie aussi en 360 px de large (`LARGEUR=360 HAUTEUR=780 node tools/visite_ecrans.js …`) : rien ne doit déborder ni se chevaucher.
 - Mouvement : seulement en réponse à un geste (ouvrir, confirmer, gagner), et l'ouverture du pack ; respecter « réduire les animations ».

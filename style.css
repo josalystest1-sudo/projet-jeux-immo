@@ -149,7 +149,7 @@ a{color:var(--plaque);font-weight:800}
 @keyframes appel{0%,100%{transform:scale(1);box-shadow:0 5px 0 var(--piece2),0 0 0 0 rgba(255,194,51,.55)}50%{transform:scale(1.06);box-shadow:0 5px 0 var(--piece2),0 0 0 12px rgba(255,194,51,0)}}
 
 /* ---------------------------------------------------------------- écrans */
-.screen{position:absolute;inset:0;bottom:calc(var(--nav) + env(safe-area-inset-bottom));background:var(--ciel);z-index:20;overflow:auto;padding:calc(14px + env(safe-area-inset-top)) 14px 28px;display:none;-webkit-overflow-scrolling:touch}
+.screen{position:absolute;inset:0;bottom:calc(var(--nav) + env(safe-area-inset-bottom));background:var(--ciel);z-index:20;overflow:auto;padding:calc(14px + env(safe-area-inset-top)) 14px 64px;display:none;-webkit-overflow-scrolling:touch}
 .screen.on{display:block;animation:entree .22s ease-out}
 @keyframes entree{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
 .screen h1{font-size:30px;margin:2px 0 12px;display:flex;align-items:center;gap:10px;line-height:1.1}
@@ -186,7 +186,7 @@ h2{margin:4px 0 2px;font-size:22px}
 .svwrap{position:relative;margin:4px 0 12px;border-radius:18px;overflow:hidden;box-shadow:var(--ombre);background:#cfd9ea}
 .sv{width:100%;aspect-ratio:16/9;border:0;display:block;background:#cfd9ea}
 .svwrap a.ext{position:absolute;right:8px;bottom:8px;background:rgba(23,35,63,.72);color:#fff;font-size:12px;font-weight:800;padding:6px 10px;border-radius:10px;text-decoration:none}
-.parcelle-info{color:var(--gris);font-size:12px;font-weight:700;margin-top:10px;line-height:1.5}
+.parcelle-info{color:var(--gris);font-size:11px;font-weight:700;margin-top:14px;padding-top:10px;border-top:1px solid var(--trait);line-height:1.5}
 
 /* un lieu (dans la fiche, le détail d'une carte) */
 .addr{position:relative;padding:14px;border-radius:22px;margin-bottom:12px;background:#fff;border:2.5px solid color-mix(in srgb,var(--rc,#DCE4F2) 55%,#fff);box-shadow:0 4px 0 color-mix(in srgb,var(--rc,#DCE4F2) 30%,#fff)}
@@ -429,8 +429,7 @@ button.chip:active{transform:scale(.96)}
 .champ-prix span{font-weight:900;color:var(--encre2);font-size:13px;white-space:nowrap}
 .champ-prix input{flex:1;min-width:0;border:0;outline:0;background:none;text-align:right;font-family:var(--titre);font-weight:800;font-size:28px;color:var(--encre);padding:2px 0}
 .champ-prix .pc{width:26px;height:26px}
-#prix-vite{margin:12px 0 4px;gap:6px;flex-wrap:wrap}
-#prix-vite .chip{border:0;cursor:pointer}
+#prix-vite{margin:12px 0 4px}
 .prix-note{min-height:20px;font-size:13px;font-weight:800;color:var(--cadre2);margin:6px 2px 12px}
 .prix-note.bas{color:#B5651D}.prix-note.err{color:#C62828}
 .prix-vente{border:0;background:var(--piece-clair);color:#7A5200;border-radius:999px;padding:5px 10px;font-family:var(--titre);font-weight:800;font-size:14px;display:inline-flex;align-items:center;gap:3px;cursor:pointer;white-space:nowrap}
@@ -485,9 +484,48 @@ button.chip:active{transform:scale(.96)}
 #ech-vite{margin:8px 0 0}#ech-vite .chip{border:0;cursor:pointer}
 .ech-balance{font-size:13px;font-weight:800;color:var(--cadre2);margin:10px 2px 6px;line-height:1.45;min-height:20px}
 .ech-balance.bas{color:#B5651D}.ech-balance.err{color:#C62828}
+/* pied de fenêtre collé en bas : le bilan et les boutons restent visibles quand la liste est longue */
+.pied-modal{position:sticky;bottom:-18px;margin:8px -18px -18px;padding:10px 18px 16px;background:#fff;border-top:1px solid var(--trait);box-shadow:0 -10px 16px -14px rgba(23,35,63,.35);z-index:2}
+.pied-modal .ech-balance{margin:0 2px 10px}
+.rangee-btn{display:flex;gap:8px}.rangee-btn .btn{margin:0;font-size:16px;white-space:normal;text-align:center}
+.rangee-btn .btn.clair{flex:0 0 auto;width:auto;padding-left:16px;padding-right:16px}.rangee-btn .btn:not(.clair){flex:1;min-width:0}
 .rank .who small{display:block;font-size:12px;color:var(--gris);font-weight:800}
 .rank .fleche{color:var(--plaque)}
 
 /* un lieu libre : il ne s'achète pas, il sort des packs */
 .libre-info{display:flex;align-items:center;gap:10px;background:var(--ciel);border-radius:14px;padding:10px 12px;font-size:13px;font-weight:700;color:var(--encre2);line-height:1.35;width:100%}
 .libre-info b{color:var(--encre)}
+
+/* ---------------------------------------------------------------- lisibilité sur téléphone (3 nov.) */
+/* les chiffres d'un lieu : une case par chiffre, alignées, libellé au-dessus */
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(0,1fr));gap:6px;margin:12px 0 4px}
+.stat{background:var(--ciel);border-radius:14px;padding:7px 8px 6px;text-align:center;min-width:0}
+.stat>span{display:block;font-size:11px;font-weight:900;color:var(--gris);text-transform:uppercase;letter-spacing:.04em}
+.stat b{display:flex;align-items:center;justify-content:center;gap:3px;font-family:var(--titre);font-size:17px;font-weight:800;color:var(--encre);white-space:nowrap;line-height:1.3}
+.stat b small{font-family:var(--texte);font-size:11px;color:inherit;opacity:.8;font-weight:800}
+.stat b .montant{gap:3px}
+.stat.or{background:var(--piece-clair)} .stat.or b{color:#7A5200}
+.stat.vert{background:#E2F5EA} .stat.vert b{color:var(--cadre2)}
+.stat .etoiles{color:#E8A500;letter-spacing:1px}.stat .etoiles i{font-style:normal;color:#C9D2E3}
+/* ce qu'on peut faire sur un lieu : séparé des informations */
+.addr .echelle{margin-top:12px}
+.addr .actions,.addr .offre{margin-top:14px;padding-top:12px;border-top:1px dashed var(--trait)}
+.addr .offre .num{flex:1;min-width:0;width:auto}
+.addr .offre .btn{flex:0 0 auto}
+.addr .echange-zone{margin-top:10px}
+.addr .libre-info{margin-top:4px}
+/* raccourcis de montant : trois boutons égaux */
+.vite{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:8px}
+.raccourci{border:0;background:var(--ciel);border-radius:12px;padding:6px 4px;cursor:pointer;display:flex;flex-direction:column;align-items:center;font-family:inherit;color:var(--encre)}
+.raccourci span{font-size:11px;font-weight:800;color:var(--gris)}
+.raccourci b{font-family:var(--titre);font-size:15px;font-weight:800}
+.raccourci:active{transform:scale(.97);background:var(--plaque-clair)}
+.vite .raccourci:last-child:nth-child(3n+2){grid-column:span 2}
+/* fiche ouverte : la recherche, les boutons de carte et la légende s'effacent (plus de chevauchement) */
+body.fiche-ouverte #top .barre,body.fiche-ouverte #sugg,body.fiche-ouverte #ctrls,body.fiche-ouverte #legend{opacity:0;pointer-events:none;transition:opacity .2s}
+#sheet{max-height:calc(100% - 92px - env(safe-area-inset-top))}
+/* légende repliable */
+#legend{cursor:pointer;user-select:none}
+#legend .titre-legende{font-family:var(--titre);font-size:12px;color:var(--encre)}
+#legend.repliee span{display:none}
+#legend.repliee{padding:6px 10px}
