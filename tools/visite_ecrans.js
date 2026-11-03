@@ -62,6 +62,8 @@ const ETAT = () => { const t = Date.now(), j = Math.floor(t / 60000); return {
   await ecran('04b-patrimoine-bas', async () => { await page.evaluate(() => { const s = document.getElementById('s-patrimoine'); s.scrollTop = 700; }); });
   await ecran('05-encheres', async () => { await page.evaluate(() => { showScreen('encheres'); }); });
   await ecran('06-communes', async () => { await page.evaluate(() => showScreen('communes')); });
+  await ecran('06b-communes-recherche', async () => { await page.evaluate(() => showScreen('communes')); await page.fill('#com-q', 'bagn'); await page.waitForSelector('.sugg-commune', { timeout: 15000 }); });
+  await ecran('06c-commune-ouverte', async () => { await page.evaluate(() => showScreen('communes')); await page.fill('#com-q', 'paris 9'); await page.waitForSelector('.sugg-commune', { timeout: 15000 }); await page.click('.sugg-commune'); });
   await ecran('07-notifs', async () => { await page.evaluate(() => showScreen('notifs')); });
   await ecran('08-profil', async () => { await page.evaluate(() => { showScreen('carte'); showPlayer(ME); }); });
   await fermer();
