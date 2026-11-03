@@ -52,6 +52,8 @@
 
 - 3 nov. 2026 : **un bâtiment par rareté** (retour de Gautier : « tu as 2 immeubles ») : Commun → Maison, Peu commun → Immeuble, Rare → Tour, Épique → Gratte-ciel, Légendaire → **Palace** (nouveau, ×12, +800 par jour), Extraordinaire → Prestige. Les monuments au Prestige le gardent ; une longue échelle commence à la Maison ; les joueurs simulés ne construisent plus au-dessus du plafond.
 
+- 3 nov. 2026 : **la mise à jour emporte aussi les règles** : chaque publication numérote tous les scripts du jeu (règles, données) ; avant, le navigateur pouvait garder les anciennes règles sous la nouvelle page (vu sur le site : la nouvelle page avec les anciens plafonds).
+
 ## En cours
 - Lieux célèbres : les autres catégories (châteaux, mairies, gares, musées, ponts, phares, moulins…) dès que Wikidata répond (`python3 tools/wikidata_celebres.py`, puis `--fusion` et `gen_donnees.py celebres`).
 - Phase 1.1 à 1.4 : la carte et le modèle des lieux reconstruits en modules (`src/`) à partir du prototype ; puis le marché (phase 4 : historique des ventes d'un lieu) et les communes et Maires (phase 6). Ensuite : Signaler envoyé au serveur dès qu'il y aura de vrais joueurs à l'écran ; Google ; un service d'envoi d'e-mails avant le lancement (le service de Supabase n'écrit qu'aux membres de l'équipe Supabase, deux e-mails par heure).
