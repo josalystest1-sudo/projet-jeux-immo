@@ -43,6 +43,7 @@ const VERSION='__VERSION__';
 <script src="src/regles/encheres.js"></script>
 <script src="src/regles/pack.js"></script>
 <script src="src/tirage.js"></script>
+<script src="src/maquettes.js"></script>
 <script src="src/regles/pseudo.js"></script>
 <script src="https://unpkg.com/@supabase/supabase-js@2.118.0/dist/umd/supabase.js"></script>
 <link rel="preload" href="fonts/baloo-2-latin-800-normal.woff2" as="font" type="font/woff2" crossorigin>
@@ -303,7 +304,8 @@ const map = new maplibregl.Map({
       { id:'road', type:'line', source:'topo', 'source-layer':'troncon_de_route', layout:{ 'line-cap':'round','line-join':'round' },
         paint:{ 'line-color':['case',IMPORTANT,'#FFFFFF','#FBFCFE'], 'line-width':['interpolate',['exponential',1.6],['zoom'],15,['case',IMPORTANT,6,2.8],19,['case',IMPORTANT,32,16]] } },
       { id:'road-axis', type:'line', source:'topo', 'source-layer':'troncon_de_route', minzoom:17, filter:IMPORTANT, paint:{ 'line-color':'#F4CC5E', 'line-width':1.6, 'line-dasharray':[4,4] } },
-      { id:'bati-3d', type:'fill-extrusion', source:'topo', 'source-layer':'batiment', filter:['!=',['get','construction_legere'],true],
+      // (les bâtiments de l'IGN remplacés par une maquette 3D, comme la tour Eiffel, sont masqués : src/maquettes.js)
+      { id:'bati-3d', type:'fill-extrusion', source:'topo', 'source-layer':'batiment', filter:['all',['!=',['get','construction_legere'],true],['!',['in',['get','cleabs'],['literal',Maquettes.MASQUES]]]],
         paint:{ 'fill-extrusion-color':COULEUR_BATI, 'fill-extrusion-height':['case',['boolean',['feature-state','monument'],false],['*',HAUTEUR,1.15],HAUTEUR], 'fill-extrusion-base':0, 'fill-extrusion-opacity':0.97, 'fill-extrusion-vertical-gradient':true } },
       { id:'road-label', type:'symbol', source:'topo', 'source-layer':'troncon_de_route', minzoom:16,
         layout:{ 'symbol-placement':'line', 'text-field':['coalesce',['get','nom_voie_ban_droite'],['get','nom_voie_ban_gauche'],''], 'text-font':['Open Sans Regular'], 'text-size':12, 'symbol-spacing':320 },
@@ -426,6 +428,9 @@ map.on('load', ()=>{
   map.on('click','mon-halo', (e)=>{ const f=e.features[0]; const m=LISTE_MON.find(x=>x.id===f.properties.id); if(!m) return;
     const enJeu = lotsDe(semaineEnCours()).some(l=>l.m.id===m.id); toast(`${m.icone} ${m.nom} · monument ${m.palier==='national'?'national':'régional'} (Extraordinaire)${enJeu?' · aux enchères cette semaine !':''}`); if(enJeu) setTimeout(()=>showScreen('encheres'), 900); });
 });
+// Les maquettes 3D des monuments (phase 10.4, src/maquettes.js) : la tour Eiffel d'abord. Sous les noms des monuments,
+// au-dessus de leur halo ; dessinées seulement quand la carte bouge (aucune animation : la carte se repose).
+map.on('load', ()=>{ try{ map.addLayer(Maquettes.couche(maplibregl, THREE), map.getLayer('mon-nom') ? 'mon-nom' : undefined); }catch(e){ dsay('Maquettes 3D indisponibles : '+String(e&&e.message||e).slice(0,120)); } });
 // Les lieux célèbres (article Wikipédia) : un fichier par département (data/celebres/), chargé à la demande.
 const CELEBRES = {};
 function chargerCelebres(dep){ if(!dep) return Promise.resolve([]); if(!CELEBRES[dep]) CELEBRES[dep] = fetch(`data/celebres/${dep}.json`).then(r=>r.ok?r.json():{lieux:[]}).then(j=>j.lieux||[]).catch(()=>[]); return CELEBRES[dep]; }
