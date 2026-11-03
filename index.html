@@ -432,16 +432,20 @@ function cibleStreetView(addrs, geometry, c){ const vise=pointVise||c; const can
 // et on ne peut pas avancer dans les rues. On se place donc sur la voie la plus proche (le tracé IGN des rues, déjà
 // chargé pour la carte), là où passe la voiture de Google, et on tourne la vue vers le lieu.
 // Un monument se regarde d'abord depuis une rue (jusqu'à 120 m), sinon depuis une allée (70 m), et un peu vers le haut.
-function voiePlusProche(cible, exclure, max){ const lat0=cible.lat*Math.PI/180, mx=111320*Math.cos(lat0), my=110540; let best=null;
+function pointVoiePlusProche(cible, exclure){ const lat0=cible.lat*Math.PI/180, mx=111320*Math.cos(lat0), my=110540; let best=null;
   try{ for(const f of map.querySourceFeatures('topo',{sourceLayer:'troncon_de_route'})){ const p=f.properties||{}; if(exclure.has(p.nature)) continue;
       const lignes = f.geometry.type==='LineString' ? [f.geometry.coordinates] : (f.geometry.type==='MultiLineString' ? f.geometry.coordinates : []);
       for(const l of lignes) for(let i=0;i<l.length-1;i++){
         const ax=(l[i][0]-cible.lon)*mx, ay=(l[i][1]-cible.lat)*my, bx=(l[i+1][0]-cible.lon)*mx, by=(l[i+1][1]-cible.lat)*my;
         const dx=bx-ax, dy=by-ay, L=dx*dx+dy*dy; let t=L? -(ax*dx+ay*dy)/L : 0; t=Math.max(0,Math.min(1,t));
         const px=ax+t*dx, py=ay+t*dy, d=Math.hypot(px,py); if(!best || d<best.d) best={d, px, py}; } } }catch(e){}
+  return best ? Object.assign(best, {mx, my}) : null; }
+function distanceVoie(pt, exclure){ const b=pointVoiePlusProche(pt, exclure); return b ? b.d : Infinity; }
+function voiePlusProche(cible, exclure, max){ const best=pointVoiePlusProche(cible, exclure);
   if(!best || best.d>max || best.d<2) return null;
-  return { lat:cible.lat+best.py/my, lon:cible.lon+best.px/mx, cap:(Math.atan2(-best.px, -best.py)*180/Math.PI+360)%360 }; }   // cap : de la voie vers le lieu (0 = nord)
+  return { lat:cible.lat+best.py/best.my, lon:cible.lon+best.px/best.mx, cap:(Math.atan2(-best.px, -best.py)*180/Math.PI+360)%360 }; }   // cap : de la voie vers le lieu (0 = nord)
 const VOIES_PIETONNES = new Set(['Sentier','Escalier','Chemin']);
+const VOIES_AUTOS = new Set(['Route à 1 chaussée','Route à 2 chaussées','Rond-point','Bretelle','Type autoroutier','Route empierrée','Bac ou liaison maritime']);
 function vueDepuisLaRue(cible){
   const v = cible.monument ? (voiePlusProche(cible, VOIES_PIETONNES, 120) || voiePlusProche(cible, new Set(), 70)) : voiePlusProche(cible, new Set(['Sentier','Escalier']), 70);
   return v ? Object.assign(v, { pente: cible.monument ? -5 : 0 }) : { lat:cible.lat, lon:cible.lon, cap:0, pente:0 }; }
@@ -451,18 +455,72 @@ function vueDepuisLaRue(cible){
 let CLE_GOOGLE=''; fetch('data/google.json', {cache:'no-store'}).then(r=>r.ok?r.json():{}).then(j=>{ CLE_GOOGLE=(j&&j.cle)||''; }).catch(()=>{});
 let svDemande=0;
 function capVers(de, vers){ const mx=111320*Math.cos(de.lat*Math.PI/180), my=110540; return (Math.atan2((vers.lon-de.lon)*mx, (vers.lat-de.lat)*my)*180/Math.PI+360)%360; }
-async function photoGoogle(pt, rayon){ try{ const r=await fetch(`https://maps.googleapis.com/maps/api/streetview/metadata?location=${pt.lat.toFixed(6)},${pt.lon.toFixed(6)}&radius=${rayon}&source=outdoor&key=${encodeURIComponent(CLE_GOOGLE)}`); const j=await r.json(); return j && j.status==='OK' ? j : null; }catch(e){ return null; } }
+// si Google refuse la clé (supprimée, services coupés, quota), on revient à l'ancien Street View, gratuit et sans clé
+let cleRefusee=false;
+async function photoGoogle(pt, rayon){ if(cleRefusee) return null; try{ const r=await fetch(`https://maps.googleapis.com/maps/api/streetview/metadata?location=${pt.lat.toFixed(6)},${pt.lon.toFixed(6)}&radius=${rayon}&source=outdoor&key=${encodeURIComponent(CLE_GOOGLE)}`); const j=await r.json();
+  if(j && /DENIED|OVER_QUERY|INVALID|UNKNOWN/.test(j.status||'')){ cleRefusee=true; return null; } return j && j.status==='OK' ? j : null; }catch(e){ return null; } }
+function decale(pt, cap, m){ const mx=111320*Math.cos(pt.lat*Math.PI/180), my=110540, r=cap*Math.PI/180; return { lat:pt.lat+Math.cos(r)*m/my, lon:pt.lon+Math.sin(r)*m/mx }; }
+const estGoogle = j => /google/i.test((j&&j.copyright)||'');
+const distPhoto = (j, pt) => dist([j.location.lng, j.location.lat], [pt.lon, pt.lat]);
+// La photo d'où regarder un lieu. On demande à Google les photos d'extérieur autour du lieu, puis on garde la meilleure :
+// - jamais une photo prise dans un bâtiment (sa position tombe dans un bâtiment IGN : musée, nef, bibliothèque…) ;
+// - celles de Google d'abord (reliées aux rues : on peut avancer) ; celles des particuliers seulement à défaut ;
+// - pour un monument, à bonne distance pour le voir en entier (vers 45 m, jamais à son pied) ;
+// - pour une adresse, depuis la rue, au plus près.
+// les bâtiments autour du lieu (leur boîte englobante : un château peut faire 400 m de long)
+function batimentsAutour(cible, m){ const dy=m/110540, dx=m/(111320*Math.cos(cible.lat*Math.PI/180)); const liste=[];
+  try{ for(const f of map.querySourceFeatures('topo',{sourceLayer:'batiment'})){ const g=f.geometry; if(!g || (g.type!=='Polygon' && g.type!=='MultiPolygon')) continue;
+      const b=boite(g); if(b[2]<cible.lon-dx || b[0]>cible.lon+dx || b[3]<cible.lat-dy || b[1]>cible.lat+dy) continue; liste.push({g, b}); } }catch(e){}
+  return liste; }
+// dans un bâtiment, ou collée à son mur (à moins de 3 m) : les photos d'intérieur sont placées à peu près
+function dansUnBatiment(pt, liste){ const mx=111320*Math.cos(pt.lat*Math.PI/180), my=110540, ex=3/mx, ey=3/my;
+  return liste.some(p=>{ const b=p.b; if(pt.lon<b[0]-ex||pt.lon>b[2]+ex||pt.lat<b[1]-ey||pt.lat>b[3]+ey) return false;
+    if(inside([pt.lon, pt.lat], p.g)) return true;
+    const anneaux = p.g.type==='Polygon' ? p.g.coordinates : p.g.coordinates.flat();
+    for(const r of anneaux) for(let i=0;i<r.length-1;i++){ const ax=(r[i][0]-pt.lon)*mx, ay=(r[i][1]-pt.lat)*my, bx=(r[i+1][0]-pt.lon)*mx, by=(r[i+1][1]-pt.lat)*my;
+      const dx=bx-ax, dy=by-ay, L=dx*dx+dy*dy; let t=L? -(ax*dx+ay*dy)/L : 0; t=Math.max(0,Math.min(1,t)); if(Math.hypot(ax+t*dx, ay+t*dy)<3) return true; }
+    return false; }); }
+// Ce qui cache le lieu depuis une photo : les mètres de bâtiments traversés par la ligne de vue (sauf le monument
+// lui-même). Ce qui la met en valeur : les mètres au-dessus de l'eau (bassin, canal, rivière : la vue de carte postale,
+// la Fontaine Médicis au bout de son bassin). Les bosquets ne comptent pas : les allées d'arbres cadrent souvent la vue.
+function obstacles(cible, autour){ const eau=[]; const bati=autour.filter(p=>!inside([cible.lon,cible.lat], p.g));   // sauf le monument lui-même
+  try{ for(const f of map.querySourceFeatures('topo',{sourceLayer:'surface_hydrographique'})){ const g=f.geometry; if(g && (g.type==='Polygon' || g.type==='MultiPolygon')) eau.push({g, b:boite(g)}); } }catch(e){}
+  return { bati, eau }; }
+function ligneDeVue(de, cible, obs){ const d=dist([de.lon,de.lat],[cible.lon,cible.lat]); const pas=Math.max(1, Math.floor(d/3)); let cache=0, eau=0;
+  const dans=(pt, liste)=>liste.some(p=>{ const b=p.b; return !(pt[0]<b[0]||pt[0]>b[2]||pt[1]<b[1]||pt[1]>b[3]) && inside(pt, p.g); });
+  for(let k=1;k<pas;k++){ const t=k/pas; const pt=[de.lon+(cible.lon-de.lon)*t, de.lat+(cible.lat-de.lat)*t];
+    if(d*(1-t)<6) break;   // les derniers mètres : le monument et son pied
+    if(dans(pt, obs.bati)) cache+=d/pas; else if(dans(pt, obs.eau)) eau+=d/pas; }
+  return { cache, eau }; }
+async function choisirPhoto(cible, vue){
+  const points = cible.monument
+    ? [[cible, 150], [vue, 40], ...[35,60].flatMap(m=>[0,45,90,135,180,225,270,315].map(c=>[decale(cible, c, m), 25]))]   // deux couronnes, à 35 et 60 m
+    : [[vue, 50], [cible, 50]];
+  const vues = (await Promise.all(points.map(([pt, r])=>photoGoogle(pt, r)))).filter(Boolean);
+  // un monument dans un parc ou sur une esplanade (une allée tout près, aucune rue à moins de 25 m) : on le regarde
+  // depuis les allées plutôt que depuis la rue, d'où on ne verrait que la grille et les arbres
+  const dansUnParc = cible.monument && distanceVoie(cible, VOIES_PIETONNES)>25 && distanceVoie(cible, VOIES_AUTOS)<15;
+  const autour=batimentsAutour(cible, 220);
+  const obs = cible.monument ? obstacles(cible, autour) : null;
+  const deja=new Set(); let meilleure=null, note=Infinity;
+  for(const j of vues){ if(deja.has(j.pano_id)) continue; deja.add(j.pano_id);
+    const pos={lat:j.location.lat, lon:j.location.lng}; if(dansUnBatiment(pos, autour)) continue;
+    const d=distPhoto(j, cible);
+    let n = estGoogle(j) ? 0 : 1000;
+    n += cible.monument ? (d<12 ? 500 : Math.abs(d-45) + (d>150 ? 300 : 0)) : d;
+    if(dansUnParc && distanceVoie(pos, VOIES_PIETONNES)<8) n += 30;
+    if(cible.monument){ const v=ligneDeVue(pos, cible, obs); n += 1.5*v.cache - 0.6*Math.min(v.eau, 40); }   // vue cachée, ou au-dessus de l'eau
+    if(n<note){ note=n; meilleure=j; } }
+  return meilleure; }
 async function afficherStreetView(cible, vue){ const svEl=document.getElementById('sv'), lien=document.getElementById('svlink'); const n=++svDemande;
   const poser=(src, lat, lon, cap)=>{ if(n!==svDemande) return; if(svEl.src!==src) svEl.src=src; lien.href=`https://www.google.com/maps/@?api=1&map_action=pano&viewpoint=${lat.toFixed(6)},${lon.toFixed(6)}&heading=${Math.round(cap)}`; };
-  if(!CLE_GOOGLE){ return poser(`https://maps.google.com/maps?q=&layer=c&cbll=${vue.lat.toFixed(6)},${vue.lon.toFixed(6)}&cbp=12,${Math.round(vue.cap)},0,0,${vue.pente}&output=svembed`, vue.lat, vue.lon, vue.cap); }
-  const google = j => /google/i.test(j.copyright||'');
-  const essais = cible.monument ? [[cible, 120], [vue, 60]] : [[vue, 50], [cible, 50]];
-  let choisie=null;
-  for(const [pt, r] of essais){ const j=await photoGoogle(pt, r); if(!j) continue; if(google(j)){ choisie=j; break; } if(!choisie) choisie=j; }
-  if(choisie){ const de={lat:choisie.location.lat, lon:choisie.location.lng}; const d=dist([de.lon,de.lat],[cible.lon,cible.lat]); const cap = d>4 ? capVers(de, cible) : vue.cap;
-    const pente = cible.monument ? -Math.min(15, Math.round(Math.atan2(8, Math.max(d,10))*180/Math.PI)) : 0;   // un monument : lever un peu les yeux, plus s'il est proche
-    return poser(`https://www.google.com/maps/embed/v1/streetview?key=${encodeURIComponent(CLE_GOOGLE)}&pano=${encodeURIComponent(choisie.pano_id)}&heading=${Math.round(cap)}&pitch=${-pente}&fov=80`, de.lat, de.lon, cap); }
-  // la recherche n'a pas répondu (réseau) : l'intégration officielle, photos d'extérieur seulement, depuis la rue
+  const sansCle=()=>poser(`https://maps.google.com/maps?q=&layer=c&cbll=${vue.lat.toFixed(6)},${vue.lon.toFixed(6)}&cbp=12,${Math.round(vue.cap)},0,0,${vue.pente}&output=svembed`, vue.lat, vue.lon, vue.cap);
+  if(!CLE_GOOGLE || cleRefusee) return sansCle();
+  const j=await choisirPhoto(cible, vue); if(cleRefusee) return sansCle();
+  if(j){ const de={lat:j.location.lat, lon:j.location.lng}; const d=distPhoto(j, cible); const cap = d>4 ? capVers(de, cible) : vue.cap;
+    const leve = cible.monument ? Math.min(15, Math.round(Math.atan2(8, Math.max(d,10))*180/Math.PI)) : 0;   // un monument : lever un peu les yeux, plus s'il est proche
+    return poser(`https://www.google.com/maps/embed/v1/streetview?key=${encodeURIComponent(CLE_GOOGLE)}&pano=${encodeURIComponent(j.pano_id)}&heading=${Math.round(cap)}&pitch=${leve}&fov=80`, de.lat, de.lon, cap); }
+  // aucune photo trouvée ou pas de réseau : l'intégration officielle, photos d'extérieur seulement, depuis la rue
   poser(`https://www.google.com/maps/embed/v1/streetview?key=${encodeURIComponent(CLE_GOOGLE)}&location=${vue.lat.toFixed(6)},${vue.lon.toFixed(6)}&heading=${Math.round(vue.cap)}&pitch=${-vue.pente}&fov=80&source=outdoor`, vue.lat, vue.lon, vue.cap); }
 function mkAddr(x, idu){ const p=x.properties; return { id:p.id, label:p.name, lon:x.geometry.coordinates[0], lat:x.geometry.coordinates[1], citycode:p.citycode, city:p.city, postcode:p.postcode, idu, type:'adresse' }; }
 function renderAddrs(){ const {p, idu, geometry} = currentParcel; const addrs = parcelAddrs[idu]||[]; const nb=addrs.length; const c = centroid(geometry);

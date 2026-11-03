@@ -38,7 +38,7 @@
 
 - 3 nov. 2026 : **Street View regarde le bon endroit** (retour de Gautier : la Fontaine Médicis montrait l'intérieur d'une librairie, où l'on ne peut pas avancer) : la vue vise le monument ou le lieu célèbre de la parcelle (le plus proche de l'endroit touché), sinon l'adresse touchée ; elle se place sur la rue la plus proche (tracé IGN), là où passe la voiture de Google, et se tourne vers le lieu ; un monument se regarde depuis une rue (jusqu'à 120 m), sinon une allée, un peu vers le haut ; le monument qu'on possède apparaît dans la fiche de sa parcelle. Limite connue : sans clé Google, on ne sait pas où est exactement la photo choisie ; la visée peut être approximative.
 
-- 3 nov. 2026 : **Street View prêt pour la clé Google** (`data/google.json`, guide `docs/serveur/GUIDE-GOOGLE.md`) : avec la clé, photo d'extérieur la plus proche, celles de Google d'abord, vue tournée exactement vers le lieu ; sans clé, rien ne change. En attente de la clé de Gautier.
+- 3 nov. 2026 : **Street View avec la clé Google** (projet « Le Laboratoire », `data/google.json`, guide et méthode dans `docs/serveur/GUIDE-GOOGLE.md`) : jamais de photo d'intérieur (position dans un bâtiment IGN ou collée à un mur), photos de Google d'abord ; un monument est vu à bonne distance (vers 45 m), vue dégagée, de préférence au-dessus de l'eau, depuis les allées s'il est dans un parc, et la vue est tournée vers lui ; si la clé est refusée, retour automatique à l'ancien Street View.
 
 ## En cours
 - Lieux célèbres : les autres catégories (châteaux, mairies, gares, musées, ponts, phares, moulins…) dès que Wikidata répond (`python3 tools/wikidata_celebres.py`, puis `--fusion` et `gen_donnees.py celebres`).
