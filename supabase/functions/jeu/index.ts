@@ -121,6 +121,8 @@ Deno.serve(async (req: Request) => {
   } catch (e) {
     if (e instanceof Refus) return repondre({ ok: false, code: e.code, message: e.message });
     console.error(e);
-    return repondre({ ok: false, code: 'erreur', message: 'Le serveur a eu un souci : réessaie dans un instant.' }, 500);
+    // le détail (technique, jamais une clé) aide à comprendre une panne ; le joueur ne voit que le message
+    const detail = String((e && ((e as Ligne).message || (e as Ligne).details || (e as Ligne).code)) || e).slice(0, 200);
+    return repondre({ ok: false, code: 'erreur', message: 'Le serveur a eu un souci : réessaie dans un instant.', detail }, 500);
   }
 });
