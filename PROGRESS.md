@@ -102,12 +102,14 @@
 
 - 4 nov. 2026 : **décision de Gautier pour la boutique**, notée dans le GDD (§ 3 et § 9) : le Pass mensuel (4,99 €) donne un pack du jour de 8 cartes au lieu de 5 et un bon par mois pour prendre l'adresse libre de son choix jusqu'à Épique (jamais un lieu célèbre ni un monument ; 3 bons gardés au plus tant que le Pass est actif ; une adresse déjà prise se négocie par une offre). Pas de revente de lieux contre de l'argent réel. À construire en phase 9.
 
+- 4 nov. 2026 : **dix monuments de plus en 3D** : les Invalides (le Dôme doré), l'Élysée (et son drapeau), la chapelle de la Sorbonne, la Sainte-Chapelle, le Luxembourg, Fontainebleau (la cour du Cheval-Blanc et l'escalier en fer à cheval), Chambord, et les cathédrales d'Amiens, de Rouen (la flèche de 151 m) et de Strasbourg (grès rose, flèche de 142 m) ; le modèle de cathédrale gagne des réglages (étage octogonal, tour-lanterne, couleur d'une flèche, pièces en plus). Chacun posé sur le plan des bâtiments de la BD TOPO ; les bâtiments de l'IGN qu'ils remplacent sont masqués et plus aucun ne les perce (vérification du volume). **Les maquettes ne ralentissent plus la carte** : leurs positions se calculent une fois (avant : 22 fois par image) et les monuments hors de l'écran sont sautés (12 ms par image → 2,4 ms sur le PC). 22 maquettes ; vérifié en images de loin (zoom 15,6) et de près (17 à 18,4) ; la carte se repose. 48 tests.
+
 ## En cours
 - Lieux célèbres : les autres catégories (châteaux, mairies, gares, musées, ponts, phares, moulins…) dès que Wikidata répond (`python3 tools/wikidata_celebres.py`, puis `--fusion` et `gen_donnees.py celebres`).
 - Phase 1.1 à 1.4 : la carte et le modèle des lieux reconstruits en modules (`src/`) à partir du prototype ; puis le marché (phase 4 : historique des ventes d'un lieu) et les communes et Maires (phase 6). Ensuite : Signaler envoyé au serveur dès qu'il y aura de vrais joueurs à l'écran ; Google ; un service d'envoi d'e-mails avant le lancement (le service de Supabase n'écrit qu'aux membres de l'équipe Supabase, deux e-mails par heure).
 
 ## À faire
-- Les graphismes (phase 10, avant 8.2 : décision de Gautier) : la preuve, l'ouverture et la tour Eiffel faites ; ensuite les autres monuments en 3D (après validation), l'habillage de la révélation, l'icône et le logo (`docs/BIBLE-GRAPHIQUE.md` § 5).
+- Les graphismes (phase 10, avant 8.2 : décision de Gautier) : la preuve, l'ouverture et 22 monuments en 3D faits ; ensuite les 38 autres monuments nationaux (le Louvre, le Mont-Saint-Michel, Carcassonne, Chenonceau, le Palais des papes…), l'habillage de la révélation, l'icône et le logo (`docs/BIBLE-GRAPHIQUE.md` § 5).
 - La suite du serveur : 8.2 (le mode serveur par défaut, la fin des joueurs simulés, l'inscription des amis), 8.3 (anti-triche) ; puis la boutique (phase 9). Liste complète, avec ce qu'il faudra faire au lancement : `docs/HISTORIQUE.md` § « Ce qui reste à faire » ; l'ordre : `docs/PLAN.md` (phases 1 à 11).
 
 ## Questions ouvertes
