@@ -445,12 +445,29 @@ const VOIES_PIETONNES = new Set(['Sentier','Escalier','Chemin']);
 function vueDepuisLaRue(cible){
   const v = cible.monument ? (voiePlusProche(cible, VOIES_PIETONNES, 120) || voiePlusProche(cible, new Set(), 70)) : voiePlusProche(cible, new Set(['Sentier','Escalier']), 70);
   return v ? Object.assign(v, { pente: cible.monument ? -5 : 0 }) : { lat:cible.lat, lon:cible.lon, cap:0, pente:0 }; }
+// Afficher Street View. Avec la clé Google (data/google.json) : on demande à Google la photo d'extérieur la plus proche
+// (d'abord près du monument, sinon depuis la rue), on préfère les photos de Google (reliées aux rues) à celles des
+// particuliers, et on tourne la vue exactement vers le lieu. Sans clé : l'ancienne intégration, depuis la rue.
+let CLE_GOOGLE=''; fetch('data/google.json', {cache:'no-store'}).then(r=>r.ok?r.json():{}).then(j=>{ CLE_GOOGLE=(j&&j.cle)||''; }).catch(()=>{});
+let svDemande=0;
+function capVers(de, vers){ const mx=111320*Math.cos(de.lat*Math.PI/180), my=110540; return (Math.atan2((vers.lon-de.lon)*mx, (vers.lat-de.lat)*my)*180/Math.PI+360)%360; }
+async function photoGoogle(pt, rayon){ try{ const r=await fetch(`https://maps.googleapis.com/maps/api/streetview/metadata?location=${pt.lat.toFixed(6)},${pt.lon.toFixed(6)}&radius=${rayon}&source=outdoor&key=${encodeURIComponent(CLE_GOOGLE)}`); const j=await r.json(); return j && j.status==='OK' ? j : null; }catch(e){ return null; } }
+async function afficherStreetView(cible, vue){ const svEl=document.getElementById('sv'), lien=document.getElementById('svlink'); const n=++svDemande;
+  const poser=(src, lat, lon, cap)=>{ if(n!==svDemande) return; if(svEl.src!==src) svEl.src=src; lien.href=`https://www.google.com/maps/@?api=1&map_action=pano&viewpoint=${lat.toFixed(6)},${lon.toFixed(6)}&heading=${Math.round(cap)}`; };
+  if(!CLE_GOOGLE){ return poser(`https://maps.google.com/maps?q=&layer=c&cbll=${vue.lat.toFixed(6)},${vue.lon.toFixed(6)}&cbp=12,${Math.round(vue.cap)},0,0,${vue.pente}&output=svembed`, vue.lat, vue.lon, vue.cap); }
+  const google = j => /google/i.test(j.copyright||'');
+  const essais = cible.monument ? [[cible, 120], [vue, 60]] : [[vue, 50], [cible, 50]];
+  let choisie=null;
+  for(const [pt, r] of essais){ const j=await photoGoogle(pt, r); if(!j) continue; if(google(j)){ choisie=j; break; } if(!choisie) choisie=j; }
+  if(choisie){ const de={lat:choisie.location.lat, lon:choisie.location.lng}; const d=dist([de.lon,de.lat],[cible.lon,cible.lat]); const cap = d>4 ? capVers(de, cible) : vue.cap;
+    const pente = cible.monument ? -Math.min(15, Math.round(Math.atan2(8, Math.max(d,10))*180/Math.PI)) : 0;   // un monument : lever un peu les yeux, plus s'il est proche
+    return poser(`https://www.google.com/maps/embed/v1/streetview?key=${encodeURIComponent(CLE_GOOGLE)}&pano=${encodeURIComponent(choisie.pano_id)}&heading=${Math.round(cap)}&pitch=${-pente}&fov=80`, de.lat, de.lon, cap); }
+  // la recherche n'a pas répondu (réseau) : l'intégration officielle, photos d'extérieur seulement, depuis la rue
+  poser(`https://www.google.com/maps/embed/v1/streetview?key=${encodeURIComponent(CLE_GOOGLE)}&location=${vue.lat.toFixed(6)},${vue.lon.toFixed(6)}&heading=${Math.round(vue.cap)}&pitch=${-vue.pente}&fov=80&source=outdoor`, vue.lat, vue.lon, vue.cap); }
 function mkAddr(x, idu){ const p=x.properties; return { id:p.id, label:p.name, lon:x.geometry.coordinates[0], lat:x.geometry.coordinates[1], citycode:p.citycode, city:p.city, postcode:p.postcode, idu, type:'adresse' }; }
 function renderAddrs(){ const {p, idu, geometry} = currentParcel; const addrs = parcelAddrs[idu]||[]; const nb=addrs.length; const c = centroid(geometry);
   document.getElementById('nb').textContent = nb;
-  const cible = cibleStreetView(addrs, geometry, c); const vue = vueDepuisLaRue(cible);
-  const svEl = document.getElementById('sv'); const url=`https://maps.google.com/maps?q=&layer=c&cbll=${vue.lat.toFixed(6)},${vue.lon.toFixed(6)}&cbp=12,${Math.round(vue.cap)},0,0,${vue.pente}&output=svembed`; if(svEl.src!==url) svEl.src=url;
-  document.getElementById('svlink').href = `https://www.google.com/maps/@?api=1&map_action=pano&viewpoint=${vue.lat.toFixed(6)},${vue.lon.toFixed(6)}&heading=${Math.round(vue.cap)}`;
+  const cible = cibleStreetView(addrs, geometry, c); const vue = vueDepuisLaRue(cible); afficherStreetView(cible, vue);
   const box = document.getElementById('addrs'); box.innerHTML='';
   document.getElementById('plafond').textContent = addrs[0] ? NIVEAUX[plafond(addrs[0])].nom : '—';
   const adr = addrs.find(x=>x.type==='adresse'), rue = adr ? String(adr.label).replace(/^\s*\d+\s*(bis|ter|[a-z])?\s+/i,'') : (addrs[0] ? addrs[0].label : '');

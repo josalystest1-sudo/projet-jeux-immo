@@ -1,0 +1,4 @@
+{
+  "cle": "",
+  "note": "Clé Google Maps Platform du jeu (Maps Embed API + Street View Static API), restreinte au site https://josalystest1-sudo.github.io/*. Faite pour être visible dans le jeu. Vide : Street View passe par l'ancienne intégration, sans clé."
+}
