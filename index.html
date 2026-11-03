@@ -27,7 +27,7 @@
 <script src="https://unpkg.com/@supabase/supabase-js@2.118.0/dist/umd/supabase.js"></script>
 <link rel="preload" href="fonts/baloo-2-latin-800-normal.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="fonts/nunito-latin-800-normal.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="style.css?v=20261103a">
 <meta name="theme-color" content="#EAF2FF">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" type="image/png" href="icones/icone-192.png">
@@ -41,6 +41,8 @@
 <body>
 <div id="accueil"><div class="plaque logo"><small>Collectionne la France</small>Cadastra</div><div class="chargement"><i class="pc"></i><i class="pc"></i><i class="pc"></i></div></div>
 <div id="map"></div>
+<div id="voyage" aria-live="polite"><div class="voyage-carte"><div class="voyage-pin">📍</div><div class="plaque" id="voyage-nom">En route…</div><div class="voyage-sous" id="voyage-sous"></div><div class="chargement"><i class="pc"></i><i class="pc"></i><i class="pc"></i></div></div></div>
+<div id="charge"><i class="pc"></i>Le quartier se dessine…</div>
 <div id="top">
   <div class="row">
     <button class="pill moi" id="mepill" aria-label="Mon profil"><span id="meav" class="av">🙂</span><span class="moi-t"><b id="mename">Moi</b><small id="count">0 lieu</small></span></button>
@@ -134,8 +136,10 @@ window.addEventListener('error', e=>dsay('Erreur JS : '+e.message));
 
 // =================== aides ===================
 function nb(n){ return Math.round(n).toLocaleString('fr-FR').replace(/\u202f/g,'\u00a0'); } // espace insécable ordinaire (la police n'a pas l'espace fine)
-// un montant : en texte (bandeaux, notifications) avec 🪙, en page avec la pièce dessinée (pcs)
+// un montant : en texte (bandeaux, notifications) avec 🪙 (affiché en pièce dessinée par avecPieces), en page avec la pièce dessinée (pcs)
 function fmt(n){ return nb(n) + ' 🪙'; }
+// un texte qui contient des montants : échappé, et chaque 🪙 (ou l'ancien ₳) remplacé par la pièce dessinée
+function avecPieces(t){ return echapper(t).replace(/\s?(🪙|₳)/g,'\u00a0<i class="pc"></i>'); }
 function pcs(n){ return `<span class="montant">${nb(n)}<i class="pc"></i></span>`; }
 function hash(s){ let h=0; for(const c of String(s)) h=(h*31+c.charCodeAt(0))|0; return Math.abs(h); }
 function centroid(geom){ const ring = geom.type==='Polygon' ? geom.coordinates[0] : geom.coordinates[0][0]; let x=0,y=0; for(const [a,b] of ring){x+=a;y+=b;} return [x/ring.length, y/ring.length]; }
@@ -144,12 +148,12 @@ function inside(pt, geom){ const rings = geom.type==='Polygon' ? [geom.coordinat
 function dist(a,b){ const dx=(a[0]-b[0])*Math.cos(a[1]*Math.PI/180)*111320, dy=(a[1]-b[1])*110540; return Math.hypot(dx,dy); }
 // une petite fête (achat, construction, récolte) : pièces et étoiles qui jaillissent
 function fete(n){ n=n||14; const w=document.createElement('div'); w.className='fete';
-  for(let i=0;i<n;i++){ const e=document.createElement('i'); e.textContent=['🪙','✨','🪙','⭐'][i%4]; e.style.setProperty('--dx',Math.round((Math.random()*2-1)*150)+'px'); e.style.setProperty('--dy',Math.round(-90-Math.random()*170)+'px'); e.style.animationDelay=Math.round(Math.random()*140)+'ms'; w.appendChild(e); }
+  for(let i=0;i<n;i++){ const e=document.createElement('i'); const sorte=['pc','✨','pc','⭐'][i%4]; if(sorte==='pc') e.className='pc'; else e.textContent=sorte; e.style.setProperty('--dx',Math.round((Math.random()*2-1)*150)+'px'); e.style.setProperty('--dy',Math.round(-90-Math.random()*170)+'px'); e.style.animationDelay=Math.round(Math.random()*140)+'ms'; w.appendChild(e); }
   document.body.appendChild(w); setTimeout(()=>w.remove(), 1500); try{ sonGain(); }catch(e){} vibrer([12,40,18]); }
 function sonGain(){ const a=audio(); if(!a) return; [988,1319].forEach((f,i)=>{ const o=a.createOscillator(), g=a.createGain(); o.type='triangle'; o.frequency.value=f; const t=a.currentTime+i*0.09; g.gain.setValueAtTime(0.0001,t); g.gain.exponentialRampToValueAtTime(0.16,t+0.01); g.gain.exponentialRampToValueAtTime(0.0001,t+0.28); o.connect(g); g.connect(a.destination); o.start(t); o.stop(t+0.3); }); }
 function vibrer(motif){ if(state.prefs && state.prefs.vibrations===false) return; if(navigator.vibrate) navigator.vibrate(motif); }
 let toastMinuterie=0;
-function toast(t){ const el=document.getElementById('toast'); el.textContent=t; el.classList.add('on'); clearTimeout(toastMinuterie); toastMinuterie=setTimeout(()=>el.classList.remove('on'), 2300); }
+function toast(t){ const el=document.getElementById('toast'); el.innerHTML=avecPieces(t); el.classList.add('on'); clearTimeout(toastMinuterie); toastMinuterie=setTimeout(()=>el.classList.remove('on'), 2300); }
 function communeName(citycode, city){ if(!citycode) return city||'?'; if(citycode.startsWith('751')) return 'Paris '+(parseInt(citycode.slice(3))+(parseInt(citycode.slice(3))===1?'er':'e')); return city||citycode; }
 // standing (plafond de construction) : démo, en vrai calculé avec DVF
 function rarete(a){ return R.rarete(a); }
@@ -224,7 +228,7 @@ function vue3d(){ map.easeTo({pitch:58, duration:500}); b3d.classList.add('on');
 function vue2d(){ map.easeTo({pitch:0, bearing:0, duration:500}); b2d.classList.add('on'); b3d.classList.remove('on'); styleParcelles(true); }
 b3d.onclick=vue3d; b2d.onclick=vue2d;
 document.getElementById('bnorth').onclick=()=>map.easeTo({bearing:0, duration:400});
-map.on('pitchend', ()=>{ const p=map.getPitch()>5; b3d.classList.toggle('on',p); b2d.classList.toggle('on',!p); styleParcelles(!p); });
+map.on('pitchend', ()=>{ if(document.getElementById('voyage').classList.contains('on')) return; const p=map.getPitch()>5; b3d.classList.toggle('on',p); b2d.classList.toggle('on',!p); styleParcelles(!p); });
 map.on('load', ()=>styleParcelles(false));
 
 // recherche
@@ -238,11 +242,39 @@ async function suggest(){ const t=q.value.trim(); if(t.length<3){ sugg.style.dis
 async function goFirst(){ const t=q.value.trim(); if(!t) return; try{ const f=await geocode(t,1); if(f[0]) goTo(f[0]); else toast('Adresse introuvable'); }catch(e){ toast('Recherche impossible'); } }
 let pin=null;
 function goTo(f){ sugg.style.display='none'; q.blur(); q.value=f.properties.label; showScreen('carte');
-  const [lon,lat]=f.geometry.coordinates; map.flyTo({center:[lon,lat], zoom: f.properties.type==='housenumber'?18:16.5, duration:1200});
-  if(pin) pin.remove(); pin = new maplibregl.Marker({color:'#ffd65a'}).setLngLat([lon,lat]).addTo(map);
-  if(f.properties.type==='housenumber'){ map.once('moveend', ()=>{ const pt=map.project([lon,lat]); const ff=map.queryRenderedFeatures(pt,{layers:['parcel-fill']}); if(ff[0]) selectParcel(ff[0]); }); }
+  const [lon,lat]=f.geometry.coordinates; const p=f.properties;
+  if(pin) pin.remove(); pin = new maplibregl.Marker({color:'#FFC233'}).setLngLat([lon,lat]).addTo(map);
+  allerA(lon, lat, p.type==='housenumber'?18:16.5, p.type==='housenumber' ? ()=>choisirParcelleEn(lon,lat) : null, p.name||p.label, [p.postcode,p.city].filter(Boolean).join(' '));
 }
-function flyToAddr(a){ showScreen('carte'); map.flyTo({center:[a.lon,a.lat], zoom:18, duration:1000}); map.once('moveend', ()=>{ const pt=map.project([a.lon,a.lat]); const ff=map.queryRenderedFeatures(pt,{layers:['parcel-fill']}); if(ff[0]) selectParcel(ff[0]); }); }
+function flyToAddr(a){ showScreen('carte'); allerA(a.lon, a.lat, 18, ()=>choisirParcelleEn(a.lon,a.lat), a.label, communeName(a.citycode,a.city)); }
+function choisirParcelleEn(lon,lat){ const pf=parcelleDe(lon,lat); if(pf) return selectParcel(pf); const pt=map.project([lon,lat]); const ff=map.queryRenderedFeatures(pt,{layers:['parcel-fill']}); if(ff[0]) selectParcel(ff[0]); }
+
+// Aller quelque part. Tout près : la carte glisse. Plus loin : un court écran de voyage, un saut direct, puis la caméra s'incline.
+// (Un survol depuis Paris jusqu'à Lyon téléchargeait en route des dizaines de tuiles lourdes : 10 à 30 s d'écran vide sur téléphone.)
+const voyage = { id:0 };
+function quandCartePrete(id, max, fn){ const t0=performance.now(); const chk=()=>{ if(id!==voyage.id) return; if((!map.isMoving() && map.areTilesLoaded()) || performance.now()-t0>max) fn(); else setTimeout(chk, 120); }; setTimeout(chk, 60); }
+function ecranVoyage(on, nom, sous){ const v=document.getElementById('voyage'); if(on){ document.getElementById('voyage-nom').textContent=nom||'En route…'; document.getElementById('voyage-sous').textContent=sous||''; } v.classList.toggle('on', !!on); }
+function allerA(lon, lat, zoom, ensuite, nom, sous){
+  const id = ++voyage.id; const c = map.getCenter(); const d = dist([c.lng,c.lat],[lon,lat]);
+  const fini = ()=>{ if(id!==voyage.id) return; ecranVoyage(false); pastilleCharge(false); if(ensuite) ensuite(); };
+  if(d < 2500){ map.easeTo({center:[lon,lat], zoom, duration: Math.min(1000, 400 + d/4)}); map.once('moveend', ()=>quandCartePrete(id, 6000, fini)); return; }
+  const en3d = map.getPitch() > 5, bearing = map.getBearing();
+  ecranVoyage(true, nom, sous);
+  setTimeout(()=>{ if(id!==voyage.id) return;
+    // à plat d'abord : 5 à 10 petites tuiles suffisent pour voir le quartier
+    map.jumpTo({ center:[lon,lat], zoom: en3d ? Math.min(19, zoom+0.6) : zoom, bearing, pitch:0 });
+    quandCartePrete(id, 8000, ()=>{ ecranVoyage(false);
+      if(!en3d) return fini();
+      map.easeTo({ center:[lon,lat], zoom, bearing, pitch:58, duration:1300, easing:t=>1-Math.pow(1-t,3) });
+      map.once('moveend', ()=>quandCartePrete(id, 6000, fini)); });
+  }, 220);
+}
+// une petite pastille quand le quartier met du temps à se dessiner
+let pastilleMin=null;
+function pastilleCharge(on){ document.getElementById('charge').classList.toggle('on', !!on); }
+map.on('movestart', ()=>clearTimeout(pastilleMin));
+map.on('moveend', ()=>{ clearTimeout(pastilleMin); pastilleMin=setTimeout(()=>{ if(!map.areTilesLoaded() && !document.getElementById('voyage').classList.contains('on')) pastilleCharge(true); }, 900); });
+map.on('idle', ()=>pastilleCharge(false));
 
 // état des parcelles
 const parcelAddrs = {};
@@ -251,21 +283,36 @@ function parcelState(idu){ const list = parcelAddrs[idu]; if(!list || !list.leng
   const owners = list.map(a=>ownerOf(a)); const mine = owners.filter(o=>o===ME).length, others = owners.filter(o=>o && o!==ME).length;
   if(!mine && !others) return 'free'; if(mine && !others) return 'me'; if(others && !mine) return 'other'; return 'mixed'; }
 function parcelBonus(idu){ const list=parcelAddrs[idu]; if(!list) return 0; let b=0; list.forEach(a=>{ b=Math.max(b, NIVEAUX[levelOf(a)].hauteur); }); return b; }
-function paintParcel(idu){ const st = parcelState(idu); if(st) map.setFeatureState({source:'pci', sourceLayer:'parcelle', id:idu}, {st}); paintBuildings(); paintBadges(idu); }
+// Les couleurs des parcelles et des bâtiments (feature-state). On ne repose un état que s'il change :
+// sinon chaque « idle » relançait un dessin, qui relançait un « idle »… et la carte ne se reposait jamais.
+const etatParc = {}, etatBati = {};
+function poserParcelle(idu, st){ if(etatParc[idu]===st) return; etatParc[idu]=st; map.setFeatureState({source:'pci', sourceLayer:'parcelle', id:idu}, {st}); }
+function paintParcel(idu){ const st = parcelState(idu); if(st) poserParcelle(idu, st); paintBuildings(); paintBadges(idu); }
 function seedVisible(){ if(map.getZoom()<15) return; const feats = map.queryRenderedFeatures({layers:['parcel-fill']}); const seen=new Set();
+  const miennes = new Set(Object.values(state.owned).map(a=>a.idu).filter(Boolean));
   for(const f of feats){ const idu=f.id; if(!idu || seen.has(idu)) continue; seen.add(idu);
-    if(parcelAddrs[idu]) { const st=parcelState(idu); if(st) map.setFeatureState({source:'pci', sourceLayer:'parcelle', id:idu}, {st}); continue; }
-    let st = parcelSeed(idu); const mine = Object.values(state.owned).some(a=>a.idu===idu); if(mine){ st = (st==='free') ? 'me' : 'mixed'; }
-    map.setFeatureState({source:'pci', sourceLayer:'parcelle', id:idu}, {st}); } }
+    if(parcelAddrs[idu]) { const st=parcelState(idu); if(st) poserParcelle(idu, st); continue; }
+    let st = parcelSeed(idu); if(miennes.has(idu)){ st = (st==='free') ? 'me' : 'mixed'; }
+    poserParcelle(idu, st); } }
 const batiParcel = {}; let selected = null;
 let monVisibles=[];
-function paintBuildings(){ const bb=map.getBounds(); monVisibles = LISTE_MON.filter(m=>bb.contains([m.lon,m.lat])); const feats = map.queryRenderedFeatures({layers:['bati-3d']}); const parcels = map.queryRenderedFeatures({layers:['parcel-fill']});
-  for(const b of feats){ const id=b.id; if(!id) continue; let idu = batiParcel[id];
-    if(idu===undefined){ const c=centroid(b.geometry); idu=null; for(const pf of parcels){ if(inside(c, pf.geometry)){ idu=pf.id; break; } } batiParcel[id]=idu; }
-    const st = idu ? (map.getFeatureState({source:'pci', sourceLayer:'parcelle', id:idu}).st || 'free') : 'free';
+function boite(geom){ const polys = geom.type==='Polygon' ? [geom.coordinates] : geom.coordinates; let x0=Infinity,y0=Infinity,x1=-Infinity,y1=-Infinity;
+  for(const poly of polys) for(const [x,y] of poly[0]){ if(x<x0)x0=x; if(x>x1)x1=x; if(y<y0)y0=y; if(y>y1)y1=y; } return [x0,y0,x1,y1]; }
+// une grille de cases d'environ 40 m : chaque bâtiment ne cherche sa parcelle que parmi ses voisines
+function grilleParcelles(parcels){ const T=0.0004, g=new Map();
+  for(const pf of parcels){ if(!pf.id) continue; const b=boite(pf.geometry); pf._b=b;
+    for(let i=Math.floor(b[0]/T); i<=Math.floor(b[2]/T); i++) for(let j=Math.floor(b[1]/T); j<=Math.floor(b[3]/T); j++){ const k=i+':'+j; let l=g.get(k); if(!l) g.set(k, l=[]); l.push(pf); } }
+  return (pt)=>{ const l=g.get(Math.floor(pt[0]/T)+':'+Math.floor(pt[1]/T)) || []; for(const pf of l){ const b=pf._b; if(pt[0]<b[0]||pt[0]>b[2]||pt[1]<b[1]||pt[1]>b[3]) continue; if(inside(pt, pf.geometry)) return pf.id; } return null; }; }
+function paintBuildings(){ const bb=map.getBounds(); monVisibles = LISTE_MON.filter(m=>bb.contains([m.lon,m.lat])); const feats = map.queryRenderedFeatures({layers:['bati-3d']});
+  let chercher=null; const vus=new Set();
+  for(const b of feats){ const id=b.id; if(!id || vus.has(id)) continue; vus.add(id); let idu = batiParcel[id]; let c=null;
+    if(idu===undefined){ if(!chercher) chercher = grilleParcelles(map.queryRenderedFeatures({layers:['parcel-fill']})); c=centroid(b.geometry); idu=chercher(c); batiParcel[id]=idu; }
+    const st = idu ? (etatParc[idu] || 'free') : 'free';
     const bonus = idu ? parcelBonus(idu) : 0;
-    const c=centroid(b.geometry); const mon = monVisibles.some(m=>dist(c,[m.lon,m.lat])<70);
-    map.setFeatureState({source:'topo', sourceLayer:'batiment', id}, {st, sel: !!idu && idu===selected, bonus, monument:mon}); } }
+    let mon=false; if(monVisibles.length){ c = c || centroid(b.geometry); mon = monVisibles.some(m=>dist(c,[m.lon,m.lat])<70); }
+    const sel = !!idu && idu===selected; const cle = st+'|'+(sel?1:0)+'|'+bonus+'|'+(mon?1:0);
+    if(etatBati[id]===cle) continue; etatBati[id]=cle;
+    map.setFeatureState({source:'topo', sourceLayer:'batiment', id}, {st, sel, bonus, monument:mon}); } }
 // Les monuments sur la carte : un halo doré et le nom (couches légères, valables pour les 458).
 map.on('load', ()=>{
   map.addSource('monuments', { type:'geojson', data:{ type:'FeatureCollection', features: LISTE_MON.map(m=>({ type:'Feature', properties:{ id:m.id, nom:m.nom, national: m.palier==='national' }, geometry:{ type:'Point', coordinates:[m.lon,m.lat] } })) } });
@@ -274,7 +321,6 @@ map.on('load', ()=>{
   map.addLayer({ id:'mon-nom', type:'symbol', source:'monuments', minzoom:15,
     layout:{ 'text-field':['get','nom'], 'text-font':['Open Sans Regular'], 'text-size':['case',['get','national'],15,13], 'text-offset':[0,-2.2], 'text-anchor':'bottom', 'text-allow-overlap':false },
     paint:{ 'text-color':'#5a3d00', 'text-halo-color':'#ffd65a', 'text-halo-width':2.2 } });
-  let t=0; setInterval(()=>{ t+=0.12; if(map.getLayer('mon-halo')) map.setPaintProperty('mon-halo','circle-opacity', 0.15+0.15*(1+Math.sin(t))); }, 120);
   map.on('click','mon-halo', (e)=>{ const f=e.features[0]; const m=LISTE_MON.find(x=>x.id===f.properties.id); if(!m) return;
     const enJeu = lotsDe(semaineEnCours()).some(l=>l.m.id===m.id); toast(`${m.icone} ${m.nom} · monument ${m.palier==='national'?'national (légendaire)':'régional'}${enJeu?' · aux enchères cette semaine !':''}`); if(enJeu) setTimeout(()=>showScreen('encheres'), 900); });
 });
@@ -297,15 +343,29 @@ async function afficherCelebres(){
 // toucher un repère : la parcelle du lieu s'ouvre (le lieu y est proposé)
 function parcelleDe(lon, lat){ return map.querySourceFeatures('pci',{sourceLayer:'parcelle'}).find(f=>inside([lon,lat], f.geometry)); }
 function ouvrirCelebre(e){ const pf = parcelleDe(e[3], e[4]); if(pf) return selectParcel(pf);
-  map.flyTo({center:[e[3],e[4]], zoom:18, duration:800}); map.once('idle', ()=>{ const pf2 = parcelleDe(e[3], e[4]); if(pf2) selectParcel(pf2); else toast('⭐ '+e[1]); }); }
+  allerA(e[3], e[4], 18, ()=>{ const pf2 = parcelleDe(e[3], e[4]); if(pf2) selectParcel(pf2); else toast('⭐ '+e[1]); }, e[1]); }
+function voirMonument(id){ const m=LISTE_MON.find(x=>x.id===id); if(!m) return; showScreen('carte'); allerA(m.lon, m.lat, 17, null, m.nom, m.ville); }
 map.on('load', afficherCelebres);
 map.on('moveend', afficherCelebres);
+// Les monuments visibles « respirent » : un anneau doré animé en CSS (un élément HTML, sans redessiner la carte ;
+// l'ancienne pulsation repeignait toute la carte 8 fois par seconde, même au repos).
+const monAnneaux = {};
+function anneauxMonuments(){ const bb=map.getBounds(); const vis=LISTE_MON.filter(m=>bb.contains([m.lon,m.lat])).slice(0,8); const garder=new Set(vis.map(m=>m.id));
+  for(const m of vis) if(!monAnneaux[m.id]){ const el=document.createElement('div'); el.className='mon-anneau'+(m.palier==='national'?' national':''); el.innerHTML='<i></i><i></i>';
+    monAnneaux[m.id]=new maplibregl.Marker({element:el}).setLngLat([m.lon,m.lat]).addTo(map); }
+  for(const id of Object.keys(monAnneaux)) if(!garder.has(id)){ monAnneaux[id].remove(); delete monAnneaux[id]; } }
+map.on('load', anneauxMonuments);
+map.on('moveend', anneauxMonuments);
 const badges = {};
 function setBadge(a, lv){ const key=a.id; const vente = enVente(a); if(vente){ if(!badges[key]){ const el=document.createElement('div'); el.className='badge vente'; badges[key]=new maplibregl.Marker({element:el}).setLngLat([a.lon,a.lat]).addTo(map); } const el=badges[key].getElement(); el.classList.add('badge','vente'); /* classList : ne pas effacer la classe maplibregl-marker (sinon le badge perd sa position et s'étale en ellipse) */ el.textContent = lv>0 ? NIVEAUX[lv].icone+'💰' : '💰'; el.style.width='auto'; el.style.padding='0 6px'; return; } if(badges[key] && badges[key].getElement().classList.contains('vente')){ badges[key].remove(); delete badges[key]; }
   if(lv>0){ if(!badges[key]){ const el=document.createElement('div'); el.className='badge'; badges[key]=new maplibregl.Marker({element:el}).setLngLat([a.lon,a.lat]).addTo(map); } badges[key].getElement().textContent=NIVEAUX[lv].icone; } else if(badges[key]){ badges[key].remove(); delete badges[key]; } }
 function paintBadges(idu){ const list=parcelAddrs[idu]; if(!list) return; list.forEach(a=>setBadge(a, levelOf(a))); }
 function restoreBadges(){ for(const a of Object.values(state.owned)) setBadge(a, a.niveau||0); }
-map.on('idle', ()=>{ seedVisible(); paintBuildings(); });
+// on repeint quand de nouvelles tuiles arrivent ou que la vue a bougé, une fois la carte au repos
+let aPeindre=true;
+map.on('sourcedata', e=>{ if(e.tile && (e.sourceId==='topo' || e.sourceId==='pci')) aPeindre=true; });
+map.on('moveend', ()=>{ aPeindre=true; });
+map.on('idle', ()=>{ if(!aPeindre) return; aPeindre=false; seedVisible(); paintBuildings(); });
 map.on('load', restoreBadges);
 // l'écran d'accueil s'efface quand la carte est prête (au plus tard après 6 s)
 function finAccueil(){ const a=document.getElementById('accueil'); if(!a || a.classList.contains('fin')) return; a.classList.add('fin'); setTimeout(()=>a.remove(), 600); }
@@ -625,24 +685,45 @@ let packCards=null, packTorn=false;
 function openScene(){ const sc=document.getElementById('packscene'); packTorn=false; packCards=null; document.getElementById('pkgl').style.display='block';
   document.getElementById('pkcards').innerHTML=''; document.getElementById('packdone').style.display='none'; document.getElementById('pkhint').textContent='Incline ton téléphone…'; document.getElementById('pkload').textContent='Le pack arrive…';
   sc.classList.add('on'); requestAnimationFrame(()=>{ sc.classList.add('show'); initGL(); }); }
-function finPack(){ const sc=document.getElementById('packscene'); sc.classList.remove('show'); setTimeout(()=>{ sc.classList.remove('on'); disposeGL(); }, 500); renderPatrimoine(); refreshTop(); if(!state.prefs.guideVu) setTimeout(()=>guide(0), 900); }
+function finPack(){ const sc=document.getElementById('packscene'); sc.classList.remove('show','fini'); setTimeout(()=>{ sc.classList.remove('on'); disposeGL(); }, 500); renderPatrimoine(); refreshTop(); if(!state.prefs.guideVu) setTimeout(()=>guide(0), 900); }
 function dechirer(){ packTorn=true; GL.torn=true; GL.tornAt=performance.now(); sonDechirure(); document.getElementById('pkhint').textContent='';
   setTimeout(()=>{ sortirCartes(); }, 650); setTimeout(()=>{ document.getElementById('pkgl').style.display='none'; disposeGL(); }, 1800); }
-function sortirCartes(){ const wrap=document.getElementById('pkcards'); const n=packCards.length; let revealed=0;
+function sortirCartes(){ const wrap=document.getElementById('pkcards'); const sc=document.getElementById('packscene'); const n=packCards.length; let revealed=0;
   packCards.forEach((c,i)=>{ const el=document.createElement('div'); const r=rarete(c); el.className='rcard r'+r;
     el.innerHTML=`<div class="face back">🎁</div><div class="face front"><div class="rar">${RARETES[r]}</div><div class="big">${iconeLieu(c)}</div><div class="n">${echapper(c.label)}</div><div class="m">${echapper(communeName(c.citycode,c.city))}</div><div class="chips" style="justify-content:center;margin:6px 0 0"><span class="chip or"><b>${nb(valeur(c))}</b><i class="pc"></i></span><span class="chip">Jusqu’à ${NIVEAUX[plafond(c)].icone} ${NIVEAUX[plafond(c)].nom}</span></div></div>`;
-    // pile : chaque carte sort du pack, puis se range en éventail en bas
     el.style.setProperty('--x','0px'); el.style.setProperty('--y','0px'); el.style.setProperty('--r','0deg'); el.style.setProperty('--s','1');
     wrap.appendChild(el);
     setTimeout(()=>{ el.classList.add('in','pos'); }, 120+i*140);
-    el.onclick=async()=>{ if(el.classList.contains('flip')||revealing) return; revealing=true; document.getElementById('pkhint').textContent=''; try{ await revealSequence(c); }catch(e){} revealing=false; el.classList.remove('pos'); el.classList.add('flip'); revealed++; sonCarte(r);
-      // la carte révélée se range en bas, en éventail
-      setTimeout(()=>{ const k=revealed-1; el.style.setProperty('--x',(k-(n-1)/2)*64+'px'); el.style.setProperty('--y','230px'); el.style.setProperty('--r',((k-(n-1)/2)*7)+'deg'); el.style.setProperty('--s','.55'); el.style.zIndex=k; }, 1700);
-      if(revealed===n){ document.getElementById('packdone').style.display='block'; document.getElementById('pkhint').textContent='5 nouveaux lieux dans ton patrimoine'; } else document.getElementById('pkhint').textContent='Touche la carte suivante'; };
+    el.onclick=async()=>{
+      // une fois tout révélé : toucher une carte l'agrandit, la toucher encore la range
+      if(el.classList.contains('flip')){ if(sc.classList.contains('fini')){ const z=!el.classList.contains('zoom'); wrap.querySelectorAll('.zoom').forEach(x=>x.classList.remove('zoom')); el.classList.toggle('zoom', z); vibrer(8); } return; }
+      if(revealing) return; revealing=true; document.getElementById('pkhint').textContent=''; try{ await revealSequence(c); }catch(e){} revealing=false; el.classList.remove('pos'); el.classList.add('flip'); revealed++; sonCarte(r);
+      const tout = revealed===n;
+      document.getElementById('pkhint').textContent = tout ? '' : 'Touche la carte suivante';
+      // la carte révélée rejoint l'éventail ; à la fin, l'éventail se centre au-dessus du bouton
+      setTimeout(()=>{ if(tout){ sc.classList.add('fini'); document.getElementById('packdone').style.display='block'; document.getElementById('pkhint').textContent='5 nouveaux lieux dans ton patrimoine · touche une carte pour la voir'; } dispoPack(); }, 1700); };
   });
   // la carte du dessus est cliquable ; les autres en dessous (z-index inversé)
   [...wrap.children].forEach((el,i)=>{ el.style.zIndex=n-i; });
+  dispoPack();
   document.getElementById('pkhint').textContent='Touche la carte pour la retourner'; }
+// Où poser les cartes : la pile en haut, l'éventail des cartes révélées en dessous, et rien sous le texte ni sous le bouton
+// (sur un petit téléphone, l'éventail tombait sur le bouton « Super ! » et le cachait).
+function dispoPack(){ const sc=document.getElementById('packscene'), wrap=document.getElementById('pkcards'); if(!sc.classList.contains('on')) return;
+  const H=sc.clientHeight, W=sc.clientWidth, haut=18; const cartes=[...wrap.children]; const n=cartes.length; if(!n) return;
+  const rev=cartes.filter(c=>c.classList.contains('flip')), pile=cartes.filter(c=>!c.classList.contains('flip')); const fini=!pile.length;
+  const hint=document.getElementById('pkhint'), bouton=document.getElementById('packdone'); const top0=sc.getBoundingClientRect().top;
+  let bas = (fini && bouton.offsetParent ? bouton.getBoundingClientRect().top : hint.getBoundingClientRect().top) - top0 - (fini ? 16 : 0);
+  if(hint.textContent) bas = Math.min(bas, hint.getBoundingClientRect().top - top0) - 12;
+  const pose=(el,x,y,r,sc2)=>{ el.style.setProperty('--x',x+'px'); el.style.setProperty('--y',y+'px'); el.style.setProperty('--r',r+'deg'); el.style.setProperty('--s',sc2); };
+  const sz=Math.min(1, (bas-haut-16)/320, (W-32)/220); wrap.style.setProperty('--yz', ((haut+bas)/2 - H/2)+'px'); wrap.style.setProperty('--sz', sz);
+  if(fini){ const s=Math.max(.4, Math.min(.68, (bas-haut-40)/320, (W-56)/(220*2.1))); const cw=220*s; const dx=Math.min(cw*.62, (W-56-cw)/Math.max(1,n-1)); const yc=(haut+bas)/2 - H/2;
+    rev.forEach((el,k)=>{ const d=k-(n-1)/2; pose(el, d*dx, yc+Math.abs(d)*7, d*5, s); el.style.zIndex=k; }); return; }
+  const sf=Math.min(.5, (W-56)/(220*2.2)), fh=320*sf, cw=220*sf; const dx=Math.min(64, (W-56-cw)/Math.max(1,n-1)); const yFan=bas-fh/2-14-H/2;
+  rev.forEach((el,k)=>{ const d=k-(n-1)/2; pose(el, d*dx, yFan, d*7, sf); el.style.zIndex=k; });
+  const hautFan=H/2+yFan-fh/2-16; const ss=Math.max(.5, Math.min(1, (hautFan-haut)/320)); const ys=(haut+hautFan)/2-H/2;
+  pile.forEach(el=>pose(el, 0, ys, 0, ss)); }
+window.addEventListener('resize', ()=>dispoPack());
 // =================== tirage du pack (règles : src/regles/pack.js ; serveur simulé) ===================
 // Chaque carte : sa rareté tirée (60 / 26 / 11 / 3 %), puis un lieu libre de cette rareté n'importe où en France.
 //   Commun : l'adresse la plus proche d'un point au hasard ; Peu commun : une adresse d'une commune au standing 2 ;
@@ -698,7 +779,7 @@ function refreshPack(){ const b=document.getElementById('packbtn'), t=document.g
 
 // =================== écrans ===================
 function showScreen(name){ vibrer(8); document.querySelectorAll('.screen').forEach(s=>s.classList.remove('on')); document.querySelectorAll('#nav button[data-s]').forEach(b=>b.classList.toggle('on', b.dataset.s===name));
-  const hide = name!=='carte'; ['top','ctrls','legend'].forEach(id=>document.getElementById(id).style.display = hide?'none':''); closeSheet(); closeModal();
+  const hide = name!=='carte'; ['top','ctrls','legend'].forEach(id=>document.getElementById(id).style.display = hide?'none':''); closeSheet(); if(!(window.Compte && Compte.bloque && Compte.bloque())) closeModal();
   if(name==='patrimoine') renderPatrimoine(); if(name==='encheres') renderEncheres(); if(name==='communes') renderCommunes(); if(name==='notifs') renderNotifs();
   if(hide) document.getElementById('s-'+name).classList.add('on'); else map.resize(); }
 document.querySelectorAll('#nav button[data-s]').forEach(b=>b.onclick=()=>showScreen(b.dataset.s));
@@ -750,14 +831,14 @@ function renderEncheres(){ const el=document.getElementById('s-encheres'); const
     h+=`<div class="card lot r5" style="border:3px solid ${nat?'var(--piece)':'#BFD3F5'}">
       <div class="tete" style="display:flex;gap:12px;align-items:center"><div class="ico-lieu ${nat?'r5':'r3'}">${lot.m.icone}</div><div style="flex:1;min-width:0">
         <span class="tag ${nat?'monument':'r3'}" style="margin:0 0 4px">${nat?'👑 Légendaire national':'Monument régional'}</span>
-        <div class="t" style="line-height:1.15">${echapper(lot.m.nom)}</div><div class="m">${echapper(lot.m.ville)} · départ ${nb(ENC.miseDepart(lot.m))} 🪙</div></div></div>
+        <div class="t" style="line-height:1.15">${echapper(lot.m.nom)}</div><div class="m">${echapper(lot.m.ville)} · départ ${pcs(ENC.miseDepart(lot.m))}</div></div></div>
       <div class="flex" style="margin-top:12px;align-items:flex-end"><div><div class="m" style="margin:0">Meilleure mise</div><div class="mise">${top?nb(top.montant):'—'}${top?'<i class="pc"></i>':''}</div></div>
         <div style="text-align:right">${top?`<span class="own ${jeMene?'me':'other'}" onclick="showPlayer('${top.qui}')">${jeMene?'🎉 Toi':'👤 '+echapper(top.qui)}</span>`:'<span class="m">Aucune mise</span>'}</div></div>
       ${statut?`<div style="margin-top:8px">${statut}</div>`:''}
       <div class="rapides">${rapides.map((v,i)=>`<button class="btn${i===0?'':' clair'}" onclick="encherir('${lot.cle}', ${v})"><span>${i===0?'Miser':i===1?'+10 %':'+25 %'}</span><span class="montant">${nb(v)}<i class="pc"></i></span></button>`).join('')}</div>
       <details><summary>Autre montant</summary><div class="offre" style="display:flex;gap:8px;margin-top:8px"><input class="num" id="${id}" type="number" inputmode="numeric" value="${valeur}" oninput="saisieEnch['${lot.cle}']=parseInt(this.value)||0" style="flex:1"><button class="btn bleu" onclick="encherir('${lot.cle}', parseInt(document.getElementById('${id}').value)||0)">Enchérir</button></div></details>
       <details><summary>Historique des mises (${mises.length})</summary>${mises.slice().sort((a,b)=>b.ts-a.ts).map(b=>`<div class="rank"><span class="who" onclick="showPlayer('${b.qui}')">${echapper(disp(b.qui))}</span><b>${nb(b.montant)}<i class="pc"></i></b></div>`).join('')||'<div class="m">Aucune mise pour l’instant.</div>'}</details>
-      <button class="btn clair sm" style="margin-top:10px" onclick="showScreen('carte');map.flyTo({center:[${lot.m.lon},${lot.m.lat}],zoom:17,duration:1200})">🗺️ Voir sur la carte</button></div>`; }
+      <button class="btn clair sm" style="margin-top:10px" onclick="voirMonument('${lot.m.id}')">🗺️ Voir sur la carte</button></div>`; }
   h+=`<div class="card"><details><summary class="t" style="color:var(--encre)">Comment ça marche ?</summary><div class="m" style="margin-top:8px">Ta mise doit être couverte par tes pièces, moins ce que tu as déjà engagé sur les autres enchères où tu mènes. Si quelqu’un te dépasse, tes pièces sont libérées. À la clôture, si le meneur n’a plus les fonds, le monument va à la mise suivante.</div></details></div>`;
   h+=`<h2 class="section">Les semaines suivantes</h2><div class="card">`; for(let k=1;k<=2;k++) for(const l of lotsDe(idx+k)) h+=`<div class="rank"><span class="pos">${k===1?'S+1':'S+2'}</span><span class="who">${l.m.icone} ${echapper(l.m.nom)}</span><b style="font-size:14px">${nb(ENC.miseDepart(l.m))}<i class="pc"></i></b></div>`; h+=`</div>`;
   el.innerHTML=h; }
@@ -785,7 +866,7 @@ function renderNotifs(){ const el=document.getElementById('s-notifs'); let h=`<h
   if(!state.notifs.length) h+=`<div class="card vide"><div class="ico">🔔</div><div class="t">Rien de neuf</div><div class="m">Les offres reçues, les enchères et les ventes arrivent ici.</div></div>`;
   let section='';
   for(const n of state.notifs){ const s2 = n.read ? 'Plus tôt' : 'Nouveau'; if(s2!==section){ section=s2; h+=`<h2 class="section">${section}</h2>`; }
-    h+=`<div class="card notif ${n.read?'':'unread'}"><div class="ico">${iconeNotif(n)}</div><div style="flex:1;min-width:0"><div class="quand">${ilYa(n.ts)}</div><div class="texte">${n.text}</div>`;
+    h+=`<div class="card notif ${n.read?'':'unread'}"><div class="ico">${iconeNotif(n)}</div><div style="flex:1;min-width:0"><div class="quand">${ilYa(n.ts)}</div><div class="texte">${avecPieces(n.text)}</div>`;
     if(n.offerId){ const o=state.offersIn.find(x=>x.id===n.offerId); if(o && o.status==='attente') h+=`<div class="build"><button class="btn vert sm" onclick="repondreOffre('${o.id}',true)">Accepter · ${nb(o.price)}<i class="pc"></i></button><button class="btn sm" onclick="repondreOffre('${o.id}',false)">Refuser</button></div>`; else if(o) h+=`<div class="chip" style="margin-top:6px">${o.status==='acceptee'?'✅ Acceptée':'❌ Refusée'}</div>`; }
     if(n.addrId && state.owned[n.addrId]) h+=`<div class="build"><button class="btn clair sm" onclick="flyToAddr(state.owned['${n.addrId}'])">🗺️ Voir sur la carte</button></div>`;
     h+=`</div></div>`; }
@@ -794,7 +875,7 @@ function renderNotifs(){ const el=document.getElementById('s-notifs'); let h=`<h
 const GUIDE=[
   { cible:'#packbtn', titre:'🎁 Ton pack du jour', texte:'Chaque jour, 5 lieux tirés dans toute la France. Le bouton brille quand un nouveau pack t’attend.' },
   { centre:true, titre:'🗺️ Touche un bâtiment', texte:'Tu vois ses lieux, leur rareté et leur propriétaire. Chez toi, tu construis ; chez les autres, tu fais une offre.' },
-  { cible:'#walletpill', titre:'🪙 Tes pièces', texte:'Ton salaire et tes loyers s’accumulent pendant 24 h. Touche ta bourse pour récolter, et reviens chaque jour.' },
+  { cible:'#walletpill', titre:'<i class="pc"></i> Tes pièces', texte:'Ton salaire et tes loyers s’accumulent pendant 24 h. Touche ta bourse pour récolter, et reviens chaque jour.' },
   { cible:'#nav button[data-s="patrimoine"]', titre:'🏘️ Ta collection', texte:'Tes lieux en cartes. Maison, Immeuble, Tour : plus tu construis haut, plus le loyer monte.' },
   { cible:'#nav button[data-s="encheres"]', titre:'🔨 Les monuments', texte:'Chaque semaine, trois monuments sont mis aux enchères pour toute la France.' },
   { cible:'#nav button[data-s="communes"]', titre:'👑 Deviens Maire', texte:'Possède le plus de lieux d’une commune et tu en deviens le Maire.' } ];
@@ -907,6 +988,6 @@ function recolteConnexion(ensuite){ const p=Math.floor(pendingRent()); if(p<1) r
 function demarrageLocal(){ if(!state.pseudo) setTimeout(creationProfil, 600); else setTimeout(()=>recolteConnexion(packAuDemarrage), 500); }
 refreshTop(); tickAuction();
 </script>
-<script src="src/compte.js"></script>
+<script src="src/compte.js?v=20261103a"></script>
 </body>
 </html>

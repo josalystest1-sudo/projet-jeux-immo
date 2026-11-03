@@ -9,6 +9,7 @@
   const ouvrir = (html) => { box().innerHTML = html; document.getElementById('modal').classList.add('on'); };
   const echapper = (t) => String(t).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
   let bloquant = false; // l'écran de compte ne se ferme pas d'un toucher à côté
+  Compte.bloque = () => bloquant; // ni d'un changement d'écran
 
   // les messages d'erreur de Supabase, en français
   function texteErreur(e) {

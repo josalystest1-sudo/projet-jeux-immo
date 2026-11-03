@@ -152,7 +152,7 @@ Tout le game design d'abord (fonctions complètes, serveur simulé → vrai serv
 
 ## 12. Nom, monnaie, style, lancement **[Décidé le 2 nov.]**
 
-- **Monnaie : les « pièces »**.
+- **Monnaie : les « pièces »**. Son signe : une pièce d'or en forme de maison, frappée d'un C (demande de Gautier le 3 nov. : « un signe plus original » ; dessin proposé par Claude). **[Proposé]**
 - **Nom : Cadastra.** **[Décidé le 2 nov., à confirmer]** Vérifications du 2 nov. :
   - Domaines : cadastra.fr pris (février 2026, site inactif), cadastra.com pris (agence brésilienne Cadastra), cadastra.app pris (avril 2026, site en erreur). Libre : cadastra-jeu.fr.
   - Marques (base INPI, qui couvre aussi les marques européennes et internationales visant la France) : « CadastrA » **enregistrée en France** (2021, société DEPGA) en classes 6, 19, 35, 36 (immobilier), 37, 42 (logiciels / informatique), 45 ; « Cadastra » internationale (2024, Cadastra Marketing Digital) en classe 35. Aucune en classes 9 / 41 (jeux), mais la proximité immobilier + logiciel crée un risque d'opposition. Avis d'un professionnel conseillé avant dépôt.
