@@ -3,8 +3,8 @@
 // que le jeu (src/regles, recopiées dans _genere/ par tools/serveur_prepare.js), puis écrit par les fonctions SQL
 // jeu_* (supabase/sql/010_jeu.sql), chacune atomique. Réponse : { ok: true, ... } ou { ok: false, code, message }.
 import { createClient } from '@supabase/supabase-js';
-import { Regles, Pack, Celebres, Tirage } from './_genere/regles.mjs';
-import { ECO, STANDING, FRANCE, DEPARTEMENTS, CELEBRES } from './_genere/donnees.mjs';
+import { Regles, Pack, Celebres, Tirage, Encheres } from './_genere/regles.mjs';
+import { ECO, STANDING, FRANCE, DEPARTEMENTS, CELEBRES, MONUMENTS } from './_genere/donnees.mjs';
 
 const R = Regles.creer(ECO, STANDING);
 
@@ -74,6 +74,7 @@ const REFUS_SQL: Record<string, string> = {
   echange: 'Cet échange n’est plus valable.', echange_change: 'Un des lieux proposés a changé de main : l’échange est annulé.',
   deja_echange: 'Tu as déjà proposé un échange pour ce lieu : annule-le d’abord.', deja_propose: 'Un de ces lieux est déjà proposé dans un autre échange.',
   rien: 'Choisis au moins un de tes lieux.', trop: 'Trente lieux au plus dans un échange.',
+  lot: 'Cette enchère n’existe pas.', close: 'Cette enchère est close.', min: 'Ta mise est trop basse.',
 };
 async function rpc(nom: string, args: Ligne) {
   const { data, error } = await admin.rpc(nom, args);
@@ -114,10 +115,10 @@ const TIRAGE = Tirage.creer({
 // ma partie : pièces, lieux, ce qui attend d'être récolté (rendue aussi après chaque action : le jeu se recale dessus)
 async function etatDe(j: string) {
   const jr = await joueur(j), lieux = await mesLieux(j), maintenant = Date.now(), jm = await jourMs();
-  const [offres, echanges, notifs] = await Promise.all([mesOffres(j), mesEchanges(j), mesNotifs(j)]);
+  const [offres, echanges, notifs, encheres] = await Promise.all([mesOffres(j), mesEchanges(j), mesNotifs(j), mesEncheres(j)]);
   return {
     pieces: Number(jr.pieces), encaisse: ms(jr.encaisse), dernierJour: jr.dernier_jour == null ? null : Number(jr.dernier_jour), jour: Regles.jourDuJeu(maintenant, jm),
-    lieux, maintenant, aRecolter: R.aEncaisser(lieux, ms(jr.encaisse), maintenant, jm), jourMs: jm, ...offres, ...echanges, notifs,
+    lieux, maintenant, aRecolter: R.aEncaisser(lieux, ms(jr.encaisse), maintenant, jm), jourMs: jm, ...offres, ...echanges, notifs, ...encheres,
   };
 }
 // mes offres reçues et envoyées (en attente, et les dernières réglées), avec le lieu et l'autre joueur
@@ -316,6 +317,113 @@ ACTIONS.repondre_echange = async (j, corps) => {
   return { accepte: true, label, dons, ajout, proposeur: lui, recus: x.donnes };
 };
 
+// ---------------------------------------------------------------- les enchères de monuments (8.1g)
+// Chaque semaine du jeu (jour du jeu / 7 ; sur le serveur d'essai, une semaine = 7 jours d'une minute), 3 lots tirés
+// par src/regles/encheres.js parmi les monuments encore libres. Pas de minuterie : le calendrier est tenu à chaque
+// appel (tenirEncheres) : les lots finis sont clos, ceux de la semaine sont ouverts s'ils manquent.
+const ENC = Encheres.creer(ECO);
+const LISTE_MON = MONUMENTS as Ligne[];
+async function semaineServeur() {
+  const jm = await jourMs(), s = Math.floor(Regles.jourDuJeu(Date.now(), jm) / 7);
+  return { s, debut: Regles.debutJour(s * 7, jm), fin: Regles.debutJour((s + 1) * 7, jm) };
+}
+// les monuments qui ne sont à personne et pas déjà dans un lot ouvert, par palier
+async function monumentsLibres(enJeu: string[]) {
+  const { data, error } = await admin.from('lieux').select('id').eq('type', 'monument');
+  if (error) throw error;
+  const pris = new Set([...(data || []).map((l: Ligne) => l.id), ...enJeu.map((id) => 'mon:' + id)]);
+  const libres = LISTE_MON.filter((m) => !pris.has('mon:' + m.id));
+  return { nat: libres.filter((m) => m.palier === 'national'), reg: libres.filter((m) => m.palier !== 'national') };
+}
+// le lieu que reçoit le gagnant (comme dans la démo : « mon: » + l'identifiant du monument)
+const lieuMonument = (m: Ligne) => ({ id: 'mon:' + m.id, label: m.nom, lon: m.lon, lat: m.lat, citycode: m.insee || '', city: m.ville || '', commune: Regles.nomCommune(m.insee || '', m.ville || ''), qid: /^Q\d+$/.test(m.id) ? m.id : null });
+let encheresTenues = 0;
+async function tenirEncheres(force = false) {
+  if (!force && Date.now() - encheresTenues < 5000) return;
+  encheresTenues = Date.now();
+  const { data: finis, error } = await admin.from('encheres').select('*').eq('statut', 'ouverte').lte('fin', new Date().toISOString()).limit(10);
+  if (error) throw error;
+  for (const l of finis || []) await cloturer(l);
+  const { s, fin } = await semaineServeur();
+  const { count } = await admin.from('encheres').select('cle', { count: 'exact', head: true }).eq('semaine', s);
+  if (count) return;
+  const { data: ouverts } = await admin.from('encheres').select('monument').eq('statut', 'ouverte');
+  const { nat, reg } = await monumentsLibres((ouverts || []).map((o: Ligne) => o.monument));
+  const lots = ENC.lots(s, nat, reg).map((x: Ligne, k: number) => ({ cle: x.cle, semaine: s, rang: k, palier: x.palier, monument: x.m.id, lieu: lieuMonument(x.m), depart: ENC.miseDepart(x.m), fin: new Date(fin).toISOString() }));
+  if (lots.length) await rpc('jeu_encheres_ouvrir', { lots });
+}
+// clore un lot fini : le monument va à la meilleure mise couverte par les pièces (sinon à la suivante) ; chacun est prévenu
+async function cloturer(l: Ligne) {
+  const { data: mises } = await admin.from('mises').select('joueur, montant, id').eq('lot', l.cle);
+  const joueurs = [...new Set((mises || []).map((b: Ligne) => b.joueur as string))];
+  for (const u of joueurs) await recolter(u).catch(() => {});   // les loyers de chacun comptent pour payer
+  const top = ENC.meilleure((mises || []).map((b: Ligne) => ({ qui: b.joueur, montant: Number(b.montant), ts: Number(b.id) })));
+  const r = await rpc('jeu_enchere_cloturer', { c: l.cle });
+  if (!r) return;   // déjà clos par un autre appel
+  const nom = (l.lieu && l.lieu.label) || 'le monument', g = r.gagnant as string | null, prix = Number(r.prix || 0), ps = await pseudos(joueurs);
+  for (const u of joueurs) {
+    if (u === g) { await notifier(u, 'enchere', `🏆 Tu as remporté ${nom} pour ${fmt(prix)} !`, { lieu: l.lieu.id }); continue; }
+    const passe = top && top.qui === u ? ' Tu menais, mais tes pièces ne couvraient plus ta mise : il passe à la mise suivante.' : '';
+    await notifier(u, 'enchere', `Enchère terminée : ${nom} va à ${g ? `${ps[g] || 'un joueur'} pour ${fmt(prix)}` : 'personne'}.${passe}`, {});
+  }
+}
+// mes mises qui mènent (bloquées) et les lots où l'on m'a dépassé : dans ma partie
+async function mesEncheres(j: string) {
+  const r: Ligne = (await rpc('jeu_menees', { j })) || {};
+  const menees: Record<string, number> = {}; for (const [c, v] of Object.entries(r.menees || {})) menees[c] = Number(v);
+  return { encheresMenees: menees, encheresDepasse: r.depasse || [] };
+}
+// la semaine aux enchères : les lots, leurs mises (avec les pseudos), la fin, et un aperçu des deux semaines suivantes
+ACTIONS.encheres = async (j) => {
+  await tenirEncheres(true);
+  const { s, debut, fin } = await semaineServeur();
+  const { data: lots, error } = await admin.from('encheres').select('*').eq('semaine', s).order('rang');
+  if (error) throw error;
+  const cles = (lots || []).map((l: Ligne) => l.cle);
+  const { data: mises } = cles.length ? await admin.from('mises').select('lot, joueur, montant, id, cree_le').in('lot', cles).order('id', { ascending: false }).limit(300) : { data: [] as Ligne[] };
+  const ps = await pseudos((mises || []).map((b: Ligne) => b.joueur));
+  const { nat, reg } = await monumentsLibres((lots || []).map((l: Ligne) => l.monument));
+  const apercu = (x: Ligne) => ({ cle: x.cle, semaine: x.semaine, palier: x.palier, monument: x.m.id, depart: ENC.miseDepart(x.m), mises: [] });
+  return {
+    semaine: s, debut, fin, maintenant: Date.now(),
+    lots: (lots || []).map((l: Ligne) => ({ cle: l.cle, semaine: s, palier: l.palier, monument: l.monument, depart: Number(l.depart), fin: ms(l.fin), statut: l.statut,
+      mises: (mises || []).filter((b: Ligne) => b.lot === l.cle).map((b: Ligne) => ({ uid: b.joueur, qui: ps[b.joueur] || 'Un joueur', montant: Number(b.montant), ts: ms(b.cree_le) })) })),
+    suivantes: [1, 2].map((k) => ENC.lots(s + k, nat, reg).map(apercu)),
+    ...(await mesEncheres(j)),
+  };
+};
+// miser : au moins la mise minimale, couverte par les pièces moins les mises qui mènent ailleurs ; le meneur d'avant est prévenu
+ACTIONS.miser = async (j, corps) => {
+  await tenirEncheres();
+  const cle = String(corps.cle || ''), montant = Number(corps.montant);
+  if (!Number.isInteger(montant) || montant <= 0 || montant > Regles.PRIX_MAX) throw new Refus('prix', 'Tape une mise en pièces (un nombre entier).');
+  const { data: l } = await admin.from('encheres').select('*').eq('cle', cle).maybeSingle();
+  if (!l) throw new Refus('lot', REFUS_SQL.lot);
+  if (l.statut !== 'ouverte' || Date.parse(l.fin) <= Date.now()) throw new Refus('close', REFUS_SQL.close);
+  await recolter(j);
+  let avant: Ligne;
+  try { avant = (await rpc('jeu_miser', { j, c: cle, montant, pas: ECO.encheres.pas_min })) || {}; }
+  catch (e) {
+    if (!(e instanceof Refus)) throw e;
+    if (e.code === 'min') {
+      const { data: top } = await admin.from('mises').select('montant').eq('lot', cle).order('montant', { ascending: false }).limit(1);
+      const min = top && top.length ? Math.ceil(Number(top[0].montant) * (1 + ECO.encheres.pas_min)) : Number(l.depart);
+      throw new Refus('min', `La mise minimale est de ${fmt(min)}.`);
+    }
+    if (e.code === 'fonds') {
+      const jr = await joueur(j), bloque = Number(await rpc('jeu_bloque', { j, sauf: cle }));
+      throw new Refus('fonds', `Pas assez de pièces : ${fmt(Math.max(0, Number(jr.pieces) - bloque))} disponibles (tes mises qui mènent ailleurs sont bloquées).`);
+    }
+    throw e;
+  }
+  const nom = (l.lieu && l.lieu.label) || 'le monument';
+  if (avant.joueur && avant.joueur !== j) {
+    const ps = await pseudos([j]);
+    await notifier(avant.joueur, 'enchere', `${ps[j] || 'Un joueur'} a surenchéri à ${fmt(montant)} sur ${nom}. Tes pièces sont libérées.`, {});
+  }
+  return { cle, montant, nom };
+};
+
 // ouvrir le pack du jour : le serveur tire au hasard (graine secrète), une fois par jour
 ACTIONS.pack = async (j) => {
   const jm = await jourMs(), jour = Regles.jourDuJeu(Date.now(), jm), jr = await joueur(j);
@@ -421,6 +529,18 @@ async function robotsTour() {
       if (mes.length && mes.filter((l: Ligne) => l.prix_vente != null).length < 2 && Math.random() < 0.3) {
         const l = hasard(mes); await rpc('jeu_vendre', { j, l: l.id, prix: arrondi(valeurM(l) * (1.1 + Math.random() * 0.4)) }).catch(() => {});
       }
+      // 5 bis. les enchères : surenchérir quand un vrai joueur mène un lot (jamais seuls : les monuments restent aux
+      // vrais joueurs s'ils mettent le prix), jusqu'à 150 % de la mise de départ
+      if (Math.random() < 0.4) {
+        const { data: lots } = await admin.from('encheres').select('cle, depart').eq('statut', 'ouverte').gt('fin', new Date().toISOString());
+        for (const l of (lots || []).sort(() => Math.random() - 0.5)) {
+          const { data: top } = await admin.from('mises').select('joueur, montant').eq('lot', l.cle).order('montant', { ascending: false }).order('id', { ascending: true }).limit(1);
+          const t = top && top[0]; if (!t || ids.includes(t.joueur)) continue;
+          const { data: humain } = await admin.from('profils').select('id').eq('id', t.joueur).maybeSingle(); if (!humain) continue;
+          const mise = Math.ceil(Math.ceil(Number(t.montant) * (1 + ECO.encheres.pas_min)) / 100) * 100;
+          if (mise <= Number(l.depart) * 1.5) { await ACTIONS.miser(j, { cle: l.cle, montant: mise }).catch(() => {}); break; }
+        }
+      }
       // 6. construire le niveau suivant quand c'est possible
       if (mes.length && Math.random() < 0.4) {
         const l = lieuDe(hasard(mes)), n = (l.niveau || 0) + 1;
@@ -441,11 +561,13 @@ Deno.serve(async (req: Request) => {
     const corps = await req.json().catch(() => ({}));
     const action = ACTIONS[String(corps.action || '')];
     if (!action) throw new Refus('action', 'Action inconnue.');
+    // le calendrier des enchères (lots finis clos, lots de la semaine ouverts) : une panne ici ne bloque pas le jeu
+    await tenirEncheres().catch((e) => console.error('enchères', e));
     const res = await action(data.user.id, corps);
     // les robots jouent un tour après la réponse (sans faire attendre le vrai joueur)
     const runtime = (globalThis as Ligne).EdgeRuntime; if (runtime && runtime.waitUntil) runtime.waitUntil(robotsTour().catch((e) => console.error('robots', e)));
     // après une action qui change la partie, sa partie à jour (pièces, lieux, récolte) pour que le jeu se recale
-    if (corps.action !== 'etat') res.etat = await etatDe(data.user.id);
+    if (corps.action !== 'etat' && corps.action !== 'encheres') res.etat = await etatDe(data.user.id);
     return repondre({ ok: true, ...res });
   } catch (e) {
     if (e instanceof Refus) return repondre({ ok: false, code: e.code, message: e.message });

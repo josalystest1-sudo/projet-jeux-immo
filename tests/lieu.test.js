@@ -55,6 +55,14 @@ test('le jour du jeu : minuit à Paris en vrais jours, tranches de jourMs en acc
   assert.equal(jourDuJeu(125000, 60000), 2); assert.equal(secondesAvantJourSuivant(125000, 60000), 55);
   const ete = Date.UTC(2026, 6, 1, 21, 30, 0);   // 23 h 30 à Paris l'été (UTC+2)
   assert.equal(secondesAvantJourSuivant(ete, 86400000), 1800); });
+test('le début d’un jour du jeu (la fin d’une semaine d’enchères) : minuit à Paris, ou n × jourMs en accéléré', () => {
+  const { jourDuJeu, debutJour } = require('../src/regles/lieu.js');
+  assert.equal(debutJour(3, 60000), 180000);
+  for (const t of [Date.UTC(2026, 10, 3, 15, 0, 0), Date.UTC(2026, 6, 1, 12, 0, 0), Date.UTC(2027, 2, 28, 12, 0, 0)]) {   // hiver, été, jour du changement d'heure
+    const n = jourDuJeu(t, 86400000), d = debutJour(n, 86400000);
+    assert.equal(jourDuJeu(d, 86400000), n, 'le début est bien dans le jour'); assert.equal(jourDuJeu(d - 1, 86400000), n - 1, 'une milliseconde avant, c’est la veille');
+  }
+  assert.equal(debutJour(jourDuJeu(Date.UTC(2026, 10, 3, 15, 0, 0), 86400000), 86400000), Date.UTC(2026, 10, 2, 23, 0, 0), 'le 3 novembre commence à 23 h UTC la veille (minuit à Paris)'); });
 test('la valeur qui bouge : ventes de la commune, activité du quartier, tendance de la semaine', () => {
   assert.equal(R.indiceCommune([]), 0, 'pas de vente : pas d’effet');
   assert.ok(Math.abs(R.indiceCommune([{ prix: 12000, valeurRef: 10000 }, { prix: 11000, valeurRef: 10000 }]) - 0.15) < 1e-9, 'vendu 15 % au-dessus en moyenne');

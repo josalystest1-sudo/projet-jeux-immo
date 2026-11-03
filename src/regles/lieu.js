@@ -115,6 +115,14 @@
     if (jourMs >= 86400000 && PARIS_HEURE) { const [h, mi, s] = PARIS_HEURE.format(new Date(ms)).split(':').map(Number); return Math.max(1, 86400 - (h * 3600 + mi * 60 + s)); }
     return Math.max(1, Math.ceil(((Math.floor(ms / jourMs) + 1) * jourMs - ms) / 1000));
   }
-  const api = { creer, numeroEtVoie, bilanEchange, nomCommune, departement, jourDuJeu, secondesAvantJourSuivant, PRIX_MAX };
+  // l'instant où commence le jour du jeu n (l'inverse de jourDuJeu) : minuit à Paris en vrais jours, n × jourMs en accéléré
+  // (la fin de la semaine d'enchères s est debutJour(7 × (s + 1)))
+  function debutJour(n, jourMs) {
+    if (!(jourMs >= 86400000 && PARIS_JOUR)) return n * jourMs;
+    let t = n * 86400000 - 2 * 3600000;                 // minuit à Paris l'été (UTC+2)…
+    while (jourDuJeu(t, jourMs) < n) t += 3600000;      // … ou une heure plus tard l'hiver (UTC+1)
+    return t;
+  }
+  const api = { creer, numeroEtVoie, bilanEchange, nomCommune, departement, jourDuJeu, secondesAvantJourSuivant, debutJour, PRIX_MAX };
   if (typeof module !== 'undefined' && module.exports) module.exports = api; else racine.Regles = api;
 })(typeof globalThis !== 'undefined' ? globalThis : this);

@@ -1026,17 +1026,42 @@ async function repondreOffre(id, ok){ const o=state.offersIn.find(x=>x.id===id);
   save(); refreshTop(); renderNotifs(); renderPatrimoine(); }
 
 // =================== enchères (règles : src/regles/encheres.js) ===================
-function semaineEnCours(){ return ENC.semaine(now(), SEMAINE); }
-function lotsDe(idx){ return ENC.lots(idx, MON_NATIONAUX, MON_REGIONAUX); }
+function semaineEnCours(){ return MODE_SERVEUR ? (ENCH ? ENCH.semaine : Math.floor(Regles.jourDuJeu(now(), JOUR)/7)) : ENC.semaine(now(), SEMAINE); }
+function lotsDe(idx){ if(!MODE_SERVEUR) return ENC.lots(idx, MON_NATIONAUX, MON_REGIONAUX);
+  if(!ENCH) return []; if(idx===ENCH.semaine) return ENCH.lots; return ENCH.suivantes[idx-ENCH.semaine-1] || []; }
+// mode serveur (8.1g) : les enchères tenues par le serveur (action « encheres ») : les lots de la semaine, les mises de
+// tous, la fin de la semaine, un aperçu des deux suivantes ; relu à l'ouverture de l'écran puis toutes les 20 s
+let ENCH=null, enchLu=0, enchEnCours=null;
+function lotDuServeur(l){ const m=LISTE_MON.find(x=>x.id===l.monument) || { id:l.monument, nom:'Monument', ville:'', palier:l.palier, icone:'🏛️', articles:0, lon:0, lat:0 };
+  return { cle:l.cle, semaine:l.semaine, palier:l.palier, m, mises:(l.mises||[]).map(b=>({ qui: b.uid===monUid() ? ME : b.qui, montant:b.montant, ts:b.ts })) }; }
+function chargerEncheres(){ if(enchEnCours) return enchEnCours;
+  enchEnCours = appelServeur('encheres').then(r=>{ if(r && r.ok){
+      ENCH={ semaine:r.semaine, debut:r.debut, fin:r.fin, lots:(r.lots||[]).map(lotDuServeur), suivantes:(r.suivantes||[]).map(x=>x.map(lotDuServeur)) }; enchLu=now();
+      state.encheresMenees=r.encheresMenees||{}; state.encheresDepasse=r.encheresDepasse||[]; refreshTop();
+      const a=document.activeElement; if(document.getElementById('s-encheres').classList.contains('on') && !(a && a.id && a.id.startsWith('bid-'))) renderEncheres(); }
+    return r; }).finally(()=>{ enchEnCours=null; });
+  return enchEnCours; }
+// chaque seconde (mode serveur) : le compte à rebours, la relecture du serveur, la pastille « dépassé »
+function tickEncheresServeur(){ const on=document.getElementById('s-encheres').classList.contains('on');
+  if(on && !enchEnCours && (!ENCH || now()-enchLu>20000 || now()>ENCH.fin+1500)) chargerEncheres();
+  if(on && ENCH){ const c=document.querySelector('#s-encheres .compte-a-rebours'); if(c) c.textContent='⏳ '+dureeTexte(Math.max(0, ENCH.fin-now()));
+    const b=document.querySelector('#s-encheres .bar i'); if(b) b.style.width=Math.max(0, Math.min(100, 100*(now()-ENCH.debut)/(ENCH.fin-ENCH.debut)))+'%'; }
+  const p=document.getElementById('cnt-ench'), alerte=(state.encheresDepasse||[]).length>0; p.style.display=alerte?'block':'none'; p.textContent='!'; }
 // les mises des autres joueurs (serveur simulé) : quelques mises qui montent de 12 % au fil de la semaine
 function misesSimulees(lot){ const debut=lot.semaine*SEMAINE, dep=ENC.miseDepart(lot.m), out=[]; const n=(lot.palier==='national'?4:2)+hash('n'+lot.cle)%5;
   for(let k=0;k<n;k++){ const t=debut+20000+k*42000+hash('t'+lot.cle)%15000; if(t>now()) break; out.push({ qui:FAKE[(hash('w'+lot.cle)+k)%FAKE.length], montant:Math.round(dep*(1+0.12*k)), ts:t }); }
   return out; }
-function mesMises(cle){ return state.encheres.mises[cle]||[]; }
-function misesDe(lot){ return misesSimulees(lot).concat(mesMises(lot.cle)); }
-function bloqueEncheres(sauf){ const o={}; for(const l of lotsDe(semaineEnCours())) o[l.cle]=misesDe(l); return ENC.bloque(o, ME, sauf); }
+function mesMises(cle){ if(MODE_SERVEUR){ const l=ENCH && ENCH.lots.find(x=>x.cle===cle); return l ? l.mises.filter(b=>b.qui===ME).sort((a,b)=>a.ts-b.ts) : []; }
+  return state.encheres.mises[cle]||[]; }
+function misesDe(lot){ return MODE_SERVEUR ? (lot.mises||[]) : misesSimulees(lot).concat(mesMises(lot.cle)); }
+// mes pièces bloquées : mes mises qui mènent (mode serveur : d'après le serveur), sauf sur le lot « sauf »
+function bloqueEncheres(sauf){ if(MODE_SERVEUR) return Object.entries(state.encheresMenees||{}).reduce((t,[c,v])=>c===sauf ? t : t+Number(v), 0);
+  const o={}; for(const l of lotsDe(semaineEnCours())) o[l.cle]=misesDe(l); return ENC.bloque(o, ME, sauf); }
 const saisieEnch = {}; // ce que le joueur tape dans chaque champ de mise (gardé quand l'écran se redessine)
-function encherir(cle, montant){ if(MODE_SERVEUR) return bientot(); const lot=lotsDe(semaineEnCours()).find(l=>l.cle===cle); if(!lot) return toast('Cette enchère est close');
+async function encherir(cle, montant){ const lot=lotsDe(semaineEnCours()).find(l=>l.cle===cle); if(!lot) return toast('Cette enchère est close');
+  if(MODE_SERVEUR){ if(!(montant>0)) return toast('Tape une mise en pièces');
+    const r=await agir('miser', {cle, montant}); if(!r){ chargerEncheres(); return; }
+    delete saisieEnch[cle]; toast(`Tu mènes l’enchère sur ${r.nom} à ${fmt(montant)} (pièces bloquées)`); vibrer(12); await chargerEncheres(); refreshTop(); return; }
   const r=ENC.peutMiser(lot.m, misesDe(lot), montant, state.wallet, bloqueEncheres(cle));
   if(!r.ok) return toast(r.raison==='min' ? `Mise minimale : ${fmt(r.min)}` : `Fonds insuffisants : ${fmt(Math.max(0,r.dispo))} disponibles (tes mises qui mènent ailleurs sont bloquées)`);
   (state.encheres.mises[cle]=state.encheres.mises[cle]||[]).push({ qui:ME, montant, ts:now() }); delete state.encheres.depasse[cle]; delete saisieEnch[cle]; save();
@@ -1277,6 +1302,7 @@ function appliquerEtat(e){ if(!e) return; state.wallet=e.pieces; state.encaisse=
   if(e.jourMs){ state.jourMs=e.jourMs; JOUR=e.jourMs; SEMAINE=7*JOUR; }
   if(e.offresRecues) state.offersIn=e.offresRecues; if(e.offresEnvoyees) state.offersOut=e.offresEnvoyees; if(e.notifs) state.notifs=e.notifs;
   if(e.echangesRecus) state.echangesIn=e.echangesRecus; if(e.echangesEnvoyes) state.echangesOut=e.echangesEnvoyes;
+  if(e.encheresMenees) state.encheresMenees=e.encheresMenees; if(e.encheresDepasse) state.encheresDepasse=e.encheresDepasse;
   const avant=state.owned; state.owned={}; for(const l of (e.lieux||[])) state.owned[l.id]=Object.assign({}, l);
   let partis=false; for(const id of Object.keys(avant)) if(!state.owned[id]){ setBadge(avant[id], 0); partis=true; }
   if(partis) chargerZoneBientot();   // un lieu vendu ou échangé : son nouveau propriétaire sur la carte
@@ -1286,7 +1312,7 @@ function appliquerEtat(e){ if(!e) return; state.wallet=e.pieces; state.encaisse=
 async function agir(action, corps){ serveurOccupe=true; let r; try{ r=await appelServeur(action, corps); } finally { serveurOccupe=false; }
   if(!r || !r.ok){ toast((r && r.message) || 'Le serveur ne répond pas'); vibrer(30); return null; }
   if(r.etat) appliquerEtat(r.etat); return r; }
-async function synchroniser(){ const r=await appelServeur('etat'); if(r && r.ok){ appliquerEtat(r); apresAction(); chargerMaires(Object.keys(mesLieuxParCommune())).catch(()=>{}); chargerZoneBientot(); } return r; }
+async function synchroniser(){ const r=await appelServeur('etat'); if(r && r.ok){ appliquerEtat(r); apresAction(); chargerEncheres().catch(()=>{}); chargerMaires(Object.keys(mesLieuxParCommune())).catch(()=>{}); chargerZoneBientot(); } return r; }
 // ---- le monde réel : les lieux des autres joueurs (table « lieux », lisible par tous), leurs pseudos, les Maires
 const COLS_LIEU = 'id,proprietaire,type,label,lon,lat,citycode,city,commune,idu,notoriete,cat,qid,niveau,prix_vente';
 const monUid = ()=> window.Compte && Compte.session ? Compte.session.user.id : null;
@@ -1420,10 +1446,14 @@ async function recolter(){ const p=Math.floor(pendingRent()); if(p<1) return toa
 
 function arrondiMise(x){ return x<10000 ? Math.ceil(x/50)*50 : Math.ceil(x/100)*100; }
 function dureeTexte(ms){ const s=Math.max(0,Math.floor(ms/1000)); const j=Math.floor(s/86400), h=Math.floor(s%86400/3600), m=Math.floor(s%3600/60); return j ? `${j} j ${h} h` : (h ? `${h} h ${String(m).padStart(2,'0')}` : `${m} min ${String(s%60).padStart(2,'0')} s`); }
-function renderEncheres(){ const el=document.getElementById('s-encheres'); const idx=semaineEnCours(), debut=idx*SEMAINE, reste=debut+SEMAINE-now(), pct=100*(now()-debut)/SEMAINE;
+function renderEncheres(){ const el=document.getElementById('s-encheres');
+  if(MODE_SERVEUR && !ENCH){ el.innerHTML=`<h1>Enchères</h1><div class="card"><div class="t">Les enchères arrivent…</div><div class="m">Le serveur prépare les monuments de la semaine.</div></div>`; chargerEncheres(); return; }
+  const ouverts=[...el.querySelectorAll('details')].map(d=>d.open);
+  const idx=semaineEnCours(), debut=MODE_SERVEUR ? ENCH.debut : idx*SEMAINE, finS=MODE_SERVEUR ? ENCH.fin : debut+SEMAINE, reste=Math.max(0, finS-now()), pct=Math.min(100, 100*(now()-debut)/(finS-debut));
   let h=`<h1>Enchères <span class="act compte-a-rebours">⏳ ${dureeTexte(reste)}</span></h1>
-    <div class="card"><div class="t">Les 3 monuments de la semaine</div><div class="m">Des monuments Extraordinaires, qui ne sortent jamais des packs : un national et deux régionaux, pour toute la France. Démo : une semaine dure 7 minutes.</div>
+    <div class="card"><div class="t">Les 3 monuments de la semaine</div><div class="m">Des monuments Extraordinaires, qui ne sortent jamais des packs : un national et deux régionaux, pour toute la France. ${MODE_SERVEUR ? (enVraisJours() ? 'Les enchères se terminent à minuit, heure de Paris, au bout de la semaine.' : `Serveur d’essai : une semaine dure ${Math.round(7*JOUR/60000)} minutes.`) : 'Démo : une semaine dure 7 minutes.'}</div>
     <div class="bar"><i style="width:${pct}%"></i></div><div class="flex"><span class="m" style="margin:0">Disponible pour miser</span><span class="montant" style="font-size:20px">${nb(dispo())}<i class="pc"></i></span></div></div>`;
+  if(!lotsDe(idx).length) h+=`<div class="card vide"><div class="ico">🏛️</div><div class="t">Pas de monument cette semaine</div><div class="m">Tous les monuments ont déjà un propriétaire.</div></div>`;
   for(const lot of lotsDe(idx)){ const mises=misesDe(lot), top=ENC.meilleure(mises), min=ENC.miseMin(lot.m, mises), nat=lot.palier==='national', id='bid-'+lot.cle.replace(':','-');
     const moi=mesMises(lot.cle), derniere=moi.length?moi[moi.length-1].montant:0, valeur=saisieEnch[lot.cle]||min, jeMene=top&&top.qui===ME;
     const base = top ? top.montant : ENC.miseDepart(lot.m); const rapides=[min, Math.max(min, arrondiMise(base*1.10)), Math.max(min, arrondiMise(base*1.25))];
@@ -1441,7 +1471,7 @@ function renderEncheres(){ const el=document.getElementById('s-encheres'); const
       <button class="btn clair sm" style="margin-top:10px" onclick="voirMonument('${lot.m.id}')">🗺️ Voir sur la carte</button></div>`; }
   h+=`<div class="card"><details><summary class="t" style="color:var(--encre)">Comment ça marche ?</summary><div class="m" style="margin-top:8px">Ta mise doit être couverte par tes pièces, moins ce que tu as déjà engagé sur les autres enchères où tu mènes. Si quelqu’un te dépasse, tes pièces sont libérées. À la clôture, si le meneur n’a plus les fonds, le monument va à la mise suivante.</div></details></div>`;
   h+=`<h2 class="section">Les semaines suivantes</h2><div class="card">`; for(let k=1;k<=2;k++) for(const l of lotsDe(idx+k)) h+=`<div class="rank"><span class="pos">${k===1?'S+1':'S+2'}</span><span class="who">${l.m.icone} ${echapper(l.m.nom)}</span><b style="font-size:14px">${nb(ENC.miseDepart(l.m))}<i class="pc"></i></b></div>`; h+=`</div>`;
-  el.innerHTML=h; }
+  el.innerHTML=h; el.querySelectorAll('details').forEach((d,i)=>{ if(ouverts[i]) d.open=true; }); }
 
 // Communes et Maires : le Maire possède le plus de lieux de la commune ; à égalité, deux Maires ; le titre dure tant qu'on reste en tête
 // Le classement d'une commune (joueurs simulés en attendant le serveur ; même règle pour l'écran Communes, la recherche et le profil)
@@ -1553,7 +1583,7 @@ function ouvrirReglages(){ const box=document.getElementById('modalbox');
     <div class="sw"><span>M’alerter quand je suis dépassé aux enchères</span><input type="checkbox" ${state.prefs.encheres?'checked':''} onchange="setPref('encheres',this.checked)"></div>
     <div class="sw"><span>Sons</span><input type="checkbox" ${state.prefs.sons!==false?'checked':''} onchange="setPref('sons',this.checked)"></div>
     <div class="sw"><span>Vibrations</span><input type="checkbox" ${state.prefs.vibrations!==false?'checked':''} onchange="setPref('vibrations',this.checked)"></div>
-    ${window.Compte && Compte.actif() ? `<div class="sw mode"><span>Jouer sur le vrai serveur (essai)<small>${MODE_SERVEUR ? (enVraisJours() ? 'Ta partie est sur le serveur, en vrais jours de 24 h.' : `Serveur d’essai accéléré : un jour du jeu = ${Math.round(JOUR/60000)} min.`) + ' Pas encore : les enchères.' : 'Ta partie de démo reste sur ce téléphone ; celle du serveur part de zéro.'}</small></span><input type="checkbox" ${MODE_SERVEUR?'checked':''} onchange="changerMode(this.checked)"></div>` : ''}
+    ${window.Compte && Compte.actif() ? `<div class="sw mode"><span>Jouer sur le vrai serveur (essai)<small>${MODE_SERVEUR ? (enVraisJours() ? 'Ta partie est sur le serveur, en vrais jours de 24 h.' : `Serveur d’essai accéléré : un jour du jeu = ${Math.round(JOUR/60000)} min.`) : 'Ta partie de démo reste sur ce téléphone ; celle du serveur part de zéro.'}</small></span><input type="checkbox" ${MODE_SERVEUR?'checked':''} onchange="changerMode(this.checked)"></div>` : ''}
     ${(state.signalements||[]).length?`<div class="m" style="margin-top:10px">🚩 Signalements envoyés : ${state.signalements.length}</div>`:''}
     <div class="liste-btn"><button class="btn bleu large" onclick="closeModal();setTimeout(()=>guide(0),300)">🧭 Revoir le guide</button><button class="btn clair large" onclick="closeModal()">Fermer</button></div>
     <div class="m" style="text-align:center;margin-top:10px">Version du jeu : ${VERSION.indexOf('__')===0 ? 'locale' : VERSION.slice(0,7)}</div>`;
@@ -1641,7 +1671,7 @@ function afficherBourse(cible){ const el=document.getElementById('wallet'); cibl
 function refreshTop(){ afficherBourse(dispo()); document.getElementById('meav').textContent=state.avatar||'🙂'; document.getElementById('mename').textContent=disp(ME); const n=Object.keys(state.owned).length; document.getElementById('count').textContent = `${n} lieu${n>1?'x':''}${MODE_SERVEUR?' · serveur':''}`;
   const p=Math.floor(pendingRent()); document.getElementById('pending').textContent = p>0 ? `+${nb(p)}` : '';
   const unread=state.notifs.filter(n=>!n.read).length; const c=document.getElementById('cnt-notif'); c.style.display=unread?'block':'none'; c.textContent=unread; refreshPack(); }
-setInterval(()=>{ refreshTop(); if(!MODE_SERVEUR){ tickOffers(); tickAuction(); } else refreshPack(); }, 1000);
+setInterval(()=>{ refreshTop(); if(!MODE_SERVEUR){ tickOffers(); tickAuction(); } else { refreshPack(); tickEncheresServeur(); } }, 1000);
 // À la connexion : la récolte des loyers (24 h au plus), puis le pack du jour s'il est prêt
 function packAuDemarrage(){ if(!packDispo()){ if(!state.prefs.guideVu) setTimeout(()=>guide(0), 800); return; } if(map.loaded()) setTimeout(ouvrirPack, 600); else map.once('idle', ()=>setTimeout(ouvrirPack, 900)); }
 async function recolteConnexion(ensuite){ if(MODE_SERVEUR){ const r=await synchroniser(); if(!r || !r.ok){ toast((r&&r.message)||'Serveur injoignable'); return ensuite(); } }
