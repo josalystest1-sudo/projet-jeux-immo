@@ -1,14 +1,14 @@
 // Le serveur applique les mêmes règles que le jeu, et ses fonctions SQL ne sont jamais appelables depuis le jeu.
 const test = require('node:test'); const assert = require('node:assert');
-const fs = require('fs'); const os = require('os'); const path = require('path');
+const fs = require('fs'); const os = require('os'); const path = require('path'); const { pathToFileURL } = require('url');
 const { preparer } = require('../tools/serveur_prepare.js');
 const eco = require('../data/economie.json'); const table = require('../data/standing.json');
 const R = require('../src/regles/lieu.js').creer(eco, table);
 
 test('la fonction « jeu » reçoit les règles et les données du jeu (modules ES)', async () => {
   const dossier = preparer(fs.mkdtempSync(path.join(os.tmpdir(), 'jeu-')));
-  const { Regles, Pack, Encheres, Celebres } = await import(path.join(dossier, 'regles.mjs'));
-  const { ECO, STANDING, MONUMENTS } = await import(path.join(dossier, 'donnees.mjs'));
+  const { Regles, Pack, Encheres, Celebres } = await import(pathToFileURL(path.join(dossier, 'regles.mjs')).href);
+  const { ECO, STANDING, MONUMENTS } = await import(pathToFileURL(path.join(dossier, 'donnees.mjs')).href);
   assert.ok(Pack && Encheres && Celebres); assert.equal(MONUMENTS.length, require('../data/monuments.json').length);
   const S = Regles.creer(ECO, STANDING);
   const lieux = [{ type: 'adresse', citycode: '28105' }, { type: 'adresse', citycode: '21231' }, { type: 'lieu', citycode: '28105' },

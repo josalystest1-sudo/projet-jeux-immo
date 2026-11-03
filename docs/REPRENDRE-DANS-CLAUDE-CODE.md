@@ -29,13 +29,13 @@ Une seule fois, sur le PC :
    > Clone le dépôt GitHub josalystest1-sudo/projet-jeux-immo dans ce dossier (il doit devenir Documents/projet-jeux-immo). Utilise le même compte GitHub que pour l'Arena. Ne change rien d'autre.
 
    Accepte si Claude demande la permission de lancer une commande.
-5. Quand il a fini, ouvre une nouvelle session (**+ New**), toujours en **Local**, avec le dossier **Documents/projet-jeux-immo**.
+5. Quand il a fini, ouvre une nouvelle session (**+ New**), toujours en **Local**, avec le dossier du jeu (sur le PC de Gautier, le clone s'appelle **Documents/jeu immo**).
 6. Allume **Remote Control** : l'interrupteur de la session, ou une fois pour toutes dans **Réglages > Claude Code** (« Connect new sessions to Remote Control »). La session apparaît alors sur ton téléphone, dans l'app Claude (partie Code) et sur claude.ai/code.
 
    Le PC doit rester allumé, l'app Claude ouverte.
 7. Colle le premier message (plus bas).
 
-Les fois suivantes : depuis ton téléphone, rouvre la session « projet-jeux-immo » dans la partie Code de l'app Claude. Ou, sur le PC, **+ New** avec le dossier `Documents/projet-jeux-immo`, puis le premier message.
+Les fois suivantes : depuis ton téléphone, rouvre la session du jeu dans la partie Code de l'app Claude. Ou, sur le PC, **+ New** avec le dossier `Documents/jeu immo`, puis le premier message.
 
 ## Option B : sans le PC (en déplacement), une session dans le cloud
 

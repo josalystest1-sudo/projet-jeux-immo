@@ -68,6 +68,9 @@ Rien d'important ne vit dans une conversation : tout est dans le dépôt ou sur 
 - **Correctif de la promenade** (PR #36) : retour de Gautier, après avoir touché la carte on ne pouvait plus tourner dans Street View. Le geste partait dans la page Google intégrée : elle ne reçoit plus aucun toucher, et un lien « Google Maps ↗ » ouvre la même vue chez Google.
 - **Passage à Claude Code** (PR #35) : demande de Gautier. Cet historique, la procédure `docs/REPRENDRE-DANS-CLAUDE-CODE.md`, les documents de suivi mis à jour, et l'outil d'essai de la promenade versé dans le dépôt.
 
+### 3 novembre 2026, soir : la reprise dans Claude Code
+- Gautier clone le dépôt sur son PC (dossier `Documents/jeu immo`) et lance la reprise. Les outils sont là ; un test échouait seulement sous Windows (PR #38). Choix de Gautier : ce correctif, puis les échanges sur le serveur (8.1f).
+
 ## Toutes les PR
 
 Heures de Paris. Avant la PR #1, le travail était poussé directement sur `main` :
@@ -129,7 +132,8 @@ Puis une PR par étape, fusionnée en squash :
 | #34 | 03/11 17:22 | La promenade en Street View |
 | #35 | 03/11 17:30 | Historique, suivi du projet et procédure pour continuer dans Claude Code |
 | #36 | 03/11 18:19 | Promenade : on peut toujours tourner dans Street View (le geste ne part plus dans la page Google) |
-| #37 | 03/11 | Notes : une phrase de CLAUDE.md corrigée, heures des PR |
+| #37 | 03/11 20:51 | Notes : une phrase de CLAUDE.md corrigée, heures des PR |
+| #38 | 03/11 21:30 | Reprise dans Claude Code : le test du serveur passe aussi sous Windows |
 
 ## Les décisions de Gautier
 

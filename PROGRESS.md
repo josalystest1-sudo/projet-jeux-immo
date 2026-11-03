@@ -82,6 +82,8 @@
 
 - 3 nov. 2026 : **correctif de la promenade** (retour de Gautier : après avoir touché la carte, on ne pouvait plus regarder à gauche ou à droite dans Street View ; le geste ne faisait rien ou bougeait la carte) : sur Chrome (son Samsung), le toucher pouvait partir dans la page Google intégrée au lieu de la couche du jeu ; les cadres Street View ne reçoivent plus aucun toucher et la couche couvre toute la photo ; un lien « Google Maps ↗ » ouvre la même vue chez Google ; le cadre rose des messages d'erreur ne bloque plus les touchers. Essayé au doigt (deux doigts sur la carte, puis glisser la photo) et à la souris (clic droit sur la carte), cinq fois chacun.
 
+- 3 nov. 2026 (soir) : **reprise dans Claude Code sur le PC de Gautier** (dossier `Documents/jeu immo`) : outils vérifiés (git, node, npm, python, gh) ; le test du serveur échouait sous Windows (un chemin `C:\…` passé tel quel à `import()`) : il passe maintenant par `pathToFileURL`. 46 tests sur 46. `CLAUDE.md` § 3 bis : le dossier, et comment pousser sur GitHub depuis le PC.
+
 ## En cours
 - Lieux célèbres : les autres catégories (châteaux, mairies, gares, musées, ponts, phares, moulins…) dès que Wikidata répond (`python3 tools/wikidata_celebres.py`, puis `--fusion` et `gen_donnees.py celebres`).
 - Phase 1.1 à 1.4 : la carte et le modèle des lieux reconstruits en modules (`src/`) à partir du prototype ; puis le marché (phase 4 : historique des ventes d'un lieu) et les communes et Maires (phase 6). Ensuite : Signaler envoyé au serveur dès qu'il y aura de vrais joueurs à l'écran ; Google ; un service d'envoi d'e-mails avant le lancement (le service de Supabase n'écrit qu'aux membres de l'équipe Supabase, deux e-mails par heure).
