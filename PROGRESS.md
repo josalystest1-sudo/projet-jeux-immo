@@ -28,6 +28,8 @@
 
 - 3 nov. 2026 (matin, suite) : **la plaque de rue plus réaliste**, toujours dessinée (émail nuancé, reflet, filet blanc, cadre vert, vis, nom en capitales dans une police de plaque, Barlow Condensed) : l'accueil, les fiches, les profils, les communes ; **les cartes montrent l'adresse comme dans la rue** (plaque de la voie vissée sur un mur de briques rouges, petite plaque bleue du numéro) au lieu de l'épingle rouge, dans le pack et la collection ; **mettre en vente au prix qu'on veut** (champ de prix, raccourcis autour de la valeur, changer le prix, retirer ; `lirePrix` et `numeroEtVoie` dans le moteur, 2 tests). 36 tests.
 
+- 3 nov. 2026 (matin, suite) : **cartes « full art »** (demande de Gautier) : l'illustration occupe toute la carte, seul le contour garde la couleur de la rareté ; une adresse = mur de briques rouges + grande plaque de la voie + numéro ; un lieu nommé ou un monument = ciel de sa rareté + grande icône + plaque du nom ; la valeur, le plafond ou le loyer dans un bandeau sombre en bas pour rester lisibles. Pack et collection.
+
 ## En cours
 - Lieux célèbres : les autres catégories (châteaux, mairies, gares, musées, ponts, phares, moulins…) dès que Wikidata répond (`python3 tools/wikidata_celebres.py`, puis `--fusion` et `gen_donnees.py celebres`).
 - Phase 1.1 à 1.4 : la carte et le modèle des lieux reconstruits en modules (`src/`) à partir du prototype ; puis le marché (phase 4 : historique des ventes d'un lieu) et les communes et Maires (phase 6). Ensuite : Signaler envoyé au serveur dès qu'il y aura de vrais joueurs à l'écran ; Google ; un service d'envoi d'e-mails avant le lancement (le service de Supabase n'écrit qu'aux membres de l'équipe Supabase, deux e-mails par heure).
