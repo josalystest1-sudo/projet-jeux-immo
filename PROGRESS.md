@@ -72,6 +72,8 @@
 
 - 3 nov. 2026 : retours de Gautier : **une offre reçue montre la valeur de ton lieu et l'écart** (« +17 % » en vert, « −10 % » en orange) pour juger d'un coup d'œil ; **les robots achètent vraiment** (« personne ne m'achète ») : ils regardent tout ce que les vrais joueurs vendent, achètent jusqu'à 150 % de la valeur, une fois sur deux par tour, et ont 100 000 pièces pour ça (serveur d'essai seulement).
 
+- 3 nov. 2026 : **la valeur d'un lieu bouge** (décision de Gautier : ventes de la commune, activité du quartier, tendance de la semaine) : valeur de marché = valeur (terrain + bâtiments) × un indice ; la fiche montre la variation (▲ / ▼) et ses raisons (« Marché : commune +8 % · quartier +3 % · semaine −5 % ») ; le patrimoine annonce « Le marché cette semaine » (départements en vogue et en baisse) ; le loyer et le coût des constructions ne bougent pas. Serveur : historique des ventes (`ventes`), `marche_communes`, `quartiers` ; les robots jugent sur la valeur de marché. Démo : tendance réelle, marché des communes simulé (±10 %).
+
 ## En cours
 - Lieux célèbres : les autres catégories (châteaux, mairies, gares, musées, ponts, phares, moulins…) dès que Wikidata répond (`python3 tools/wikidata_celebres.py`, puis `--fusion` et `gen_donnees.py celebres`).
 - Phase 1.1 à 1.4 : la carte et le modèle des lieux reconstruits en modules (`src/`) à partir du prototype ; puis le marché (phase 4 : historique des ventes d'un lieu) et les communes et Maires (phase 6). Ensuite : Signaler envoyé au serveur dès qu'il y aura de vrais joueurs à l'écran ; Google ; un service d'envoi d'e-mails avant le lancement (le service de Supabase n'écrit qu'aux membres de l'équipe Supabase, deux e-mails par heure).

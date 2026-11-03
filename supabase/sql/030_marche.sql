@@ -51,27 +51,7 @@ begin
   if not found then raise exception 'pas_a_toi'; end if;
 end $$;
 
--- changer de propriétaire, d'un bloc : l'acheteur paie, le vendeur reçoit, le lieu change de main (ses constructions
--- avec lui), il n'est plus en vente, et les autres offres en attente sur lui deviennent caduques.
--- prix_attendu : pour un achat direct, le prix affiché quand l'acheteur a touché (si le vendeur l'a changé : refus).
--- offre : l'offre acceptée (vide pour un achat direct). Rend les pièces de l'acheteur après paiement.
-create or replace function public.jeu_transferer(l text, vendeur uuid, acheteur uuid, prix bigint, prix_attendu bigint, offre bigint)
-returns bigint language plpgsql security definer set search_path = '' as $$
-declare v uuid; pv bigint; p bigint;
-begin
-  if vendeur = acheteur then raise exception 'soi_meme'; end if;
-  if prix is null or prix <= 0 then raise exception 'prix'; end if;
-  select proprietaire, prix_vente into v, pv from public.lieux where id = l for update;
-  if not found or v <> vendeur then raise exception 'plus_a_lui'; end if;
-  if prix_attendu is not null and (pv is null or pv <> prix_attendu) then raise exception 'prix_change'; end if;
-  update public.joueurs set pieces = pieces - prix where id = acheteur and pieces >= prix returning pieces into p;
-  if p is null then raise exception 'fonds'; end if;
-  update public.joueurs set pieces = pieces + prix where id = vendeur;
-  update public.lieux set proprietaire = acheteur, prix_vente = null, depuis = now(), maj = now() where id = l;
-  update public.offres set statut = case when id = offre then 'acceptee' else 'caduque' end, maj = now()
-   where lieu = l and statut = 'attente';
-  return p;
-end $$;
+-- changer de propriétaire : voir jeu_transferer dans 060_valeur.sql (qui note aussi la vente)
 
 -- faire une offre (ou changer le prix de son offre en attente) sur le lieu d'un autre joueur
 create or replace function public.jeu_offrir(j uuid, l text, prix bigint) returns bigint
@@ -111,13 +91,11 @@ language sql security definer set search_path = '' as $$
 $$;
 
 revoke all on function public.jeu_vendre(uuid, text, bigint) from public, anon, authenticated;
-revoke all on function public.jeu_transferer(text, uuid, uuid, bigint, bigint, bigint) from public, anon, authenticated;
 revoke all on function public.jeu_offrir(uuid, text, bigint) from public, anon, authenticated;
 revoke all on function public.jeu_offre_statut(bigint, uuid, text) from public, anon, authenticated;
 revoke all on function public.jeu_notifier(uuid, text, text, jsonb) from public, anon, authenticated;
 revoke all on function public.jeu_notifs_lues(uuid) from public, anon, authenticated;
 grant execute on function public.jeu_vendre(uuid, text, bigint) to service_role;
-grant execute on function public.jeu_transferer(text, uuid, uuid, bigint, bigint, bigint) to service_role;
 grant execute on function public.jeu_offrir(uuid, text, bigint) to service_role;
 grant execute on function public.jeu_offre_statut(bigint, uuid, text) to service_role;
 grant execute on function public.jeu_notifier(uuid, text, text, jsonb) to service_role;

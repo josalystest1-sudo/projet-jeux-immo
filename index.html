@@ -195,7 +195,31 @@ function enVente(a){ if(state.owned[a.id]) return !!state.owned[a.id].enVente; i
 function plafond(a){ return R.plafond(a); }
 function baseValue(a){ return R.valeurBase(a); }
 function coutNiveau(a, n){ return R.coutNiveau(a, n); }
-function valeur(a){ return R.valeur(a); }
+// ---- la valeur de marché (décision de Gautier, 3 nov.) : la valeur (terrain + bâtiments) × un indice qui bouge avec
+// les ventes de la commune, l'activité du quartier et la tendance de la semaine ; le loyer et le coût des
+// constructions n'en dépendent pas (src/regles/lieu.js). Mode serveur : lus sur le serveur ; démo : simulés.
+const MARCHE_COMMUNE = {}, QUARTIER_PTS = {}; let marcheLu = 0;
+const semaineDuJeu = ()=> Math.floor(Regles.jourDuJeu(now(), JOUR)/7);
+function indiceDe(a){ const sem=semaineDuJeu(), k=communeName(a.citycode, a.city);
+  const c = MODE_SERVEUR ? (MARCHE_COMMUNE[k]||0) : ((hash(k+':'+sem)%41)-20)/200;   // démo : ±10 % par commune et par semaine
+  const q = MODE_SERVEUR && (a.id in QUARTIER_PTS) ? R.indiceQuartier(QUARTIER_PTS[a.id]) : 0;
+  const t = R.tendance(Regles.departement(a.citycode), sem);
+  return { commune:c, quartier:q, tendance:t, i:R.indice({ commune:c, quartier:q, tendance:t }) }; }
+function valeur(a){ return R.valeurMarche(a, indiceDe(a).i); }
+// mode serveur : l'indice des communes (ventes des derniers jours du jeu) et l'activité autour des lieux donnés
+async function chargerValeurs(lieux){ if(!MODE_SERVEUR || !(window.Compte && Compte.client) || !lieux.length) return false;
+  const F=ECO.fluctuation, frais = Date.now()-marcheLu < 60000;
+  const communes=[...new Set(lieux.map(a=>communeName(a.citycode,a.city)))].filter(k=>!frais || !(k in MARCHE_COMMUNE));
+  const pts=lieux.filter(a=>!(a.id in QUARTIER_PTS) || !frais).slice(0,500).map(a=>({ id:a.id, lon:a.lon, lat:a.lat }));
+  if(!communes.length && !pts.length) return false;
+  const [m, q] = await Promise.all([ communes.length ? Compte.client.rpc('marche_communes', { communes, depuis:new Date(now()-F.fenetre_jours*JOUR).toISOString() }) : { data:[] },
+    pts.length ? Compte.client.rpc('quartiers', { pts, dlat:F.quartier.rayon_m/111000, dlon:F.quartier.rayon_m/76000 }) : { data:[] } ]);
+  for(const k of communes) MARCHE_COMMUNE[k]=0; for(const r of (m.data||[])) MARCHE_COMMUNE[r.commune]=R.indiceCommune([{ prix:Number(r.ratio), valeurRef:1 }]);
+  for(const r of (q.data||[])) QUARTIER_PTS[r.id]=Number(r.points); marcheLu=Date.now(); return true; }
+// les tendances de la semaine : départements en vogue et en baisse (les mêmes pour tous)
+function tendancesDeLaSemaine(){ const sem=semaineDuJeu(), t=Object.keys(GEO.deps).map(d=>({ d, nom:GEO.deps[d].nom, v:R.tendance(d, sem) })).filter(x=>x.v);
+  return { hausse:t.filter(x=>x.v>0).sort((a,b)=>b.v-a.v), baisse:t.filter(x=>x.v<0).sort((a,b)=>a.v-b.v) }; }
+const pct = x => `${x>0?'+':'−'}${Math.abs(Math.round(x*100))} %`;
 function loyer(a){ return R.loyerParJour(a); }
 function loyerTotal(){ return Object.values(state.owned).reduce((s,a)=>s+loyer(a),0); }
 function pendingRent(){ return R.aEncaisser(Object.values(state.owned), state.encaisse, now(), JOUR); }
@@ -452,7 +476,7 @@ async function openParcel(f){ const p = f.properties, idu = f.id; currentParcel 
     for(const e of liste){ if(Math.abs(e[4]-c[1])>0.01 || Math.abs(e[3]-c[0])>0.015) continue;
       if(inside([e[3],e[4]], f.geometry) && !addrs.find(x=>x.id==='wd:'+e[0])) addrs.unshift(Object.assign(Celebres.lieuDe(e), {city:p.nom_com, idu})); } }catch(err){}
   // mode serveur : les vrais propriétaires de ces lieux, et les lieux nommés des autres joueurs posés sur la parcelle
-  if(MODE_SERVEUR){ await chargerProprios(addrs.map(a=>a.id), f.geometry);
+  if(MODE_SERVEUR){ await chargerProprios(addrs.map(a=>a.id), f.geometry); await chargerValeurs([...addrs, ...Object.values(PROPRIOS).filter(a=>inside([a.lon,a.lat], f.geometry))]).catch(()=>{});
     for(const a of Object.values(PROPRIOS)) if((a.type==='lieu' || a.type==='monument') && inside([a.lon,a.lat], f.geometry) && !addrs.find(x=>x.id===a.id)) addrs.push(a); }
   // les lieux (POI) que je possède sur cette parcelle
   for(const a of Object.values(state.owned)){ if((a.type==='lieu' || a.type==='monument') && inside([a.lon,a.lat], f.geometry) && !addrs.find(x=>x.id===a.id)) (a.type==='monument' ? addrs.unshift(a) : addrs.push(a)); }
@@ -623,7 +647,9 @@ function addrRow(a, withBuild){
       <div class="n">${echapper(a.label)}</div><div class="m">${echapper(communeName(a.citycode,a.city))}</div>
       <div class="lignes"><span class="tag r${r}">${RARETES[r]}</span>${a.qid?`<a class="tag bleu-lien" target="_blank" rel="noopener" href="https://www.wikidata.org/wiki/Special:GoToLinkedPage/frwiki/${a.qid}">📖 Wikipédia</a>`:''}${vente?'<span class="tag" style="background:#DDF3E6;color:var(--cadre2)">💰 En vente</span>':''}${proprio}</div>
     </div></div>
-    <div class="stats"><div class="stat or"><span>Valeur</span><b>${pcs(valeur(rec))}</b></div><div class="stat vert"><span>Loyer</span><b>+${nb(loyer(rec))}<small>/jour</small></b></div>${a.type==='lieu'||a.type==='monument'?'':`<div class="stat"><span>Quartier</span><b class="etoiles">${'★'.repeat(R.standing(a))}<i>${'☆'.repeat(3-R.standing(a))}</i></b></div>`}</div>
+    <div class="stats"><div class="stat or"><span>Valeur</span><b>${pcs(valeur(rec))}</b>${(()=>{ const x=indiceDe(rec).i-1; return Math.abs(x)>=0.005 ? `<i class="var ${x>0?'plus':'moins'}">${x>0?'▲':'▼'} ${Math.abs(Math.round(x*100))} %</i>` : ''; })()}</div><div class="stat vert"><span>Loyer</span><b>+${nb(loyer(rec))}<small>/jour</small></b></div>${a.type==='lieu'||a.type==='monument'?'':`<div class="stat"><span>Quartier</span><b class="etoiles">${'★'.repeat(R.standing(a))}<i>${'☆'.repeat(3-R.standing(a))}</i></b></div>`}</div>
+    ${(()=>{ const f=indiceDe(rec), parts=[['commune',f.commune],['quartier',f.quartier],['semaine',f.tendance]].filter(([,x])=>Math.abs(x)>=0.005);
+      return parts.length ? `<div class="facteurs">${f.i>=1?'📈':'📉'} Marché : ${parts.map(([n,x])=>`${n} <b class="${x>0?'plus':'moins'}">${pct(x)}</b>`).join(' · ')}</div>` : ''; })()}
     ${echelleHTML(a, lv, pl, moi && withBuild, rec)}`;
   const joueur=row.querySelector('[data-joueur]'); if(joueur) joueur.onclick=()=>showPlayer(o);
   const actions=document.createElement('div'); actions.className='actions';
@@ -1040,7 +1066,8 @@ function appliquerEtat(e){ if(!e) return; state.wallet=e.pieces; state.encaisse=
   if(e.offresRecues) state.offersIn=e.offresRecues; if(e.offresEnvoyees) state.offersOut=e.offresEnvoyees; if(e.notifs) state.notifs=e.notifs;
   const avant=state.owned; state.owned={}; for(const l of (e.lieux||[])) state.owned[l.id]=Object.assign({}, l);
   for(const id of Object.keys(avant)) if(!state.owned[id]) setBadge(avant[id], 0);
-  save(); refreshTop(); refreshPack(); restoreBadges(); try{ peindreReel(); }catch(err){} }
+  save(); refreshTop(); refreshPack(); restoreBadges(); try{ peindreReel(); }catch(err){}
+  chargerValeurs(Object.values(state.owned)).then(n=>{ if(n && document.getElementById('s-patrimoine').classList.contains('on')) renderPatrimoine(); }).catch(()=>{}); }
 async function agir(action, corps){ serveurOccupe=true; let r; try{ r=await appelServeur(action, corps); } finally { serveurOccupe=false; }
   if(!r || !r.ok){ toast((r && r.message) || 'Le serveur ne répond pas'); vibrer(30); return null; }
   if(r.etat) appliquerEtat(r.etat); return r; }
@@ -1145,6 +1172,10 @@ function renderPatrimoine(){ const el=document.getElementById('s-patrimoine'); c
   const p=Math.floor(pendingRent());
   let h=`<h1>Mon patrimoine</h1><div class="kpis"><div class="kpi"><i>🏘️</i><b>${tous.length}</b><small>lieu${tous.length>1?'x':''}</small></div><div class="kpi"><i>💎</i><b>${nb(total)}<i class="pc"></i></b><small>de valeur</small></div><div class="kpi"><i>📈</i><b style="color:var(--cadre2)">+${nb(SALAIRE+loyerTotal())}</b><small>par jour</small></div></div>`;
   h+=`<div class="card flex"><div><div class="t">🌾 ${p>=1?`<span style="color:var(--cadre2)">+${nb(p)}</span> à récolter`:'Les loyers poussent…'}</div><div class="m">Salaire ${nb(SALAIRE)} + loyers ${nb(loyerTotal())} par jour, stockés 24 h au plus.</div></div>${p>=1?`<button class="btn vert" onclick="recolter()">Récolter</button>`:''}</div>`;
+  { const t=tendancesDeLaSemaine(); if(t.hausse.length || t.baisse.length) h+=`<div class="card tendances"><div class="t">🌤️ Le marché cette semaine</div>
+      ${t.hausse.length?`<div class="m"><b class="plus">📈 En vogue</b> ${t.hausse.slice(0,4).map(x=>`${echapper(x.nom)} <b class="plus">${pct(x.v)}</b>`).join(', ')}</div>`:''}
+      ${t.baisse.length?`<div class="m"><b class="moins">📉 En baisse</b> ${t.baisse.slice(0,4).map(x=>`${echapper(x.nom)} <b class="moins">${pct(x.v)}</b>`).join(', ')}</div>`:''}
+      <div class="m petit">Les ventes de chaque commune et l’activité de chaque quartier font aussi bouger la valeur des lieux. Le loyer, lui, ne bouge pas.</div></div>`; }
   const offres=state.offersIn.filter(o=>o.status==='attente');
   if(offres.length) h+=`<div class="card flex"><div><div class="t">📨 ${offres.length} offre${offres.length>1?'s':''} pour tes lieux</div><div class="m">Accepte ou refuse dans tes notifications.</div></div><button class="btn bleu sm" onclick="showScreen('notifs')">Voir</button></div>`;
   const echs=state.echangesOut.filter(e=>e.status==='attente');

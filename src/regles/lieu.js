@@ -55,8 +55,29 @@
       return { ok: true, prix };
     }
     function nomRarete(r) { return eco.raretes[String(r)]; }
+    // ---- la valeur qui bouge (décision de Gautier, 3 nov. 2026) : la valeur de marché d'un lieu = sa valeur (terrain +
+    // bâtiments) × un indice fait de trois éléments ; le loyer et le coût des constructions, eux, ne bougent pas.
+    const F = eco.fluctuation;
+    const borne = (x, a, b) => Math.max(a, Math.min(b, x));
+    // 1. les ventes de la commune (les derniers jours du jeu) : acheté au-dessus de la valeur → la commune monte
+    function indiceCommune(ventes) {
+      const v = (ventes || []).filter((x) => x && x.valeurRef > 0 && x.prix > 0); if (!v.length) return 0;
+      return borne(v.reduce((s, x) => s + x.prix / x.valeurRef, 0) / v.length - 1, -F.commune_max, F.commune_max);
+    }
+    // 2. l'activité du quartier : points = somme de (1 + niveau) des autres lieux possédés à moins de rayon_m ;
+    // un lieu isolé perd un peu, un quartier vivant gagne jusqu'à max
+    function indiceQuartier(points) { return borne(F.quartier.par_point * (points || 0) + F.quartier.isole, F.quartier.isole, F.quartier.max); }
+    // 3. la tendance de la semaine du jeu : quelques départements en vogue, d'autres en baisse, les mêmes pour tous
+    function tendance(dep, semaine) {
+      const u = alea01(dep + ':' + semaine), m = F.tendance.min + (F.tendance.max - F.tendance.min) * alea01('m:' + dep + ':' + semaine);
+      if (u < F.tendance.part) return Math.round(m * 100) / 100;
+      if (u > 1 - F.tendance.part) return -Math.round(m * 100) / 100;
+      return 0;
+    }
+    function indice(p) { return (1 + (p.commune || 0)) * (1 + (p.quartier || 0)) * (1 + (p.tendance || 0)); }
+    function valeurMarche(lieu, i) { return Math.round(valeur(lieu) * (i || 1)); }
     function texteNiveau(n) { return NIVEAUX[n].nom; }
-    return { lirePrix, PRIX_MAX, numeroEtVoie, communeDvf, standing, notoriete, plafond, rarete, valeurBase, coutNiveau, peutConstruire, valeur, loyerParJour, loyerTotal, aEncaisser, nomRarete, texteNiveau, NIVEAUX, eco };
+    return { indiceCommune, indiceQuartier, tendance, indice, valeurMarche, lirePrix, PRIX_MAX, numeroEtVoie, communeDvf, standing, notoriete, plafond, rarete, valeurBase, coutNiveau, peutConstruire, valeur, loyerParJour, loyerTotal, aEncaisser, nomRarete, texteNiveau, NIVEAUX, eco };
   }
   const PRIX_MAX = 1000000000;
   // Échanger un de ses lieux (plus, si on veut, des pièces) contre le lieu d'un autre joueur.
@@ -72,6 +93,10 @@
     if (!m) return { numero: '', voie: t };
     return { numero: m[1] + (m[2] ? (m[2].length > 1 ? ' ' + m[2].toLowerCase() : m[2].toUpperCase()) : ''), voie: m[3] };
   }
+  // un nombre « au hasard » mais fixe pour un texte donné (FNV-1a → [0, 1)) : pas de hasard dans les règles
+  function alea01(texte) { let h = 2166136261; for (const c of String(texte)) { h ^= c.codePointAt(0); h = Math.imul(h, 16777619); } return (h >>> 0) / 4294967296; }
+  // le département d'un code INSEE (Corse 2A / 2B, outre-mer sur trois chiffres)
+  function departement(insee) { const c = String(insee || ''); return c.startsWith('97') ? c.slice(0, 3) : c.slice(0, 2); }
   // la commune d'un lieu dans le jeu (classements des Maires) : Paris par arrondissement, les autres par leur nom
   function nomCommune(citycode, city) {
     if (!citycode) return city || '?';
@@ -90,6 +115,6 @@
     if (jourMs >= 86400000 && PARIS_HEURE) { const [h, mi, s] = PARIS_HEURE.format(new Date(ms)).split(':').map(Number); return Math.max(1, 86400 - (h * 3600 + mi * 60 + s)); }
     return Math.max(1, Math.ceil(((Math.floor(ms / jourMs) + 1) * jourMs - ms) / 1000));
   }
-  const api = { creer, numeroEtVoie, bilanEchange, nomCommune, jourDuJeu, secondesAvantJourSuivant, PRIX_MAX };
+  const api = { creer, numeroEtVoie, bilanEchange, nomCommune, departement, jourDuJeu, secondesAvantJourSuivant, PRIX_MAX };
   if (typeof module !== 'undefined' && module.exports) module.exports = api; else racine.Regles = api;
 })(typeof globalThis !== 'undefined' ? globalThis : this);

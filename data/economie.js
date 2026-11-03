@@ -126,6 +126,21 @@ const ECO = {
    }
   }
  },
+ "fluctuation": {
+  "fenetre_jours": 7,
+  "commune_max": 0.3,
+  "quartier": {
+   "rayon_m": 300,
+   "par_point": 0.01,
+   "isole": -0.05,
+   "max": 0.2
+  },
+  "tendance": {
+   "part": 0.12,
+   "min": 0.05,
+   "max": 0.15
+  }
+ },
  "boutique": {
   "pack_1": 1.99,
   "pack_5": 7.99,

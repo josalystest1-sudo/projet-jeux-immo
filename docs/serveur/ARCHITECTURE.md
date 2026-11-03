@@ -16,6 +16,8 @@
 | `signalements` | les signalements (traités par Gautier) | en envoyer |
 | `joueurs` | pièces, dernière récolte, dernier pack | lire **le sien** |
 | `lieux` | chaque lieu possédé : propriétaire, niveau, prix de vente, commune, parcelle | lire tous |
+| `ventes` | chaque vente (lieu, commune, prix, valeur au moment de la vente) : le marché des communes, l'historique d'un lieu | lire (sans les joueurs) |
+| (fonctions) `marche_communes(communes, depuis)`, `quartiers(pts, dlat, dlon)` | le prix moyen des ventes rapporté à la valeur ; l'activité autour de points | appeler (lecture seule) |
 | `reglages` | la vitesse du temps (`jour_secondes`) | lire |
 | `offres` | offres en attente et réglées (une seule en attente par acheteur et par lieu) | lire les siennes (acheteur ou vendeur) |
 | `notifications` | offres reçues, ventes, réponses | lire les siennes |

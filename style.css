@@ -581,3 +581,9 @@ body.fiche-ouverte #top .barre,body.fiche-ouverte #sugg,body.fiche-ouverte #ctrl
 .offre-valeur b{color:var(--encre)} .offre-valeur .montant{font-size:14px}
 .offre-valeur .ecart{flex:none;border-radius:999px;padding:2px 9px;font-size:13px}
 .offre-valeur .ecart.plus{background:#DDF3E6;color:var(--cadre2)} .offre-valeur .ecart.moins{background:#FDEBD8;color:#B5651D}
+
+/* la valeur qui bouge : la variation sous la valeur, ses raisons sous les chiffres, le marché de la semaine */
+.stat .var{display:block;font-style:normal;font-size:11px;font-weight:900;margin-top:1px}
+.stat .var.plus,.facteurs .plus,.tendances .plus{color:var(--cadre2)} .stat .var.moins,.facteurs .moins,.tendances .moins{color:#B5651D}
+.facteurs{font-size:12px;font-weight:800;color:var(--gris);margin:6px 2px 0;line-height:1.4}
+.tendances .m{margin-top:6px;line-height:1.45} .tendances .petit{font-size:12px}
