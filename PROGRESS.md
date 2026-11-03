@@ -78,12 +78,14 @@
 
 - 3 nov. 2026 : **idée écartée : les enseignes des commerces à la place des adresses** (« Subway porte d'Orléans ») : après la liste des pour et des contre (marques utilisées sans accord dans un jeu payant, petits commerces au nom de leur patron = lien adresse ↔ personne, commerces qui ferment ou déménagent, données brouillonnes), Gautier abandonne l'idée.
 
+- 3 nov. 2026 : **le projet passe dans Claude Code** (demande de Gautier) : `docs/HISTORIQUE.md` (le récit, toutes les PR, les décisions, ce qui reste à faire, où vit quoi), `docs/REPRENDRE-DANS-CLAUDE-CODE.md` (la procédure pour Gautier, bouton par bouton, et la reprise pour le nouveau Claude), `CLAUDE.md` § 3 bis (où l'on travaille : le PC de Gautier piloté depuis le téléphone, ou le cloud et ses limites) ; l'outil d'essai de la promenade versé dans le dépôt (`tools/essai_promenade.js`, Google simulé).
+
 ## En cours
 - Lieux célèbres : les autres catégories (châteaux, mairies, gares, musées, ponts, phares, moulins…) dès que Wikidata répond (`python3 tools/wikidata_celebres.py`, puis `--fusion` et `gen_donnees.py celebres`).
 - Phase 1.1 à 1.4 : la carte et le modèle des lieux reconstruits en modules (`src/`) à partir du prototype ; puis le marché (phase 4 : historique des ventes d'un lieu) et les communes et Maires (phase 6). Ensuite : Signaler envoyé au serveur dès qu'il y aura de vrais joueurs à l'écran ; Google ; un service d'envoi d'e-mails avant le lancement (le service de Supabase n'écrit qu'aux membres de l'équipe Supabase, deux e-mails par heure).
 
 ## À faire
-- Voir `docs/PLAN.md` (phases 1 à 11).
+- La suite du serveur : 8.1f (les échanges sur le serveur), 8.1g (les enchères sur le serveur), 8.2 (le mode serveur par défaut, la fin des joueurs simulés, l'inscription des amis), 8.3 (anti-triche) ; puis la boutique (phase 9). Liste complète, avec ce qu'il faudra faire au lancement : `docs/HISTORIQUE.md` § « Ce qui reste à faire » ; l'ordre : `docs/PLAN.md` (phases 1 à 11).
 
 ## Questions ouvertes
 - Relire la liste des 60 monuments nationaux (`data/monuments.json`, `palier: national`).
@@ -91,6 +93,7 @@
 - Nom : « Cadastra » a des domaines pris (.fr, .com, .app) et une marque française « CadastrA » en immobilier/logiciel (voir GDD § 12) : garder ou changer, à décider par Gautier.
 - Capacité de gestion (limite de lieux par niveau) : à valider après simulation.
 - Fin de l'interview : volets 3 à 6 (lieux et packs, technique, graphismes, lancement).
+- Inscription des amis pendant les essais (8.2) : couper la confirmation par e-mail le temps des essais (le service d'e-mails de Supabase n'écrit qu'à l'équipe) ? Question posée, sans réponse.
 
 ## Bugs connus
 - Les badges 💰 des joueurs simulés n'apparaissent qu'après ouverture de leur parcelle (limite du prototype local).
