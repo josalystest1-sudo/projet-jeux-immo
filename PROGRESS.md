@@ -36,6 +36,8 @@
 
 - 3 nov. 2026 : **un lieu libre ne s'achète plus** (décision de Gautier) : sa fiche dit qu'il peut sortir dans un pack ; on n'achète qu'à un joueur qui vend, ou par offre ou échange.
 
+- 3 nov. 2026 : **Street View regarde le bon endroit** (retour de Gautier : la Fontaine Médicis montrait l'intérieur d'une librairie, où l'on ne peut pas avancer) : la vue vise le monument ou le lieu célèbre de la parcelle (le plus proche de l'endroit touché), sinon l'adresse touchée ; elle se place sur la rue la plus proche (tracé IGN), là où passe la voiture de Google, et se tourne vers le lieu ; un monument se regarde depuis une rue (jusqu'à 120 m), sinon une allée, un peu vers le haut ; le monument qu'on possède apparaît dans la fiche de sa parcelle. Limite connue : sans clé Google, on ne sait pas où est exactement la photo choisie ; la visée peut être approximative.
+
 ## En cours
 - Lieux célèbres : les autres catégories (châteaux, mairies, gares, musées, ponts, phares, moulins…) dès que Wikidata répond (`python3 tools/wikidata_celebres.py`, puis `--fusion` et `gen_donnees.py celebres`).
 - Phase 1.1 à 1.4 : la carte et le modèle des lieux reconstruits en modules (`src/`) à partir du prototype ; puis le marché (phase 4 : historique des ventes d'un lieu) et les communes et Maires (phase 6). Ensuite : Signaler envoyé au serveur dès qu'il y aura de vrais joueurs à l'écran ; Google ; un service d'envoi d'e-mails avant le lancement (le service de Supabase n'écrit qu'aux membres de l'équipe Supabase, deux e-mails par heure).

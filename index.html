@@ -263,7 +263,7 @@ function goTo(f){ sugg.style.display='none'; q.blur(); q.value=f.properties.labe
   allerA(lon, lat, p.type==='housenumber'?18:16.5, p.type==='housenumber' ? ()=>choisirParcelleEn(lon,lat) : null, p.name||p.label, [p.postcode,p.city].filter(Boolean).join(' '));
 }
 function flyToAddr(a){ showScreen('carte'); allerA(a.lon, a.lat, 18, ()=>choisirParcelleEn(a.lon,a.lat), a.label, communeName(a.citycode,a.city)); }
-function choisirParcelleEn(lon,lat){ const pf=parcelleDe(lon,lat); if(pf) return selectParcel(pf); const pt=map.project([lon,lat]); const ff=map.queryRenderedFeatures(pt,{layers:['parcel-fill']}); if(ff[0]) selectParcel(ff[0]); }
+function choisirParcelleEn(lon,lat){ pointVise=[lon,lat]; const pf=parcelleDe(lon,lat); if(pf) return selectParcel(pf); const pt=map.project([lon,lat]); const ff=map.queryRenderedFeatures(pt,{layers:['parcel-fill']}); if(ff[0]) selectParcel(ff[0]); }
 
 // Aller quelque part. Tout près : la carte glisse. Plus loin : un court écran de voyage, un saut direct, puis la caméra s'incline.
 // (Un survol depuis Paris jusqu'à Lyon téléchargeait en route des dizaines de tuiles lourdes : 10 à 30 s d'écran vide sur téléphone.)
@@ -360,7 +360,7 @@ async function afficherCelebres(){
   map.getContainer().classList.toggle('cel-noms', map.getZoom()>=16.5); }
 // toucher un repère : la parcelle du lieu s'ouvre (le lieu y est proposé)
 function parcelleDe(lon, lat){ return map.querySourceFeatures('pci',{sourceLayer:'parcelle'}).find(f=>inside([lon,lat], f.geometry)); }
-function ouvrirCelebre(e){ const pf = parcelleDe(e[3], e[4]); if(pf) return selectParcel(pf);
+function ouvrirCelebre(e){ pointVise=[e[3], e[4]]; const pf = parcelleDe(e[3], e[4]); if(pf) return selectParcel(pf);
   allerA(e[3], e[4], 18, ()=>{ const pf2 = parcelleDe(e[3], e[4]); if(pf2) selectParcel(pf2); else toast('⭐ '+e[1]); }, e[1]); }
 function voirMonument(id){ const m=LISTE_MON.find(x=>x.id===id); if(!m) return; showScreen('carte'); allerA(m.lon, m.lat, 17, null, m.nom, m.ville); }
 map.on('load', afficherCelebres);
@@ -391,7 +391,7 @@ map.once('load', ()=>setTimeout(finAccueil, 400)); setTimeout(finAccueil, 6000);
 map.on('load', ()=>{ const at=document.querySelector('.maplibregl-ctrl-attrib'); if(at) at.classList.remove('maplibregl-compact-show'); });
 
 // clic
-map.on('click', (e)=>{ if(sugg.style.display==='block'){ sugg.style.display='none'; }
+map.on('click', (e)=>{ if(sugg.style.display==='block'){ sugg.style.display='none'; } pointVise=[e.lngLat.lng, e.lngLat.lat];
   const feats = map.queryRenderedFeatures(e.point, {layers:['bati-3d','parcel-fill']}); if(!feats.length){ closeSheet(); return; }
   let f = feats.find(x=>x.layer.id==='parcel-fill'); const b = feats.find(x=>x.layer.id==='bati-3d');
   if(b && batiParcel[b.id]){ const pf = map.querySourceFeatures('pci',{sourceLayer:'parcelle', filter:['==',['get','idu'],batiParcel[b.id]]})[0]; if(pf) f = pf; }
@@ -415,14 +415,42 @@ async function openParcel(f){ const p = f.properties, idu = f.id; currentParcel 
     for(const e of liste){ if(Math.abs(e[4]-c[1])>0.01 || Math.abs(e[3]-c[0])>0.015) continue;
       if(inside([e[3],e[4]], f.geometry) && !addrs.find(x=>x.id==='wd:'+e[0])) addrs.unshift(Object.assign(Celebres.lieuDe(e), {city:p.nom_com, idu})); } }catch(err){}
   // les lieux (POI) que je possède sur cette parcelle
-  for(const a of Object.values(state.owned)){ if(a.type==='lieu' && inside([a.lon,a.lat], f.geometry) && !addrs.find(x=>x.id===a.id)) addrs.push(a); }
+  for(const a of Object.values(state.owned)){ if((a.type==='lieu' || a.type==='monument') && inside([a.lon,a.lat], f.geometry) && !addrs.find(x=>x.id===a.id)) (a.type==='monument' ? addrs.unshift(a) : addrs.push(a)); }
   renderAddrs(); paintParcel(idu); }
+// Street View : quoi regarder. D'abord un monument ou un lieu célèbre de la parcelle (le plus proche de l'endroit touché),
+// sinon l'adresse la plus proche de l'endroit touché, sinon le milieu de la parcelle.
+let pointVise=null;   // l'endroit touché sur la carte, ou le lieu qu'on est venu voir
+function cibleStreetView(addrs, geometry, c){ const vise=pointVise||c; const cands=[];
+  for(const m of LISTE_MON) if(Math.abs(m.lat-c[1])<0.02 && Math.abs(m.lon-c[0])<0.03 && inside([m.lon,m.lat], geometry)) cands.push({lon:m.lon, lat:m.lat, monument:true});
+  for(const a of addrs) cands.push({lon:a.lon, lat:a.lat, monument:a.type==='monument'||a.type==='lieu'});
+  if(!cands.length) return {lon:c[0], lat:c[1], monument:false};
+  // un monument passe devant une adresse, sauf si l'adresse est bien plus près de l'endroit touché
+  cands.sort((x,y)=>(dist([x.lon,x.lat],vise)+(x.monument?0:60))-(dist([y.lon,y.lat],vise)+(y.monument?0:60)));
+  return cands[0]; }
+// Regarder depuis la rue : Street View prend la photo la plus proche du point donné. Depuis le point d'une adresse
+// (sur la façade), c'est souvent la photo d'un particulier prise à l'intérieur d'une boutique : on voit l'intérieur
+// et on ne peut pas avancer dans les rues. On se place donc sur la voie la plus proche (le tracé IGN des rues, déjà
+// chargé pour la carte), là où passe la voiture de Google, et on tourne la vue vers le lieu.
+// Un monument se regarde d'abord depuis une rue (jusqu'à 120 m), sinon depuis une allée (70 m), et un peu vers le haut.
+function voiePlusProche(cible, exclure, max){ const lat0=cible.lat*Math.PI/180, mx=111320*Math.cos(lat0), my=110540; let best=null;
+  try{ for(const f of map.querySourceFeatures('topo',{sourceLayer:'troncon_de_route'})){ const p=f.properties||{}; if(exclure.has(p.nature)) continue;
+      const lignes = f.geometry.type==='LineString' ? [f.geometry.coordinates] : (f.geometry.type==='MultiLineString' ? f.geometry.coordinates : []);
+      for(const l of lignes) for(let i=0;i<l.length-1;i++){
+        const ax=(l[i][0]-cible.lon)*mx, ay=(l[i][1]-cible.lat)*my, bx=(l[i+1][0]-cible.lon)*mx, by=(l[i+1][1]-cible.lat)*my;
+        const dx=bx-ax, dy=by-ay, L=dx*dx+dy*dy; let t=L? -(ax*dx+ay*dy)/L : 0; t=Math.max(0,Math.min(1,t));
+        const px=ax+t*dx, py=ay+t*dy, d=Math.hypot(px,py); if(!best || d<best.d) best={d, px, py}; } } }catch(e){}
+  if(!best || best.d>max || best.d<2) return null;
+  return { lat:cible.lat+best.py/my, lon:cible.lon+best.px/mx, cap:(Math.atan2(-best.px, -best.py)*180/Math.PI+360)%360 }; }   // cap : de la voie vers le lieu (0 = nord)
+const VOIES_PIETONNES = new Set(['Sentier','Escalier','Chemin']);
+function vueDepuisLaRue(cible){
+  const v = cible.monument ? (voiePlusProche(cible, VOIES_PIETONNES, 120) || voiePlusProche(cible, new Set(), 70)) : voiePlusProche(cible, new Set(['Sentier','Escalier']), 70);
+  return v ? Object.assign(v, { pente: cible.monument ? -5 : 0 }) : { lat:cible.lat, lon:cible.lon, cap:0, pente:0 }; }
 function mkAddr(x, idu){ const p=x.properties; return { id:p.id, label:p.name, lon:x.geometry.coordinates[0], lat:x.geometry.coordinates[1], citycode:p.citycode, city:p.city, postcode:p.postcode, idu, type:'adresse' }; }
 function renderAddrs(){ const {p, idu, geometry} = currentParcel; const addrs = parcelAddrs[idu]||[]; const nb=addrs.length; const c = centroid(geometry);
   document.getElementById('nb').textContent = nb;
-  const sv = addrs[0] ? [addrs[0].lat, addrs[0].lon] : [c[1], c[0]];
-  const svEl = document.getElementById('sv'); const url=`https://maps.google.com/maps?q=&layer=c&cbll=${sv[0]},${sv[1]}&cbp=12,0,0,0,0&output=svembed`; if(svEl.src!==url) svEl.src=url;
-  document.getElementById('svlink').href = `https://www.google.com/maps/@?api=1&map_action=pano&viewpoint=${sv[0]},${sv[1]}`;
+  const cible = cibleStreetView(addrs, geometry, c); const vue = vueDepuisLaRue(cible);
+  const svEl = document.getElementById('sv'); const url=`https://maps.google.com/maps?q=&layer=c&cbll=${vue.lat.toFixed(6)},${vue.lon.toFixed(6)}&cbp=12,${Math.round(vue.cap)},0,0,${vue.pente}&output=svembed`; if(svEl.src!==url) svEl.src=url;
+  document.getElementById('svlink').href = `https://www.google.com/maps/@?api=1&map_action=pano&viewpoint=${vue.lat.toFixed(6)},${vue.lon.toFixed(6)}&heading=${Math.round(vue.cap)}`;
   const box = document.getElementById('addrs'); box.innerHTML='';
   document.getElementById('plafond').textContent = addrs[0] ? NIVEAUX[plafond(addrs[0])].nom : '—';
   const adr = addrs.find(x=>x.type==='adresse'), rue = adr ? String(adr.label).replace(/^\s*\d+\s*(bis|ter|[a-z])?\s+/i,'') : (addrs[0] ? addrs[0].label : '');
