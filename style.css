@@ -689,3 +689,5 @@ body.promenade #sheet .svwrap{display:none}
 .rcard .back .dos-nom{font-family:var(--titre);font-weight:800;font-size:22px;color:#fff;background:linear-gradient(180deg,#2A57C0,var(--plaque));border:3px solid #fff;outline:3px solid var(--cadre);border-radius:10px;padding:0 16px 1px;box-shadow:0 4px 0 var(--encre);text-shadow:0 2px 0 var(--encre)}
 @keyframes respire{0%,100%{transform:scale(1)}50%{transform:scale(1.07)}}
 @media (prefers-reduced-motion: reduce){.art .reflet,.art .eclats,.art .eclats::after,.art .holo,.r5 .fond-ciel::before,.r6 .fond-ciel::before,.ccarte.r5,.rcard.r5 .front,.rcard .back .dos-piece,.r6 .art .cadre{animation:none!important}}
+/* les cartes glissent hors du pack, une par une (phase 10.3) : elles partent de sous l'ouverture, cachées tant qu'elles y sont */
+.rcard.sortie{opacity:1;transition:none;transform:translateX(var(--x)) translateY(calc(var(--y) + 380px)) scale(var(--s))}
