@@ -26,7 +26,7 @@ jobs:
       - name: Site statique (tout le dépôt sauf l'outillage)
         run: |
           mkdir -p build
-          rsync -a --exclude build --exclude .git --exclude .github --exclude node_modules --exclude tools --exclude tests ./ build/
+          rsync -a --exclude build --exclude .git --exclude .github --exclude node_modules --exclude tools --exclude tests --exclude supabase ./ build/
       - name: Numéro de version (le jeu se met à jour tout seul quand il change)
         run: |
           V=$(echo "$GITHUB_SHA" | cut -c1-10)

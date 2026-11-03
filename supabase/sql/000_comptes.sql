@@ -1,5 +1,5 @@
 -- Cadastra : les tables du serveur Supabase (étape 2.1 : comptes, profils, signalements).
--- À coller dans SQL Editor → New query → Run. Peut être relancé sans danger (if not exists / or replace).
+-- Envoyé au serveur par la publication (.github/workflows/serveur.yml) ; peut être relancé sans danger (if not exists / or replace).
 -- Les tables ne sont pas exposées automatiquement : chaque droit est donné ici, et la sécurité par ligne (RLS)
 -- garantit qu'un joueur ne modifie que ce qui est à lui.
 

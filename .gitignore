@@ -3,3 +3,7 @@ build/
 *.log
 .DS_Store
 data/sources/.celebres_brouillon/
+supabase/functions/jeu/_genere/
+supabase/.temp/
+supabase/.branches/
+supabase/functions/jeu/deno.lock
