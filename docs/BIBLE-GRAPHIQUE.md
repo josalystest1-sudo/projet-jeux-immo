@@ -70,7 +70,7 @@ Où c'est dans le code : la pochette est dessinée par `makeArt()` (`index.html`
 ## 5. Ce qui viendra après la preuve (à valider dans l'ordre)
 
 1. ~~L'ouverture : la déchirure qui suit le doigt, les cartes qui glissent du pack, les sons (phase 10.3).~~ Fait le 3 nov. (§ 7).
-2. Les monuments en 3D stylisée, la tour Eiffel d'abord (phase 10.4).
+2. ~~Les monuments en 3D stylisée, la tour Eiffel d'abord (phase 10.4).~~ La preuve (la tour Eiffel) faite le 3 nov. (§ 8) ; les autres monuments ensuite, un par un, après validation.
 3. L'habillage de la révélation façon FIFA (phase 10.5).
 4. L'icône, le logo, l'écran d'accueil (phase 10.6).
 5. Les illustrations par lieu (églises, mairies, châteaux…) si les icônes ne suffisent plus : ce serait le premier besoin d'un outil d'image par IA.
@@ -88,3 +88,13 @@ Où c'est dans le code : la pochette est dessinée par `makeArt()` (`index.html`
 - **Les sons**, synthétisés (aucun fichier) : un crépitement de papier métallisé pendant la déchirure, plus fort et plus aigu quand le doigt va vite ; l'arrachage ; un carillon à l'ouverture ; un souffle pour chaque carte qui sort. Ils suivent le réglage « Sons ».
 - **La lumière** : la pochette ne bascule plus en arrière (face au « plafond » lumineux de la scène, elle devenait toute blanche) ; le projecteur est un peu adouci et le halo ne prend que les vraies lumières. Le pire cas mesuré n'est plus qu'un éclat dans un coin.
 - Plus tard, si Gautier le veut : de vrais sons enregistrés (banques libres de droits, à télécharger avec son accord).
+
+## 8. Les monuments en 3D (phase 10.4, 3 nov. 2026)
+
+![La tour Eiffel sur la carte](bible/tour-eiffel.jpg)
+
+- **La preuve : la tour Eiffel**, posée sur la carte à sa vraie place, à sa vraie hauteur (330 m) et dans son vrai sens (orientation mesurée sur les blocs de la BD TOPO, que la maquette remplace).
+- **Le style** : des formes simples et épaisses (quatre pieds courbes, les arches, deux plateformes bordées d'or, la flèche et ses ceintures, la loge dorée, l'antenne et un feu au sommet), des ombres franches à trois tons comme un dessin animé, la lumière d'en haut à gauche, et **un contour encre** de 1,6 m (1 à 2 pixels) tant qu'on regarde de loin ; de près (zoom 16,8 et plus), le contour disparaît, car il deviendrait trop épais.
+- **Tout est construit en code** (Three.js, `src/maquettes.js`), sans fichier de modèle ; la maquette est une couche de la carte, sans animation : la carte se repose toujours.
+- **Pour ajouter un monument** : une fonction qui construit sa maquette en mètres (y vers le haut), son centre et son orientation mesurés sur la BD TOPO, et les identifiants (`cleabs`) des bâtiments de l'IGN qu'elle remplace (`MODELES` dans `src/maquettes.js`). Un test vérifie qu'elle correspond à un monument de la liste.
+
