@@ -38,7 +38,7 @@ Embarquées dans `fonts/` (licence OFL), pas de service extérieur.
 - **Bouton** `.btn` : pièce d'or, relief de 4 px en bas, s'enfonce au toucher ; variantes `.bleu`, `.vert`, `.clair`, `.danger`, taille `.sm`. Un seul bouton principal (or) par carte ; les autres en `.clair`.
 - **Plaque** `.plaque` : nom d'un lieu, d'une rue, d'un monument. Dessinée « réaliste » (demande de Gautier, 3 nov. : l'ancienne faisait trop enfantine) : émail bleu nuancé avec un reflet et un grain léger, filet blanc à l'intérieur, cadre vert à tranche plus sombre, deux vis, ombre portée ; la ligne du haut (`<small>` : arrondissement, commune) en minuscules soulignée d'un filet, le nom en capitales.
 - **Numéro** `.numero` : la petite plaque bleue du numéro de la maison.
-- **Façade** `.facade` (`facadeHTML(a)`) : sur les cartes (pack, collection), une adresse se montre en plaque de rue vissée sur un pan de mur en pierre de taille, avec la plaque du numéro dessous ; les lieux nommés et les monuments gardent leur icône.
+- **Façade** `.facade` (`facadeHTML(a)`) : sur les cartes (pack, collection), une adresse se montre en plaque de rue vissée sur un pan de mur en briques rouges (couleurs de vraies briques, joints de mortier clair ; demande de Gautier, 3 nov.), avec la plaque du numéro dessous ; les lieux nommés et les monuments gardent leur icône.
 - **Pastille** `.chip` : un chiffre avec son icône (valeur, loyer, niveau) ; jamais de longue ligne « A · B · C ».
 - **Échelle de construction** `.echelle` : Terrain → Maison → Immeuble → Tour (→ Prestige), étapes faites, suivante, hors plafond (cadenas).
 - **Carte de collection** `.ccarte` : cadre de la couleur de la rareté, icône, nom, commune.
