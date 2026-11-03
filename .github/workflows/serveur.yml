@@ -62,7 +62,7 @@ jobs:
           version: latest
       - name: Fonction « jeu »
         if: steps.jeton.outputs.ok == '1'
-        run: supabase functions deploy jeu --use-api --no-verify-jwt --project-ref "$PROJET"
+        run: supabase functions deploy jeu --use-api --no-verify-jwt --project-ref "$PROJET" --yes
       - name: Essai complet (un joueur jetable)
         if: steps.jeton.outputs.ok == '1'
         run: |
