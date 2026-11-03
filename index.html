@@ -131,6 +131,11 @@ const FAKE = ['Léa','Marco','Inès','Yanis','Chloé','Sacha'];
 const MODE_SERVEUR = (()=>{ try{ return localStorage.getItem('cadastra-mode')==='serveur'; }catch(e){ return false; } })();
 const JOUR = MODE_SERVEUR ? 86400000 : 60*1000;
 const CLE_ETAT = MODE_SERVEUR ? 'cadastra-serveur-v1' : 'proto-cadastre-v3';
+// mode serveur : le monde réel, lu sur le serveur (voir « le monde réel » plus bas)
+const PROPRIOS = {};   // id d'un lieu qui n'est pas à moi → le lieu, avec { uid, qui (pseudo) }
+const JOUEURS = {}, PAR_PSEUDO = {};   // uid → { pseudo, avatar, cree_le } ; pseudo → uid
+const MAIRES = {}, CLASSEMENTS = {};   // commune → [{ who, n }] : ses Maires ; son classement complet
+let REEL = {};                         // parcelle → ensemble des propriétaires (pour la couleur)
 const R = Regles.creer(ECO, STANDING); // moteur de règles (src/regles/lieu.js) : réglages data/economie.json, standing réel data/standing.json
 const NIVEAUX = R.NIVEAUX; const SALAIRE = ECO.salaire_par_jour; const LOYER_BASE = ECO.loyer_terrain; const RARETES = ECO.raretes;
 // Les 458 monuments (data/monuments.json), tous Extraordinaires : 60 nationaux et 398 régionaux ; chaque semaine, 1 national et 2 régionaux aux enchères.
@@ -144,7 +149,9 @@ const FRANCE = [[2.3522,48.8566],[2.2945,48.8584],[2.3912,48.8600],[2.3200,48.83
 
 // =================== état ===================
 let state = { wallet: 1500, owned:{}, pseudo:'', avatar:'🦊', prefs:{offres:true, seuil:true, encheres:true}, lastPack:-1, offersIn:[], offersOut:[], notifs:[], encaisse:Date.now(), encheres:{ mises:{}, clos:{}, depasse:{} }, seen:{} };
-try { const s = localStorage.getItem(CLE_ETAT); if (s) state = Object.assign(state, JSON.parse(s)); } catch(e){}
+try { const s = localStorage.getItem(CLE_ETAT); if (s) state = Object.assign(state, JSON.parse(s));
+  // la première fois en mode serveur : les réglages de la démo suivent (sons, vibrations, guide déjà vu…)
+  else if(MODE_SERVEUR){ const d=JSON.parse(localStorage.getItem('proto-cadastre-v3')||'{}'); if(d.prefs) state.prefs=Object.assign({}, state.prefs, d.prefs); if(d.pseudo){ state.pseudo=d.pseudo; state.avatar=d.avatar||state.avatar; } } } catch(e){}
 // les enchères : mes mises par lot (« semaine:place »), les lots clos, les surenchères déjà signalées (l'ancienne enchère unique est abandonnée)
 if(!state.encheres) state.encheres = { mises:{}, clos:{}, depasse:{} }; delete state.auction;
 if(!state.echangesOut) state.echangesOut=[]; if(!state.cedes) state.cedes={};   // échanges proposés ; lieux cédés par échange (id → joueur)
@@ -183,7 +190,7 @@ function toast(t){ const el=document.getElementById('toast'); el.innerHTML=avecP
 function communeName(citycode, city){ return Regles.nomCommune(citycode, city); }
 // standing (plafond de construction) : démo, en vrai calculé avec DVF
 function rarete(a){ return R.rarete(a); }
-function enVente(a){ if(state.owned[a.id]) return !!state.owned[a.id].enVente; const o=ownerOf(a); return !!o && hash(a.id+'v')%100<25; }
+function enVente(a){ if(state.owned[a.id]) return !!state.owned[a.id].enVente; if(MODE_SERVEUR) return !!(PROPRIOS[a.id] && PROPRIOS[a.id].enVente); const o=ownerOf(a); return !!o && hash(a.id+'v')%100<25; }
 function plafond(a){ return R.plafond(a); }
 function baseValue(a){ return R.valeurBase(a); }
 function coutNiveau(a, n){ return R.coutNiveau(a, n); }
@@ -203,8 +210,8 @@ function fakeLevel(addrId){ const h=hash(addrId+'n')%10; return h<5?0:(h<8?1:(h<
 function proprioSimule(a){ if(!a.idu) return fakeOwner(a.id); const s=parcelSeed(a.idu); if(s==='free') return null;
   const n=FAKE.length, i=hash(a.idu+'o')%n; if(s==='other') return FAKE[i];
   const j=(i+1+hash(a.idu+'p')%(n-1))%n; return hash(a.id+'m')%2 ? FAKE[i] : FAKE[j]; }
-function ownerOf(a){ if(state.owned[a.id]) return ME; if(state.cedes && state.cedes[a.id]) return state.cedes[a.id].qui; if(state.seen[a.id]==='libre') return null; return proprioSimule(a); }
-function levelOf(a){ if(state.owned[a.id]) return state.owned[a.id].niveau||0; if(state.cedes && state.cedes[a.id]) return state.cedes[a.id].niveau||0; return ownerOf(a) ? Math.min(fakeLevel(a.id), plafond(a)) : 0; }
+function ownerOf(a){ if(state.owned[a.id]) return ME; if(MODE_SERVEUR) return PROPRIOS[a.id] ? PROPRIOS[a.id].qui : null; if(state.cedes && state.cedes[a.id]) return state.cedes[a.id].qui; if(state.seen[a.id]==='libre') return null; return proprioSimule(a); }
+function levelOf(a){ if(state.owned[a.id]) return state.owned[a.id].niveau||0; if(MODE_SERVEUR) return PROPRIOS[a.id] ? PROPRIOS[a.id].niveau||0 : 0; if(state.cedes && state.cedes[a.id]) return state.cedes[a.id].niveau||0; return ownerOf(a) ? Math.min(fakeLevel(a.id), plafond(a)) : 0; }
 
 // =================== carte ===================
 const ST = ['coalesce',['feature-state','st'],'free'];
@@ -325,10 +332,11 @@ function parcelBonus(idu){ const list=parcelAddrs[idu]; if(!list) return 0; let 
 // sinon chaque « idle » relançait un dessin, qui relançait un « idle »… et la carte ne se reposait jamais.
 const etatParc = {}, etatBati = {};
 function poserParcelle(idu, st){ if(etatParc[idu]===st) return; etatParc[idu]=st; map.setFeatureState({source:'pci', sourceLayer:'parcelle', id:idu}, {st}); }
-function paintParcel(idu){ const st = parcelState(idu); if(st) poserParcelle(idu, st); paintBuildings(); paintBadges(idu); }
-function seedVisible(){ if(map.getZoom()<15) return; const feats = map.queryRenderedFeatures({layers:['parcel-fill']}); const seen=new Set();
+function paintParcel(idu){ const st = MODE_SERVEUR ? etatReel(idu) : parcelState(idu); if(st) poserParcelle(idu, st); paintBuildings(); paintBadges(idu); }
+function seedVisible(){ if(map.getZoom()<15) return; if(MODE_SERVEUR) calculerReel(); const feats = map.queryRenderedFeatures({layers:['parcel-fill']}); const seen=new Set();
   const miennes = new Set(Object.values(state.owned).map(a=>a.idu).filter(Boolean));
   for(const f of feats){ const idu=f.id; if(!idu || seen.has(idu)) continue; seen.add(idu);
+    if(MODE_SERVEUR){ poserParcelle(idu, etatReel(idu)); continue; }
     if(parcelAddrs[idu]) { const st=parcelState(idu); if(st) poserParcelle(idu, st); continue; }
     let st = parcelSeed(idu); if(miennes.has(idu)){ st = (st==='free') ? 'me' : 'mixed'; }
     poserParcelle(idu, st); } }
@@ -442,6 +450,9 @@ async function openParcel(f){ const p = f.properties, idu = f.id; currentParcel 
   try{ const liste = await chargerCelebres(Celebres.departement(p.code_insee));
     for(const e of liste){ if(Math.abs(e[4]-c[1])>0.01 || Math.abs(e[3]-c[0])>0.015) continue;
       if(inside([e[3],e[4]], f.geometry) && !addrs.find(x=>x.id==='wd:'+e[0])) addrs.unshift(Object.assign(Celebres.lieuDe(e), {city:p.nom_com, idu})); } }catch(err){}
+  // mode serveur : les vrais propriétaires de ces lieux, et les lieux nommés des autres joueurs posés sur la parcelle
+  if(MODE_SERVEUR){ await chargerProprios(addrs.map(a=>a.id), f.geometry);
+    for(const a of Object.values(PROPRIOS)) if((a.type==='lieu' || a.type==='monument') && inside([a.lon,a.lat], f.geometry) && !addrs.find(x=>x.id===a.id)) addrs.push(a); }
   // les lieux (POI) que je possède sur cette parcelle
   for(const a of Object.values(state.owned)){ if((a.type==='lieu' || a.type==='monument') && inside([a.lon,a.lat], f.geometry) && !addrs.find(x=>x.id===a.id)) (a.type==='monument' ? addrs.unshift(a) : addrs.push(a)); }
   // un lieu à moi juste à côté, sur la voie publique (le Gros-Horloge enjambe une rue) : montré en tête, sans l'attacher à la parcelle
@@ -626,7 +637,7 @@ function addrRow(a, withBuild){
       else { const sell=document.createElement('button'); sell.className='btn clair'; sell.textContent='💰 Mettre en vente'; sell.onclick=()=>mettreEnVente(a.id); actions.appendChild(sell); }
       row.appendChild(actions); } }
   else if(o){ const existing = state.offersOut.find(x=>x.addrId===a.id && x.status==='attente');
-    if(vente){ const b=document.createElement('button'); b.className='btn'; b.innerHTML=`Acheter · ${pcs(valeur(rec))}`; b.disabled=dispo()<valeur(rec);
+    if(vente){ const prixV = MODE_SERVEUR ? prixDemande(a) : valeur(rec); const b=document.createElement('button'); b.className='btn'; b.innerHTML=`Acheter · ${pcs(prixV)}`; b.disabled=dispo()<prixV;
       b.onclick=()=>{ if(MODE_SERVEUR) return bientot(); encaisser(true); state.wallet-=valeur(rec); state.owned[a.id]=Object.assign({}, a, {niveau:lv, depuis:now()}); state.seen[a.id]='libre'; save(); refreshTop(); setBadge(a,lv); if(a.idu) paintParcel(a.idu); toast(`${a.label} achetée à ${o} !`); fete(); apresAction(); };
       actions.appendChild(b); row.appendChild(actions); }
     else if(existing){ const t=document.createElement('div'); t.className='chip bleu'; t.innerHTML=`📨 Offre envoyée : <b>${nb(existing.price)}</b><i class="pc"></i> · en attente`; actions.appendChild(t); row.appendChild(actions); }
@@ -646,7 +657,7 @@ function addrRow(a, withBuild){
   return row; }
 function retirerVente(id){ if(MODE_SERVEUR) return bientot(); const a=state.owned[id]; if(!a) return; a.enVente=false; save(); setBadge(a, a.niveau||0); toast('Retiré de la vente'); apresAction(); }
 // le prix demandé : celui que le joueur a fixé (sinon la valeur du lieu)
-function prixDemande(a){ const r=state.owned[a.id]; return r && r.enVente && r.prixVente ? r.prixVente : valeur(r||a); }
+function prixDemande(a){ if(MODE_SERVEUR && !state.owned[a.id] && PROPRIOS[a.id] && PROPRIOS[a.id].prixVente) return PROPRIOS[a.id].prixVente; const r=state.owned[a.id]; return r && r.enVente && r.prixVente ? r.prixVente : valeur(r||a); }
 // Mettre en vente (ou changer le prix) : le joueur tape le montant qu'il veut ; des raccourcis autour de la valeur.
 function mettreEnVente(id){ if(MODE_SERVEUR) return bientot(); const a=state.owned[id]; if(!a) return; const retour=ficheOuverte; const v=valeur(a);
   const box=document.getElementById('modalbox');
@@ -1009,11 +1020,56 @@ async function appelServeur(action, corps){
 function appliquerEtat(e){ if(!e) return; state.wallet=e.pieces; state.encaisse=e.encaisse; state.dernierPack=e.dernierPack||'';
   const avant=state.owned; state.owned={}; for(const l of (e.lieux||[])) state.owned[l.id]=Object.assign({}, l);
   for(const id of Object.keys(avant)) if(!state.owned[id]) setBadge(avant[id], 0);
-  save(); refreshTop(); refreshPack(); restoreBadges(); }
+  save(); refreshTop(); refreshPack(); restoreBadges(); try{ peindreReel(); }catch(err){} }
 async function agir(action, corps){ serveurOccupe=true; let r; try{ r=await appelServeur(action, corps); } finally { serveurOccupe=false; }
   if(!r || !r.ok){ toast((r && r.message) || 'Le serveur ne répond pas'); vibrer(30); return null; }
   if(r.etat) appliquerEtat(r.etat); return r; }
-async function synchroniser(){ const r=await appelServeur('etat'); if(r && r.ok){ appliquerEtat(r); apresAction(); } return r; }
+async function synchroniser(){ const r=await appelServeur('etat'); if(r && r.ok){ appliquerEtat(r); apresAction(); chargerMaires(Object.keys(mesLieuxParCommune())).catch(()=>{}); chargerZoneBientot(); } return r; }
+// ---- le monde réel : les lieux des autres joueurs (table « lieux », lisible par tous), leurs pseudos, les Maires
+const COLS_LIEU = 'id,proprietaire,type,label,lon,lat,citycode,city,commune,idu,notoriete,cat,qid,niveau,prix_vente';
+const monUid = ()=> window.Compte && Compte.session ? Compte.session.user.id : null;
+function lieuDuServeur(l){ const a={ id:l.id, label:l.label, lon:l.lon, lat:l.lat, citycode:l.citycode, city:l.city, type:l.type, niveau:l.niveau||0 };
+  if(l.notoriete) a.notoriete=l.notoriete; if(l.cat) a.cat=l.cat; if(l.qid) a.qid=l.qid; if(l.idu) a.idu=l.idu; if(l.prix_vente!=null){ a.enVente=true; a.prixVente=Number(l.prix_vente); } return a; }
+async function connaitreJoueurs(uids){ const manque=[...new Set(uids)].filter(u=>u && !(JOUEURS[u] && JOUEURS[u].avatar!==undefined)); if(!manque.length) return;
+  const { data } = await Compte.client.from('profils').select('id,pseudo,avatar,cree_le').in('id', manque);
+  for(const p of (data||[])){ JOUEURS[p.id]={ pseudo:p.pseudo, avatar:p.avatar, cree_le:p.cree_le }; PAR_PSEUDO[p.pseudo]=p.id; } }
+const quiEst = uid => uid===monUid() ? ME : ((JOUEURS[uid]||{}).pseudo || 'Un joueur');
+async function retenirLieux(rows){ await connaitreJoueurs(rows.map(r=>r.proprietaire));
+  for(const r of rows){ if(r.proprietaire===monUid()) continue; PROPRIOS[r.id]=Object.assign(lieuDuServeur(r), { uid:r.proprietaire, qui:quiEst(r.proprietaire) }); } }
+// les lieux d'une parcelle (par identifiant et dans son emprise) ; ceux qui ne sont plus à personne sont oubliés
+async function chargerProprios(ids, geometry){ if(!(window.Compte && Compte.client)) return; const b=boite(geometry);
+  const [a, z] = await Promise.all([ ids.length ? Compte.client.from('lieux').select(COLS_LIEU).in('id', ids) : { data:[] },
+    Compte.client.from('lieux').select(COLS_LIEU).gte('lon',b[0]).lte('lon',b[2]).gte('lat',b[1]).lte('lat',b[3]).limit(200) ]);
+  const rows=[...(a.data||[]), ...(z.data||[])]; for(const id of ids) if(!rows.some(r=>r.id===id)) delete PROPRIOS[id]; await retenirLieux(rows); }
+// le quartier à l'écran : les lieux possédés, pour colorer les parcelles et poser les badges « en vente »
+let zoneMinuterie=null, zoneNum=0;
+function chargerZoneBientot(){ if(!MODE_SERVEUR) return; clearTimeout(zoneMinuterie); zoneMinuterie=setTimeout(chargerZone, 350); }
+async function chargerZone(){ if(!(window.Compte && Compte.client && Compte.session) || map.getZoom()<15) return; const b=map.getBounds(), n=++zoneNum;
+  const { data, error } = await Compte.client.from('lieux').select(COLS_LIEU).gte('lon',b.getWest()).lte('lon',b.getEast()).gte('lat',b.getSouth()).lte('lat',b.getNorth()).limit(1000);
+  if(error || n!==zoneNum) return;
+  for(const id of Object.keys(PROPRIOS)){ const p=PROPRIOS[id]; if(b.contains([p.lon,p.lat]) && !(data||[]).some(r=>r.id===id)){ delete PROPRIOS[id]; setBadge(p, 0); } }
+  await retenirLieux(data||[]); for(const p of Object.values(PROPRIOS)) if(b.contains([p.lon,p.lat])) setBadge(p, p.niveau||0); peindreReel(); }
+// quelles parcelles à l'écran portent des lieux possédés (et par qui) : recalculé à chaque dessin (les parcelles
+// arrivent avec les tuiles, parfois après les lieux)
+// (le point d'une adresse tombe souvent sur le trottoir : la parcelle la plus proche, à 12 m au plus ; retenue une fois trouvée)
+const IDU_DE = {};
+function calculerReel(){ const b=map.getBounds(); let trouver=null; const qui={};
+  // seulement les lieux à l'écran (un joueur peut en avoir des centaines dans toute la France)
+  const poser=(a,q)=>{ let idu=a.idu || IDU_DE[a.id]; if(!idu){ if(!b.contains([a.lon,a.lat])) return; trouver=trouver||grilleParcelles(map.queryRenderedFeatures({layers:['parcel-fill']}));
+      idu=trouver([a.lon,a.lat]) || (parcelleProche(a.lon, a.lat, 12)||{}).id; if(idu) IDU_DE[a.id]=idu; }
+    if(idu) (qui[idu]=qui[idu]||new Set()).add(q); };
+  for(const a of Object.values(state.owned)) poser(a, ME); for(const p of Object.values(PROPRIOS)) poser(p, p.qui); REEL=qui; }
+function peindreReel(){ if(map.getZoom()<15) return; seedVisible(); paintBuildings(); }
+// la couleur d'une parcelle : ses lieux connus (adresses de la fiche) et ceux posés dessus
+function etatReel(idu){ const s=new Set(REEL[idu]||[]); for(const a of (parcelAddrs[idu]||[])){ const o=ownerOf(a); if(o) s.add(o); }
+  return !s.size ? 'free' : (s.size>1 ? 'mixed' : (s.has(ME) ? 'me' : 'other')); }
+// les Maires de communes (une requête pour toutes), le classement complet d'une commune
+async function chargerMaires(ks){ ks=[...new Set(ks)].filter(Boolean); if(!ks.length || !(window.Compte && Compte.client)) return;
+  const { data } = await Compte.client.rpc('maires', { communes: ks }); for(const k of ks) MAIRES[k]=[];
+  for(const r of (data||[])){ if(r.joueur && r.pseudo){ JOUEURS[r.joueur]=JOUEURS[r.joueur]||{ pseudo:r.pseudo }; PAR_PSEUDO[r.pseudo]=r.joueur; } (MAIRES[r.commune]=MAIRES[r.commune]||[]).push({ who:quiEst(r.joueur), n:Number(r.n) }); } }
+async function chargerClassement(k){ if(!(window.Compte && Compte.client)) return; const { data } = await Compte.client.rpc('classement_commune', { c:k });
+  CLASSEMENTS[k]=(data||[]).map(r=>{ if(r.joueur && r.pseudo){ JOUEURS[r.joueur]=JOUEURS[r.joueur]||{ pseudo:r.pseudo, avatar:r.avatar }; PAR_PSEUDO[r.pseudo]=r.joueur; } return { who:quiEst(r.joueur), n:Number(r.n) }; }); }
+if(MODE_SERVEUR){ map.on('moveend', chargerZoneBientot); map.once('idle', chargerZoneBientot); }
 function changerMode(serveur){ try{ localStorage.setItem('cadastra-mode', serveur ? 'serveur' : 'demo'); }catch(e){} location.reload(); }
 
 // =================== tirage du pack (src/tirage.js, le même code que le serveur ; règles : src/regles/pack.js) ===================
@@ -1021,7 +1077,10 @@ function changerMode(serveur){ try{ localStorage.setItem('cadastra-mode', serveu
 async function geoJSON(chemin){ const r=await fetch('https://data.geopf.fr/geocodage/'+chemin); if(!r.ok) throw new Error('géocodage '+r.status); return r.json(); }
 function estLibre(c){ return !state.owned[c.id] && ownerOf(c)===null; }
 const TIRAGE = Tirage.creer({ geoJSON, celebres:chargerCelebres, france:GEO.france, deps:DEP_BOITES.map(d=>d.code), standing:STANDING, Celebres, Pack, rarete, estLibre });
-async function ouvrirPack(){ if(!packDispo()){ const s=secondesAvantPack(); return toast(MODE_SERVEUR ? `Prochain pack à minuit (dans ${dureeCourte(s)})` : `Prochain pack dans ${s} s (démo : un jour = une minute)`); } const btn=document.getElementById('packbtn'); btn.dataset.ouverture='1'; document.getElementById('packt').textContent='…'; openScene();
+async function ouvrirPack(){ const sc0=document.getElementById('packscene');
+  // un seul pack à la fois : un deuxième toucher (ou l'ouverture automatique) pendant que le serveur tire refermait la scène
+  if(document.getElementById('packbtn').dataset.ouverture || sc0.classList.contains('on')) return;
+  if(!packDispo()){ const s=secondesAvantPack(); return toast(MODE_SERVEUR ? `Prochain pack à minuit (dans ${dureeCourte(s)})` : `Prochain pack dans ${s} s (démo : un jour = une minute)`); } const btn=document.getElementById('packbtn'); btn.dataset.ouverture='1'; document.getElementById('packt').textContent='…'; openScene();
   // les cartes sont tirées en parallèle ; une carte manquante (réseau capricieux) est complétée par une Commune
   // (mode serveur : le serveur tire, avec une graine secrète, et les lieux sont à toi dès qu'il répond)
   let cards;
@@ -1042,7 +1101,7 @@ function dureeCourte(s){ return s>=3600 ? `${Math.floor(s/3600)} h ${String(Math
 // =================== écrans ===================
 function showScreen(name){ vibrer(8); document.querySelectorAll('.screen').forEach(s=>s.classList.remove('on')); document.querySelectorAll('#nav button[data-s]').forEach(b=>b.classList.toggle('on', b.dataset.s===name));
   const hide = name!=='carte'; ['top','ctrls','legend'].forEach(id=>document.getElementById(id).style.display = hide?'none':''); closeSheet(); if(!(window.Compte && Compte.bloque && Compte.bloque())) closeModal();
-  if(name==='patrimoine') renderPatrimoine(); if(name==='encheres') renderEncheres(); if(name==='communes') renderCommunes(); if(name==='notifs') renderNotifs();
+  if(name==='patrimoine') renderPatrimoine(); if(name==='encheres') renderEncheres(); if(name==='communes'){ if(MODE_SERVEUR){ for(const k of Object.keys(MAIRES)) delete MAIRES[k]; for(const k of Object.keys(CLASSEMENTS)) delete CLASSEMENTS[k]; } renderCommunes(); } if(name==='notifs') renderNotifs();
   if(hide) document.getElementById('s-'+name).classList.add('on'); else map.resize(); }
 document.querySelectorAll('#nav button[data-s]').forEach(b=>b.onclick=()=>showScreen(b.dataset.s));
 document.getElementById('cloche').onclick=()=>showScreen('notifs');
@@ -1112,12 +1171,14 @@ function renderEncheres(){ const el=document.getElementById('s-encheres'); const
 // Le classement d'une commune (joueurs simulés en attendant le serveur ; même règle pour l'écran Communes, la recherche et le profil)
 function mesLieuxParCommune(){ const mine={}; Object.values(state.owned).forEach(a=>{ const k=communeName(a.citycode,a.city); mine[k]=(mine[k]||0)+1; }); return mine; }
 function classementCommune(k, mine){ mine=mine||mesLieuxParCommune(); const moi=mine[k]||0;
-  const rows=FAKE.map(f=>({who:f, n:(hash(k+f)%9)+ (hash(k)%3===0?6:0)})); rows.push({who:ME, n:moi}); rows.sort((a,b)=>b.n-a.n || (a.who===ME?-1:b.who===ME?1:0));
+  // mode serveur : les vrais joueurs (classement complet chargé, sinon au moins ses Maires) ; moi, d'après mes lieux
+  const rows = MODE_SERVEUR ? (CLASSEMENTS[k] || MAIRES[k] || []).filter(r=>r.who!==ME).map(r=>({who:r.who, n:r.n})) : FAKE.map(f=>({who:f, n:(hash(k+f)%9)+ (hash(k)%3===0?6:0)}));
+  rows.push({who:ME, n:moi}); rows.sort((a,b)=>b.n-a.n || (a.who===ME?-1:b.who===ME?1:0));
   const max=rows[0].n, maires=rows.filter(r=>r.n===max && max>0); return { rows, max, maires, moi, jeSuisMaire:maires.some(r=>r.who===ME) }; }
 const nomsMairesDe = c => c.maires.length ? c.maires.map(r=>r.who===ME?'toi':r.who).join(' et ') : 'personne';
 // la clé d'une commune trouvée par la recherche, comme celle d'un lieu (communeName) : Paris par arrondissement, Lyon et Marseille entières
 function cleCommune(p){ const code=p.citycode||''; if(code.startsWith('751')) return communeName(code, p.city); return (p.name||p.city||'').replace(/\s+\d+(er|e)\s+Arrondissement$/i,''); }
-let communeVue=null;   // la commune ouverte en tête de l'écran : { k, sous, lon, lat }
+let communeVue=null, chargeMaires=false;   // la commune ouverte en tête de l'écran : { k, sous, lon, lat }
 function carteCommune(k, sous, lon, lat){ const c=classementCommune(k), medailles=['🥇','🥈','🥉'];
   let h=`<div class="card commune-ouverte"><button class="fermer-commune" onclick="fermerCommune()" aria-label="Fermer">✕</button>
     <div style="text-align:center"><div class="plaque petite"><small>Commune</small>${echapper(k)}</div>${sous?`<div class="m" style="margin:0 0 6px">${echapper(sous)}</div>`:''}</div>
@@ -1126,7 +1187,7 @@ function carteCommune(k, sous, lon, lat){ const c=classementCommune(k), medaille
   c.rows.forEach((r,i)=>{ h+=`<div class="rank${r.who===ME?' moi':''}"><span class="pos">${i<3&&r.n>0?medailles[i]:i+1}</span><span class="who" onclick="showPlayer('${r.who}')">${r.who===ME?echapper(disp(ME))+' (toi)':echapper(r.who)}</span><b>${r.n} lieu${r.n>1?'x':''}</b></div>`; });
   if(lon!=null) h+=`<button class="btn bleu large" style="margin-top:12px" id="voir-commune">🗺️ Voir la commune sur la carte</button>`;
   return h+`</div>`; }
-function ouvrirCommune(k, sous, lon, lat){ communeVue={k, sous, lon, lat}; renderCommunes(); const el=document.getElementById('s-communes'); el.scrollTop=0; vibrer(8); }
+function ouvrirCommune(k, sous, lon, lat){ communeVue={k, sous, lon, lat}; renderCommunes(); if(MODE_SERVEUR) chargerClassement(k).then(()=>{ if(communeVue && communeVue.k===k) renderCommunes(); }); const el=document.getElementById('s-communes'); el.scrollTop=0; vibrer(8); }
 function fermerCommune(){ communeVue=null; renderCommunes(); }
 // une commune de mes lieux : le point d'un de mes lieux sert à « Voir sur la carte »
 function ouvrirMaCommune(k){ const a=Object.values(state.owned).find(x=>communeName(x.citycode,x.city)===k); ouvrirCommune(k, '', a?a.lon:null, a?a.lat:null); }
@@ -1142,6 +1203,9 @@ function renderCommunes(){ const el=document.getElementById('s-communes'); const
       h+=`<button class="ligne-commune${communeVue&&communeVue.k===k?' on':''}" data-k="${echapper(k)}"><span class="nom">${c.jeSuisMaire?'👑 ':''}${echapper(k)}<small>Maire : ${echapper(nomsMairesDe(c))}</small></span><span class="moi-n">${c.moi} lieu${c.moi>1?'x':''}<small>${c.jeSuisMaire?'Tu es Maire':`encore ${c.max-c.moi}`}</small></span><span class="chevron">›</span></button>`; }
     h+=`</div>`; }
   el.innerHTML=h;
+  // mode serveur : les Maires de mes communes (une requête), puis l'écran redessiné s'il n'est pas en train d'être tapé
+  if(MODE_SERVEUR){ const manque=communes.filter(k=>!(k in MAIRES)); if(manque.length && !chargeMaires){ chargeMaires=true;
+    chargerMaires(manque).finally(()=>{ chargeMaires=false; const q=document.getElementById('com-q'); if(document.getElementById('s-communes').classList.contains('on') && !(q && (q.value || document.activeElement===q))) renderCommunes(); }); } }
   // les noms de communes passent par des attributs data- (une apostrophe, « L'Haÿ-les-Roses », casserait un onclick)
   el.querySelectorAll('.ligne-commune').forEach(b=>b.onclick=()=>ouvrirMaCommune(b.dataset.k));
   const voir=el.querySelector('#voir-commune'); if(voir){ const v=communeVue; voir.onclick=()=>{ showScreen('carte'); allerA(v.lon, v.lat, 15.5, null, v.k, 'Commune'); }; }
@@ -1150,6 +1214,7 @@ function renderCommunes(){ const el=document.getElementById('s-communes'); const
     try{ const r=await fetch(`https://data.geopf.fr/geocodage/search?q=${encodeURIComponent(t)}&index=address&type=municipality&autocomplete=1&limit=8`); const j=await r.json(); if(moiNum!==num) return;
       const vus=new Set(), res=[]; for(const f of (j.features||[])){ const p=f.properties; if(p.citycode==='75056') continue;   // Paris se joue par arrondissement
         const k=cleCommune(p); if(!k || vus.has(k)) continue; vus.add(k); res.push({k, sous:(p.context||'').split(',').slice(0,2).map(x=>x.trim()).join(' · '), lon:f.geometry.coordinates[0], lat:f.geometry.coordinates[1]}); }
+      if(MODE_SERVEUR){ await chargerMaires(res.slice(0,6).map(x=>x.k)); if(moiNum!==num) return; }
       box.innerHTML=''; res.slice(0,6).forEach(x=>{ const c=classementCommune(x.k, mine); const d=document.createElement('button'); d.className='sugg-commune';
         d.innerHTML=`<span class="nom">${echapper(x.k)}<small>${echapper(x.sous)}</small></span><span class="maire-mini">👑 ${echapper(nomsMairesDe(c))}</span>`;
         d.onclick=()=>{ inp.blur(); ouvrirCommune(x.k, x.sous, x.lon, x.lat); }; box.appendChild(d); });
@@ -1212,6 +1277,8 @@ function showPlayer(name){ const box=document.getElementById('modalbox'); let h;
       <div class="kpis"><div class="kpi"><b>${list.length}</b><small>lieu${list.length>1?'x':''}</small></div><div class="kpi"><b>${nb(list.reduce((s,a)=>s+valeur(a),0))}<i class="pc"></i></b><small>de valeur</small></div><div class="kpi"><b>${list.filter(a=>a.niveau>0).length}</b><small>construit${list.filter(a=>a.niveau>0).length>1?'s':''}</small></div></div>
       ${maires.length?`<div class="card" style="box-shadow:none;background:var(--piece-clair)"><div class="t">👑 Maire de ${maires.map(echapper).join(', ')}</div></div>`:''}
       <div class="liste-btn"><button class="btn bleu large" onclick="creationProfil()">🎨 Changer mon icône</button><button class="btn clair large" onclick="ouvrirReglages()">⚙️ Réglages</button></div>`; }
+  else if(MODE_SERVEUR){ h=`<div class="profil-tete"><span class="av">${echapper((JOUEURS[PAR_PSEUDO[name]]||{}).avatar||'🙂')}</span><div class="plaque"><small>Joueur</small>${echapper(name)}</div><div class="sub" id="pj-depuis">…</div></div><div id="pj-chiffres" class="m" style="text-align:center;margin:10px 0">Chargement…</div>`;
+    setTimeout(()=>profilReel(name), 0); }
   else { const n=5+hash(name)%40, c=1+hash(name+'c')%4, b=Math.floor(n*(0.3+ (hash(name+'b')%50)/100)); const v=n*1200+b*900;
     h=`<div class="profil-tete"><span class="av">${['🦊','🐻','🐼','🐯','🐸','🦄'][hash(name)%6]}</span><div class="plaque"><small>Joueur</small>${echapper(name)}</div><div class="sub">Membre depuis ${1+hash(name+'d')%60} jours</div></div>
       <div class="kpis"><div class="kpi"><b>${n}</b><small>lieux</small></div><div class="kpi"><b>${nb(v)}<i class="pc"></i></b><small>de valeur</small></div><div class="kpi"><b>${b}</b><small>construits</small></div></div>
@@ -1219,6 +1286,18 @@ function showPlayer(name){ const box=document.getElementById('modalbox'); let h;
   const signaler = name===ME ? '' : `<button class="btn danger large" style="margin-top:8px" onclick="signaler('${name}')">🚩 Signaler ce joueur</button>`;
   const compte = (name===ME && window.Compte && Compte.actif() && Compte.session) ? `<div class="m" style="text-align:center;margin-top:12px">Compte : ${echapper(Compte.session.user.email||'')}</div><button class="btn clair large" style="margin-top:6px" onclick="Compte.deconnecter()">Se déconnecter</button>` : '';
   box.innerHTML = h + signaler + compte + `<div class="liste-btn"><button class="btn clair large" onclick="closeModal()">Fermer</button></div>`; document.getElementById('modal').classList.add('on'); }
+// mode serveur : les chiffres d'un vrai joueur, d'après ses lieux (lisibles par tous)
+async function profilReel(name){ let uid=PAR_PSEUDO[name];
+  if(!uid){ const { data } = await Compte.client.from('profils').select('id,pseudo,avatar,cree_le').eq('pseudo', name).maybeSingle(); if(data){ uid=data.id; JOUEURS[uid]={ pseudo:data.pseudo, avatar:data.avatar, cree_le:data.cree_le }; PAR_PSEUDO[name]=uid; } }
+  const zone=document.getElementById('pj-chiffres'); if(!zone) return; if(!uid){ zone.textContent='Joueur introuvable.'; return; }
+  if(!(JOUEURS[uid]||{}).cree_le){ const { data } = await Compte.client.from('profils').select('id,avatar,cree_le').eq('id', uid).maybeSingle(); if(data) Object.assign(JOUEURS[uid]=JOUEURS[uid]||{pseudo:name}, { avatar:data.avatar, cree_le:data.cree_le }); }
+  const { data } = await Compte.client.from('lieux').select(COLS_LIEU).eq('proprietaire', uid).limit(5000); const liste=(data||[]).map(lieuDuServeur);
+  const n=liste.length, v=liste.reduce((s,a)=>s+valeur(a),0), b=liste.filter(a=>a.niveau>0).length, c=new Set((data||[]).map(r=>r.commune)).size;
+  const j=Math.max(0, Math.floor((Date.now()-Date.parse((JOUEURS[uid]||{}).cree_le||Date.now()))/86400000));
+  const av=document.querySelector('#modalbox .profil-tete .av'); if(av && (JOUEURS[uid]||{}).avatar) av.textContent=JOUEURS[uid].avatar;
+  const dep=document.getElementById('pj-depuis'); if(dep) dep.textContent = j ? `Membre depuis ${j} jour${j>1?'s':''}` : 'Membre depuis aujourd’hui';
+  zone.outerHTML=`<div class="kpis"><div class="kpi"><b>${n}</b><small>lieu${n>1?'x':''}</small></div><div class="kpi"><b>${nb(v)}<i class="pc"></i></b><small>de valeur</small></div><div class="kpi"><b>${b}</b><small>construit${b>1?'s':''}</small></div></div>
+    <div class="card" style="box-shadow:none;background:var(--ciel)"><div class="t">📍 Présent dans ${c} commune${c>1?'s':''}</div><div class="m">Ses lieux sont en rouge sur la carte.</div></div>`; }
 // les communes où je suis Maire (mêmes règles que l'écran Communes)
 function mesMairies(){ const mine=mesLieuxParCommune(); return Object.keys(mine).filter(k=>classementCommune(k, mine).jeSuisMaire); }
 // Signaler un joueur : une raison, un mot facultatif ; la file de signalements est traitée à la main par Gautier
