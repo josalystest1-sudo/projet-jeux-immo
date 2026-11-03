@@ -263,7 +263,10 @@ function goTo(f){ sugg.style.display='none'; q.blur(); q.value=f.properties.labe
   allerA(lon, lat, p.type==='housenumber'?18:16.5, p.type==='housenumber' ? ()=>choisirParcelleEn(lon,lat) : null, p.name||p.label, [p.postcode,p.city].filter(Boolean).join(' '));
 }
 function flyToAddr(a){ showScreen('carte'); allerA(a.lon, a.lat, 18, ()=>choisirParcelleEn(a.lon,a.lat), a.label, communeName(a.citycode,a.city)); }
-function choisirParcelleEn(lon,lat){ pointVise=[lon,lat]; const pf=parcelleDe(lon,lat); if(pf) return selectParcel(pf); const pt=map.project([lon,lat]); const ff=map.queryRenderedFeatures(pt,{layers:['parcel-fill']}); if(ff[0]) selectParcel(ff[0]); }
+// ouvrir la fiche du lieu qu'on est venu voir : sa parcelle, ou la plus proche s'il est sur la voie publique
+// (le Gros-Horloge de Rouen enjambe une rue, et une rue n'a pas de parcelle au cadastre)
+function choisirParcelleEn(lon,lat){ pointVise=[lon,lat]; const pf=parcelleDe(lon,lat) || parcelleProche(lon,lat,60); if(pf) return selectParcel(pf);
+  const pt=map.project([lon,lat]); const ff=map.queryRenderedFeatures(pt,{layers:['parcel-fill']}); if(ff[0]) selectParcel(ff[0]); }
 
 // Aller quelque part. Tout près : la carte glisse. Plus loin : un court écran de voyage, un saut direct, puis la caméra s'incline.
 // (Un survol depuis Paris jusqu'à Lyon téléchargeait en route des dizaines de tuiles lourdes : 10 à 30 s d'écran vide sur téléphone.)
@@ -360,6 +363,14 @@ async function afficherCelebres(){
   map.getContainer().classList.toggle('cel-noms', map.getZoom()>=16.5); }
 // toucher un repère : la parcelle du lieu s'ouvre (le lieu y est proposé)
 function parcelleDe(lon, lat){ return map.querySourceFeatures('pci',{sourceLayer:'parcelle'}).find(f=>inside([lon,lat], f.geometry)); }
+function parcelleProche(lon, lat, max){ const mx=111320*Math.cos(lat*Math.PI/180), my=110540; let best=null, bd=max;
+  for(const f of map.querySourceFeatures('pci',{sourceLayer:'parcelle'})){ const g=f.geometry; if(!g || !f.id) continue;
+    const anneaux = g.type==='Polygon' ? g.coordinates : g.coordinates.flat();
+    for(const r of anneaux) for(let i=0;i<r.length-1;i++){ const ax=(r[i][0]-lon)*mx, ay=(r[i][1]-lat)*my, bx=(r[i+1][0]-lon)*mx, by=(r[i+1][1]-lat)*my;
+      const dx=bx-ax, dy=by-ay, L=dx*dx+dy*dy; let t=L? -(ax*dx+ay*dy)/L : 0; t=Math.max(0,Math.min(1,t)); const d=Math.hypot(ax+t*dx, ay+t*dy); if(d<bd){ bd=d; best=f; } } }
+  return best; }
+// le lieu visé est-il de cette parcelle ? dedans, ou tout près de l'endroit qu'on est venu voir (un monument sur la voie publique)
+function deLaParcelle(lon, lat, geometry){ return inside([lon,lat], geometry) || (!!pointVise && dist([lon,lat], pointVise)<15); }
 function ouvrirCelebre(e){ pointVise=[e[3], e[4]]; const pf = parcelleDe(e[3], e[4]); if(pf) return selectParcel(pf);
   allerA(e[3], e[4], 18, ()=>{ const pf2 = parcelleDe(e[3], e[4]); if(pf2) selectParcel(pf2); else toast('⭐ '+e[1]); }, e[1]); }
 function voirMonument(id){ const m=LISTE_MON.find(x=>x.id===id); if(!m) return; showScreen('carte'); allerA(m.lon, m.lat, 17, null, m.nom, m.ville); }
@@ -416,12 +427,14 @@ async function openParcel(f){ const p = f.properties, idu = f.id; currentParcel 
       if(inside([e[3],e[4]], f.geometry) && !addrs.find(x=>x.id==='wd:'+e[0])) addrs.unshift(Object.assign(Celebres.lieuDe(e), {city:p.nom_com, idu})); } }catch(err){}
   // les lieux (POI) que je possède sur cette parcelle
   for(const a of Object.values(state.owned)){ if((a.type==='lieu' || a.type==='monument') && inside([a.lon,a.lat], f.geometry) && !addrs.find(x=>x.id===a.id)) (a.type==='monument' ? addrs.unshift(a) : addrs.push(a)); }
+  // un lieu à moi juste à côté, sur la voie publique (le Gros-Horloge enjambe une rue) : montré en tête, sans l'attacher à la parcelle
+  currentParcel.extra = Object.values(state.owned).filter(a=>(a.type==='lieu' || a.type==='monument') && !inside([a.lon,a.lat], f.geometry) && pointVise && dist([a.lon,a.lat], pointVise)<15);
   renderAddrs(); paintParcel(idu); }
 // Street View : quoi regarder. D'abord un monument ou un lieu célèbre de la parcelle (le plus proche de l'endroit touché),
 // sinon l'adresse la plus proche de l'endroit touché, sinon le milieu de la parcelle.
 let pointVise=null;   // l'endroit touché sur la carte, ou le lieu qu'on est venu voir
 function cibleStreetView(addrs, geometry, c){ const vise=pointVise||c; const cands=[];
-  for(const m of LISTE_MON) if(Math.abs(m.lat-c[1])<0.02 && Math.abs(m.lon-c[0])<0.03 && inside([m.lon,m.lat], geometry)) cands.push({lon:m.lon, lat:m.lat, monument:true});
+  for(const m of LISTE_MON) if(Math.abs(m.lat-c[1])<0.02 && Math.abs(m.lon-c[0])<0.03 && deLaParcelle(m.lon, m.lat, geometry)) cands.push({lon:m.lon, lat:m.lat, monument:true});
   for(const a of addrs) cands.push({lon:a.lon, lat:a.lat, monument:a.type==='monument'||a.type==='lieu'});
   if(!cands.length) return {lon:c[0], lat:c[1], monument:false};
   // un monument passe devant une adresse, sauf si l'adresse est bien plus près de l'endroit touché
@@ -523,7 +536,7 @@ async function afficherStreetView(cible, vue){ const svEl=document.getElementByI
   // aucune photo trouvée ou pas de réseau : l'intégration officielle, photos d'extérieur seulement, depuis la rue
   poser(`https://www.google.com/maps/embed/v1/streetview?key=${encodeURIComponent(CLE_GOOGLE)}&location=${vue.lat.toFixed(6)},${vue.lon.toFixed(6)}&heading=${Math.round(vue.cap)}&pitch=${-vue.pente}&fov=80&source=outdoor`, vue.lat, vue.lon, vue.cap); }
 function mkAddr(x, idu){ const p=x.properties; return { id:p.id, label:p.name, lon:x.geometry.coordinates[0], lat:x.geometry.coordinates[1], citycode:p.citycode, city:p.city, postcode:p.postcode, idu, type:'adresse' }; }
-function renderAddrs(){ const {p, idu, geometry} = currentParcel; const addrs = parcelAddrs[idu]||[]; const nb=addrs.length; const c = centroid(geometry);
+function renderAddrs(){ const {p, idu, geometry} = currentParcel; const addrs = [...(currentParcel.extra||[]), ...(parcelAddrs[idu]||[])]; const nb=addrs.length; const c = centroid(geometry);
   document.getElementById('nb').textContent = nb;
   const cible = cibleStreetView(addrs, geometry, c); const vue = vueDepuisLaRue(cible); afficherStreetView(cible, vue);
   const box = document.getElementById('addrs'); box.innerHTML='';

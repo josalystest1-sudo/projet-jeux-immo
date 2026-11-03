@@ -40,6 +40,8 @@
 
 - 3 nov. 2026 : **Street View avec la clé Google** (projet « Le Laboratoire », `data/google.json`, guide et méthode dans `docs/serveur/GUIDE-GOOGLE.md`) : jamais de photo d'intérieur (position dans un bâtiment IGN ou collée à un mur), photos de Google d'abord ; un monument est vu à bonne distance (vers 45 m), vue dégagée, de préférence au-dessus de l'eau, depuis les allées s'il est dans un parc, et la vue est tournée vers lui ; si la clé est refusée, retour automatique à l'ancien Street View.
 
+- 3 nov. 2026 : **« Voir sur la carte » ouvre toujours la fiche** : un lieu sur la voie publique (le Gros-Horloge de Rouen enjambe une rue, sans parcelle au cadastre) ouvre la parcelle la plus proche (60 m au plus), avec le monument en tête et Street View tourné vers lui.
+
 ## En cours
 - Lieux célèbres : les autres catégories (châteaux, mairies, gares, musées, ponts, phares, moulins…) dès que Wikidata répond (`python3 tools/wikidata_celebres.py`, puis `--fusion` et `gen_donnees.py celebres`).
 - Phase 1.1 à 1.4 : la carte et le modèle des lieux reconstruits en modules (`src/`) à partir du prototype ; puis le marché (phase 4 : historique des ventes d'un lieu) et les communes et Maires (phase 6). Ensuite : Signaler envoyé au serveur dès qu'il y aura de vrais joueurs à l'écran ; Google ; un service d'envoi d'e-mails avant le lancement (le service de Supabase n'écrit qu'aux membres de l'équipe Supabase, deux e-mails par heure).
