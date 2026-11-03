@@ -187,7 +187,13 @@ function notify(type, text, extra){ state.notifs.unshift({ts:now(), type, text, 
 // propriétaires simulés (par adresse)
 function fakeOwner(addrId){ const h=hash(addrId)%100; return h<12 ? FAKE[hash(addrId+'o')%FAKE.length] : null; }
 function fakeLevel(addrId){ const h=hash(addrId+'n')%10; return h<5?0:(h<8?1:(h<9?2:3)); }
-function ownerOf(a){ if(state.owned[a.id]) return ME; if(state.cedes && state.cedes[a.id]) return state.cedes[a.id].qui; if(state.seen[a.id]==='libre') return null; return fakeOwner(a.id); }
+// Les joueurs simulés : le propriétaire d'un lieu suit la couleur de sa parcelle (rouge : un autre joueur ; violet : partagée
+// entre deux joueurs ; sinon libre). Avant, couleur et propriétaire étaient tirés séparément : un bâtiment rouge
+// pouvait montrer des adresses « libres ». Un lieu dont on ne connaît pas la parcelle garde l'ancien tirage.
+function proprioSimule(a){ if(!a.idu) return fakeOwner(a.id); const s=parcelSeed(a.idu); if(s==='free') return null;
+  const n=FAKE.length, i=hash(a.idu+'o')%n; if(s==='other') return FAKE[i];
+  const j=(i+1+hash(a.idu+'p')%(n-1))%n; return hash(a.id+'m')%2 ? FAKE[i] : FAKE[j]; }
+function ownerOf(a){ if(state.owned[a.id]) return ME; if(state.cedes && state.cedes[a.id]) return state.cedes[a.id].qui; if(state.seen[a.id]==='libre') return null; return proprioSimule(a); }
 function levelOf(a){ if(state.owned[a.id]) return state.owned[a.id].niveau||0; if(state.cedes && state.cedes[a.id]) return state.cedes[a.id].niveau||0; return ownerOf(a) ? fakeLevel(a.id) : 0; }
 
 // =================== carte ===================
@@ -300,9 +306,10 @@ map.on('idle', ()=>pastilleCharge(false));
 // état des parcelles
 const parcelAddrs = {};
 function parcelSeed(idu){ const h = hash(idu) % 100; return h<8 ? 'other' : (h<11 ? 'mixed' : 'free'); }
-function parcelState(idu){ const list = parcelAddrs[idu]; if(!list || !list.length) return null;
-  const owners = list.map(a=>ownerOf(a)); const mine = owners.filter(o=>o===ME).length, others = owners.filter(o=>o && o!==ME).length;
-  if(!mine && !others) return 'free'; if(mine && !others) return 'me'; if(others && !mine) return 'other'; return 'mixed'; }
+// la couleur d'une parcelle dont on connaît les lieux : libre, à moi, à un autre, ou partagée (plusieurs propriétaires)
+function parcelState(idu){ const list = parcelAddrs[idu]; if(!list) return null; if(!list.length) return 'free';
+  const owners = new Set(list.map(a=>ownerOf(a)).filter(Boolean));
+  if(!owners.size) return 'free'; if(owners.size>1) return 'mixed'; return owners.has(ME) ? 'me' : 'other'; }
 function parcelBonus(idu){ const list=parcelAddrs[idu]; if(!list) return 0; let b=0; list.forEach(a=>{ b=Math.max(b, NIVEAUX[levelOf(a)].hauteur); }); return b; }
 // Les couleurs des parcelles et des bâtiments (feature-state). On ne repose un état que s'il change :
 // sinon chaque « idle » relançait un dessin, qui relançait un « idle »… et la carte ne se reposait jamais.
@@ -607,7 +614,7 @@ function addrRow(a, withBuild){
       row.appendChild(vite); }
     // échanger un de mes lieux contre celui-ci
     const ech=state.echangesOut.find(x=>x.addrId===a.id && x.status==='attente'); const zone=document.createElement('div'); zone.className='echange-zone';
-    if(ech){ const d=state.owned[ech.donne]; zone.innerHTML=`<div class="chip bleu">🔁 Échange proposé : <b>${echapper(d?d.label:'ton lieu')}</b>${ech.ajout?` + ${nb(ech.ajout)}<i class="pc"></i>`:''} · en attente</div>`;
+    if(ech){ zone.innerHTML=`<div class="chip bleu">🔁 Échange proposé : <b>${echapper(nomsDonnes(ech))}</b>${ech.ajout?` + ${nb(ech.ajout)}<i class="pc"></i>`:''} · en attente</div>`;
       const an=document.createElement('button'); an.className='btn clair sm'; an.textContent='Annuler'; an.onclick=()=>annulerEchange(ech.id); zone.appendChild(an); }
     else { const b=document.createElement('button'); b.className='btn clair'; b.innerHTML='🔁 Proposer un échange'; b.onclick=()=>proposerEchange(a); zone.appendChild(b); }
     row.appendChild(zone); }
@@ -659,49 +666,52 @@ function seuilEchange(vise){ return Math.round(vise*ECHANGE_ACCEPTE); }   // ce 
 function valeurChez(a){ return valeur(Object.assign({}, a, {niveau:levelOf(a)})); }
 function proposerEchange(a){ const qui=ownerOf(a); const mes=Object.values(state.owned);
   if(!mes.length) return toast('Tu n’as pas encore de lieu à échanger : ouvre ton pack du jour');
-  const vise=valeurChez(a); const retour=ficheOuverte; let choisi=null;
-  const deja=new Set(state.echangesOut.filter(x=>x.status==='attente').map(x=>x.donne));
+  const vise=valeurChez(a); const retour=ficheOuverte; const choisis=new Set();
+  const deja=new Set(state.echangesOut.filter(x=>x.status==='attente').flatMap(donnesDe));
   mes.sort((x,y)=>Math.abs(valeur(x)-vise)-Math.abs(valeur(y)-vise));
   const box=document.getElementById('modalbox');
   box.innerHTML=`<h2>🔁 Proposer un échange</h2><div class="sub">À <b>${echapper(qui)}</b>, contre son lieu :</div>
     <div class="ech-vise"><div class="ico-lieu r${rarete(a)}">${icoLieuHTML(a)}</div><div class="corps"><div class="n">${echapper(a.label)}</div><div class="m">${echapper(communeName(a.citycode,a.city))}</div></div><b>${pcs(vise)}</b></div>
-    <h3 class="ech-titre">Choisis un de tes lieux</h3><div class="ech-liste">${mes.map(x=>`<button class="ech-lieu" data-id="${echapper(x.id)}"${deja.has(x.id)?' disabled':''}><div class="ico-lieu r${rarete(x)}">${icoLieuHTML(x)}</div><div class="corps"><div class="n">${echapper(x.label)}</div><div class="m">${deja.has(x.id)?'déjà proposé dans un autre échange':echapper(communeName(x.citycode,x.city))}</div></div><b>${pcs(valeur(x))}</b></button>`).join('')}</div>
+    <h3 class="ech-titre">Choisis un ou plusieurs de tes lieux</h3><div class="ech-liste">${mes.map(x=>`<button class="ech-lieu" data-id="${echapper(x.id)}"${deja.has(x.id)?' disabled':''}><div class="ico-lieu r${rarete(x)}">${icoLieuHTML(x)}</div><div class="corps"><div class="n">${echapper(x.label)}</div><div class="m">${deja.has(x.id)?'déjà proposé dans un autre échange':echapper(communeName(x.citycode,x.city))}</div></div><b>${pcs(valeur(x))}</b></button>`).join('')}</div>
     <label class="champ-prix ech-ajout"><span>+ des pièces<br><small>facultatif</small></span><input class="num" id="ech-ajout" type="text" inputmode="numeric" autocomplete="off" maxlength="13" placeholder="0"><i class="pc"></i></label>
-    <div class="chips" id="ech-vite"></div><div class="ech-balance" id="ech-balance">Choisis le lieu que tu donnes.</div>
+    <div class="chips" id="ech-vite"></div><div class="ech-balance" id="ech-balance">Choisis ce que tu donnes : un lieu, ou plusieurs.</div>
     <div class="liste-btn"><button class="btn large" id="ech-ok" disabled>Envoyer la proposition</button><button class="btn clair large" id="ech-non">Annuler</button></div>`;
   document.getElementById('modal').classList.add('on'); box.scrollTop=0;
   const inp=box.querySelector('#ech-ajout'), bal=box.querySelector('#ech-balance'), ok=box.querySelector('#ech-ok'), vite=box.querySelector('#ech-vite');
   const ajout=()=>{ const t=inp.value.trim(); if(t==='' || /^[0\s]+$/.test(t)) return 0; const r=R.lirePrix(t); return r.ok ? r.prix : -1; };
   const maj=()=>{ const aj=ajout(); vite.innerHTML='';
-    if(!choisi){ ok.disabled=true; bal.className='ech-balance'; bal.textContent='Choisis le lieu que tu donnes.'; return; }
-    const v=valeur(choisi); const manque=Math.max(0, seuilEchange(vise) - v);
+    if(!choisis.size){ ok.disabled=true; ok.textContent='Envoyer la proposition'; bal.className='ech-balance'; bal.textContent='Choisis ce que tu donnes : un lieu, ou plusieurs.'; return; }
+    const v=[...choisis].reduce((t,id)=>t+valeur(state.owned[id]),0); const manque=Math.max(0, seuilEchange(vise) - v);
+    ok.textContent = choisis.size>1 ? `Proposer mes ${choisis.size} lieux` : 'Envoyer la proposition';
     if(manque>0){ const c=document.createElement('button'); c.className='chip'; c.innerHTML=`Compenser <b>+${nb(arrondiMise(manque))}</b><i class="pc"></i>`; c.onclick=()=>{ inp.value=nb(arrondiMise(manque)); maj(); vibrer(8); }; vite.appendChild(c); }
     if(aj<0){ ok.disabled=true; bal.className='ech-balance err'; bal.textContent='Tape un nombre entier de pièces (ou rien).'; return; }
     if(aj>dispo()){ ok.disabled=true; bal.className='ech-balance err'; bal.innerHTML=`Tu n’as que ${pcs(dispo())} disponibles.`; return; }
     const b=Regles.bilanEchange(v, aj, vise); ok.disabled=false;
     bal.className='ech-balance'+(b.ecart<0?' bas':'');
     bal.innerHTML=`Tu donnes <b>${pcs(b.donne)}</b> · tu reçois <b>${pcs(b.recoit)}</b><br>${b.ecart<0 ? `${Math.round(-b.ecart*100)} % de moins que son lieu : ${echapper(qui)} risque de refuser.` : (b.donne<seuilEchange(vise) ? 'À peu près la même valeur : la réponse peut être non.' : 'Une belle proposition !')}`; };
-  box.querySelectorAll('.ech-lieu').forEach(el=>el.onclick=()=>{ box.querySelectorAll('.ech-lieu.on').forEach(x=>x.classList.remove('on')); el.classList.add('on'); choisi=state.owned[el.dataset.id]; vibrer(8); maj(); });
+  box.querySelectorAll('.ech-lieu').forEach(el=>el.onclick=()=>{ const id=el.dataset.id; if(choisis.has(id)) choisis.delete(id); else choisis.add(id); el.classList.toggle('on', choisis.has(id)); vibrer(8); maj(); });
   inp.addEventListener('input', maj); inp.addEventListener('focus', ()=>inp.select());
   const fermer=()=>{ if(retour) ouvrirFicheLieu(retour); else closeModal(); };
   box.querySelector('#ech-non').onclick=fermer;
-  ok.onclick=()=>{ const aj=ajout(); if(!choisi || aj<0 || aj>dispo()) return;
-    state.echangesOut.push({ id:'e'+now(), addrId:a.id, addr:Object.assign({}, a), to:qui, donne:choisi.id, ajout:aj, ts:now(), status:'attente' }); save();
+  ok.onclick=()=>{ const aj=ajout(); if(!choisis.size || aj<0 || aj>dispo()) return; const ids=[...choisis];
+    state.echangesOut.push({ id:'e'+now(), addrId:a.id, addr:Object.assign({}, a), to:qui, donne:ids, noms:Object.fromEntries(ids.map(id=>[id, state.owned[id].label])), ajout:aj, ts:now(), status:'attente' }); save();
     toast(`Proposition envoyée à ${qui}`); vibrer(12); fermer(); apresAction(); };
   maj(); }
+const donnesDe = e => Array.isArray(e.donne) ? e.donne : [e.donne];   // un échange peut donner plusieurs lieux
+function nomsDonnes(e){ const n=donnesDe(e).map(id=>state.owned[id] ? state.owned[id].label : (e.noms&&e.noms[id]) || 'un lieu'); return n.length<=1 ? (n[0]||'ton lieu') : `${n[0]} + ${n.length-1} autre${n.length>2?'s':''}`; }
 function annulerEchange(id){ const e=state.echangesOut.find(x=>x.id===id); if(!e || e.status!=='attente') return; e.status='annulee'; save(); toast('Proposition d’échange annulée'); apresAction(); }
 function tickEchanges(){ let change=false;
   for(const e of state.echangesOut){ if(e.status!=='attente' || now()-e.ts < 45000) continue; change=true;
-    const mien=state.owned[e.donne], sien=e.addr, vise=valeur(Object.assign({}, sien, {niveau:levelOf(sien)}));
-    if(!mien){ e.status='refusee'; notify('echange', `Échange annulé avec ${e.to} : tu ne possèdes plus le lieu proposé`, {addrId:e.addrId}); continue; }
+    const miens=donnesDe(e).map(id=>state.owned[id]), sien=e.addr, vise=valeur(Object.assign({}, sien, {niveau:levelOf(sien)})), noms=nomsDonnes(e);
+    if(miens.some(x=>!x)){ e.status='refusee'; notify('echange', `Échange annulé avec ${e.to} : tu ne possèdes plus un des lieux proposés`, {addrId:e.addrId}); continue; }
     if(ownerOf(sien)!==e.to){ e.status='refusee'; notify('echange', `Échange annulé : ${sien.label} n’appartient plus à ${e.to}`); continue; }
-    const b=Regles.bilanEchange(valeur(mien), e.ajout, vise);
+    const b=Regles.bilanEchange(miens.reduce((t,x)=>t+valeur(x),0), e.ajout, vise);
     if(b.donne >= seuilEchange(vise) && dispo()>=e.ajout){ e.status='acceptee'; encaisser(true); state.wallet-=e.ajout;
-      const niv=levelOf(sien); delete state.owned[mien.id]; state.cedes[mien.id]={ qui:e.to, niveau:mien.niveau||0 }; setBadge(mien,0); if(mien.idu) paintParcel(mien.idu);
+      const niv=levelOf(sien); for(const mien of miens){ delete state.owned[mien.id]; state.cedes[mien.id]={ qui:e.to, niveau:mien.niveau||0 }; setBadge(mien,0); if(mien.idu) paintParcel(mien.idu); }
       delete state.cedes[sien.id]; state.owned[sien.id]=Object.assign({}, sien, {niveau:niv, depuis:now(), enVente:false}); state.seen[sien.id]='libre'; setBadge(state.owned[sien.id], niv); if(sien.idu) paintParcel(sien.idu);
       state.echangesOut.forEach(x=>{ if(x!==e && x.status==='attente' && (x.addrId===sien.id)) x.status='annulee'; });
-      notify('echange', `${e.to} a accepté l’échange : ${sien.label} est à toi, contre ${mien.label}${e.ajout?` et ${fmt(e.ajout)}`:''}`, {addrId:sien.id}); fete(); }
-    else { e.status='refusee'; notify('echange', `${e.to} a refusé l’échange de ${mien.label} contre ${sien.label} (il fallait au moins ${fmt(seuilEchange(vise))} en tout)`, {addrId:sien.id}); } }
+      notify('echange', `${e.to} a accepté l’échange : ${sien.label} est à toi, contre ${noms}${e.ajout?` et ${fmt(e.ajout)}`:''}`, {addrId:sien.id}); fete(); }
+    else { e.status='refusee'; notify('echange', `${e.to} a refusé l’échange de ${noms} contre ${sien.label} (il fallait au moins ${fmt(seuilEchange(vise))} en tout)`, {addrId:sien.id}); } }
   if(change){ save(); refreshTop(); apresAction(); } }
 function tickOffers(){ let changed=false; tickEchanges();
   // réponses des joueurs simulés à mes offres (après 45 s)
@@ -1029,7 +1039,7 @@ function renderPatrimoine(){ const el=document.getElementById('s-patrimoine'); c
   const offres=state.offersIn.filter(o=>o.status==='attente');
   if(offres.length) h+=`<div class="card flex"><div><div class="t">📨 ${offres.length} offre${offres.length>1?'s':''} pour tes lieux</div><div class="m">Accepte ou refuse dans tes notifications.</div></div><button class="btn bleu sm" onclick="showScreen('notifs')">Voir</button></div>`;
   const echs=state.echangesOut.filter(e=>e.status==='attente');
-  if(echs.length) h+=`<div class="card"><div class="t">🔁 Échanges proposés (${echs.length})</div>${echs.map(e=>{ const d=state.owned[e.donne]; return `<div class="rank"><span class="who">${echapper(d?d.label:'?')} <span class="fleche">→</span> ${echapper(e.addr.label)}<small>à ${echapper(e.to)}${e.ajout?` · + ${nb(e.ajout)} pièces`:''} · en attente</small></span><button class="btn sm" onclick="annulerEchange('${e.id}')">Annuler</button></div>`; }).join('')}</div>`;
+  if(echs.length) h+=`<div class="card"><div class="t">🔁 Échanges proposés (${echs.length})</div>${echs.map(e=>{ return `<div class="rank"><span class="who">${echapper(nomsDonnes(e))} <span class="fleche">→</span> ${echapper(e.addr.label)}<small>à ${echapper(e.to)}${e.ajout?` · + ${nb(e.ajout)} pièces`:''} · en attente</small></span><button class="btn sm" onclick="annulerEchange('${e.id}')">Annuler</button></div>`; }).join('')}</div>`;
   const ventes=tous.filter(a=>a.enVente);
   if(ventes.length) h+=`<div class="card"><div class="t">💰 En vente (${ventes.length})</div>${ventes.map(a=>`<div class="rank"><span class="who" onclick="ouvrirFicheLieu('${a.id}')">${echapper(a.label)}</span><button class="prix-vente" onclick="mettreEnVente('${a.id}')" aria-label="Changer le prix">${nb(prixDemande(a))}<i class="pc"></i> ✏️</button><button class="btn sm" onclick="retirerVente('${a.id}')">Retirer</button></div>`).join('')}</div>`;
   if(!tous.length){ h+=`<div class="card vide"><div class="ico">🎁</div><div class="t">Ta collection est vide</div><div class="m">Ton pack du jour contient 5 lieux de toute la France.</div>${packDispo()?`<button class="btn large" onclick="ouvrirPack()">Ouvrir mon pack</button>`:`<button class="btn bleu large" onclick="showScreen('carte')">Explorer la carte</button>`}</div>`; el.innerHTML=h; return; }
