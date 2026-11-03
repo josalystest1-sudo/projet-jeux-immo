@@ -6,7 +6,7 @@
 - **Les mêmes règles partout.** La fonction `jeu` applique les règles du jeu (`src/regles/*.js` et `data/*.json`), recopiées telles quelles par `tools/serveur_prepare.js` : un lieu a la même rareté, le même plafond, la même valeur et le même loyer dans le navigateur et sur le serveur (`tests/serveur.test.js`).
 - **Des écritures atomiques.** La fonction calcule (coût, loyer, prix), puis appelle une fonction SQL `jeu_*` (`supabase/sql/`) qui vérifie et écrit d'un bloc (pièces suffisantes, lieu à soi, niveau suivant…). Ces fonctions SQL ne sont appelables que par le serveur (`service_role`).
 - **Le même tirage.** Le pack du jour est tiré par `src/tirage.js`, le même code dans le jeu (mode démo) et sur le serveur ; le réseau (géocodeur IGN) et « ce lieu est-il libre ? » sont fournis par l'appelant. Sur le serveur, la graine est secrète (le joueur ne peut pas choisir ses lieux) et les lieux célèbres et contours de la France sont embarqués dans la fonction.
-- **Le vrai temps.** Le serveur compte en jours de 24 h (le mode démo, sans compte, garde son jour d'une minute).
+- **Le temps du serveur.** La durée d'un jour du jeu est un réglage du serveur (`reglages.jour_secondes`, `supabase/sql/040_vitesse.sql`) : **60 tant qu'on teste** (serveur d'essai accéléré : un jour = une minute, comme la démo ; demande de Gautier, 3 nov.), **86400 au lancement** (le pack à minuit, heure de Paris ; on repart alors de zéro). Le jour du jeu est un numéro (`Regles.jourDuJeu`), le même côté jeu et serveur ; le jeu prend la durée dans la partie renvoyée (`jourMs`).
 
 ## Les tables (à ce jour)
 
@@ -16,6 +16,7 @@
 | `signalements` | les signalements (traités par Gautier) | en envoyer |
 | `joueurs` | pièces, dernière récolte, dernier pack | lire **le sien** |
 | `lieux` | chaque lieu possédé : propriétaire, niveau, prix de vente, commune, parcelle | lire tous |
+| `reglages` | la vitesse du temps (`jour_secondes`) | lire |
 | `offres` | offres en attente et réglées (une seule en attente par acheteur et par lieu) | lire les siennes (acheteur ou vendeur) |
 | `notifications` | offres reçues, ventes, réponses | lire les siennes |
 | (fonctions) `classement_commune(c)`, `maires(communes)` | qui possède combien dans une commune ; ses Maires | appeler (lecture seule) |

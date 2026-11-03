@@ -8,6 +8,8 @@ const REF = process.argv[2] || 'hxtyecwofajiozmnfyxt';
 const JETON = process.env.SUPABASE_ACCESS_TOKEN;
 const URL = `https://${REF}.supabase.co`;
 const ECO = require('../data/economie.json');
+// ce qu'un joueur peut encaisser entre deux appels (serveur d'essai : un jour du jeu = une minute) : un jour de revenus
+const MARGE = 600;
 const R = require('../src/regles/lieu.js').creer(ECO, require('../data/standing.json'));
 
 let echecs = 0;
@@ -59,14 +61,17 @@ async function nouveauJoueur(publique, secrete) {
     const pack = await jeu({ action: 'pack' });
     const cartes = (pack.corps && pack.corps.cartes) || [];
     verifier(pack.corps && pack.corps.ok && cartes.length >= 1 && cartes.every((c) => R.rarete(c) <= 5), `pack du jour : ${cartes.length} carte(s) (raretés ${cartes.map((c) => R.rarete(c)).join(', ')})`, pack);
+    // (serveur d'essai accéléré : un jour = une minute ; si le jour vient de changer, le deuxième pack est permis)
     const encore = await jeu({ action: 'pack' });
-    verifier(encore.corps && encore.corps.ok === false && encore.corps.code === 'deja', 'un deuxième pack le même jour : refusé', encore);
+    const nouveauJour = encore.corps && encore.corps.ok && encore.corps.dernierJour > pack.corps.dernierJour;
+    verifier(encore.corps && ((encore.corps.ok === false && encore.corps.code === 'deja') || nouveauJour), nouveauJour ? 'deuxième pack : un nouveau jour du jeu a commencé, permis' : 'un deuxième pack le même jour : refusé', encore);
+    const cartes2 = nouveauJour ? encore.corps.cartes : [];
     const apres = await jeu({ action: 'etat' });
-    verifier(apres.corps && apres.corps.ok && apres.corps.lieux.length === cartes.length, 'les lieux du pack sont à moi', apres);
+    verifier(apres.corps && apres.corps.ok && apres.corps.lieux.length === cartes.length + cartes2.length && apres.corps.jourMs >= 1000, `les lieux du pack sont à moi (un jour du jeu = ${apres.corps && apres.corps.jourMs / 1000} s)`, apres);
     if (cartes.length) {
       const c = cartes.slice().sort((a, b) => R.coutNiveau(a, 1) - R.coutNiveau(b, 1))[0], cout = R.coutNiveau(c, 1), avant = apres.corps.pieces;
       const cons1 = await jeu({ action: 'construire', id: c.id, niveau: 1 });
-      if (cout <= avant) verifier(cons1.corps && cons1.corps.ok && cons1.corps.cout === cout && cons1.corps.pieces <= avant - cout + 5, `construire une Maison sur ${c.label} (${cout} pièces)`, cons1);
+      if (cout <= avant) verifier(cons1.corps && cons1.corps.ok && cons1.corps.cout === cout && cons1.corps.pieces <= avant - cout + MARGE, `construire une Maison sur ${c.label} (${cout} pièces)`, cons1);
       else verifier(cons1.corps && cons1.corps.ok === false && cons1.corps.code === 'fonds', `construire sans assez de pièces (${cout} pour ${avant}) : refusé`, cons1);
       const saut = await jeu({ action: 'construire', id: c.id, niveau: 3 });
       verifier(saut.corps && saut.corps.ok === false, 'sauter un niveau : refusé', saut);
@@ -81,7 +86,7 @@ async function nouveauJoueur(publique, secrete) {
         const mauvais = await B.jeu({ action: 'acheter', id: L.id, prix: 90 });
         verifier(mauvais.corps && mauvais.corps.ok === false && mauvais.corps.code === 'prix_change', 'acheter à un autre prix que celui affiché : refusé', mauvais);
         const achat = await B.jeu({ action: 'acheter', id: L.id, prix: 100 });
-        verifier(achat.corps && achat.corps.ok && achat.corps.etat.lieux.some((x) => x.id === L.id) && achat.corps.pieces <= ECO.solde_depart - 100 + 5, 'un autre joueur l’achète : il est à lui, il a payé', achat);
+        verifier(achat.corps && achat.corps.ok && achat.corps.etat.lieux.some((x) => x.id === L.id) && achat.corps.pieces <= ECO.solde_depart - 100 + MARGE, 'un autre joueur l’achète : il est à lui, il a payé', achat);
         const apresVente = await jeu({ action: 'etat' });
         verifier(apresVente.corps.ok && !apresVente.corps.lieux.some((x) => x.id === L.id) && apresVente.corps.notifs.some((n) => n.type === 'vente'), 'le vendeur ne l’a plus et en est prévenu', apresVente.corps.notifs);
         const pasAMoi = await jeu({ action: 'vendre', id: L.id, prix: 5 });
@@ -120,7 +125,8 @@ async function nouveauJoueur(publique, secrete) {
     const tous = await requete(`${URL}/rest/v1/lieux?select=id&limit=1`, { headers: { apikey: publique } });
     verifier(tous.statut === 200, 'les lieux de tous sont lisibles (la carte)', tous.statut);
     // les communes : mon classement et mes mairies (lecture seule, par tous)
-    const communes = [...new Set(cartes.map((c) => require('../src/regles/lieu.js').nomCommune(c.citycode, c.city)))];
+    const mesLieux = ((await jeu({ action: 'etat' })).corps.lieux || []);
+    const communes = [...new Set(mesLieux.map((c) => require('../src/regles/lieu.js').nomCommune(c.citycode, c.city)))];
     const maires = await requete(`${URL}/rest/v1/rpc/maires`, { method: 'POST', headers: { apikey: publique, 'Content-Type': 'application/json' }, body: JSON.stringify({ communes }) });
     verifier(maires.statut === 200 && Array.isArray(maires.corps) && communes.every((c) => maires.corps.some((m) => m.commune === c)), 'chaque commune de mon pack a un Maire', maires);
     const classement = await requete(`${URL}/rest/v1/rpc/classement_commune`, { method: 'POST', headers: { apikey: publique, 'Content-Type': 'application/json' }, body: JSON.stringify({ c: communes[0] || 'x' }) });
