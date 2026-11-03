@@ -73,6 +73,7 @@ Rien d'important ne vit dans une conversation : tout est dans le dépôt ou sur 
 - **Les échanges sur le serveur (8.1f)** (PR #39) : proposer ses lieux (plus des pièces) à un vrai joueur ou à un robot, recevoir un échange dans ses notifications avec la valeur de chaque côté, accepter ou refuser. Les robots répondent et proposent parfois des échanges, pour pouvoir essayer seul.
 - **La mise à jour du téléphone** (PR #40) : retour de Gautier, « les échanges ne sont pas en ligne ». Le site et le serveur les avaient : c'est son téléphone qui gardait l'ancienne version, parce qu'une fenêtre ouverte au retour dans le jeu faisait abandonner la mise à jour. Corrigé ; la version s'affiche dans les Réglages. Choix de Gautier ensuite : les enchères sur le serveur (8.1g).
 - **Les enchères sur le serveur (8.1g)** (PR #41) : les trois monuments de la semaine sont tenus par le serveur (une semaine = 7 minutes sur le serveur d'essai) ; on mise, on est prévenu quand on est dépassé, le monument va au gagnant à la fin. Les robots surenchérissent quand un vrai joueur mène. Tout le jeu passe maintenant par le serveur.
+- **Les graphismes avant 8.2** (décision de Gautier) : rendu « jeu mobile coloré », on commence par le pack et les cartes, avec des outils gratuits. La bible graphique et la preuve (PR #42) : nouvelles cartes par rareté, nouveau dos, nouvelle pochette.
 
 ## Toutes les PR
 
@@ -140,6 +141,7 @@ Puis une PR par étape, fusionnée en squash :
 | #39 | 03/11 21:39 | Serveur 8.1f : les échanges entre joueurs |
 | #40 | 03/11 21:50 | La mise à jour du téléphone n'abandonne plus ; la version dans les Réglages |
 | #41 | 03/11 22:01 | Serveur 8.1g : les enchères de monuments |
+| #42 | 03/11 22:57 | Graphismes, la preuve : bible graphique, cartes par rareté, dos des cartes, pochette du pack |
 
 ## Les décisions de Gautier
 
@@ -162,12 +164,14 @@ Les décisions du 2 novembre (interview) sont dans `CLAUDE.md` § 4 et dans le G
 | 3 nov. | La promenade en Street View, pour voir et acheter les bâtiments qu'on longe |
 | 3 nov. | Pas d'enseignes ni de marques sur les lieux (idée examinée, puis écartée) |
 | 3 nov. | Continuer le projet dans Claude Code |
+| 3 nov. | Les graphismes avant l'étape 8.2 ; style « jeu mobile coloré » ; d'abord le pack et les cartes ; outils gratuits d'abord |
 
 ## Ce qui reste à faire (au 3 novembre au soir)
 
 - **Le serveur, suite** (phase 8) :
   - 8.2 : le mode serveur par défaut, la fin des joueurs simulés, l'inscription des amis. Question posée à Gautier, sans réponse : couper la confirmation par e-mail pendant les essais ?
   - 8.3 : l'anti-triche.
+- **Les graphismes** (phase 10, avant 8.2 : décision de Gautier) : la preuve « pack et cartes » à valider, puis l'ouverture, les monuments en 3D, l'icône et le logo (`docs/BIBLE-GRAPHIQUE.md`).
 - **La boutique** (phase 9) : Stripe, packs et Pass mensuel, probabilités affichées, blocage Belgique et Pays-Bas, CGU, confidentialité, mentions légales.
 - **Ensuite** : les graphismes (phase 10), l'équilibrage et le lancement (phase 11).
 - **Au lancement** :
