@@ -24,7 +24,7 @@ Ce fichier dit **ce qu'est le jeu, comment on travaille, ce qui est décidé et 
 6. Le loyer ne dépend jamais de la chance : une belle adresse permet de construire plus haut, elle ne rapporte pas plus toute seule. La **valeur de marché**, elle, bouge (3 nov.) : `valeur(a)` = `R.valeurMarche(a, indiceDe(a).i)` (ventes de la commune × activité du quartier × tendance de la semaine) ; le coût des constructions reste sur la valeur de référence (`R.coutNiveau`).
 7. Le **Maire** d'une commune est celui qui y possède le plus de lieux (égalité = deux Maires), tant que ça dure.
 8. Pas de taxe, pas de délai, pas de vente à la banque, pas de blockchain, jamais de monnaie du jeu contre des euros.
-9. Monétisation V1 : packs et Pass mensuel. Jamais de vente de lieu précis, de loyer ou de construction.
+9. Monétisation V1 : packs et Pass mensuel (4 nov. : pack du jour de 8 cartes, un bon par mois pour une adresse libre au choix jusqu'à Épique, 3 bons au plus). Jamais de vente de lieu précis (hors ce bon), de loyer ou de construction ; jamais de revente de lieux contre des euros.
 10. Tout est construit avec des données ouvertes (BAN, IGN, cadastre, DVF, Wikidata) et Street View intégré pour la devanture, et l'on peut s'y promener (la promenade). Jamais d'enseigne ni de marque sur un lieu (décision du 3 nov.).
 
 ## 3. Stack
