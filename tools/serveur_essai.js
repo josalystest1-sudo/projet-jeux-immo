@@ -75,6 +75,12 @@ const entetesSecrets = (k) => (k.startsWith('sb_') ? { apikey: k } : { apikey: k
     verifier(rpc.statut >= 400, 'appeler une fonction du serveur directement : refusé', rpc.statut);
     const tous = await requete(`${URL}/rest/v1/lieux?select=id&limit=1`, { headers: { apikey: publique } });
     verifier(tous.statut === 200, 'les lieux de tous sont lisibles (la carte)', tous.statut);
+    // les communes : mon classement et mes mairies (lecture seule, par tous)
+    const communes = [...new Set(cartes.map((c) => require('../src/regles/lieu.js').nomCommune(c.citycode, c.city)))];
+    const maires = await requete(`${URL}/rest/v1/rpc/maires`, { method: 'POST', headers: { apikey: publique, 'Content-Type': 'application/json' }, body: JSON.stringify({ communes }) });
+    verifier(maires.statut === 200 && Array.isArray(maires.corps) && communes.every((c) => maires.corps.some((m) => m.commune === c)), 'chaque commune de mon pack a un Maire', maires);
+    const classement = await requete(`${URL}/rest/v1/rpc/classement_commune`, { method: 'POST', headers: { apikey: publique, 'Content-Type': 'application/json' }, body: JSON.stringify({ c: communes[0] || 'x' }) });
+    verifier(classement.statut === 200 && Array.isArray(classement.corps), 'le classement d’une commune est lisible', classement.statut);
   } finally {
     const sup = await requete(`${URL}/auth/v1/admin/users/${id}`, { method: 'DELETE', headers: entetesSecrets(secrete) });
     verifier(sup.statut < 300, 'joueur d’essai supprimé', sup.statut);
