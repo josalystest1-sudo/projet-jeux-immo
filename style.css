@@ -268,7 +268,7 @@ h2{margin:4px 0 2px;font-size:22px}
 /* ---------------------------------------------------------------- bandeau (toast) */
 #toast{position:absolute;top:calc(12px + env(safe-area-inset-top));left:50%;transform:translate(-50%,-140%);background:#fff;color:var(--encre);padding:12px 16px;border-radius:18px;font-weight:800;font-size:15px;z-index:60;display:block;text-align:center;width:max-content;max-width:calc(100% - 28px);box-shadow:var(--ombre-forte);border-bottom:4px solid var(--piece);transition:transform .3s cubic-bezier(.2,1.2,.4,1);pointer-events:none}
 #toast.on{transform:translate(-50%,0)}
-#diag{position:absolute;left:12px;right:12px;top:calc(130px + env(safe-area-inset-top));background:#FDE3DE;color:var(--brique2);border-radius:12px;padding:10px 12px;font-size:12px;z-index:30;display:none;white-space:pre-wrap}
+#diag{pointer-events:none;position:absolute;left:12px;right:12px;top:calc(130px + env(safe-area-inset-top));background:#FDE3DE;color:var(--brique2);border-radius:12px;padding:10px 12px;font-size:12px;z-index:30;display:none;white-space:pre-wrap}
 
 /* ---------------------------------------------------------------- repères sur la carte */
 .badge{width:32px;height:32px;border-radius:50%;background:#fff;border:3px solid var(--plaque);display:flex;align-items:center;justify-content:center;font-size:16px;box-shadow:0 3px 0 var(--plaque2),0 4px 10px rgba(0,0,0,.25)}
@@ -598,9 +598,14 @@ body.promenade #top,body.promenade #ctrls,body.promenade #legend,body.promenade 
 body.promenade #sheet{max-height:calc(58% - 6px)}
 body.promenade #sheet .svwrap{display:none}
 .prom-vue{position:absolute;left:0;right:0;top:0;height:42%;min-height:220px;background:#17233F;pointer-events:auto;overflow:hidden;border-radius:0 0 22px 22px;box-shadow:0 8px 24px rgba(23,35,63,.28)}
-.prom-sv{position:absolute;inset:0;width:100%;height:100%;border:0;opacity:0;transition:opacity .25s;background:#17233F}
+.prom-sv{position:absolute;inset:0;width:100%;height:100%;border:0;opacity:0;transition:opacity .25s;background:#17233F;pointer-events:none}
 .prom-sv.vu{opacity:1}
-#prom-touche{position:absolute;left:0;right:0;top:0;bottom:30px;touch-action:none;cursor:grab}
+/* La couche qui reçoit les gestes, sur toute la photo. Retour de Gautier (3 nov.) : on ne pouvait plus tourner, le geste
+   partait ailleurs. Chrome envoie les touchers à une page intégrée d'un autre site (ici Google) quand la couche posée
+   dessus est vide : les cadres de Street View sont donc inertes (pointer-events:none), et la couche est peinte (fond
+   presque transparent) dans son propre calque. Google reste à un toucher : « Google Maps ↗ ». */
+#prom-touche{position:absolute;inset:0;touch-action:none;cursor:grab;background:rgba(23,35,63,.01);will-change:transform;-webkit-user-select:none;user-select:none}
+.prom-google{position:absolute;top:calc(14px + env(safe-area-inset-top));right:58px;background:rgba(23,35,63,.72);color:#fff;font-size:12px;font-weight:800;padding:7px 10px;border-radius:10px;text-decoration:none}
 .prom-quitter{position:absolute;top:calc(10px + env(safe-area-inset-top));right:10px;width:40px;height:40px;border-radius:50%;border:0;background:#fff;color:var(--encre);font-size:18px;font-weight:900;box-shadow:var(--ombre-forte);cursor:pointer}
 .prom-aide{position:absolute;left:50%;bottom:42px;transform:translateX(-50%);background:rgba(23,35,63,.8);color:#fff;font-weight:800;font-size:13px;padding:8px 12px;border-radius:12px;white-space:nowrap;pointer-events:none;animation:prom-aide 5s forwards}
 @keyframes prom-aide{0%,78%{opacity:1}100%{opacity:0}}

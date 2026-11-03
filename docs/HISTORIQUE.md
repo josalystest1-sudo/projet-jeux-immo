@@ -65,6 +65,7 @@ Rien d'important ne vit dans une conversation : tout est dans le dépôt ou sur 
 ### 3 novembre 2026, fin d'après-midi
 - **La promenade en Street View** (PR #34) : demande de Gautier. On se balade dans les rues, on voit sur la carte les bâtiments qu'on longe, leur propriétaire et leur prix, et on peut les acheter ou faire une offre.
 - **Idée écartée : les enseignes des commerces à la place des adresses** (« Subway porte d'Orléans »). Claude a dressé la liste des pour et des contre : marques utilisées sans accord dans un jeu payant, petits commerces au nom de leur patron, commerces qui ferment, données brouillonnes. Gautier abandonne l'idée.
+- **Correctif de la promenade** (PR #36) : retour de Gautier, après avoir touché la carte on ne pouvait plus tourner dans Street View. Le geste partait dans la page Google intégrée : elle ne reçoit plus aucun toucher, et un lien « Google Maps ↗ » ouvre la même vue chez Google.
 - **Passage à Claude Code** (PR #35) : demande de Gautier. Cet historique, la procédure `docs/REPRENDRE-DANS-CLAUDE-CODE.md`, les documents de suivi mis à jour, et l'outil d'essai de la promenade versé dans le dépôt.
 
 ## Toutes les PR
@@ -126,7 +127,8 @@ Puis une PR par étape, fusionnée en squash :
 | #32 | 03/11 16:25 | Offres : la valeur de ton lieu et l'écart ; des robots acheteurs |
 | #33 | 03/11 16:34 | La valeur d'un lieu bouge : ventes de la commune, activité du quartier, tendance de la semaine |
 | #34 | 03/11 17:22 | La promenade en Street View |
-| #35 | 03/11 | Historique, suivi du projet et procédure pour continuer dans Claude Code |
+| #35 | 03/11 17:35 | Historique, suivi du projet et procédure pour continuer dans Claude Code |
+| #36 | 03/11 | Promenade : on peut toujours tourner dans Street View (le geste ne part plus dans la page Google) |
 
 ## Les décisions de Gautier
 
