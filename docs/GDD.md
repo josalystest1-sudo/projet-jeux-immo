@@ -114,6 +114,7 @@ Pas de bonus de collection en V1. **[Décidé]** En V2 : « toute ma rue », « 
 Style et ergonomie (3 nov. 2026, demande de Gautier) : voir `docs/DESIGN.md` (« la plaque et la pièce »). La carte est l'accueil ; la barre du bas : Carte, Patrimoine, **le pack du jour au centre** (bouton rond doré, compte à rebours quand il n'est pas prêt), Enchères, Communes ; les notifications sous la cloche, en haut ; les réglages dans le profil (et la roue des notifications) ; un guide des premiers pas (6 bulles) après le premier pack, à revoir dans les réglages ; installable sur l'écran d'accueil (`manifest.webmanifest`). **[Proposé]**
 
 1. **Carte** (accueil) : ville 3D stylisée (bâtiments IGN extrudés, rues, parcs, eau), vue 3D ou 2D, recherche d'adresse ; parcelles colorées (moi / autres / partagée / libre), badges construction 🏠🏢🏙, badge 💰 en vente, monuments dorés avec halo et étiquette. Fiche d'une parcelle : Street View intégré (gratuit, rien n'est stocké), surface, plafond, la liste de ses lieux avec propriétaire (cliquable → profil), construction, mettre en vente, acheter, faire une offre.
+1 bis. **La promenade** (demande de Gautier, 3 nov.) : se balader dans les rues en Street View et voir en direct sur la carte devant quels bâtiments on passe, pour les acheter s'ils sont à quelqu'un. **[Décidé]** Mise en œuvre **[Proposé]** : Street View en haut, la carte au milieu (elle suit le marcheur), en bas la rue et les lieux longés (gauche, droite, ou en face quand on regarde une façade), propriétaire, prix s'ils sont en vente, et « Acheter » / « Offre » / « Voir » qui ouvre la fiche. Commandes propres au jeu (avancer, reculer, tourner, glisser pour tourner, toucher pour avancer) : l'intégration gratuite de Street View ne dit pas où l'on va, la photo ne bouge donc pas d'elle-même. Services Google gratuits seulement (recherche de photo et intégration), jamais d'image fixe.
 2. **Patrimoine** : lieux en cartes à bordure brillante selon la rareté, filtres, valeur totale, revenu/jour, récolte, mes ventes en cours.
 3. **Enchères** : les 3 enchères de la semaine, mises, historique, les prochains monuments.
 4. **Communes** : par commune, le Maire et le classement ; recherche d'une commune.
@@ -137,7 +138,7 @@ Style et ergonomie (3 nov. 2026, demande de Gautier) : voir `docs/DESIGN.md` («
 | Devanture | Google Street View intégré (Maps Embed, gratuit, non stocké) | fiche d'un lieu |
 | Polices de carte | géoplateforme (`annexes/ressources/vectorTiles/fonts`) | noms de rues |
 
-Règles : jamais de nom de personne, jamais de lien adresse ↔ identité, le domicile n'est jamais révélé. Les tuiles IGN sont gratuites avec attribution ; si le trafic devient important, on héberge nos propres tuiles (gratuit, un script).
+Règles : jamais de nom de personne, jamais de lien adresse ↔ identité, le domicile n'est jamais révélé. **Pas d'enseignes ni de noms de marques** sur les lieux (idée examinée et écartée par Gautier le 3 nov. : marques sans accord dans un jeu payant, petits commerces au nom de leur patron, commerces qui changent, données Sirene brouillonnes). **[Décidé]** Les tuiles IGN sont gratuites avec attribution ; si le trafic devient important, on héberge nos propres tuiles (gratuit, un script).
 
 ## 8 bis. Plateforme, sécurité, modération **[Décidé]**
 

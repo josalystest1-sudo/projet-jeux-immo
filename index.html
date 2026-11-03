@@ -73,6 +73,7 @@ const VERSION='__VERSION__';
 <div id="ctrls">
   <div class="seg"><button class="rbtn on" id="b3d">3D</button><button class="rbtn" id="b2d">2D</button></div>
   <button class="rbtn" id="bnorth" aria-label="Remettre le nord en haut">N</button>
+  <button class="rbtn" id="bprom" aria-label="Se promener dans les rues (Street View)">🚶</button>
 </div>
 <div id="legend" class="repliee" onclick="this.classList.toggle('repliee')" role="button" aria-label="Légende des couleurs">
   <b class="titre-legende">🎨 Légende</b>
@@ -102,9 +103,30 @@ const VERSION='__VERSION__';
   <div class="svwrap">
     <iframe id="sv" class="sv" loading="lazy" referrerpolicy="no-referrer-when-downgrade" allowfullscreen title="Street View"></iframe>
     <a class="ext" id="svlink" target="_blank" rel="noopener">Plein écran ↗</a>
+    <button class="prom-entree" onclick="promDepuisFiche()">🚶 Se promener</button>
   </div>
   <div id="addrs"></div>
   <div class="parcelle-info">📐 Parcelle <span id="subtitle"></span> · <span id="surf">—</span> · <span id="nb">0</span> lieu(x) · plafond <span id="plafond">—</span><br>Bâtiments et rues © IGN BD TOPO · Parcelles © DGFiP/IGN · Adresses BAN · Devanture : Google Street View.</div>
+</div>
+<!-- la promenade : Street View en haut, la carte au milieu, ce qu'on longe et les commandes en bas -->
+<div id="prom" aria-hidden="true">
+  <div class="prom-vue">
+    <iframe id="prom-sv-a" class="prom-sv" referrerpolicy="no-referrer-when-downgrade" title="Street View"></iframe>
+    <iframe id="prom-sv-b" class="prom-sv" referrerpolicy="no-referrer-when-downgrade" title="Street View"></iframe>
+    <div id="prom-touche" aria-label="Glisse pour tourner, touche pour avancer"></div>
+    <div class="prom-aide" id="prom-aide">👆 Glisse pour tourner · touche pour avancer</div>
+    <div class="prom-charge"><i class="pc"></i></div>
+    <button class="prom-quitter" onclick="finPromenade()" aria-label="Arrêter la promenade">✕</button>
+  </div>
+  <div class="prom-bas">
+    <div id="prom-lieux"></div>
+    <div class="prom-boutons">
+      <button id="prom-g" aria-label="Tourner à gauche">↺</button>
+      <button id="prom-re" aria-label="Reculer">⬇</button>
+      <button id="prom-av" class="grand" aria-label="Avancer">⬆ Avancer</button>
+      <button id="prom-d" aria-label="Tourner à droite">↻</button>
+    </div>
+  </div>
 </div>
 <div id="modal"><div class="box" id="modalbox"></div></div>
 <div id="packscene">
@@ -366,6 +388,8 @@ function seedVisible(){ if(map.getZoom()<15) return; if(MODE_SERVEUR) calculerRe
     let st = parcelSeed(idu); if(miennes.has(idu)){ st = (st==='free') ? 'me' : 'mixed'; }
     poserParcelle(idu, st); } }
 const batiParcel = {}; let selected = null;
+// la promenade en Street View (plus bas) : où l'on est, où l'on regarde, et les parcelles longées (surlignées comme la parcelle choisie)
+const PROM = { on:false, lat:0, lon:0, cap:0, pano:null, pas:0, cadre:0, occupe:false, marqueur:null, vus:new Set(), liste:[], cleListe:'' };
 let monVisibles=[];
 function boite(geom){ const polys = geom.type==='Polygon' ? [geom.coordinates] : geom.coordinates; let x0=Infinity,y0=Infinity,x1=-Infinity,y1=-Infinity;
   for(const poly of polys) for(const [x,y] of poly[0]){ if(x<x0)x0=x; if(x>x1)x1=x; if(y<y0)y0=y; if(y>y1)y1=y; } return [x0,y0,x1,y1]; }
@@ -381,7 +405,7 @@ function paintBuildings(){ const bb=map.getBounds(); monVisibles = LISTE_MON.fil
     const st = idu ? (etatParc[idu] || 'free') : 'free';
     const bonus = idu ? parcelBonus(idu) : 0;
     let mon=false; if(monVisibles.length){ c = c || centroid(b.geometry); mon = monVisibles.some(m=>dist(c,[m.lon,m.lat])<70); }
-    const sel = !!idu && idu===selected; const cle = st+'|'+(sel?1:0)+'|'+bonus+'|'+(mon?1:0);
+    const sel = !!idu && (idu===selected || PROM.vus.has(idu)); const cle = st+'|'+(sel?1:0)+'|'+bonus+'|'+(mon?1:0);
     if(etatBati[id]===cle) continue; etatBati[id]=cle;
     map.setFeatureState({source:'topo', sourceLayer:'batiment', id}, {st, sel, bonus, monument:mon}); } }
 // Les monuments sur la carte : un halo doré et le nom (couches légères, valables pour les 458).
@@ -457,7 +481,7 @@ map.on('click', (e)=>{ if(sugg.style.display==='block'){ sugg.style.display='non
   let f = feats.find(x=>x.layer.id==='parcel-fill'); const b = feats.find(x=>x.layer.id==='bati-3d');
   if(b && batiParcel[b.id]){ const pf = map.querySourceFeatures('pci',{sourceLayer:'parcelle', filter:['==',['get','idu'],batiParcel[b.id]]})[0]; if(pf) f = pf; }
   if(!f){ closeSheet(); return; } selectParcel(f); });
-function selectParcel(f){ if(selected) map.setFeatureState({source:'pci', sourceLayer:'parcelle', id:selected}, {sel:false});
+function selectParcel(f){ if(selected && !PROM.vus.has(selected)) map.setFeatureState({source:'pci', sourceLayer:'parcelle', id:selected}, {sel:false});
   selected = f.id; map.setFeatureState({source:'pci', sourceLayer:'parcelle', id:selected}, {sel:true}); paintBuildings(); openParcel(f); }
 let currentParcel = null;
 async function openParcel(f){ const p = f.properties, idu = f.id; currentParcel = {p, idu, geometry:f.geometry};
@@ -466,23 +490,33 @@ async function openParcel(f){ const p = f.properties, idu = f.id; currentParcel 
   document.getElementById('surf').textContent = (p.contenance||'—') + ' m²';
   document.getElementById('addrs').innerHTML = '<div class="sub" style="text-align:center">Recherche des lieux de cette parcelle…</div>';
   document.getElementById('sheet').classList.add('open'); document.body.classList.add('fiche-ouverte');
+  await lieuxDeParcelle(f, true);
+  if(!currentParcel || currentParcel.idu!==idu) return;   // une autre parcelle a été touchée entre-temps
+  // un lieu à moi juste à côté, sur la voie publique (le Gros-Horloge enjambe une rue) : montré en tête, sans l'attacher à la parcelle
+  currentParcel.extra = Object.values(state.owned).filter(a=>(a.type==='lieu' || a.type==='monument') && !inside([a.lon,a.lat], f.geometry) && pointVise && dist([a.lon,a.lat], pointVise)<15);
+  renderAddrs(); paintParcel(idu); }
+// Les lieux d'une parcelle (gardés dans parcelAddrs) : ses adresses (BAN), ses lieux célèbres, et les lieux nommés posés
+// dessus (les miens ; en mode serveur, ceux des autres joueurs, dont on lit aussi les propriétaires). La fiche de parcelle
+// et la promenade s'en servent ; une même parcelle n'est demandée qu'une fois à la fois.
+const LIEUX_EN_COURS = {};
+function lieuxDeParcelle(f, valeurs){ const cle = f.id+(valeurs?':v':''); if(LIEUX_EN_COURS[cle]) return LIEUX_EN_COURS[cle];
+  return LIEUX_EN_COURS[cle] = chercherLieux(f, valeurs).finally(()=>{ delete LIEUX_EN_COURS[cle]; }); }
+async function chercherLieux(f, valeurs){ const p = f.properties, idu = f.id;
   const c = centroid(f.geometry); let addrs = parcelAddrs[idu];
-  if(!addrs){ try{ const r = await fetch(`https://data.geopf.fr/geocodage/reverse?lon=${c[0]}&lat=${c[1]}&limit=10&index=address&type=housenumber`); const j = await r.json();
+  if(!addrs || addrs.erreur){ try{ const r = await fetch(`https://data.geopf.fr/geocodage/reverse?lon=${c[0]}&lat=${c[1]}&limit=10&index=address&type=housenumber`); const j = await r.json();
       let all = j.features.map(x=>mkAddr(x, idu)); let within = all.filter(a=>inside([a.lon,a.lat], f.geometry));
       if(!within.length){ all.sort((a,b)=>dist([a.lon,a.lat],c)-dist([b.lon,b.lat],c)); within = all.filter(a=>dist([a.lon,a.lat],c)<25).slice(0,2); if(!within.length && all.length) within=[all[0]]; }
-      addrs = within; }catch(err){ addrs = []; } parcelAddrs[idu] = addrs; }
+      addrs = parcelAddrs[idu] = within; }catch(err){ addrs = parcelAddrs[idu] = []; addrs.erreur = true; } }   // pas de réseau : on redemandera la prochaine fois
   // les lieux célèbres (Wikipédia) de cette parcelle, en tête
   try{ const liste = await chargerCelebres(Celebres.departement(p.code_insee));
     for(const e of liste){ if(Math.abs(e[4]-c[1])>0.01 || Math.abs(e[3]-c[0])>0.015) continue;
       if(inside([e[3],e[4]], f.geometry) && !addrs.find(x=>x.id==='wd:'+e[0])) addrs.unshift(Object.assign(Celebres.lieuDe(e), {city:p.nom_com, idu})); } }catch(err){}
   // mode serveur : les vrais propriétaires de ces lieux, et les lieux nommés des autres joueurs posés sur la parcelle
-  if(MODE_SERVEUR){ await chargerProprios(addrs.map(a=>a.id), f.geometry); await chargerValeurs([...addrs, ...Object.values(PROPRIOS).filter(a=>inside([a.lon,a.lat], f.geometry))]).catch(()=>{});
+  if(MODE_SERVEUR){ await chargerProprios(addrs.map(a=>a.id), f.geometry); if(valeurs) await chargerValeurs([...addrs, ...Object.values(PROPRIOS).filter(a=>inside([a.lon,a.lat], f.geometry))]).catch(()=>{});
     for(const a of Object.values(PROPRIOS)) if((a.type==='lieu' || a.type==='monument') && inside([a.lon,a.lat], f.geometry) && !addrs.find(x=>x.id===a.id)) addrs.push(a); }
   // les lieux (POI) que je possède sur cette parcelle
   for(const a of Object.values(state.owned)){ if((a.type==='lieu' || a.type==='monument') && inside([a.lon,a.lat], f.geometry) && !addrs.find(x=>x.id===a.id)) (a.type==='monument' ? addrs.unshift(a) : addrs.push(a)); }
-  // un lieu à moi juste à côté, sur la voie publique (le Gros-Horloge enjambe une rue) : montré en tête, sans l'attacher à la parcelle
-  currentParcel.extra = Object.values(state.owned).filter(a=>(a.type==='lieu' || a.type==='monument') && !inside([a.lon,a.lat], f.geometry) && pointVise && dist([a.lon,a.lat], pointVise)<15);
-  renderAddrs(); paintParcel(idu); }
+  return addrs; }
 // Street View : quoi regarder. D'abord un monument ou un lieu célèbre de la parcelle (le plus proche de l'endroit touché),
 // sinon l'adresse la plus proche de l'endroit touché, sinon le milieu de la parcelle.
 let pointVise=null;   // l'endroit touché sur la carte, ou le lieu qu'on est venu voir
@@ -519,7 +553,7 @@ function vueDepuisLaRue(cible){
 // (d'abord près du monument, sinon depuis la rue), on préfère les photos de Google (reliées aux rues) à celles des
 // particuliers, et on tourne la vue exactement vers le lieu. Sans clé : l'ancienne intégration, depuis la rue.
 let CLE_GOOGLE=''; fetch('data/google.json', {cache:'no-store'}).then(r=>r.ok?r.json():{}).then(j=>{ CLE_GOOGLE=(j&&j.cle)||''; }).catch(()=>{});
-let svDemande=0;
+let svDemande=0, svCourant=null;   // svCourant : l'endroit montré dans la fiche (d'où partir en promenade)
 function capVers(de, vers){ const mx=111320*Math.cos(de.lat*Math.PI/180), my=110540; return (Math.atan2((vers.lon-de.lon)*mx, (vers.lat-de.lat)*my)*180/Math.PI+360)%360; }
 // si Google refuse la clé (supprimée, services coupés, quota), on revient à l'ancien Street View, gratuit et sans clé
 let cleRefusee=false;
@@ -578,20 +612,179 @@ async function choisirPhoto(cible, vue){
     if(cible.monument){ const v=ligneDeVue(pos, cible, obs); n += 1.5*v.cache - 0.6*Math.min(v.eau, 40); }   // vue cachée, ou au-dessus de l'eau
     if(n<note){ note=n; meilleure=j; } }
   return meilleure; }
-async function afficherStreetView(cible, vue){ const svEl=document.getElementById('sv'), lien=document.getElementById('svlink'); const n=++svDemande;
-  const poser=(src, lat, lon, cap)=>{ if(n!==svDemande) return; if(svEl.src!==src) svEl.src=src; lien.href=`https://www.google.com/maps/@?api=1&map_action=pano&viewpoint=${lat.toFixed(6)},${lon.toFixed(6)}&heading=${Math.round(cap)}`; };
+async function afficherStreetView(cible, vue){ const svEl=document.getElementById('sv'), lien=document.getElementById('svlink'); const n=++svDemande; svCourant=null;
+  const poser=(src, lat, lon, cap, pano)=>{ if(n!==svDemande) return; svCourant={lat, lon, cap, pano:pano||null}; if(svEl.src!==src) svEl.src=src; lien.href=`https://www.google.com/maps/@?api=1&map_action=pano&viewpoint=${lat.toFixed(6)},${lon.toFixed(6)}&heading=${Math.round(cap)}`; };
   const sansCle=()=>poser(`https://maps.google.com/maps?q=&layer=c&cbll=${vue.lat.toFixed(6)},${vue.lon.toFixed(6)}&cbp=12,${Math.round(vue.cap)},0,0,${vue.pente}&output=svembed`, vue.lat, vue.lon, vue.cap);
   if(!CLE_GOOGLE || cleRefusee) return sansCle();
   const j=await choisirPhoto(cible, vue); if(cleRefusee) return sansCle();
   if(j){ const de={lat:j.location.lat, lon:j.location.lng}; const d=distPhoto(j, cible); const cap = d>4 ? capVers(de, cible) : vue.cap;
     const leve = cible.monument ? 2 : 0;   // un monument : à peine lever les yeux (une fontaine est basse ; on glisse le doigt pour voir plus haut)
-    return poser(`https://www.google.com/maps/embed/v1/streetview?key=${encodeURIComponent(CLE_GOOGLE)}&pano=${encodeURIComponent(j.pano_id)}&heading=${Math.round(cap)}&pitch=${leve}&fov=80`, de.lat, de.lon, cap); }
+    return poser(`https://www.google.com/maps/embed/v1/streetview?key=${encodeURIComponent(CLE_GOOGLE)}&pano=${encodeURIComponent(j.pano_id)}&heading=${Math.round(cap)}&pitch=${leve}&fov=80`, de.lat, de.lon, cap, j.pano_id); }
   // aucune photo trouvée ou pas de réseau : l'intégration officielle, photos d'extérieur seulement, depuis la rue
   poser(`https://www.google.com/maps/embed/v1/streetview?key=${encodeURIComponent(CLE_GOOGLE)}&location=${vue.lat.toFixed(6)},${vue.lon.toFixed(6)}&heading=${Math.round(vue.cap)}&pitch=${-vue.pente}&fov=80&source=outdoor`, vue.lat, vue.lon, vue.cap); }
+// =================== la promenade (Street View) ===================
+// Demande de Gautier (3 nov.) : se balader dans les rues en Street View et voir en direct sur la carte devant quel bâtiment
+// on passe, pour l'acheter s'il est à quelqu'un. L'intégration gratuite de Street View (Maps Embed) ne dit jamais où l'on
+// est allé : la promenade a donc ses propres commandes (avancer, reculer, tourner ; glisser sur la photo pour tourner, la
+// toucher pour avancer) et la photo ne bouge pas toute seule. Chaque pas cherche la photo suivante le long de la rue avec
+// la recherche de photo gratuite (streetview/metadata), puis recharge l'intégration gratuite à cet endroit. Jamais d'image
+// fixe (payante). Sans clé Google : on marche sur le tracé IGN des rues et Street View prend la photo la plus proche.
+const norm360 = c => ((c%360)+360)%360;
+const ecartCap = (a, b) => { const d=norm360(a-b); return d>180 ? 360-d : d; };
+function promAvecCle(){ return !!CLE_GOOGLE && !cleRefusee; }
+// les tronçons de rue à moins de `rayon` mètres (du plus proche au plus loin) : distance, cap de la rue (dans un sens),
+// nom, et le point de la rue le plus proche
+function ruesAutour(pt, rayon){ const mx=111320*Math.cos(pt.lat*Math.PI/180), my=110540, liste=[];
+  try{ for(const f of map.querySourceFeatures('topo',{sourceLayer:'troncon_de_route'})){ const p=f.properties||{}; if(p.nature==='Escalier' || p.nature==='Bac ou liaison maritime') continue;
+      const lignes = f.geometry.type==='LineString' ? [f.geometry.coordinates] : (f.geometry.type==='MultiLineString' ? f.geometry.coordinates : []);
+      for(const l of lignes) for(let i=0;i<l.length-1;i++){
+        const ax=(l[i][0]-pt.lon)*mx, ay=(l[i][1]-pt.lat)*my, bx=(l[i+1][0]-pt.lon)*mx, by=(l[i+1][1]-pt.lat)*my;
+        const dx=bx-ax, dy=by-ay, L=dx*dx+dy*dy; if(!L) continue; let t=-(ax*dx+ay*dy)/L; t=Math.max(0,Math.min(1,t));
+        const px=ax+t*dx, py=ay+t*dy, d=Math.hypot(px,py); if(d>rayon) continue;
+        liste.push({ d, cap:norm360(Math.atan2(dx,dy)*180/Math.PI), nom:p.nom_voie_ban_droite||p.nom_voie_ban_gauche||'', lat:pt.lat+py/my, lon:pt.lon+px/mx }); } } }catch(e){}
+  return liste.sort((a,b)=>a.d-b.d); }
+// la direction d'une rue toute proche (dans un sens ou dans l'autre) la plus proche de `vers`, à `max` degrés au plus
+function capDeRue(pt, vers, max){ let best=null;
+  for(const r of ruesAutour(pt, 14)) for(const c of [r.cap, norm360(r.cap+180)]){ const e=ecartCap(c, vers); if(e<=max && (!best || e<best.e)) best={cap:c, e}; }
+  return best; }
+function nomDeRue(pt){ const r=ruesAutour(pt, 25).find(x=>x.nom); return r ? r.nom : ''; }
+// une photo d'extérieur près de ces points (dans la direction `dir` s'il y en a une), jamais dans un bâtiment ;
+// celles de Google d'abord (prises par la voiture, reliées le long des rues), celles des particuliers à défaut
+async function promPhoto(points, dir){ const autour=batimentsAutour(PROM, 90);
+  const res = await Promise.all(points.map(([pt, r])=>photoGoogle(pt, r))); let autre=null;
+  for(const j of res){ if(!j || j.pano_id===PROM.pano) continue; const pos={lat:j.location.lat, lon:j.location.lng};
+    if(dir!=null){ const d=dist([pos.lon,pos.lat],[PROM.lon,PROM.lat]); if(d<3 || ecartCap(capVers(PROM, pos), dir)>60) continue; }
+    // une photo de Google (prise dans la rue) est écartée seulement si elle tombe dans un bâtiment : dans une ruelle, elle
+    // est à moins de 3 m des murs ; celle d'un particulier l'est aussi collée à un mur (souvent prise dans une boutique)
+    if(estGoogle(j) ? autour.some(p=>!(pos.lon<p.b[0]||pos.lon>p.b[2]||pos.lat<p.b[1]||pos.lat>p.b[3]) && inside([pos.lon,pos.lat], p.g)) : dansUnBatiment(pos, autour)) continue;
+    if(estGoogle(j)) return j; if(!autre) autre=j; }
+  return autre; }
+// partir en promenade : depuis la photo de la fiche d'une parcelle, ou depuis la rue au centre de la carte
+async function promenade(depart){ if(PROM.on) return;
+  if(document.getElementById('sheet').classList.contains('open')) closeSheet();
+  Object.assign(PROM, { on:true, lat:depart.lat, lon:depart.lon, cap:norm360(depart.cap||0), pano:depart.pano||null, liste:[], cleListe:'', avant:map.getPitch() });
+  document.body.classList.add('promenade'); const box=document.getElementById('prom'); box.setAttribute('aria-hidden','false');
+  document.getElementById('prom-lieux').innerHTML='<div class="prom-rue">🚶 En promenade</div>';
+  map.resize(); vibrer(10);
+  if(!PROM.pano && promAvecCle()){ box.classList.add('charge');
+    const j=await promPhoto([[{lat:PROM.lat, lon:PROM.lon}, 25], [{lat:PROM.lat, lon:PROM.lon}, 60]], null); if(!PROM.on) return;
+    if(j){ PROM.lat=j.location.lat; PROM.lon=j.location.lng; PROM.pano=j.pano_id; }
+    else if(promAvecCle()){ finPromenade(); toast('📷 Pas de photo Street View ici : essaie une autre rue'); return; } }
+  promMontrer(); }
+function promDepuisFiche(){ if(!svCourant){ toast('Street View se charge encore…'); return; } promenade(svCourant); }
+function promDepuisCarte(){ if(map.getZoom()<16){ toast('🔍 Approche-toi d’abord d’une rue'); return; }
+  const c=map.getCenter(), r=ruesAutour({lat:c.lat, lon:c.lng}, 150)[0];
+  if(!r){ toast('🚧 Pas de rue ici : approche-toi d’une rue'); return; }
+  const rc=capDeRue({lat:r.lat, lon:r.lon}, norm360(map.getBearing()), 90);
+  promenade({ lat:r.lat, lon:r.lon, cap: rc ? rc.cap : norm360(map.getBearing()) }); }
+function finPromenade(){ if(!PROM.on) return; PROM.on=false; PROM.cadre++; PROM.pas++; PROM.liste=[]; PROM.cleListe='';
+  document.body.classList.remove('promenade'); const box=document.getElementById('prom'); box.setAttribute('aria-hidden','true'); box.classList.remove('charge','marche');
+  for(const id of ['prom-sv-a','prom-sv-b']){ const f=document.getElementById(id); f.onload=null; f.src='about:blank'; f.dataset.src=''; f.classList.remove('vu'); f.style.transform=''; }
+  if(PROM.marqueur){ PROM.marqueur.remove(); PROM.marqueur=null; }
+  if(document.getElementById('sheet').classList.contains('open')) closeSheet();
+  promSurligner([]); map.resize(); map.easeTo({ padding:{top:0, bottom:0, left:0, right:0}, pitch:PROM.avant==null?58:PROM.avant, duration:450 }); vibrer(8); }
+// un pas en avant (sens 1) ou en arrière (sens -1), le long de la rue
+async function promPas(sens){ if(!PROM.on || PROM.occupe) return; PROM.occupe=true; vibrer(8); const box=document.getElementById('prom'); box.classList.add('marche');
+  try{ // la rue toute proche dont l'axe est le plus près du regard (tourné vers une façade, on la longe : on n'entre pas dans les murs)
+    const rue=capDeRue(PROM, PROM.cap, 180), dir=norm360((rue ? rue.cap : PROM.cap) + (sens<0 ? 180 : 0));
+    if(promAvecCle()){
+      const j=await promPhoto([[decale(PROM, dir, 10), 6], [decale(PROM, dir, 18), 10], [decale(PROM, dir, 28), 15]], dir);
+      if(!PROM.on) return;
+      if(j){ PROM.lat=j.location.lat; PROM.lon=j.location.lng; PROM.pano=j.pano_id; }
+      else if(promAvecCle()){ toast('🚧 Pas de photo plus loin par là : tourne-toi'); return; } }
+    if(!promAvecCle()){ const pt=decale(PROM, dir, 12), r=ruesAutour(pt, 20)[0]; PROM.lat=r?r.lat:pt.lat; PROM.lon=r?r.lon:pt.lon; PROM.pano=null; }
+    // en regardant le long de la rue, la vue suit ses virages ; tourné vers les façades, on les longe sans tourner la tête
+    if(sens>0 && rue && rue.e<=35){ const r2=capDeRue(PROM, PROM.cap, 35); if(r2) PROM.cap=r2.cap; }
+    promMontrer();
+  } finally { PROM.occupe=false; box.classList.remove('marche'); } }
+function promTourner(delta){ if(!PROM.on) return; PROM.cap=norm360(PROM.cap+delta); vibrer(6); promMontrer(); }
+function promMontrer(){ const n=++PROM.pas; promMarqueur(); promAfficher(); promCamera(); promEnvirons();
+  map.once('idle', ()=>{ if(PROM.on && n===PROM.pas) promEnvirons(); }); }   // de nouvelles tuiles ont pu arriver
+// le marcheur sur la carte : un point bleu et son cône de regard, à plat sur la carte
+function promMarqueur(){ if(!PROM.marqueur){ const el=document.createElement('div'); el.className='marcheur'; el.innerHTML='<i class="cone"></i><i class="pt"></i>';
+    PROM.marqueur=new maplibregl.Marker({element:el, rotationAlignment:'map', pitchAlignment:'map'}).setLngLat([PROM.lon,PROM.lat]).addTo(map); }
+  PROM.marqueur.setLngLat([PROM.lon,PROM.lat]).setRotation(PROM.cap); }
+// la carte suit : le marcheur au milieu de la partie visible, le regard vers le haut de l'écran
+function promCamera(){ const haut=document.querySelector('#prom .prom-vue').offsetHeight, bas=document.querySelector('#prom .prom-bas').offsetHeight, z=map.getZoom();
+  map.easeTo({ center:[PROM.lon,PROM.lat], bearing:PROM.cap, pitch:50, zoom: z<17.4 || z>19 ? 18 : z, padding:{top:haut, bottom:bas, left:0, right:0}, duration:650 }); }
+function promSrc(){ const c=Math.round(PROM.cap), k=encodeURIComponent(CLE_GOOGLE);
+  if(promAvecCle() && PROM.pano) return `https://www.google.com/maps/embed/v1/streetview?key=${k}&pano=${encodeURIComponent(PROM.pano)}&heading=${c}&pitch=0&fov=90`;
+  if(promAvecCle()) return `https://www.google.com/maps/embed/v1/streetview?key=${k}&location=${PROM.lat.toFixed(6)},${PROM.lon.toFixed(6)}&heading=${c}&pitch=0&fov=90&source=outdoor`;
+  return `https://maps.google.com/maps?q=&layer=c&cbll=${PROM.lat.toFixed(6)},${PROM.lon.toFixed(6)}&cbp=12,${c},0,0,0&output=svembed`; }
+// deux cadres l'un sur l'autre : la nouvelle vue se charge sous l'ancienne, puis prend sa place (pas d'écran vide à chaque pas)
+function promAfficher(){ const a=document.getElementById('prom-sv-a'), b=document.getElementById('prom-sv-b'), box=document.getElementById('prom');
+  const vu = a.classList.contains('vu') ? a : (b.classList.contains('vu') ? b : null), src=promSrc();
+  if(vu && vu.dataset.src===src){ vu.style.transform=''; return; }
+  const neuf = vu===a ? b : a, n=++PROM.cadre; box.classList.add('charge');
+  const montrer=()=>{ if(n!==PROM.cadre) return; PROM.cadre++; neuf.classList.add('vu'); box.classList.remove('charge');
+    if(vu){ vu.classList.remove('vu'); setTimeout(()=>{ if(!vu.classList.contains('vu')){ vu.onload=null; vu.src='about:blank'; vu.dataset.src=''; vu.style.transform=''; } }, 400); } };
+  neuf.onload=()=>setTimeout(montrer, 450); setTimeout(montrer, 5000);
+  neuf.style.transform=''; neuf.dataset.src=src; neuf.src=src; }
+// Ce qu'on longe. En regardant le long de la rue : la parcelle de gauche et celle de droite ; tourné vers une façade :
+// celle d'en face. Elles sont surlignées sur la carte, et leurs lieux s'affichent sous la carte (le propriétaire, le prix
+// s'il est en vente) ; les toucher ouvre la fiche, d'où l'on achète ou fait une offre.
+function parcellesAutour(pt, m){ const dy=m/110540, dx=m/(111320*Math.cos(pt.lat*Math.PI/180)); const liste=[];
+  try{ for(const f of map.querySourceFeatures('pci',{sourceLayer:'parcelle'})){ const g=f.geometry; if(!f.id || !g || (g.type!=='Polygon' && g.type!=='MultiPolygon')) continue;
+      const b=boite(g); if(b[2]<pt.lon-dx || b[0]>pt.lon+dx || b[3]<pt.lat-dy || b[1]>pt.lat+dy) continue; liste.push({f, b}); } }catch(e){}
+  return liste; }
+function viser(autour, ici, cap, max){ for(let m=2; m<=max; m+=2){ const pt=decale(PROM, cap, m);
+    for(const p of autour){ if(ici.has(p.f.id)) continue; const b=p.b; if(pt.lon<b[0]||pt.lon>b[2]||pt.lat<b[1]||pt.lat>b[3]) continue;
+      if(inside([pt.lon,pt.lat], p.f.geometry)) return { f:p.f, pt:[pt.lon,pt.lat] }; } }
+  return null; }
+function promEnvirons(){ if(!PROM.on) return; const autour=parcellesAutour(PROM, 45);
+  const ici=new Set(autour.filter(p=>inside([PROM.lon,PROM.lat], p.f.geometry)).map(p=>p.f.id));   // la parcelle où l'on marche (une cour, une allée privée)
+  const face = capDeRue(PROM, PROM.cap, 35) ? null : viser(autour, ici, PROM.cap, 24);
+  const liste = face ? [Object.assign({cote:'face'}, face)]
+    : [['gauche',-90],['droite',90]].map(([cote,d])=>{ const v=viser(autour, ici, norm360(PROM.cap+d), 26); return v && Object.assign({cote}, v); }).filter(Boolean);
+  if(liste.length===2 && liste[0].f.id===liste[1].f.id) liste.pop();
+  const cle=liste.map(e=>e.cote+':'+e.f.id).join('|')+'|'+nomDeRue(PROM);
+  if(cle!==PROM.cleListe){ PROM.cleListe=cle; PROM.liste=liste; promSurligner(liste.map(e=>e.f.id)); promCarte(); }
+  for(const e of PROM.liste) if(!parcelAddrs[e.f.id] || parcelAddrs[e.f.id].erreur) lieuxDeParcelle(e.f).then(()=>{ if(PROM.on && PROM.liste.includes(e)) promCarte(); }).catch(()=>{}); }
+function promSurligner(ids){ const neufs=new Set(ids); let change=false;
+  for(const id of PROM.vus) if(!neufs.has(id)){ change=true; if(id!==selected) map.setFeatureState({source:'pci', sourceLayer:'parcelle', id}, {sel:false}); }
+  for(const id of neufs) if(!PROM.vus.has(id)){ change=true; map.setFeatureState({source:'pci', sourceLayer:'parcelle', id}, {sel:true}); }
+  PROM.vus=neufs; if(change) paintBuildings(); }
+// les lieux connus d'une parcelle, avec les lieux nommés posés dessus (les miens, ceux des autres joueurs lus sur le serveur)
+function lieuxConnus(f){ const base=parcelAddrs[f.id]; if(!base) return null; const l=base.slice();
+  for(const a of [...Object.values(PROPRIOS), ...Object.values(state.owned)]) if((a.type==='lieu' || a.type==='monument') && !l.find(x=>x.id===a.id) && inside([a.lon,a.lat], f.geometry)) l.push(a);
+  return l; }
+// le lieu à montrer d'une parcelle : d'abord ce qui est en vente chez un autre joueur, puis ce qui est à un autre, à moi, libre
+function lieuPhare(addrs){ const note=a=>{ const o=ownerOf(a); return o && o!==ME ? (enVente(a) ? 0 : 1) : (o===ME ? 2 : 3); }; return addrs.reduce((m,a)=>note(a)<note(m) ? a : m, addrs[0]); }
+const COTES = { gauche:['◀','À gauche'], droite:['▶','À droite'], face:['▲','En face'] };
+function promCarte(){ const box=document.getElementById('prom-lieux'); if(!box || !PROM.on) return; const rue=nomDeRue(PROM);
+  let h=`<div class="prom-rue">🚶 ${echapper(rue || 'En promenade')}</div>`;
+  if(!PROM.liste.length) h+='<div class="prom-vide">Pas de bâtiment tout près : avance ou tourne-toi.</div>';
+  PROM.liste.forEach((e, i)=>{ const [fleche, texte]=COTES[e.cote], addrs=lieuxConnus(e.f); let corps, action='Voir';
+    if(!addrs) corps='<b class="attente">Je regarde…</b>';
+    else if(!addrs.length) corps='<b>Pas d’adresse</b><small><span class="gris">Cour, jardin ou voirie</span></small>';
+    else { const a=lieuPhare(addrs), o=ownerOf(a), vente=!!o && o!==ME && enVente(a);
+      const qui = o===ME ? '<span class="own me">À moi</span>' : (o ? `<span class="own other">👤 ${echapper(o)}</span>` : '<span class="own libre">Libre</span>');
+      corps=`<b>${echapper(a.label)}</b><small>${qui}${vente ? `<span class="prom-prix">💰 ${pcs(prixDemande(a))}</span>` : ''}${addrs.length>1 ? `<span class="gris">+${addrs.length-1} lieu${addrs.length>2?'x':''}</span>` : ''}</small>`;
+      if(o && o!==ME) action = vente ? 'Acheter' : 'Offre'; }
+    h+=`<button class="prom-lieu" data-i="${i}"><span class="cote">${fleche}<small>${texte}</small></span><span class="corps">${corps}</span><span class="aller">${action}</span></button>`; });
+  box.innerHTML=h;
+  box.querySelectorAll('.prom-lieu').forEach(b=>b.onclick=()=>{ const e=PROM.liste[+b.dataset.i]; if(!e) return; vibrer(8); pointVise=e.pt; selectParcel(e.f); }); }
+// les commandes : les boutons, glisser sur la photo pour tourner, la toucher pour avancer ; au clavier, les flèches
+document.getElementById('bprom').onclick=promDepuisCarte;
+document.getElementById('prom-av').onclick=()=>promPas(1);
+document.getElementById('prom-re').onclick=()=>promPas(-1);
+document.getElementById('prom-g').onclick=()=>promTourner(-45);
+document.getElementById('prom-d').onclick=()=>promTourner(45);
+document.addEventListener('keydown', e=>{ if(!PROM.on || (e.target && e.target.closest && e.target.closest('input,textarea,select'))) return;
+  const f={ ArrowUp:()=>promPas(1), ArrowDown:()=>promPas(-1), ArrowLeft:()=>promTourner(-45), ArrowRight:()=>promTourner(45), Escape:finPromenade }[e.key]; if(f){ e.preventDefault(); f(); } });
+(()=>{ const t=document.getElementById('prom-touche'); let x0=null, y0=0, dx=0, t0=0; const cadre=()=>document.querySelector('.prom-sv.vu');
+  t.addEventListener('pointerdown', e=>{ if(!PROM.on) return; x0=e.clientX; y0=e.clientY; dx=0; t0=Date.now(); try{ t.setPointerCapture(e.pointerId); }catch(_){} });
+  t.addEventListener('pointermove', e=>{ if(x0==null) return; dx=e.clientX-x0; const f=cadre(); if(f) f.style.transform=`translateX(${dx}px)`;
+    if(PROM.marqueur) PROM.marqueur.setRotation(PROM.cap - dx*90/(t.offsetWidth||360)); });
+  const fin=(e, annule)=>{ if(x0==null) return; const bouge=Math.abs(dx)>12 || Math.abs(e.clientY-y0)>12, w=t.offsetWidth||360; x0=null;
+    if(!annule && Math.abs(dx)>12) return promTourner(-dx*90/w);
+    const f=cadre(); if(f) f.style.transform=''; if(PROM.marqueur) PROM.marqueur.setRotation(PROM.cap);
+    if(!annule && !bouge && Date.now()-t0<600) promPas(1); };
+  t.addEventListener('pointerup', e=>fin(e, false)); t.addEventListener('pointercancel', e=>fin(e, true)); })();
 function mkAddr(x, idu){ const p=x.properties; return { id:p.id, label:p.name, lon:x.geometry.coordinates[0], lat:x.geometry.coordinates[1], citycode:p.citycode, city:p.city, postcode:p.postcode, idu, type:'adresse' }; }
 function renderAddrs(){ const {p, idu, geometry} = currentParcel; const addrs = [...(currentParcel.extra||[]), ...(parcelAddrs[idu]||[])]; const nb=addrs.length; const c = centroid(geometry);
   document.getElementById('nb').textContent = nb;
-  const cible = cibleStreetView(addrs, geometry, c); const vue = vueDepuisLaRue(cible); afficherStreetView(cible, vue);
+  if(!PROM.on){ const cible = cibleStreetView(addrs, geometry, c); const vue = vueDepuisLaRue(cible); afficherStreetView(cible, vue); }   // en promenade, Street View est déjà en haut de l'écran
   const box = document.getElementById('addrs'); box.innerHTML='';
   document.getElementById('plafond').textContent = addrs[0] ? NIVEAUX[plafond(addrs[0])].nom : '—';
   const adr = addrs.find(x=>x.type==='adresse'), rue = adr ? String(adr.label).replace(/^\s*\d+\s*(bis|ter|[a-z])?\s+/i,'') : (addrs[0] ? addrs[0].label : '');
@@ -627,7 +820,7 @@ function carteArt(a, bandeau){ const adr=estAdresse(a), commune=echapper(commune
 function icoLieuHTML(a){ if(!estAdresse(a)) return iconeLieu(a); const { numero } = Regles.numeroEtVoie(a.label); return numero ? `<span class="numero">${echapper(numero.split(' ')[0])}</span>` : '<span class="mini-plaque"></span>'; }
 function echapper(t){ return String(t==null?'':t).replace(/[&<>"]/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
 // après une action sur un lieu : tout ce qui l'affiche se redessine
-function apresAction(){ if(currentParcel) renderAddrs(); if(document.getElementById('s-patrimoine').classList.contains('on')) renderPatrimoine(); if(ficheOuverte) ouvrirFicheLieu(ficheOuverte); }
+function apresAction(){ if(currentParcel) renderAddrs(); if(PROM.on) promCarte(); if(document.getElementById('s-patrimoine').classList.contains('on')) renderPatrimoine(); if(ficheOuverte) ouvrirFicheLieu(ficheOuverte); }
 let ficheOuverte=null;
 function echelleHTML(a, lv, pl, moi, rec){
   // Terrain → Tour pour tous (le reste grisé « Hors plafond ») ; au-delà, jusqu'au bâtiment de sa rareté. Une longue échelle
@@ -725,7 +918,7 @@ async function construire(id, niveau, cost){ const a=state.owned[id]; if(!a || d
   sh.addEventListener('touchstart', e=>{ if(sh.scrollTop>0) { y0=null; return; } y0=e.touches[0].clientY; dy=0; }, {passive:true});
   sh.addEventListener('touchmove', e=>{ if(y0===null) return; dy=e.touches[0].clientY-y0; if(dy>0){ sh.style.transition='none'; sh.style.transform=`translateY(${dy}px)`; } }, {passive:true});
   sh.addEventListener('touchend', ()=>{ if(y0===null) return; sh.style.transition=''; sh.style.transform=''; if(dy>90) closeSheet(); y0=null; }); })();
-function closeSheet(){ document.getElementById('sheet').classList.remove('open'); document.body.classList.remove('fiche-ouverte'); document.getElementById('sv').src='about:blank'; if(selected){ map.setFeatureState({source:'pci', sourceLayer:'parcelle', id:selected}, {sel:false}); selected=null; paintBuildings(); } }
+function closeSheet(){ document.getElementById('sheet').classList.remove('open'); document.body.classList.remove('fiche-ouverte'); document.getElementById('sv').src='about:blank'; if(selected){ if(!PROM.vus.has(selected)) map.setFeatureState({source:'pci', sourceLayer:'parcelle', id:selected}, {sel:false}); selected=null; paintBuildings(); } }
 
 // =================== offres ===================
 async function faireOffre(a, price){ if(price<=0) return toast('Montant invalide'); if(dispo()<price) return toast('Fonds insuffisants');

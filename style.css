@@ -587,3 +587,46 @@ body.fiche-ouverte #top .barre,body.fiche-ouverte #sugg,body.fiche-ouverte #ctrl
 .stat .var.plus,.facteurs .plus,.tendances .plus{color:var(--cadre2)} .stat .var.moins,.facteurs .moins,.tendances .moins{color:#B5651D}
 .facteurs{font-size:12px;font-weight:800;color:var(--gris);margin:6px 2px 0;line-height:1.4}
 .tendances .m{margin-top:6px;line-height:1.45} .tendances .petit{font-size:12px}
+
+/* ---------------------------------------------------------------- la promenade (Street View en haut, la carte au milieu, ce qu'on longe en bas) */
+.svwrap .prom-entree{position:absolute;left:8px;bottom:8px;border:0;background:var(--plaque);color:#fff;font-size:13px;font-weight:900;padding:7px 11px;border-radius:10px;box-shadow:0 3px 0 var(--plaque2);cursor:pointer}
+#bprom{width:44px;height:44px;border-radius:50%;background:#fff;box-shadow:var(--ombre);font-size:20px;padding:0}
+#prom{position:absolute;inset:0;z-index:20;pointer-events:none;display:none}
+body.promenade{--nav:0px}
+body.promenade #prom{display:block}
+body.promenade #top,body.promenade #ctrls,body.promenade #legend,body.promenade #nav,body.promenade #charge{display:none}
+body.promenade #sheet{max-height:calc(58% - 6px)}
+body.promenade #sheet .svwrap{display:none}
+.prom-vue{position:absolute;left:0;right:0;top:0;height:42%;min-height:220px;background:#17233F;pointer-events:auto;overflow:hidden;border-radius:0 0 22px 22px;box-shadow:0 8px 24px rgba(23,35,63,.28)}
+.prom-sv{position:absolute;inset:0;width:100%;height:100%;border:0;opacity:0;transition:opacity .25s;background:#17233F}
+.prom-sv.vu{opacity:1}
+#prom-touche{position:absolute;left:0;right:0;top:0;bottom:30px;touch-action:none;cursor:grab}
+.prom-quitter{position:absolute;top:calc(10px + env(safe-area-inset-top));right:10px;width:40px;height:40px;border-radius:50%;border:0;background:#fff;color:var(--encre);font-size:18px;font-weight:900;box-shadow:var(--ombre-forte);cursor:pointer}
+.prom-aide{position:absolute;left:50%;bottom:42px;transform:translateX(-50%);background:rgba(23,35,63,.8);color:#fff;font-weight:800;font-size:13px;padding:8px 12px;border-radius:12px;white-space:nowrap;pointer-events:none;animation:prom-aide 5s forwards}
+@keyframes prom-aide{0%,78%{opacity:1}100%{opacity:0}}
+.prom-charge{position:absolute;left:12px;top:calc(12px + env(safe-area-inset-top));width:34px;height:34px;border-radius:50%;background:rgba(255,255,255,.92);display:flex;align-items:center;justify-content:center;opacity:0;transition:opacity .2s;pointer-events:none;box-shadow:var(--ombre)}
+.prom-charge .pc{width:20px;height:20px;animation:tourne 1.2s linear infinite}
+#prom.charge .prom-charge,#prom.marche .prom-charge{opacity:1}
+.prom-bas{position:absolute;left:0;right:0;bottom:0;padding:10px 12px calc(10px + env(safe-area-inset-bottom));background:#fff;border-radius:22px 22px 0 0;box-shadow:0 -6px 24px rgba(23,35,63,.14);pointer-events:auto}
+.prom-rue{font-family:var(--titre);font-weight:800;color:var(--encre2);font-size:15px;margin:0 2px 6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.prom-vide{font-size:13px;font-weight:700;color:var(--gris);padding:8px 4px 10px}
+.prom-lieu{display:flex;align-items:center;gap:10px;width:100%;background:var(--ciel);border:0;border-radius:14px;padding:7px 10px;margin-bottom:6px;text-align:left;font:inherit;color:inherit;cursor:pointer}
+.prom-lieu .cote{display:flex;flex-direction:column;align-items:center;font-size:17px;line-height:1.1;color:var(--plaque);min-width:46px;font-weight:900}
+.prom-lieu .cote small{font-size:10px;color:var(--encre2);white-space:nowrap}
+.prom-lieu .corps{flex:1;min-width:0}
+.prom-lieu .corps b{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:14px;font-weight:900}
+.prom-lieu .corps b.attente{color:var(--gris)}
+.prom-lieu .corps small{display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin-top:3px}
+.prom-lieu .own{font-size:12px;padding:3px 9px;cursor:inherit}
+.prom-lieu .gris{font-size:12px;font-weight:800;color:var(--gris)}
+.prom-prix{display:inline-flex;align-items:center;gap:3px;font-size:12px;font-weight:900;color:var(--cadre2)}
+.prom-prix .pc{width:13px;height:13px}
+.prom-lieu .aller{font-weight:900;font-size:13px;color:#fff;background:var(--plaque);padding:7px 10px;border-radius:10px;white-space:nowrap;box-shadow:0 2px 0 var(--plaque2)}
+.prom-boutons{display:flex;gap:8px;justify-content:center;margin-top:4px}
+.prom-boutons button{width:54px;height:50px;border-radius:16px;border:0;background:var(--plaque-clair);color:var(--plaque);font-size:23px;font-weight:900;cursor:pointer;box-shadow:0 3px 0 #C8D5F5}
+.prom-boutons button.grand{flex:1;max-width:160px;width:auto;background:var(--plaque);color:#fff;font-size:17px;box-shadow:0 3px 0 var(--plaque2)}
+.prom-boutons button:active{transform:translateY(2px);box-shadow:none}
+#prom.marche #prom-av{opacity:.6}
+.marcheur{width:110px;height:110px;pointer-events:none}
+.marcheur .cone{position:absolute;left:50%;top:0;width:84px;height:55px;transform:translateX(-50%);background:linear-gradient(to top,rgba(79,134,240,.6),rgba(79,134,240,0));clip-path:polygon(50% 100%,0 0,100% 0)}
+.marcheur .pt{position:absolute;left:50%;top:50%;width:20px;height:20px;margin:-10px 0 0 -10px;border-radius:50%;background:#4F86F0;border:3px solid #fff;box-shadow:0 2px 6px rgba(0,0,0,.35)}
