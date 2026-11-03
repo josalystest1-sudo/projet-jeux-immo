@@ -18,16 +18,21 @@
 <script>
 // Mise à jour automatique : le site publié porte un numéro de version (écrit à la publication dans version.json et ici).
 // Le téléphone garde l'ancienne page jusqu'à 10 minutes : si une version plus récente est en ligne, on recharge
-// la page à une adresse neuve (au démarrage, et quand on revient dans le jeu après l'avoir quitté).
+// la page à une adresse neuve (au démarrage, quand on revient dans le jeu, et chaque minute tant qu'il est à l'écran).
+// Jamais pendant un pack, une fenêtre ouverte, une saisie ou la promenade : on réessaie à la minute suivante
+// (avant le 3 nov. au soir, une fenêtre ouverte au retour faisait abandonner la mise à jour jusqu'à la fermeture de l'appli).
 const VERSION='__VERSION__';
 (function(){ if(VERSION.indexOf('__')===0) return; let dernier=0;
+  function occupe(){ const a=document.activeElement;
+    return !!(document.querySelector('#packscene.on') || document.querySelector('#modal.on') || (a && /^(INPUT|TEXTAREA)$/.test(a.tagName)) || (typeof PROM!=='undefined' && PROM.on)); }
   function verifier(auDemarrage){ if(Date.now()-dernier<30000) return; dernier=Date.now();
     fetch('version.json?t='+Date.now(), {cache:'no-store'}).then(r=>r.ok?r.json():null).then(j=>{ if(!j || !j.v || j.v===VERSION) return;
+      if(!auDemarrage && occupe()) return;
+      // une seule tentative par version (si la page reçue était encore l'ancienne, pas de rechargements en boucle)
       const cle='maj-'+j.v; try{ if(sessionStorage.getItem(cle)) return; sessionStorage.setItem(cle,'1'); }catch(e){}
-      const occupe = !auDemarrage && (document.querySelector('#packscene.on') || document.querySelector('#modal.on'));
-      if(occupe) return;
       const u=new URL(location.href); u.searchParams.set('v', j.v); location.replace(u.toString()); }).catch(()=>{}); }
-  verifier(true); document.addEventListener('visibilitychange', ()=>{ if(document.visibilityState==='visible') verifier(false); }); })();
+  verifier(true); document.addEventListener('visibilitychange', ()=>{ if(document.visibilityState==='visible') verifier(false); });
+  setInterval(()=>{ if(document.visibilityState==='visible') verifier(false); }, 60000); })();
 </script>
 <script src="geo.js"></script>
 <script src="data/economie.js"></script>
@@ -1550,7 +1555,8 @@ function ouvrirReglages(){ const box=document.getElementById('modalbox');
     <div class="sw"><span>Vibrations</span><input type="checkbox" ${state.prefs.vibrations!==false?'checked':''} onchange="setPref('vibrations',this.checked)"></div>
     ${window.Compte && Compte.actif() ? `<div class="sw mode"><span>Jouer sur le vrai serveur (essai)<small>${MODE_SERVEUR ? (enVraisJours() ? 'Ta partie est sur le serveur, en vrais jours de 24 h.' : `Serveur d’essai accéléré : un jour du jeu = ${Math.round(JOUR/60000)} min.`) + ' Pas encore : les enchères.' : 'Ta partie de démo reste sur ce téléphone ; celle du serveur part de zéro.'}</small></span><input type="checkbox" ${MODE_SERVEUR?'checked':''} onchange="changerMode(this.checked)"></div>` : ''}
     ${(state.signalements||[]).length?`<div class="m" style="margin-top:10px">🚩 Signalements envoyés : ${state.signalements.length}</div>`:''}
-    <div class="liste-btn"><button class="btn bleu large" onclick="closeModal();setTimeout(()=>guide(0),300)">🧭 Revoir le guide</button><button class="btn clair large" onclick="closeModal()">Fermer</button></div>`;
+    <div class="liste-btn"><button class="btn bleu large" onclick="closeModal();setTimeout(()=>guide(0),300)">🧭 Revoir le guide</button><button class="btn clair large" onclick="closeModal()">Fermer</button></div>
+    <div class="m" style="text-align:center;margin-top:10px">Version du jeu : ${VERSION.indexOf('__')===0 ? 'locale' : VERSION.slice(0,7)}</div>`;
   document.getElementById('modal').classList.add('on'); }
 
 // le profil d'un joueur (le mien : icône, réglages, compte)

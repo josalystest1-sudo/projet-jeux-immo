@@ -71,6 +71,7 @@ Rien d'important ne vit dans une conversation : tout est dans le dépôt ou sur 
 ### 3 novembre 2026, soir : la reprise dans Claude Code
 - Gautier clone le dépôt sur son PC (dossier `Documents/jeu immo`) et lance la reprise. Les outils sont là ; un test échouait seulement sous Windows (PR #38). Choix de Gautier : ce correctif, puis les échanges sur le serveur (8.1f).
 - **Les échanges sur le serveur (8.1f)** (PR #39) : proposer ses lieux (plus des pièces) à un vrai joueur ou à un robot, recevoir un échange dans ses notifications avec la valeur de chaque côté, accepter ou refuser. Les robots répondent et proposent parfois des échanges, pour pouvoir essayer seul.
+- **La mise à jour du téléphone** (PR #40) : retour de Gautier, « les échanges ne sont pas en ligne ». Le site et le serveur les avaient : c'est son téléphone qui gardait l'ancienne version, parce qu'une fenêtre ouverte au retour dans le jeu faisait abandonner la mise à jour. Corrigé ; la version s'affiche dans les Réglages. Choix de Gautier ensuite : les enchères sur le serveur (8.1g).
 
 ## Toutes les PR
 
@@ -136,6 +137,7 @@ Puis une PR par étape, fusionnée en squash :
 | #37 | 03/11 20:51 | Notes : une phrase de CLAUDE.md corrigée, heures des PR |
 | #38 | 03/11 21:30 | Reprise dans Claude Code : le test du serveur passe aussi sous Windows |
 | #39 | 03/11 21:39 | Serveur 8.1f : les échanges entre joueurs |
+| #40 | 03/11 21:50 | La mise à jour du téléphone n'abandonne plus ; la version dans les Réglages |
 
 ## Les décisions de Gautier
 
