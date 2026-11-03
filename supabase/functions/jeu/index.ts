@@ -176,7 +176,7 @@ async function prevenirCaduques(avant: Ligne[], garder: string | null, label: st
 async function transferer(l: Ligne, acheteur: string, prix: number, prixAttendu: number | null, offre: string | null) {
   await recolter(acheteur); await recolter(l.proprietaire);
   const autres = await offresEnAttente(l.id);
-  const pieces = await rpc('jeu_transferer', { l: l.id, vendeur: l.proprietaire, acheteur, prix, prix_attendu: prixAttendu, offre: offre ? Number(offre) : null });
+  const pieces = await rpc('jeu_transferer', { l: l.id, vendeur: l.proprietaire, acheteur, prix, prix_attendu: prixAttendu, offre: offre ? Number(offre) : null, valeur_ref: R.valeur(lieuDe(l)) });
   await prevenirCaduques(autres, offre, l.label);
   return Number(pieces);
 }
@@ -244,6 +244,22 @@ ACTIONS.pack = async (j) => {
   };
 };
 
+// ---------------------------------------------------------------- la valeur de marché (décision de Gautier, 3 nov.)
+// indice d'un lieu = (1 + ventes de sa commune) × (1 + activité de son quartier) × (1 + tendance de la semaine)
+const FLUCT = (ECO as Ligne).fluctuation;
+async function indicesMarche(lieux: Ligne[]): Promise<Record<string, number>> {
+  if (!lieux.length) return {};
+  const jm = await jourMs(), maintenant = Date.now(), semaine = Math.floor(Regles.jourDuJeu(maintenant, jm) / 7);
+  const communes = [...new Set(lieux.map((l) => l.commune).filter(Boolean))], depuis = new Date(maintenant - FLUCT.fenetre_jours * jm).toISOString();
+  const [m, q] = await Promise.all([
+    admin.rpc('marche_communes', { communes, depuis }),
+    admin.rpc('quartiers', { pts: lieux.slice(0, 500).map((l) => ({ id: l.id, lon: l.lon, lat: l.lat })), dlat: FLUCT.quartier.rayon_m / 111000, dlon: FLUCT.quartier.rayon_m / 76000 }),
+  ]);
+  const parCommune: Record<string, number> = {}; for (const r of (m.data || []) as Ligne[]) parCommune[r.commune] = R.indiceCommune([{ prix: Number(r.ratio), valeurRef: 1 }]);
+  const parLieu: Record<string, number> = {}; for (const r of (q.data || []) as Ligne[]) parLieu[r.id] = R.indiceQuartier(Number(r.points));
+  return Object.fromEntries(lieux.map((l) => [l.id, R.indice({ commune: parCommune[l.commune] || 0, quartier: parLieu[l.id] ?? 0, tendance: R.tendance(Regles.departement(l.citycode), semaine) })]));
+}
+
 // ---------------------------------------------------------------- les joueurs robots (serveur d'essai)
 // les vendeurs qui ont un pseudo (vrais joueurs) ; les joueurs jetables de l'essai n'en ont pas
 async function connaitreVrais(lieux: Ligne[], vrais: Set<string>) {
@@ -270,6 +286,9 @@ async function robotsTour() {
   const aVendre = (ventes || []).slice();
   await connaitreVrais(aVendre, vrais);
   const jm = await jourMs(), jour = Regles.jourDuJeu(Date.now(), jm);
+  const { data: lieuxRobots } = await admin.from('lieux').select('*').in('proprietaire', ids);
+  const indices = await indicesMarche([...reels, ...aVendre, ...(lieuxRobots || [])].filter((l, i, t) => t.findIndex((x) => x.id === l.id) === i));
+  const valeurM = (l: Ligne) => Math.round(R.valeur(lieuDe(l)) * (indices[l.id] || 1));
   for (const robot of robots.sort(() => Math.random() - 0.5).slice(0, 3)) {
     const j = robot.id;
     try {
@@ -284,20 +303,20 @@ async function robotsTour() {
       }
       // 2. répondre aux offres reçues depuis 20 s : oui à partir de 110 % de la valeur, sinon non
       const { data: recues } = await admin.from('offres').select('*').eq('vendeur', j).eq('statut', 'attente').lt('cree_le', new Date(Date.now() - 20_000).toISOString());
-      for (const o of recues || []) await ACTIONS.repondre_offre(j, { offre: o.id, accepter: (() => { const l = mes.find((x: Ligne) => x.id === o.lieu); return !!l && Number(o.prix) >= R.valeur(lieuDe(l)) * 1.1; })() }).catch(() => {});
+      for (const o of recues || []) await ACTIONS.repondre_offre(j, { offre: o.id, accepter: (() => { const l = mes.find((x: Ligne) => x.id === o.lieu); return !!l && Number(o.prix) >= valeurM(l) * 1.1; })() }).catch(() => {});
       // 3. une offre sur un lieu d'un vrai joueur (entre 85 et 140 % de sa valeur), une seule en attente à la fois
       const { count: enAttente } = await admin.from('offres').select('id', { count: 'exact', head: true }).eq('acheteur', j).eq('statut', 'attente');
       if (!enAttente && Math.random() < 0.15) {
-        const l = hasard(reels), prix = arrondi(R.valeur(lieuDe(l)) * (0.85 + Math.random() * 0.55));
+        const l = hasard(reels), prix = arrondi(valeurM(l) * (0.85 + Math.random() * 0.55));
         if (prix <= pieces) { await ACTIONS.offrir(j, { id: l.id, prix }).catch(() => {}); }
       }
       // 4. acheter un lieu mis en vente par un vrai joueur, s'il n'est pas trop cher (jusqu'à 150 % de sa valeur) :
       // une fois sur deux par robot et par tour (« personne ne m'achète », Gautier, 3 nov.)
-      const enVente = aVendre.filter((l: Ligne) => Number(l.prix_vente) <= R.valeur(lieuDe(l)) * 1.5 && Number(l.prix_vente) <= pieces);
+      const enVente = aVendre.filter((l: Ligne) => Number(l.prix_vente) <= valeurM(l) * 1.5 && Number(l.prix_vente) <= pieces);
       if (enVente.length && Math.random() < 0.5) { const l = hasard(enVente); await ACTIONS.acheter(j, { id: l.id, prix: Number(l.prix_vente) }).then(() => { pieces -= Number(l.prix_vente); }).catch(() => {}); aVendre.splice(aVendre.indexOf(l), 1); }
       // 5. mettre un de ses lieux en vente (110 à 150 % de sa valeur), deux au plus à la fois
       if (mes.length && mes.filter((l: Ligne) => l.prix_vente != null).length < 2 && Math.random() < 0.3) {
-        const l = hasard(mes); await rpc('jeu_vendre', { j, l: l.id, prix: arrondi(R.valeur(lieuDe(l)) * (1.1 + Math.random() * 0.4)) }).catch(() => {});
+        const l = hasard(mes); await rpc('jeu_vendre', { j, l: l.id, prix: arrondi(valeurM(l) * (1.1 + Math.random() * 0.4)) }).catch(() => {});
       }
       // 6. construire le niveau suivant quand c'est possible
       if (mes.length && Math.random() < 0.4) {

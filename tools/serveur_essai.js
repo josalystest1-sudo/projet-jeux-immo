@@ -89,6 +89,12 @@ async function nouveauJoueur(publique, secrete) {
         verifier(achat.corps && achat.corps.ok && achat.corps.etat.lieux.some((x) => x.id === L.id) && achat.corps.pieces <= ECO.solde_depart - 100 + MARGE, 'un autre joueur l’achète : il est à lui, il a payé', achat);
         const apresVente = await jeu({ action: 'etat' });
         verifier(apresVente.corps.ok && !apresVente.corps.lieux.some((x) => x.id === L.id) && apresVente.corps.notifs.some((n) => n.type === 'vente'), 'le vendeur ne l’a plus et en est prévenu', apresVente.corps.notifs);
+        // la vente est notée : le marché de la commune la voit (la valeur qui bouge)
+        const comL = require('../src/regles/lieu.js').nomCommune(L.citycode, L.city);
+        const marche = await requete(`${URL}/rest/v1/rpc/marche_communes`, { method: 'POST', headers: { apikey: publique, 'Content-Type': 'application/json' }, body: JSON.stringify({ communes: [comL], depuis: new Date(Date.now() - 3600e3).toISOString() }) });
+        verifier(marche.statut === 200 && Array.isArray(marche.corps) && marche.corps.some((m) => m.commune === comL && m.n >= 1 && m.ratio > 0), `la vente compte dans le marché de ${comL}`, marche);
+        const quart = await requete(`${URL}/rest/v1/rpc/quartiers`, { method: 'POST', headers: { apikey: publique, 'Content-Type': 'application/json' }, body: JSON.stringify({ pts: [{ id: 'x', lon: L.lon, lat: L.lat }], dlat: 0.003, dlon: 0.004 }) });
+        verifier(quart.statut === 200 && Array.isArray(quart.corps) && quart.corps[0] && quart.corps[0].points >= 1, 'l’activité du quartier compte les lieux autour', quart);
         const pasAMoi = await jeu({ action: 'vendre', id: L.id, prix: 5 });
         verifier(pasAMoi.corps && pasAMoi.corps.ok === false && pasAMoi.corps.code === 'pas_a_toi', 'vendre un lieu qui n’est plus à moi : refusé', pasAMoi);
         const o1 = await B.jeu({ action: 'offrir', id: M.id, prix: 50 });

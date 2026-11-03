@@ -37,6 +37,11 @@ Chaque lieu porte :
   | Légendaire | orange | lieu Célèbre (article Wikipédia) | Palace |
   | Extraordinaire | arc-en-ciel | monument : jamais dans un pack, seulement aux enchères | Prestige |
 
+- sa **valeur de marché**, qui **bouge** **[Décidé par Gautier, 3 nov. 2026 : « la valeur ne doit pas rester fixe, il faut qu'elle fluctue »]** : valeur (terrain + tout ce qui a été dépensé en bâtiments) × un indice = (1 + ventes de la commune) × (1 + activité du quartier) × (1 + tendance de la semaine). Le **loyer** et le **coût des constructions** n'en dépendent pas. Chiffres de départ **[Proposé]** (`data/economie.json` → `fluctuation`) :
+  - **ventes de la commune** : le prix moyen des ventes des 7 derniers jours du jeu rapporté à la valeur (un achat au-dessus de la valeur fait monter toute la commune), au plus ±30 % ;
+  - **activité du quartier** : 1 % par point (1 + niveau de chaque autre lieu possédé à moins de 300 m), −5 % pour un lieu isolé, au plus +20 % ;
+  - **tendance de la semaine** : chaque semaine du jeu, environ 12 % des départements « en vogue » (+5 à +15 %) et 12 % « en baisse », les mêmes pour tous, annoncés dans le patrimoine.
+
 ## 3. Obtenir des lieux
 
 **Un lieu libre ne s'achète pas** : il n'appartient à personne et ne s'obtient que dans un pack (les monuments, aux enchères). On n'achète un lieu qu'à un joueur qui l'a mis en vente, ou en lui faisant une offre ou un échange. **[Décidé par Gautier, 3 nov.]**

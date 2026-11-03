@@ -55,6 +55,17 @@ test('le jour du jeu : minuit à Paris en vrais jours, tranches de jourMs en acc
   assert.equal(jourDuJeu(125000, 60000), 2); assert.equal(secondesAvantJourSuivant(125000, 60000), 55);
   const ete = Date.UTC(2026, 6, 1, 21, 30, 0);   // 23 h 30 à Paris l'été (UTC+2)
   assert.equal(secondesAvantJourSuivant(ete, 86400000), 1800); });
+test('la valeur qui bouge : ventes de la commune, activité du quartier, tendance de la semaine', () => {
+  assert.equal(R.indiceCommune([]), 0, 'pas de vente : pas d’effet');
+  assert.ok(Math.abs(R.indiceCommune([{ prix: 12000, valeurRef: 10000 }, { prix: 11000, valeurRef: 10000 }]) - 0.15) < 1e-9, 'vendu 15 % au-dessus en moyenne');
+  assert.equal(R.indiceCommune([{ prix: 100000, valeurRef: 10000 }]), 0.3, 'borné à +30 %'); assert.equal(R.indiceCommune([{ prix: 1, valeurRef: 10000 }]), -0.3, 'borné à −30 %');
+  assert.equal(R.indiceQuartier(0), -0.05, 'isolé : −5 %'); assert.ok(Math.abs(R.indiceQuartier(10) - 0.05) < 1e-9); assert.equal(R.indiceQuartier(500), 0.2, 'borné à +20 %');
+  const t = Array.from({ length: 96 }, (_, i) => R.tendance(String(i + 1).padStart(2, '0'), 3));
+  assert.ok(t.some((x) => x > 0) && t.some((x) => x < 0) && t.filter((x) => x === 0).length > 48, 'quelques départements en vogue, d’autres en baisse, la plupart stables');
+  assert.ok(t.every((x) => x === 0 || (Math.abs(x) >= 0.05 && Math.abs(x) <= 0.15)));
+  assert.equal(R.tendance('33', 3), R.tendance('33', 3), 'la même pour tous'); assert.notDeepEqual(t, Array.from({ length: 96 }, (_, i) => R.tendance(String(i + 1).padStart(2, '0'), 4)), 'elle change chaque semaine');
+  const l = { ...martyrs, niveau: 2 }; assert.equal(R.valeurMarche(l, R.indice({ commune: 0.1, quartier: 0, tendance: 0 })), Math.round(R.valeur(l) * 1.1));
+  assert.equal(R.coutNiveau(l, 3), R.coutNiveau({ ...martyrs, niveau: 2 }, 3), 'construire coûte pareil, quelle que soit la valeur de marché'); });
 test('adresse : numéro et voie (plaque de rue + plaque du numéro)', () => {
   const { numeroEtVoie } = require('../src/regles/lieu.js');
   assert.deepEqual(numeroEtVoie('67 Rue des Martyrs'), { numero: '67', voie: 'Rue des Martyrs' });
