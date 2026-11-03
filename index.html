@@ -380,7 +380,7 @@ function parcelleProche(lon, lat, max){ const mx=111320*Math.cos(lat*Math.PI/180
 function deLaParcelle(lon, lat, geometry){ return inside([lon,lat], geometry) || (!!pointVise && dist([lon,lat], pointVise)<15); }
 function ouvrirCelebre(e){ pointVise=[e[3], e[4]]; const pf = parcelleDe(e[3], e[4]); if(pf) return selectParcel(pf);
   allerA(e[3], e[4], 18, ()=>{ const pf2 = parcelleDe(e[3], e[4]); if(pf2) selectParcel(pf2); else toast('⭐ '+e[1]); }, e[1]); }
-function voirMonument(id){ const m=LISTE_MON.find(x=>x.id===id); if(!m) return; showScreen('carte'); allerA(m.lon, m.lat, 17, null, m.nom, m.ville); }
+function voirMonument(id){ const m=LISTE_MON.find(x=>x.id===id); if(!m) return; showScreen('carte'); allerA(m.lon, m.lat, 18, ()=>choisirParcelleEn(m.lon, m.lat), m.nom, m.ville); }
 map.on('load', afficherCelebres);
 map.on('moveend', afficherCelebres);
 // Les monuments visibles « respirent » : un anneau doré animé en CSS (un élément HTML, sans redessiner la carte ;
@@ -550,8 +550,19 @@ function renderAddrs(){ const {p, idu, geometry} = currentParcel; const addrs = 
   document.getElementById('plafond').textContent = addrs[0] ? NIVEAUX[plafond(addrs[0])].nom : '—';
   const adr = addrs.find(x=>x.type==='adresse'), rue = adr ? String(adr.label).replace(/^\s*\d+\s*(bis|ter|[a-z])?\s+/i,'') : (addrs[0] ? addrs[0].label : '');
   document.getElementById('title').innerHTML = `<small>${echapper(communeName((adr||addrs[0]||{}).citycode||p.code_insee, (adr||addrs[0]||{}).city||p.nom_com))}</small>${echapper(rue || p.nom_com || 'Parcelle')}`;
-  if(!nb){ box.innerHTML = '<div class="vide"><div class="ico">🌳</div><div class="t">Rien à posséder ici</div><div class="m">Cette parcelle n’a pas d’adresse (cour, voirie, jardin…). Touche un bâtiment voisin.</div></div>'; return; }
+  // les monuments de la parcelle (ou juste à côté) que je ne possède pas : leur fiche en tête (ils se gagnent aux enchères)
+  const mons = LISTE_MON.filter(m=>Math.abs(m.lat-c[1])<0.02 && Math.abs(m.lon-c[0])<0.03 && deLaParcelle(m.lon, m.lat, geometry) && !state.owned['mon:'+m.id]);
+  mons.forEach(m=>box.appendChild(ficheMonument(m)));
+  if(!nb){ if(!mons.length) box.innerHTML = '<div class="vide"><div class="ico">🌳</div><div class="t">Rien à posséder ici</div><div class="m">Cette parcelle n’a pas d’adresse (cour, voirie, jardin…). Touche un bâtiment voisin.</div></div>'; return; }
   addrs.forEach(a=>box.appendChild(addrRow(a, true))); }
+// la fiche d'un monument qu'on ne possède pas : ce qu'il est, et s'il passe aux enchères cette semaine
+function ficheMonument(m){ const nat=m.palier==='national', r=nat?5:4, enJeu=lotsDe(semaineEnCours()).some(l=>l.m.id===m.id);
+  const row=document.createElement('div'); row.className='addr r'+r;
+  row.innerHTML=`<div class="tete"><div class="ico-lieu r${r}">${iconeMonument(m.nom)}</div><div class="corps"><div class="n">${echapper(m.nom)}</div><div class="m">${echapper(m.ville)}</div>
+    <div class="lignes"><span class="tag r${r}">${nat?'Légendaire · monument national':'Monument régional'}</span><a class="tag bleu-lien" target="_blank" rel="noopener" href="https://www.wikidata.org/wiki/Special:GoToLinkedPage/frwiki/${m.id}">📖 Wikipédia</a></div></div></div>
+    <div class="libre-info" style="margin-top:12px">${enJeu?'🔨':'🏛️'} <span>${enJeu?'<b>Aux enchères cette semaine</b> : il ira au plus offrant.':'<b>Monument</b> : il ne sort pas des packs, il se gagne aux enchères (trois monuments chaque semaine).'}</span></div>
+    ${enJeu?'<div class="actions"><button class="btn" onclick="showScreen(\'encheres\')">🔨 Voir l’enchère</button></div>':''}`;
+  return row; }
 // ---- un lieu : icône, nom, rareté, chiffres, échelle de construction, actions (fiche de parcelle et détail d'une carte)
 const ICONES_CAT = { eglise:'⛪', chapelle:'⛪', cathedrale:'⛪', abbaye:'⛪', monastere:'⛪', prieure:'⛪', basilique:'⛪', temple:'⛪', synagogue:'🕍', mairie:'🏛️', gare:'🚉', musee:'🖼️', chateau:'🏰', chateau_fort:'🏰', fort:'🏯', manoir:'🏡', phare:'🗼', tour:'🗼', pont:'🌉', moulin_vent:'🌾', moulin_eau:'🌾', theatre:'🎭', fontaine:'⛲', stade:'🏟️', porte:'🚪' };
 function iconeLieu(a){ if(a.type==='monument') return iconeMonument(a.label||''); if(a.type==='lieu') return ICONES_CAT[a.cat] || (a.qid?'⭐':'📌'); const lv=a.niveau||levelOf(a)||0; return lv ? NIVEAUX[lv].icone : '📍'; }
