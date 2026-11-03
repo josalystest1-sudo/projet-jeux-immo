@@ -44,6 +44,8 @@
 
 - 3 nov. 2026 : **un bâtiment rouge appartient bien à quelqu'un** (retour de Gautier : ses adresses s'affichaient « libres ») : les joueurs simulés possèdent les lieux selon la couleur de leur parcelle (rouge : un joueur ; violet : deux) ; on peut leur faire une offre ou un échange. **Échanger plusieurs lieux d'un coup** (par exemple trois de ses adresses contre une rue).
 
+- 3 nov. 2026 : **« Voir sur la carte » depuis les enchères ouvre la fiche** du monument (Street View tourné vers lui, ce qu'il est, « Aux enchères cette semaine » et « Voir l'enchère ») ; un monument qu'on ne possède pas a sa fiche en tête de sa parcelle.
+
 ## En cours
 - Lieux célèbres : les autres catégories (châteaux, mairies, gares, musées, ponts, phares, moulins…) dès que Wikidata répond (`python3 tools/wikidata_celebres.py`, puis `--fusion` et `gen_donnees.py celebres`).
 - Phase 1.1 à 1.4 : la carte et le modèle des lieux reconstruits en modules (`src/`) à partir du prototype ; puis le marché (phase 4 : historique des ventes d'un lieu) et les communes et Maires (phase 6). Ensuite : Signaler envoyé au serveur dès qu'il y aura de vrais joueurs à l'écran ; Google ; un service d'envoi d'e-mails avant le lancement (le service de Supabase n'écrit qu'aux membres de l'équipe Supabase, deux e-mails par heure).
