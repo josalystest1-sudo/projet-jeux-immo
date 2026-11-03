@@ -7,7 +7,7 @@ Référence pour tout écran nouveau ou refait (3 nov. 2026, demande de Gautier 
 Deux objets que tout le monde connaît en France donnent son identité au jeu :
 
 - **la plaque de rue émaillée** (bleu de Paris, liseré blanc, cadre vert) : le nom de chaque lieu s'affiche sur une plaque, comme si on possédait vraiment la rue. C'est **le seul élément audacieux** ; tout le reste reste calme.
-- **la pièce d'or** : la monnaie, et la couleur des boutons d'action principaux.
+- **la pièce d'or** : la monnaie, et la couleur des boutons d'action principaux. **Le signe de la monnaie est une pièce d'or en forme de maison, frappée d'un C** (`icones/piece.svg`, classe `.pc`) : unique au jeu, lisible même à 14 px par sa silhouette, et qui dit d'un coup d'œil « de l'argent pour des lieux ». Dans un texte (bandeau, notification), on écrit 🪙 et `avecPieces()` le remplace par la pièce dessinée ; l'icône du jeu porte la même pièce, sans le C.
 
 Autour : des panneaux blancs et arrondis posés sur la carte, une police ronde et généreuse (style dessin animé, décidé par Gautier), des boutons en relief qui s'enfoncent sous le doigt.
 
