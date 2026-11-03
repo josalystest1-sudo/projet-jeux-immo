@@ -252,7 +252,9 @@ function choisirParcelleEn(lon,lat){ const pf=parcelleDe(lon,lat); if(pf) return
 // Aller quelque part. Tout près : la carte glisse. Plus loin : un court écran de voyage, un saut direct, puis la caméra s'incline.
 // (Un survol depuis Paris jusqu'à Lyon téléchargeait en route des dizaines de tuiles lourdes : 10 à 30 s d'écran vide sur téléphone.)
 const voyage = { id:0 };
-function quandCartePrete(id, max, fn){ const t0=performance.now(); const chk=()=>{ if(id!==voyage.id) return; if((!map.isMoving() && map.areTilesLoaded()) || performance.now()-t0>max) fn(); else setTimeout(chk, 120); }; setTimeout(chk, 60); }
+// prête = au moins une image dessinée depuis le déplacement (avant elle, les nouvelles tuiles ne sont pas encore demandées), puis tout chargé
+function quandCartePrete(id, max, fn){ const t0=performance.now(); let rendu=false; map.once('render', ()=>{ rendu=true; }); map.triggerRepaint();
+  const chk=()=>{ if(id!==voyage.id) return; if((rendu && !map.isMoving() && map.areTilesLoaded()) || performance.now()-t0>max) fn(); else setTimeout(chk, 120); }; setTimeout(chk, 60); }
 function ecranVoyage(on, nom, sous){ const v=document.getElementById('voyage'); if(on){ document.getElementById('voyage-nom').textContent=nom||'En route…'; document.getElementById('voyage-sous').textContent=sous||''; } v.classList.toggle('on', !!on); }
 function allerA(lon, lat, zoom, ensuite, nom, sous){
   const id = ++voyage.id; const c = map.getCenter(); const d = dist([c.lng,c.lat],[lon,lat]);
