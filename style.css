@@ -464,3 +464,26 @@ button.chip:active{transform:scale(.96)}
 .ccarte .art .icone{font-size:54px}
 .ccarte .art .bandeau{flex-direction:row;justify-content:space-between;padding:16px 9px 7px;font-size:14px}
 .ccarte .art .bandeau .valeur{font-size:15px}.ccarte .art .bandeau .valeur .pc{width:16px;height:16px}
+
+/* proposer un échange : choisir un de ses lieux, ajouter des pièces si on veut */
+.echange-zone{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-top:10px}
+.echange-zone .btn{flex:1}
+.ech-vise{display:flex;align-items:center;gap:10px;background:var(--ciel);border-radius:16px;padding:8px 12px 8px 8px;margin:6px 0 4px}
+.ech-vise .ico-lieu,.ech-lieu .ico-lieu{width:44px;height:44px;border-radius:14px;font-size:22px}
+.ech-vise .corps,.ech-lieu .corps{flex:1;min-width:0;text-align:left}
+.ech-vise .n,.ech-lieu .n{font-family:var(--titre);font-weight:800;font-size:15px;line-height:1.15;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--encre)}
+.ech-vise .m,.ech-lieu .m{font-size:12px;font-weight:800;color:var(--gris);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ech-vise b,.ech-lieu b{font-family:var(--titre);font-size:15px;white-space:nowrap;color:var(--encre)}
+.ech-titre{font-family:var(--titre);font-size:16px;margin:12px 0 6px}
+.ech-liste{display:flex;flex-direction:column;gap:6px;max-height:34vh;overflow:auto;padding:2px;margin-bottom:12px}
+.ech-lieu{display:flex;align-items:center;gap:10px;width:100%;border:2.5px solid var(--trait);background:#fff;border-radius:16px;padding:6px 12px 6px 6px;cursor:pointer;font:inherit;transition:border-color .12s,background .12s,transform .08s}
+.ech-lieu:active{transform:scale(.98)}
+.ech-lieu.on{border-color:var(--plaque);background:var(--plaque-clair);box-shadow:0 3px 0 var(--plaque)}
+.ech-lieu:disabled{opacity:.45;cursor:default}
+.ech-ajout span{line-height:1.1}.ech-ajout small{font-weight:700;color:var(--gris);font-size:11px}
+.ech-ajout input{font-size:24px}
+#ech-vite{margin:8px 0 0}#ech-vite .chip{border:0;cursor:pointer}
+.ech-balance{font-size:13px;font-weight:800;color:var(--cadre2);margin:10px 2px 6px;line-height:1.45;min-height:20px}
+.ech-balance.bas{color:#B5651D}.ech-balance.err{color:#C62828}
+.rank .who small{display:block;font-size:12px;color:var(--gris);font-weight:800}
+.rank .fleche{color:var(--plaque)}
