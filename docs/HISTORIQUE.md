@@ -127,8 +127,9 @@ Puis une PR par étape, fusionnée en squash :
 | #32 | 03/11 16:25 | Offres : la valeur de ton lieu et l'écart ; des robots acheteurs |
 | #33 | 03/11 16:34 | La valeur d'un lieu bouge : ventes de la commune, activité du quartier, tendance de la semaine |
 | #34 | 03/11 17:22 | La promenade en Street View |
-| #35 | 03/11 17:35 | Historique, suivi du projet et procédure pour continuer dans Claude Code |
-| #36 | 03/11 | Promenade : on peut toujours tourner dans Street View (le geste ne part plus dans la page Google) |
+| #35 | 03/11 17:30 | Historique, suivi du projet et procédure pour continuer dans Claude Code |
+| #36 | 03/11 18:19 | Promenade : on peut toujours tourner dans Street View (le geste ne part plus dans la page Google) |
+| #37 | 03/11 | Notes : une phrase de CLAUDE.md corrigée, heures des PR |
 
 ## Les décisions de Gautier
 
