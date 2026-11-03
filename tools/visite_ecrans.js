@@ -11,7 +11,7 @@ const ML = '/tmp/ml/node_modules';
 fs.mkdirSync(SORTIE, { recursive: true });
 
 const ETAT = () => { const t = Date.now(), j = Math.floor(t / 60000); return {
-  pseudo: 'Marius', avatar: '🦁', wallet: 48250, niveaux6: true, lastPack: j, prefs: { offres: true, seuil: true, encheres: true, guideVu: true }, seen: {}, encaisse: t - 30000,
+  pseudo: 'Marius', avatar: '🦁', wallet: 48250, niveaux6: true, niveaux7: true, lastPack: j, prefs: { offres: true, seuil: true, encheres: true, guideVu: true }, seen: {}, encaisse: t - 30000,
   encheres: { mises: {}, clos: {}, depasse: {} },
   owned: {
     'a-martyrs': { id: 'a-martyrs', label: '67 Rue des Martyrs', lon: 2.33963, lat: 48.88136, citycode: '75109', city: 'Paris', type: 'adresse', niveau: 2, depuis: t },
@@ -20,7 +20,7 @@ const ETAT = () => { const t = Date.now(), j = Math.floor(t / 60000); return {
     'a-bordeaux': { id: 'a-bordeaux', label: '8 Rue Sainte-Catherine', lon: -0.5733, lat: 44.8405, citycode: '33063', city: 'Bordeaux', type: 'adresse', niveau: 1, depuis: t },
     'a-dijon': { id: 'a-dijon', label: '3 Rue de la Liberté', lon: 5.0372, lat: 47.3220, citycode: '21231', city: 'Dijon', type: 'adresse', niveau: 0, depuis: t },
     'poi-mairie': { id: 'poi-mairie', label: 'Mairie de Combres', lon: 1.0635, lat: 48.3254, citycode: '28105', city: 'Combres', type: 'lieu', cat: 'mairie', niveau: 0, depuis: t },
-    'mon:Q677659': { id: 'mon:Q677659', label: 'Maison carrée', lon: 4.3561, lat: 43.8382, citycode: '30189', city: 'Nîmes', type: 'monument', niveau: 4, depuis: t },
+    'mon:Q677659': { id: 'mon:Q677659', label: 'Maison carrée', lon: 4.3561, lat: 43.8382, citycode: '30189', city: 'Nîmes', type: 'monument', niveau: 5, depuis: t },
     'a-landes': { id: 'a-landes', label: '1930 Chemin de Rangouse', lon: 0.9, lat: 43.9, citycode: '32427', city: 'Sérignac', type: 'adresse', niveau: 0, depuis: t },
   },
   offersIn: [{ id: 'o1', addrId: 'a-martyrs', from: 'Léa', price: 21000, status: 'attente', ts: t - 120000 }],

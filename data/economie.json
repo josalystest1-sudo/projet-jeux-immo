@@ -9,10 +9,11 @@
     { "id": "immeuble", "nom": "Immeuble", "icone": "🏢", "cout": 2.5, "loyer": 110,  "hauteur": 18 },
     { "id": "tour",     "nom": "Tour",     "icone": "🏙", "cout": 6,   "loyer": 310,  "hauteur": 45 },
     { "id": "gratte_ciel", "nom": "Gratte-ciel", "icone": "🌆", "cout": 10, "loyer": 600, "hauteur": 75 },
+    { "id": "palace",   "nom": "Palace",   "icone": "🏨", "cout": 12,  "loyer": 800,  "hauteur": 90 },
     { "id": "prestige", "nom": "Prestige", "icone": "🏛️", "cout": 15,  "loyer": 1000, "hauteur": 60 }
   ],
   "standing": { "1": { "nom": "Maison", "base": 500 }, "2": { "nom": "Immeuble", "base": 1500 }, "3": { "nom": "Tour", "base": 4000 } },
-  "notoriete": { "commune": 0, "connue": 1, "celebre": 2, "monument": 3 },
+  "plafond_par_rarete": { "1": "maison", "2": "immeuble", "3": "tour", "4": "gratte_ciel", "5": "palace", "6": "prestige" },
   "multiplicateur_valeur": { "commune": 1, "connue": 2, "celebre": 4, "monument": 10 },
   "pack": { "cartes": 5, "par_jour": 1, "chances": { "1": 60, "2": 25, "3": 10, "4": 4, "5": 1 } },
   "raretes": { "1": "Commun", "2": "Peu commun", "3": "Rare", "4": "Épique", "5": "Légendaire", "6": "Extraordinaire" },

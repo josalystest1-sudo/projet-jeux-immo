@@ -50,6 +50,8 @@
 
 - 3 nov. 2026 : **six raretés** (décision de Gautier) : Commun, Peu commun (vert), Rare (bleu), Épique (violet), **Légendaire (orange)** = les lieux célèbres (Wikipédia), qui sortent désormais des packs (1 carte sur 100), et **Extraordinaire (arc-en-ciel)** = les monuments, seulement aux enchères. Chances du pack : 60 / 25 / 10 / 4 / 1 %. **Un bâtiment en plus** : le **Gratte-ciel** (×10, +600 par jour), entre la Tour et le Prestige ; un Légendaire monte jusqu'au Gratte-ciel, un monument jusqu'au Prestige (les monuments déjà au Prestige le gardent). L'échelle de construction ne montre plus que le prix de la prochaine étape, pour rester lisible à six étapes.
 
+- 3 nov. 2026 : **un bâtiment par rareté** (retour de Gautier : « tu as 2 immeubles ») : Commun → Maison, Peu commun → Immeuble, Rare → Tour, Épique → Gratte-ciel, Légendaire → **Palace** (nouveau, ×12, +800 par jour), Extraordinaire → Prestige. Les monuments au Prestige le gardent ; une longue échelle commence à la Maison ; les joueurs simulés ne construisent plus au-dessus du plafond.
+
 ## En cours
 - Lieux célèbres : les autres catégories (châteaux, mairies, gares, musées, ponts, phares, moulins…) dès que Wikidata répond (`python3 tools/wikidata_celebres.py`, puis `--fusion` et `gen_donnees.py celebres`).
 - Phase 1.1 à 1.4 : la carte et le modèle des lieux reconstruits en modules (`src/`) à partir du prototype ; puis le marché (phase 4 : historique des ventes d'un lieu) et les communes et Maires (phase 6). Ensuite : Signaler envoyé au serveur dès qu'il y aura de vrais joueurs à l'écran ; Google ; un service d'envoi d'e-mails avant le lancement (le service de Supabase n'écrit qu'aux membres de l'équipe Supabase, deux e-mails par heure).

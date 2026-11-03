@@ -13,15 +13,16 @@ test('standing réel (DVF) : Paris et ses arrondissements = 3, Bordeaux = 3, Mar
   assert.equal(R.standing({ citycode: '99999' }), 1, 'commune inconnue : standing 1'); });
 test('arrondissements ramenés à leur ville', () => {
   assert.equal(R.communeDvf('75109'), '75056'); assert.equal(R.communeDvf('69385'), '69123'); assert.equal(R.communeDvf('13207'), '13055'); assert.equal(R.communeDvf('28105'), '28105'); });
-test('plafond : un lieu célèbre monte au Gratte-ciel, même au village ; le Prestige reste aux monuments, après le Gratte-ciel', () => {
-  assert.equal(R.texteNiveau(R.plafond({ type: 'lieu', notoriete: 'celebre', citycode: '28105' })), 'Gratte-ciel');
-  assert.equal(R.texteNiveau(R.plafond({ type: 'lieu', notoriete: 'celebre', citycode: '75109' })), 'Gratte-ciel');
-  assert.deepEqual(R.NIVEAUX.map((n) => n.nom), ['Terrain', 'Maison', 'Immeuble', 'Tour', 'Gratte-ciel', 'Prestige']);
-  const m = { ...eiffel, niveau: 4 }; assert.ok(R.peutConstruire(m, 5), 'un monument construit le Prestige après le Gratte-ciel');
-  assert.ok(!R.peutConstruire({ type: 'lieu', notoriete: 'celebre', citycode: '28105', niveau: 4 }, 5), 'pas de Prestige hors monument'); });
-test('plafond : village = Maison, église du village = Immeuble, Dijon = Immeuble, Paris = Tour, monument = Prestige', () => {
-  assert.equal(R.texteNiveau(R.plafond(clevilliers)), 'Maison'); assert.equal(R.texteNiveau(R.plafond(egliseClev)), 'Immeuble');
-  assert.equal(R.texteNiveau(R.plafond({ citycode: '21231' })), 'Immeuble'); assert.equal(R.texteNiveau(R.plafond(seizieme)), 'Tour'); assert.equal(R.texteNiveau(R.plafond(eiffel)), 'Prestige'); });
+test('un bâtiment par rareté : Maison, Immeuble, Tour, Gratte-ciel, Palace, Prestige', () => {
+  assert.deepEqual(R.NIVEAUX.map((n) => n.nom), ['Terrain', 'Maison', 'Immeuble', 'Tour', 'Gratte-ciel', 'Palace', 'Prestige']);
+  const celebreVillage = { type: 'lieu', notoriete: 'celebre', citycode: '28105' }, nomeParis = { id: 'poi2', type: 'lieu', citycode: '75109' };
+  const exemples = [clevilliers, { citycode: '21231' }, egliseClev, martyrs, celebreVillage, eiffel];
+  assert.deepEqual(exemples.map(R.rarete), [1, 2, 3, 4, 5, 6]);
+  assert.deepEqual(exemples.map((l) => R.texteNiveau(R.plafond(l))), ['Maison', 'Immeuble', 'Tour', 'Gratte-ciel', 'Palace', 'Prestige']);
+  for (let r = 1; r <= 6; r++) assert.equal(R.plafond(exemples[r - 1]), r, 'rareté ' + r + ' = ' + r + ' bâtiments');
+  assert.equal(R.texteNiveau(R.plafond(nomeParis)), 'Gratte-ciel', 'lieu nommé à Paris : Épique');
+  assert.ok(R.peutConstruire({ ...eiffel, niveau: 5 }, 6), 'un monument construit le Prestige après le Palace');
+  assert.ok(!R.peutConstruire({ ...celebreVillage, niveau: 5 }, 6), 'pas de Prestige hors monument'); });
 test('rareté : village commun, Dijon peu commun, église rare, Paris épique, lieu célèbre légendaire, monument extraordinaire', () => {
   assert.equal(R.rarete(clevilliers), 1); assert.equal(R.rarete({ citycode: '21231' }), 2); assert.equal(R.rarete(egliseClev), 3); assert.equal(R.rarete(martyrs), 4);
   assert.equal(R.rarete({ id: 'wd:Q1', type: 'lieu', notoriete: 'celebre', citycode: '28105' }), 5, 'célèbre, même dans un village');

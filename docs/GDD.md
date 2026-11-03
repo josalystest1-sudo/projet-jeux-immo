@@ -23,18 +23,18 @@ Un **lieu** = une adresse (Base Adresse Nationale, 26 millions) **ou** un point 
 
 Chaque lieu porte :
 - sa **commune** (code INSEE ; à Paris, Lyon, Marseille : l'arrondissement) ;
-- son **standing** : le niveau de prix de la commune, calculé avec les ventes immobilières réelles (DVF, open data), mis à jour chaque année. Trois paliers : 1 (Maison), 2 (Immeuble), 3 (Tour). **[Décidé]** Calcul (2 nov. 2026, `data/sources/standing_dvf.txt`) : prix moyen au m² 2022-2024 pondéré par les ventes ; **3 si ≥ 4 500 €/m²** (615 communes : Paris, Lyon, Bordeaux, Nice, petite couronne chère, Côte d'Azur, stations), **2 si ≥ 2 500 €/m²** (5 146 communes), 1 sinon (≈ 29 000). Paris, Lyon, Marseille : le prix de la ville vaut pour tous ses arrondissements. Alsace-Moselle (pas de DVF) : Strasbourg et Colmar au 2, le reste au 1. **[Proposé]**
+- son **standing** : le niveau de prix de la commune, calculé avec les ventes immobilières réelles (DVF, open data), mis à jour chaque année. Trois paliers : 1 (modeste), 2 (moyen), 3 (cher). **[Décidé]** (Depuis le 3 nov., le palier fait la rareté d'une adresse, et la rareté le plafond : 1 Commun → Maison, 2 Peu commun → Immeuble, 3 Épique → Gratte-ciel.) Calcul (2 nov. 2026, `data/sources/standing_dvf.txt`) : prix moyen au m² 2022-2024 pondéré par les ventes ; **3 si ≥ 4 500 €/m²** (615 communes : Paris, Lyon, Bordeaux, Nice, petite couronne chère, Côte d'Azur, stations), **2 si ≥ 2 500 €/m²** (5 146 communes), 1 sinon (≈ 29 000). Paris, Lyon, Marseille : le prix de la ville vaut pour tous ses arrondissements. Alsace-Moselle (pas de DVF) : Strasbourg et Colmar au 2, le reste au 1. **[Proposé]**
 - sa **notoriété** : Commune / Connue / Célèbre / Monument, calculée automatiquement (article Wikipédia du lieu ou de la rue, catégorie IGN/OSM, photos Commons), monuments vérifiés à la main. **[Décidé]**
-  - Mise en œuvre (2 nov. 2026) : une adresse = Commune ; un lieu nommé de l'IGN (église, mairie, château, gare, musée…) = Connue ; un lieu qui a un **article Wikipédia en français** (liste Wikidata `data/celebres/<département>.json`) = **Célèbre** ; les 458 monuments = Monument. Un lieu nommé de l'IGN est reconnu comme le lieu de Wikidata s'il est à moins de 400 m avec un nom compatible (« Église Saint-Martin » ↔ « église Saint-Martin de Clévilliers »), ou à moins de 150 m dans la même famille quand l'un des deux n'a pas de nom propre (« Mairie » ↔ « hôtel de ville de Bagneux »). Un lieu Célèbre est **Légendaire** et monte jusqu'au **Gratte-ciel**, même au standing 1. **[Proposé]**
-- son **plafond de construction** = standing + bonus de notoriété (Connue +1), au plus la Tour **[Décidé]** ; un lieu Célèbre (Légendaire) monte jusqu'au **Gratte-ciel**, un monument (Extraordinaire) jusqu'au **Prestige** : chaque rareté du haut a son bâtiment en plus. **[Décidé par Gautier, 3 nov. : « il faut pouvoir avoir un bâtiment en plus » ; le nom et la place du Gratte-ciel sont proposés par Claude]**
+  - Mise en œuvre (2 nov. 2026) : une adresse = Commune ; un lieu nommé de l'IGN (église, mairie, château, gare, musée…) = Connue ; un lieu qui a un **article Wikipédia en français** (liste Wikidata `data/celebres/<département>.json`) = **Célèbre** ; les 458 monuments = Monument. Un lieu nommé de l'IGN est reconnu comme le lieu de Wikidata s'il est à moins de 400 m avec un nom compatible (« Église Saint-Martin » ↔ « église Saint-Martin de Clévilliers »), ou à moins de 150 m dans la même famille quand l'un des deux n'a pas de nom propre (« Mairie » ↔ « hôtel de ville de Bagneux »). Un lieu Célèbre est **Légendaire** et monte jusqu'au **Palace**, même au standing 1. **[Proposé]**
+- son **plafond de construction** : **un bâtiment par rareté** (tableau ci-dessous) : la rareté N monte de N étages. **[Décidé par Gautier, 3 nov. : « il faut pouvoir avoir un bâtiment en plus », « tu as 2 immeubles » ; les noms Gratte-ciel et Palace sont proposés par Claude]** (Avant : standing + bonus de notoriété, au plus la Tour.)
 - sa **rareté** (visuelle, celle des cartes), six raretés **[Décidé par Gautier, 3 nov. 2026]** :
   | Rareté | Couleur | Règle | Plafond |
   |---|---|---|---|
   | Commun | gris | adresse au standing 1 | Maison |
   | Peu commun | vert | adresse au standing 2 | Immeuble |
-  | Rare | bleu | lieu Connu (église, mairie…) au standing 1 | Immeuble |
-  | Épique | violet | plafond Tour : adresse au standing 3, ou lieu Connu au standing 2 ou 3 | Tour |
-  | Légendaire | orange | lieu Célèbre (article Wikipédia) | Gratte-ciel |
+  | Rare | bleu | lieu Connu (église, mairie…) au standing 1 | Tour |
+  | Épique | violet | adresse au standing 3, ou lieu Connu au standing 2 ou 3 | Gratte-ciel |
+  | Légendaire | orange | lieu Célèbre (article Wikipédia) | Palace |
   | Extraordinaire | arc-en-ciel | monument : jamais dans un pack, seulement aux enchères | Prestige |
 
 ## 3. Obtenir des lieux
@@ -78,9 +78,9 @@ La liste (`data/monuments.json`, 2 nov. 2026) : 458 monuments tirés de Wikidata
 ## 4. L'argent du jeu : le ₳ (nom à choisir)
 
 - **Salaire quotidien** identique pour tous. **[Décidé]**
-- **Loyer** par lieu, selon ce qui est construit : Terrain, Maison, Immeuble, Tour, Gratte-ciel (Légendaires et monuments), Prestige (monuments seulement). Le loyer **ne dépend pas de la chance** : une belle adresse permet de construire plus haut, elle ne rapporte pas plus toute seule. **[Décidé]**
+- **Loyer** par lieu, selon ce qui est construit : Terrain, Maison, Immeuble, Tour, Gratte-ciel, Palace, Prestige (monuments seulement), chacun jusqu'au bâtiment de sa rareté. Le loyer **ne dépend pas de la chance** : une belle adresse permet de construire plus haut, elle ne rapporte pas plus toute seule. **[Décidé]**
 - **Récolte à la connexion** : le loyer s'accumule hors ligne, au plus **24 h**, puis s'arrête. Se connecter chaque jour est donc le geste de base. **[Décidé]** À l'ouverture du jeu, une fenêtre « La récolte » montre le montant gagné pendant l'absence (et prévient quand le stock était plein), un bouton « Récolter », puis le pack du jour s'ouvre. **[Proposé]**
-- **Construction instantanée**, payée en ₳ : Maison → Immeuble → Tour → Gratte-ciel → Prestige. **[Décidé]**
+- **Construction instantanée**, payée en ₳ : Maison → Immeuble → Tour → Gratte-ciel → Palace → Prestige. **[Décidé]**
 - Le ₳ sert à : construire, acheter des lieux à des joueurs, faire des offres, enchérir. **[Décidé]** (V2 possible : projets de quartier, cosmétiques.)
 - Chiffres de départ (à régler avec la simulation, § 10) **[Proposé]** :
   | | Coût (× valeur de base du lieu) | Loyer / jour |
@@ -89,7 +89,8 @@ La liste (`data/monuments.json`, 2 nov. 2026) : 458 monuments tirés de Wikidata
   | Maison | ×1 | 40 |
   | Immeuble | ×2,5 | 110 |
   | Tour | ×6 | 310 |
-  | Gratte-ciel (Légendaire, monument) | ×10 | 600 |
+  | Gratte-ciel | ×10 | 600 |
+  | Palace | ×12 | 800 |
   | Prestige (monument) | ×15 | 1 000 |
   Salaire : 200 ₳/jour. Valeur de base : standing 1 = 500, 2 = 1 500, 3 = 4 000 ; lieu Connu ×2, Célèbre ×4, monument ×10.
 - Garde-fous contre « packs → revente → ₳ » : pas de vente à la banque (un stock invendu ne vaut rien), et la **capacité de gestion** : un compte gère au plus N lieux, N monte avec le niveau de joueur (gagné en jouant : connexion quotidienne, constructions, collections). Quand on est plein, un pack propose de remplacer un lieu par le nouveau. **[Proposé]** — Gautier préfère éviter les limites ; à valider après la simulation.

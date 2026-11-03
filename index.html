@@ -145,6 +145,8 @@ if(!state.encheres) state.encheres = { mises:{}, clos:{}, depasse:{} }; delete s
 if(!state.echangesOut) state.echangesOut=[]; if(!state.cedes) state.cedes={};   // échanges proposés ; lieux cédés par échange (id → joueur)
 // 3 nov. 2026 : le Gratte-ciel s'insère avant le Prestige ; un monument déjà au Prestige (ancien niveau 4) passe au niveau 5
 if(!state.niveaux6){ for(const a of Object.values(state.owned)) if(a.type==='monument' && (a.niveau||0)>=4) a.niveau=(a.niveau||0)+1; state.niveaux6=true; }
+// puis le Palace s'insère avant le Prestige (un bâtiment par rareté) : un monument au Prestige (niveau 5) passe au niveau 6
+if(!state.niveaux7){ for(const a of Object.values(state.owned)) if(a.type==='monument' && (a.niveau||0)>=5) a.niveau=(a.niveau||0)+1; state.niveaux7=true; }
 function save(){ try{ localStorage.setItem('proto-cadastre-v3', JSON.stringify(state)); }catch(e){} }
 const now = ()=>Date.now();
 const jour = ()=>Math.floor(now()/JOUR);
@@ -197,7 +199,7 @@ function proprioSimule(a){ if(!a.idu) return fakeOwner(a.id); const s=parcelSeed
   const n=FAKE.length, i=hash(a.idu+'o')%n; if(s==='other') return FAKE[i];
   const j=(i+1+hash(a.idu+'p')%(n-1))%n; return hash(a.id+'m')%2 ? FAKE[i] : FAKE[j]; }
 function ownerOf(a){ if(state.owned[a.id]) return ME; if(state.cedes && state.cedes[a.id]) return state.cedes[a.id].qui; if(state.seen[a.id]==='libre') return null; return proprioSimule(a); }
-function levelOf(a){ if(state.owned[a.id]) return state.owned[a.id].niveau||0; if(state.cedes && state.cedes[a.id]) return state.cedes[a.id].niveau||0; return ownerOf(a) ? fakeLevel(a.id) : 0; }
+function levelOf(a){ if(state.owned[a.id]) return state.owned[a.id].niveau||0; if(state.cedes && state.cedes[a.id]) return state.cedes[a.id].niveau||0; return ownerOf(a) ? Math.min(fakeLevel(a.id), plafond(a)) : 0; }
 
 // =================== carte ===================
 const ST = ['coalesce',['feature-state','st'],'free'];
@@ -587,8 +589,10 @@ function echapper(t){ return String(t==null?'':t).replace(/[&<>"]/g, c=>({'&':'&
 function apresAction(){ if(currentParcel) renderAddrs(); if(document.getElementById('s-patrimoine').classList.contains('on')) renderPatrimoine(); if(ficheOuverte) ouvrirFicheLieu(ficheOuverte); }
 let ficheOuverte=null;
 function echelleHTML(a, lv, pl, moi, rec){
-  const max = Math.max(3, pl); let h=`<div class="echelle${max>=5?' longue':''}">`;   // Terrain → Tour pour tous ; le Gratte-ciel (Légendaire) et le Prestige (Extraordinaire) en plus
-  for(let i=0;i<=max;i++){ const n=NIVEAUX[i]; let etat = i<=lv ? 'fait' : (i>pl ? 'bloque' : (moi && i===lv+1 ? 'suivant' : 'futur'));
+  // Terrain → Tour pour tous (le reste grisé « Hors plafond ») ; au-delà, jusqu'au bâtiment de sa rareté. Une longue échelle
+  // (Légendaire, Extraordinaire) commence à la Maison : le Terrain n'apprend rien et prend une place précieuse.
+  const max = Math.max(3, pl), debut = max>=5 ? 1 : 0; let h=`<div class="echelle${max-debut>=5?' longue':''}">`;
+  for(let i=debut;i<=max;i++){ const n=NIVEAUX[i]; let etat = i<=lv ? 'fait' : (i>pl ? 'bloque' : (moi && i===lv+1 ? 'suivant' : 'futur'));
     const icone = i===0 ? '🌱' : (etat==='bloque' ? '🔒' : n.icone);
     const texte = etat==='bloque' ? 'Hors plafond' : (etat==='suivant' ? `${n.nom}<br><span class="prix">${nb(coutNiveau(rec,i))}<i class="pc"></i></span>` : n.nom);
     h+=`<div class="pas ${etat}"${etat==='suivant' ? ` role="button" data-construire="${i}"` : ''}><div class="rond-pas">${icone}</div><div>${texte}</div></div>`; }
