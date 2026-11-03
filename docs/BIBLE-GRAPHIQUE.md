@@ -94,7 +94,15 @@ Où c'est dans le code : la pochette est dessinée par `makeArt()` (`index.html`
 ![La tour Eiffel sur la carte](bible/tour-eiffel.jpg)
 
 - **La preuve : la tour Eiffel**, posée sur la carte à sa vraie place, à sa vraie hauteur (330 m) et dans son vrai sens (orientation mesurée sur les blocs de la BD TOPO, que la maquette remplace).
-- **Le style** : des formes simples et épaisses (quatre pieds courbes, les arches, deux plateformes bordées d'or, la flèche et ses ceintures, la loge dorée, l'antenne et un feu au sommet), des ombres franches à trois tons comme un dessin animé, la lumière d'en haut à gauche, et **un contour encre** de 1,6 m (1 à 2 pixels) tant qu'on regarde de loin ; de près (zoom 16,8 et plus), le contour disparaît, car il deviendrait trop épais.
+- **Le style** : des formes simples et épaisses (quatre pieds courbes, les arches, deux plateformes bordées d'or, la flèche et ses ceintures, la loge dorée, l'antenne et un feu au sommet), des ombres franches à trois tons comme un dessin animé, une lumière douce d'en haut à gauche (sinon la pierre claire devient blanche), et **un contour encre** : 1,6 m de loin (1 à 2 pixels), 0,5 m de près (zoom 16,8 et plus).
 - **Tout est construit en code** (Three.js, `src/maquettes.js`), sans fichier de modèle ; la maquette est une couche de la carte, sans animation : la carte se repose toujours.
 - **Pour ajouter un monument** : une fonction qui construit sa maquette en mètres (y vers le haut), son centre et son orientation mesurés sur la BD TOPO, et les identifiants (`cleabs`) des bâtiments de l'IGN qu'elle remplace (`MODELES` dans `src/maquettes.js`). Un test vérifie qu'elle correspond à un monument de la liste.
+- **Trois monuments de plus** (3 nov. 2026, les plus connus après la tour Eiffel) :
+  - **Notre-Dame de Paris** : nef et chœur, toit de plomb bleu, bas-côtés, transept, abside, arcs-boutants, deux tours de 66 m, la rosace, les portails, la flèche (96 m) et son coq doré ;
+  - **l'Arc de triomphe** : deux piliers, la grande arche en plein cintre, la frise, la corniche, l'attique, les arches des côtés, les groupes sculptés ;
+  - **le Sacré-Cœur** : tout en pierre blanche, la nef en croix, le porche à trois arches et ses deux petits dômes, le grand dôme ovoïde et sa lanterne, quatre dômes autour, le campanile, des croix dorées.
+
+![La tour Eiffel, Notre-Dame, le Sacré-Cœur et l'Arc de triomphe sur la carte](bible/monuments.jpg)
+
+- **Ce qu'on a appris** (retour de Gautier : « de près, le bâtiment devient moche et perd ses couleurs ») : dans la couche de la carte, le sens des faces n'est pas fiable selon l'angle ; rien n'en dépend plus (chaque pièce se dessine des deux côtés, avec sa lumière vers l'extérieur ; le contour se dessine en premier et les pièces se posent par-dessus). Et **tout bâtiment de l'IGN qui tombe dans le volume d'une maquette doit être masqué** (la sacristie et les chapelles de Notre-Dame la perçaient) : vérifier en listant les bâtiments dont un point tombe dans le rectangle de la maquette.
 
