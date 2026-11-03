@@ -18,6 +18,7 @@ drop policy if exists "mes pièces" on public.joueurs;
 create policy "mes pièces" on public.joueurs for select to authenticated using (id = (select auth.uid()));
 revoke all on public.joueurs from anon, authenticated;
 grant select on public.joueurs to authenticated;
+grant all on public.joueurs to service_role;   -- la fonction « jeu » (les tables créées par l'API de gestion n'ont pas ce droit d'office)
 
 -- ---------------------------------------------------------------- les lieux possédés (un lieu = un seul propriétaire)
 create table if not exists public.lieux (
@@ -47,6 +48,7 @@ drop policy if exists "lieux lisibles par tous" on public.lieux;
 create policy "lieux lisibles par tous" on public.lieux for select to anon, authenticated using (true);
 revoke all on public.lieux from anon, authenticated;
 grant select on public.lieux to anon, authenticated;
+grant all on public.lieux to service_role;
 
 -- ---------------------------------------------------------------- les écritures (serveur seulement)
 -- un nouveau joueur : ses pièces de départ (data/economie.json → solde_depart, donné par la fonction « jeu »)
