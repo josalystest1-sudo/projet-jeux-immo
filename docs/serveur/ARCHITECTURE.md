@@ -20,7 +20,8 @@
 | (fonctions) `marche_communes(communes, depuis)`, `quartiers(pts, dlat, dlon)` | le prix moyen des ventes rapporté à la valeur ; l'activité autour de points | appeler (lecture seule) |
 | `reglages` | la vitesse du temps (`jour_secondes`) | lire |
 | `offres` | offres en attente et réglées (une seule en attente par acheteur et par lieu) | lire les siennes (acheteur ou vendeur) |
-| `notifications` | offres reçues, ventes, réponses | lire les siennes |
+| `notifications` | offres reçues, ventes, échanges, réponses | lire les siennes |
+| `echanges` | propositions d'échange : le lieu demandé, les lieux donnés (`donne`), les pièces en plus (`ajout`) ; une seule en attente par demandeur et par lieu, un lieu promis dans un seul échange à la fois | lire les siens (demandeur ou propriétaire) |
 | (fonctions) `classement_commune(c)`, `maires(communes)` | qui possède combien dans une commune ; ses Maires | appeler (lecture seule) |
 
 ## Côté jeu : le mode serveur
@@ -29,11 +30,12 @@
 - `agir(action, corps)` appelle la fonction `jeu` et, si tout va bien, se recale sur la partie qu'elle renvoie (`appliquerEtat`) ; un refus s'affiche tel quel. `synchroniser()` au démarrage, avant la récolte.
 - Le monde réel (`PROPRIOS`, `JOUEURS`, `MAIRES`, `CLASSEMENTS`, `REEL`) : `chargerZone()` lit les lieux du quartier à l'écran (après chaque déplacement), `chargerProprios()` ceux d'une parcelle ouverte, `calculerReel()` place chaque lieu sur sa parcelle (dedans, sinon la plus proche à 12 m : les points d'adresse tombent sur le trottoir) pour la couleur ; `ownerOf`, `levelOf`, `enVente`, `prixDemande` lisent ces données au lieu des joueurs simulés.
 - `surveiller()` toutes les minutes (page visible, pas pendant un pack) : la partie, les offres et notifications à jour, un bandeau pour une nouvelle notification.
-- Ce qui n'est pas encore sur le serveur (échanges, enchères) répond `bientot()` ; les minuteries de la démo (offres et enchères simulées) sont arrêtées.
+- Les échanges (8.1f) : `proposerEchange` → action `proposer_echange` ; `annulerEchange` → `annuler_echange` ; une proposition reçue (`state.echangesIn`, avec les lieux offerts `donneLieux` pour leur valeur) s'accepte ou se refuse dans les notifications (`repondreEchange` → `repondre_echange`) ; le patrimoine signale les propositions reçues. Accepter : d'un bloc (`jeu_echanger`), les lieux changent de main avec leurs constructions, retirés de la vente, les pièces passent ; les autres échanges et offres sur ces lieux tombent et leurs auteurs sont prévenus.
+- Ce qui n'est pas encore sur le serveur (enchères) répond `bientot()` ; les minuteries de la démo (offres, échanges et enchères simulés) sont arrêtées.
 
 ## Les joueurs robots (serveur d'essai)
 
-Demande de Gautier (3 nov.) : de vrais comptes qui jouent seuls, pour tester le marché et les mairies sans attendre d'autres joueurs. Six robots (`tools/serveur_robots.js`, créés par la publication s'ils manquent ; pseudo à prénom inventé, icône 🤖, table `robots`). Après chaque appel d'un vrai joueur, la fonction `jeu` leur fait jouer un tour (au plus toutes les 20 s, `jeu_robots_tour`, trois robots par tour) : récolter ; prendre un lieu **près d'un lieu d'un vrai joueur** (un par jour du jeu, quinze au plus) ; répondre aux offres reçues depuis 20 s (oui à partir de 110 % de la valeur) ; parfois faire une offre (85 à 140 % de la valeur, une seule en attente), acheter un lieu en vente pas trop cher (jusqu'à 150 % de sa valeur, une fois sur deux par tour, parmi tout ce que vendent les vrais joueurs ; les robots ont au moins 100 000 pièces), mettre un lieu en vente (110 à 150 %), construire. Ils ignorent les joueurs jetables de l'essai (sans pseudo). **Au lancement : les supprimer** (`supabase/sql/050_robots.sql`).
+Demande de Gautier (3 nov.) : de vrais comptes qui jouent seuls, pour tester le marché et les mairies sans attendre d'autres joueurs. Six robots (`tools/serveur_robots.js`, créés par la publication s'ils manquent ; pseudo à prénom inventé, icône 🤖, table `robots`). Après chaque appel d'un vrai joueur, la fonction `jeu` leur fait jouer un tour (au plus toutes les 20 s, `jeu_robots_tour`, trois robots par tour) : récolter ; prendre un lieu **près d'un lieu d'un vrai joueur** (un par jour du jeu, quinze au plus) ; répondre aux offres et aux propositions d'échange reçues depuis 20 s (oui à partir de 110 % de la valeur) ; parfois proposer un échange à un vrai joueur (un ou deux de leurs lieux, plus des pièces jusqu'à 115 % de la valeur du sien) ; parfois faire une offre (85 à 140 % de la valeur, une seule en attente), acheter un lieu en vente pas trop cher (jusqu'à 150 % de sa valeur, une fois sur deux par tour, parmi tout ce que vendent les vrais joueurs ; les robots ont au moins 100 000 pièces), mettre un lieu en vente (110 à 150 %), construire. Ils ignorent les joueurs jetables de l'essai (sans pseudo). **Au lancement : les supprimer** (`supabase/sql/050_robots.sql`).
 
 ## La mise à jour
 
@@ -48,7 +50,7 @@ Demande de Gautier (3 nov.) : de vrais comptes qui jouent seuls, pour tester le 
 | 8.1c | Le pack du jour tiré par le serveur (raretés, lieux libres, un par jour, heure de Paris) : action `pack`, tirage partagé `src/tirage.js` | fait |
 | 8.1d | Le monde réel : sur la carte, les parcelles des vrais joueurs (rouge, violet) et leurs lieux en vente ; dans une fiche, le vrai propriétaire ; le profil d'un vrai joueur ; les Maires et classements des communes (fonctions `classement_commune`, `maires`) | fait |
 | 8.1e | Le marché : vente à prix libre, achat direct (au prix affiché), offres sans expiration (changer, annuler ; acceptées si l'acheteur a encore les pièces), notifications ; le jeu regarde le serveur chaque minute | fait |
-| 8.1f | Les échanges | à faire |
+| 8.1f | Les échanges : proposer un ou plusieurs lieux (et des pièces) contre le lieu d'un autre, annuler, accepter (d'un bloc) ou refuser ; les robots répondent et en proposent | fait |
 | 8.1g | Les enchères (clôture, fonds bloqués) | à faire |
 | 8.2 | Mode serveur par défaut ; fin des joueurs simulés ; premiers amis | à faire |
 | 9 | Boutique (Stripe) : packs payants et Pass, crédités par le serveur | à faire |

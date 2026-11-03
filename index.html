@@ -178,7 +178,7 @@ try { const s = localStorage.getItem(CLE_ETAT); if (s) state = Object.assign(sta
 // les enchères : mes mises par lot (« semaine:place »), les lots clos, les surenchères déjà signalées (l'ancienne enchère unique est abandonnée)
 if(!state.encheres) state.encheres = { mises:{}, clos:{}, depasse:{} }; delete state.auction;
 if(MODE_SERVEUR && state.jourMs){ JOUR=state.jourMs; SEMAINE=7*JOUR; }   // la vitesse du serveur, retenue depuis la dernière fois
-if(!state.echangesOut) state.echangesOut=[]; if(!state.cedes) state.cedes={};   // échanges proposés ; lieux cédés par échange (id → joueur)
+if(!state.echangesOut) state.echangesOut=[]; if(!state.echangesIn) state.echangesIn=[]; if(!state.cedes) state.cedes={};   // échanges proposés ; lieux cédés par échange (id → joueur)
 // 3 nov. 2026 : le Gratte-ciel s'insère avant le Prestige ; un monument déjà au Prestige (ancien niveau 4) passe au niveau 5
 if(!state.niveaux6){ for(const a of Object.values(state.owned)) if(a.type==='monument' && (a.niveau||0)>=4) a.niveau=(a.niveau||0)+1; state.niveaux6=true; }
 // puis le Palace s'insère avant le Prestige (un bâtiment par rareté) : un monument au Prestige (niveau 5) passe au niveau 6
@@ -939,7 +939,7 @@ async function annulerOffre(id){ const o=state.offersOut.find(x=>x.id===id); if(
 const ECHANGE_ACCEPTE = 1.1;   // joueurs simulés : ils acceptent si on leur donne au moins 10 % de plus que ce qu'ils cèdent
 function seuilEchange(vise){ return Math.round(vise*ECHANGE_ACCEPTE); }   // ce que le joueur simulé veut recevoir en tout
 function valeurChez(a){ return valeur(Object.assign({}, a, {niveau:levelOf(a)})); }
-function proposerEchange(a){ if(MODE_SERVEUR) return bientot(); const qui=ownerOf(a); const mes=Object.values(state.owned);
+function proposerEchange(a){ const qui=ownerOf(a); const mes=Object.values(state.owned);
   if(!mes.length) return toast('Tu n’as pas encore de lieu à échanger : ouvre ton pack du jour');
   const vise=valeurChez(a); const retour=ficheOuverte; const choisis=new Set();
   const deja=new Set(state.echangesOut.filter(x=>x.status==='attente').flatMap(donnesDe));
@@ -969,13 +969,25 @@ function proposerEchange(a){ if(MODE_SERVEUR) return bientot(); const qui=ownerO
   inp.addEventListener('input', maj); inp.addEventListener('focus', ()=>inp.select());
   const fermer=()=>{ if(retour) ouvrirFicheLieu(retour); else closeModal(); };
   box.querySelector('#ech-non').onclick=fermer;
-  ok.onclick=()=>{ const aj=ajout(); if(!choisis.size || aj<0 || aj>dispo()) return; const ids=[...choisis];
+  ok.onclick=async ()=>{ const aj=ajout(); if(!choisis.size || aj<0 || aj>dispo()) return; const ids=[...choisis];
+    if(MODE_SERVEUR){ ok.disabled=true; const r=await agir('proposer_echange', { id:a.id, donne:ids, ajout:aj }); ok.disabled=false;
+      if(r){ toast(`Proposition envoyée à ${r.proprietaire||qui}`); vibrer(12); fermer(); apresAction(); } return; }
     state.echangesOut.push({ id:'e'+now(), addrId:a.id, addr:Object.assign({}, a), to:qui, donne:ids, noms:Object.fromEntries(ids.map(id=>[id, state.owned[id].label])), ajout:aj, ts:now(), status:'attente' }); save();
     toast(`Proposition envoyée à ${qui}`); vibrer(12); fermer(); apresAction(); };
   maj(); }
 const donnesDe = e => Array.isArray(e.donne) ? e.donne : [e.donne];   // un échange peut donner plusieurs lieux
 function nomsDonnes(e){ const n=donnesDe(e).map(id=>state.owned[id] ? state.owned[id].label : (e.noms&&e.noms[id]) || 'un lieu'); return n.length<=1 ? (n[0]||'ton lieu') : `${n[0]} + ${n.length-1} autre${n.length>2?'s':''}`; }
-function annulerEchange(id){ const e=state.echangesOut.find(x=>x.id===id); if(!e || e.status!=='attente') return; e.status='annulee'; save(); toast('Proposition d’échange annulée'); apresAction(); }
+async function annulerEchange(id){ const e=state.echangesOut.find(x=>x.id===id); if(!e || e.status!=='attente') return;
+  if(MODE_SERVEUR){ const r=await agir('annuler_echange', { echange:id }); if(r){ toast('Proposition d’échange annulée'); apresAction(); } return; }
+  e.status='annulee'; save(); toast('Proposition d’échange annulée'); apresAction(); }
+// une proposition reçue (mode serveur) : accepter (les lieux changent de main d'un bloc) ou refuser
+async function repondreEchange(id, ok){ const x=state.echangesIn.find(e=>e.id===id); if(!x || x.status!=='attente') return;
+  const r=await agir('repondre_echange', { echange:id, accepter:ok });
+  if(r){ if(r.accepte){ toast(`Échange conclu avec ${x.from} : tu reçois ${r.donne}`); fete(); restoreBadges(); } else toast('Proposition refusée'); }
+  renderNotifs(); if(document.getElementById('s-patrimoine').classList.contains('on')) renderPatrimoine(); }
+// le bilan d'une proposition reçue : ce que je reçois (lieux + pièces) face à mon lieu
+function bilanRecu(x){ const recoit=(x.donneLieux||[]).reduce((t,l)=>t+valeur(l),0)+(x.ajout||0), mien=state.owned[x.addrId], donne=mien ? valeur(mien) : 0;
+  return { recoit, donne, ecart: donne ? Math.round(100*(recoit-donne)/donne) : 0 }; }
 function tickEchanges(){ let change=false;
   for(const e of state.echangesOut){ if(e.status!=='attente' || now()-e.ts < 45000) continue; change=true;
     const miens=donnesDe(e).map(id=>state.owned[id]), sien=e.addr, vise=valeur(Object.assign({}, sien, {niveau:levelOf(sien)})), noms=nomsDonnes(e);
@@ -1260,10 +1272,11 @@ async function appelServeur(action, corps){
 function appliquerEtat(e){ if(!e) return; state.wallet=e.pieces; state.encaisse=e.encaisse; state.dernierJour = e.dernierJour==null ? null : e.dernierJour;
   if(e.jourMs){ state.jourMs=e.jourMs; JOUR=e.jourMs; SEMAINE=7*JOUR; }
   if(e.offresRecues) state.offersIn=e.offresRecues; if(e.offresEnvoyees) state.offersOut=e.offresEnvoyees; if(e.notifs) state.notifs=e.notifs;
+  if(e.echangesRecus) state.echangesIn=e.echangesRecus; if(e.echangesEnvoyes) state.echangesOut=e.echangesEnvoyes;
   const avant=state.owned; state.owned={}; for(const l of (e.lieux||[])) state.owned[l.id]=Object.assign({}, l);
   for(const id of Object.keys(avant)) if(!state.owned[id]) setBadge(avant[id], 0);
   save(); refreshTop(); refreshPack(); restoreBadges(); try{ peindreReel(); }catch(err){}
-  chargerValeurs(Object.values(state.owned)).then(n=>{ if(n && document.getElementById('s-patrimoine').classList.contains('on')) renderPatrimoine(); }).catch(()=>{}); }
+  chargerValeurs([...Object.values(state.owned), ...state.echangesIn.filter(x=>x.status==='attente').flatMap(x=>x.donneLieux||[])]).then(n=>{ if(n && document.getElementById('s-patrimoine').classList.contains('on')) renderPatrimoine(); }).catch(()=>{}); }
 async function agir(action, corps){ serveurOccupe=true; let r; try{ r=await appelServeur(action, corps); } finally { serveurOccupe=false; }
   if(!r || !r.ok){ toast((r && r.message) || 'Le serveur ne répond pas'); vibrer(30); return null; }
   if(r.etat) appliquerEtat(r.etat); return r; }
@@ -1374,6 +1387,8 @@ function renderPatrimoine(){ const el=document.getElementById('s-patrimoine'); c
       <div class="m petit">Les ventes de chaque commune et l’activité de chaque quartier font aussi bouger la valeur des lieux. Le loyer, lui, ne bouge pas.</div></div>`; }
   const offres=state.offersIn.filter(o=>o.status==='attente');
   if(offres.length) h+=`<div class="card flex"><div><div class="t">📨 ${offres.length} offre${offres.length>1?'s':''} pour tes lieux</div><div class="m">Accepte ou refuse dans tes notifications.</div></div><button class="btn bleu sm" onclick="showScreen('notifs')">Voir</button></div>`;
+  const echRecus=state.echangesIn.filter(e=>e.status==='attente');
+  if(echRecus.length) h+=`<div class="card flex"><div><div class="t">🔁 ${echRecus.length} proposition${echRecus.length>1?'s':''} d’échange</div><div class="m">Accepte ou refuse dans tes notifications.</div></div><button class="btn bleu sm" onclick="showScreen('notifs')">Voir</button></div>`;
   const echs=state.echangesOut.filter(e=>e.status==='attente');
   if(echs.length) h+=`<div class="card"><div class="t">🔁 Échanges proposés (${echs.length})</div>${echs.map(e=>{ return `<div class="rank"><span class="who">${echapper(nomsDonnes(e))} <span class="fleche">→</span> ${echapper(e.addr.label)}<small>à ${echapper(e.to)}${e.ajout?` · + ${nb(e.ajout)} pièces`:''} · en attente</small></span><button class="btn sm" onclick="annulerEchange('${e.id}')">Annuler</button></div>`; }).join('')}</div>`;
   const ventes=tous.filter(a=>a.enVente);
@@ -1491,6 +1506,12 @@ function renderNotifs(){ const el=document.getElementById('s-notifs'); let h=`<h
       const lieuO = o && state.owned[o.addrId]; if(o && o.status==='attente' && lieuO){ const v=valeur(lieuO), e=Math.round(100*(o.price-v)/v);
         h+=`<div class="offre-valeur"><span>Valeur de ton lieu <b>${pcs(v)}</b></span><b class="ecart ${e>=0?'plus':'moins'}">${e>0?'+':''}${e} %</b></div>`; }
       if(o && o.status==='attente') h+=`<div class="build"><button class="btn vert sm" onclick="repondreOffre('${o.id}',true)">Accepter · ${nb(o.price)}<i class="pc"></i></button><button class="btn sm" onclick="repondreOffre('${o.id}',false)">Refuser</button></div>`; else if(o) h+=`<div class="chip" style="margin-top:6px">${({acceptee:'✅ Acceptée', refusee:'❌ Refusée', annulee:'↩️ Retirée par l’acheteur', caduque:'⌛ Plus valable'})[o.status]||''}</div>`; }
+    if(n.echangeId){ const x=state.echangesIn.find(e=>e.id===n.echangeId);
+      if(x && x.status==='attente' && state.owned[x.addrId]){ const b=bilanRecu(x);
+        h+=`<div class="ech-recu">${(x.donneLieux||[]).map(l=>`<div class="ech-ligne"><span class="ico-lieu r${rarete(l)}">${icoLieuHTML(l)}</span><span class="n">${echapper(l.label)}</span><b>${pcs(valeur(l))}</b></div>`).join('')}${x.ajout?`<div class="ech-ligne"><span class="ico-lieu">🪙</span><span class="n">Pièces en plus</span><b>${pcs(x.ajout)}</b></div>`:''}</div>
+          <div class="offre-valeur"><span>Tu reçois <b>${pcs(b.recoit)}</b> · ton lieu vaut <b>${pcs(b.donne)}</b></span><b class="ecart ${b.ecart>=0?'plus':'moins'}">${b.ecart>0?'+':''}${b.ecart} %</b></div>
+          <div class="build"><button class="btn vert sm" onclick="repondreEchange('${x.id}',true)">🤝 Accepter l’échange</button><button class="btn sm" onclick="repondreEchange('${x.id}',false)">Refuser</button></div>`; }
+      else if(x) h+=`<div class="chip" style="margin-top:6px">${({acceptee:'🤝 Échange conclu', refusee:'❌ Refusé', annulee:'↩️ Retiré par son auteur', caduque:'⌛ Plus valable', attente:'⌛ Plus valable'})[x.status]||''}</div>`; }
     if(n.addrId && state.owned[n.addrId]) h+=`<div class="build"><button class="btn clair sm" onclick="flyToAddr(state.owned['${n.addrId}'])">🗺️ Voir sur la carte</button></div>`;
     h+=`</div></div>`; }
   el.innerHTML=h; if(MODE_SERVEUR && state.notifs.some(n=>!n.read)) appelServeur('notifs_lues'); state.notifs.forEach(n=>n.read=true); save(); refreshTop(); }

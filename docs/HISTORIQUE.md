@@ -66,6 +66,7 @@ Rien d'important ne vit dans une conversation : tout est dans le dépôt ou sur 
 - **La promenade en Street View** (PR #34) : demande de Gautier. On se balade dans les rues, on voit sur la carte les bâtiments qu'on longe, leur propriétaire et leur prix, et on peut les acheter ou faire une offre.
 - **Idée écartée : les enseignes des commerces à la place des adresses** (« Subway porte d'Orléans »). Claude a dressé la liste des pour et des contre : marques utilisées sans accord dans un jeu payant, petits commerces au nom de leur patron, commerces qui ferment, données brouillonnes. Gautier abandonne l'idée.
 - **Correctif de la promenade** (PR #36) : retour de Gautier, après avoir touché la carte on ne pouvait plus tourner dans Street View. Le geste partait dans la page Google intégrée : elle ne reçoit plus aucun toucher, et un lien « Google Maps ↗ » ouvre la même vue chez Google.
+- **Les échanges sur le serveur** (8.1f, PR #39) : Gautier demande d'avancer sur le serveur. On propose un ou plusieurs de ses lieux (et des pièces) contre le lieu d'un autre joueur, qui accepte ou refuse dans ses notifications ; les robots répondent et en proposent.
 - **Passage à Claude Code** (PR #35) : demande de Gautier. Cet historique, la procédure `docs/REPRENDRE-DANS-CLAUDE-CODE.md`, les documents de suivi mis à jour, et l'outil d'essai de la promenade versé dans le dépôt.
 
 ### 3 novembre 2026, soir : la reprise dans Claude Code
@@ -134,6 +135,7 @@ Puis une PR par étape, fusionnée en squash :
 | #36 | 03/11 18:19 | Promenade : on peut toujours tourner dans Street View (le geste ne part plus dans la page Google) |
 | #37 | 03/11 20:51 | Notes : une phrase de CLAUDE.md corrigée, heures des PR |
 | #38 | 03/11 21:30 | Reprise dans Claude Code : le test du serveur passe aussi sous Windows |
+| #39 | 03/11 | Serveur 8.1f : les échanges |
 
 ## Les décisions de Gautier
 
@@ -160,7 +162,6 @@ Les décisions du 2 novembre (interview) sont dans `CLAUDE.md` § 4 et dans le G
 ## Ce qui reste à faire (au 3 novembre au soir)
 
 - **Le serveur, suite** (phase 8) :
-  - 8.1f : les échanges sur le serveur ;
   - 8.1g : les enchères sur le serveur ;
   - 8.2 : le mode serveur par défaut, la fin des joueurs simulés, l'inscription des amis. Question posée à Gautier, sans réponse : couper la confirmation par e-mail pendant les essais ?
   - 8.3 : l'anti-triche.
