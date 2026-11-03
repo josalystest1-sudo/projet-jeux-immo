@@ -38,6 +38,8 @@ Chaque lieu porte :
 
 ## 3. Obtenir des lieux
 
+**Un lieu libre ne s'achète pas** : il n'appartient à personne et ne s'obtient que dans un pack (les monuments, aux enchères). On n'achète un lieu qu'à un joueur qui l'a mis en vente, ou en lui faisant une offre ou un échange. **[Décidé par Gautier, 3 nov.]**
+
 ### Le pack du jour **[Décidé]**
 - 1 pack gratuit par jour et par compte, **5 lieux tirés au hasard dans toute la France** (pas de région privilégiée : pour avoir sa région, on achète des packs et on prie, ou on revend et on rachète).
 - **Pas de doublon** : un lieu déjà possédé n'est jamais tiré ; si malgré tout ça arrive, on tire le lieu libre **de même rareté le plus proche**. **[Décidé]**
@@ -48,7 +50,7 @@ Chaque lieu porte :
 - L'ouverture est un moment : fondu au noir, pack 3D métallisé, déchirure au doigt, révélation façon FIFA (France → département → commune → rue) puis la carte se retourne (cf. prototype). **[Décidé]**
 
 ### Le marché entre joueurs **[Décidé]**
-- Pas de vente à la banque : un lieu ne se vend qu'à un joueur.
+- Pas de vente à la banque : un lieu ne se vend qu'à un joueur, et ne s'achète qu'à un joueur (pas d'achat d'un lieu libre).
 - Un propriétaire peut **mettre en vente** à un prix libre : le lieu porte un badge 💰 sur la carte, n'importe qui l'achète au prix affiché. Mise en œuvre (3 nov. 2026, demande de Gautier : « on doit pouvoir mettre le montant qu'on veut ») : le vendeur tape son prix (un entier de 1 à un milliard de pièces, raccourcis « la valeur », +10 %, +25 %, +50 %, × 2, l'écart à la valeur affiché), peut le changer ou retirer le lieu de la vente. Les achats par les autres joueurs viendront avec le serveur. **[Décidé par Gautier]**
 - N'importe qui peut **faire une offre** sur n'importe quel lieu, même pas en vente. Une offre n'expire jamais ; elle peut être modifiée ou annulée à tout moment ; le propriétaire accepte ou refuse. Les fonds sont vérifiés à l'acceptation.
 - **Échanger** (demande de Gautier, 3 nov. 2026) : sur le lieu d'un autre joueur, « Proposer un échange » : on choisit un de ses lieux et on peut ajouter des pièces ; la fenêtre montre ce qu'on donne et ce qu'on reçoit. L'autre joueur accepte ou refuse ; tant qu'il n'a pas répondu, on peut annuler. À l'acceptation, les deux lieux changent de main (chacun garde ses constructions) et les pièces passent ; si l'un des lieux a changé de main entre-temps, l'échange tombe. Un même lieu ne peut être proposé que dans un échange à la fois. En attendant le serveur, les joueurs simulés répondent en 45 s et acceptent si on leur donne au moins 10 % de plus que ce qu'ils cèdent. **[Décidé par Gautier ; le détail est Proposé]**

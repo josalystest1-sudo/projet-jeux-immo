@@ -487,3 +487,7 @@ button.chip:active{transform:scale(.96)}
 .ech-balance.bas{color:#B5651D}.ech-balance.err{color:#C62828}
 .rank .who small{display:block;font-size:12px;color:var(--gris);font-weight:800}
 .rank .fleche{color:var(--plaque)}
+
+/* un lieu libre : il ne s'achète pas, il sort des packs */
+.libre-info{display:flex;align-items:center;gap:10px;background:var(--ciel);border-radius:14px;padding:10px 12px;font-size:13px;font-weight:700;color:var(--encre2);line-height:1.35;width:100%}
+.libre-info b{color:var(--encre)}
