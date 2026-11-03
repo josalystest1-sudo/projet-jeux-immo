@@ -78,6 +78,9 @@ Rien d'important ne vit dans une conversation : tout est dans le dépôt ou sur 
 - **L'ouverture validée** par Gautier. Puis **la tour Eiffel en 3D** sur la carte (PR #44), la preuve des monuments : une maquette de dessin animé à sa vraie place et à sa vraie taille.
 - **La tour validée** par Gautier, puis **Notre-Dame, l'Arc de triomphe et le Sacré-Cœur** en 3D (PR #45). Retour de Gautier pendant le travail : « de près, le bâtiment devient moche et perd ses couleurs » ; corrigé pour tous les monuments (dessin des faces, contour, lumière, bâtiments de l'IGN qui perçaient Notre-Dame).
 
+### 4 novembre 2026
+- **Les monuments validés** par Gautier. Puis **huit monuments de plus** (PR #46) : Versailles, Chartres, Reims, Saint-Denis, le Panthéon, l'Opéra Garnier, la Concorde, le Pont du Gard. Et la vraie cause des défauts de près, trouvée et corrigée pour tous : une question de précision des calculs de la carte graphique.
+
 ## Toutes les PR
 
 Heures de Paris. Avant la PR #1, le travail était poussé directement sur `main` :
@@ -148,6 +151,7 @@ Puis une PR par étape, fusionnée en squash :
 | #43 | 03/11 23:11 | Graphismes : l’ouverture du pack (déchirure au doigt, cartes qui sortent, sons) |
 | #44 | 03/11 23:29 | Graphismes : la tour Eiffel en 3D sur la carte |
 | #45 | 03/11 23:48 | Graphismes : Notre-Dame, l’Arc de triomphe et le Sacré-Cœur en 3D ; les monuments restent beaux de près |
+| #46 | 04/11 00:03 | Graphismes : huit monuments de plus en 3D ; les maquettes nettes de près (précision) |
 
 ## Les décisions de Gautier
 
