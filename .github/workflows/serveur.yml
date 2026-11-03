@@ -66,6 +66,9 @@ jobs:
       - name: Fonction « jeu »
         if: steps.jeton.outputs.ok == '1'
         run: supabase functions deploy jeu --use-api --no-verify-jwt --project-ref "$PROJET" --yes
+      - name: Joueurs robots (serveur d'essai)
+        if: steps.jeton.outputs.ok == '1'
+        run: node tools/serveur_robots.js "$PROJET"
       - name: Essai complet (un joueur jetable)
         if: steps.jeton.outputs.ok == '1'
         run: |

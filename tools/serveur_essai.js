@@ -129,6 +129,8 @@ async function nouveauJoueur(publique, secrete) {
     const communes = [...new Set(mesLieux.map((c) => require('../src/regles/lieu.js').nomCommune(c.citycode, c.city)))];
     const maires = await requete(`${URL}/rest/v1/rpc/maires`, { method: 'POST', headers: { apikey: publique, 'Content-Type': 'application/json' }, body: JSON.stringify({ communes }) });
     verifier(maires.statut === 200 && Array.isArray(maires.corps) && communes.every((c) => maires.corps.some((m) => m.commune === c)), 'chaque commune de mon pack a un Maire', maires);
+    const robots = await requete(`${URL}/rest/v1/robots?select=id,nom`, { headers: { apikey: publique } });
+    verifier(robots.statut === 200 && Array.isArray(robots.corps) && robots.corps.length >= 1, `les joueurs robots sont là (${Array.isArray(robots.corps) ? robots.corps.map((r) => r.nom).join(', ') : '?'})`, robots.statut);
     const classement = await requete(`${URL}/rest/v1/rpc/classement_commune`, { method: 'POST', headers: { apikey: publique, 'Content-Type': 'application/json' }, body: JSON.stringify({ c: communes[0] || 'x' }) });
     verifier(classement.statut === 200 && Array.isArray(classement.corps), 'le classement d’une commune est lisible', classement.statut);
   } finally {
