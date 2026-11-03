@@ -518,7 +518,7 @@ async function afficherStreetView(cible, vue){ const svEl=document.getElementByI
   if(!CLE_GOOGLE || cleRefusee) return sansCle();
   const j=await choisirPhoto(cible, vue); if(cleRefusee) return sansCle();
   if(j){ const de={lat:j.location.lat, lon:j.location.lng}; const d=distPhoto(j, cible); const cap = d>4 ? capVers(de, cible) : vue.cap;
-    const leve = cible.monument ? Math.min(15, Math.round(Math.atan2(8, Math.max(d,10))*180/Math.PI)) : 0;   // un monument : lever un peu les yeux, plus s'il est proche
+    const leve = cible.monument ? 2 : 0;   // un monument : à peine lever les yeux (une fontaine est basse ; on glisse le doigt pour voir plus haut)
     return poser(`https://www.google.com/maps/embed/v1/streetview?key=${encodeURIComponent(CLE_GOOGLE)}&pano=${encodeURIComponent(j.pano_id)}&heading=${Math.round(cap)}&pitch=${leve}&fov=80`, de.lat, de.lon, cap); }
   // aucune photo trouvée ou pas de réseau : l'intégration officielle, photos d'extérieur seulement, depuis la rue
   poser(`https://www.google.com/maps/embed/v1/streetview?key=${encodeURIComponent(CLE_GOOGLE)}&location=${vue.lat.toFixed(6)},${vue.lon.toFixed(6)}&heading=${Math.round(vue.cap)}&pitch=${-vue.pente}&fov=80&source=outdoor`, vue.lat, vue.lon, vue.cap); }
