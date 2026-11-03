@@ -77,6 +77,12 @@ La liste (`data/monuments.json`, 2 nov. 2026) : 458 monuments tirés de Wikidata
   - surenchère minimale : +5 % sur la meilleure mise ;
   - avec trois enchères en même temps, une mise doit être couverte par le solde **moins les mises qui mènent sur les autres enchères** ; sur la même enchère, la nouvelle mise remplace l'ancienne ;
   - à la clôture, chaque joueur compte pour sa plus haute mise ; à montant égal, la plus ancienne gagne ; personne n'a les fonds : le monument reste libre (il repassera).
+- Sur le serveur (8.1g, 3 nov. 2026) **[Proposé]** :
+  - la semaine des enchères est la semaine du jeu (jours du jeu 7 par 7) : en vrais jours, elle se termine à minuit, heure de Paris, toutes les sept nuits ; sur le serveur d'essai accéléré (un jour = une minute), elle dure 7 minutes ;
+  - les trois lots sont tirés parmi les monuments **encore libres** (un monument gagné ne revient plus), dans l'ordre de la liste en attendant le calendrier de Gautier ; s'il n'en reste plus, la semaine n'a pas d'enchère ;
+  - les pièces sont bloquées pour **miser** (on ne peut pas miser ce qui mène déjà ailleurs) ; ailleurs (acheter, construire, offrir), le jeu montre ce qui reste disponible, mais le serveur ne bloque pas : si le meneur a dépensé entre-temps, la clôture passe à la mise suivante ;
+  - un lot se clôt au premier passage d'un joueur sur le serveur après la fin (les mises arrivées après la fin sont refusées) ; chaque joueur qui a misé est prévenu (gagné, ou à qui le monument est allé), et le meneur d'avant est prévenu à chaque surenchère ;
+  - les robots du serveur d'essai surenchérissent seulement contre un vrai joueur, jusqu'à 150 % de la mise de départ.
 
 ### Le domicile
 **Pas de notion de domicile** dans le jeu : le joueur ne déclare aucune adresse personnelle. **[Décidé]**

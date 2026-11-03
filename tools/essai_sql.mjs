@@ -1,6 +1,7 @@
 // Essai des fonctions SQL du serveur (supabase/sql) dans un vrai Postgres, sur le PC, sans toucher au serveur :
 // PGlite (Postgres compilé pour Node) rejoue tous les fichiers SQL, puis essaie les échanges (070_echanges.sql) :
-// proposer, refuser, annuler, accepter, ce qui tombe, les refus attendus et les droits du jeu (lecture seule).
+// proposer, refuser, annuler, accepter, ce qui tombe ; les enchères (080_encheres.sql) : mise minimale, pièces
+// bloquées, surenchère, clôture (avec passage à la mise suivante) ; les refus attendus et les droits du jeu.
 // Prérequis (une fois, rien n'est ajouté au dépôt) : npm i --no-save --no-package-lock @electric-sql/pglite
 //   node tools/essai_sql.mjs            (000_comptes.sql, qui demande l'extension unaccent, est remplacé par un profil minimal)
 import { PGlite } from '@electric-sql/pglite';
@@ -95,6 +96,49 @@ const e6 = await echanger(A, 'c1', ['b1']);
 await q("update public.lieux set proprietaire = $1 where id = 'c1'", [B]);
 ok((await refus('select public.jeu_echange_accepter($1, $2)', [e6, C])) === 'plus_a_lui', 'le lieu demandé n’est plus au destinataire : refusé');
 
+// les enchères (080_encheres.sql)
+try { await db.exec(fs.readFileSync(path.join(DOSSIER, '080_encheres.sql'), 'utf8')); ok(true, '080_encheres.sql relancé sans danger'); } catch (e) { ok(false, '080 relancé', e.message); }
+await q('update public.joueurs set pieces = 100000 where id = any($1)', [[A, B, C]]);
+const lotDe = (cle, monument, depart) => ({ cle, semaine: 9, rang: Number(cle.split(':')[1]), palier: 'regional', monument, depart, fin: new Date(Date.now() + 600000).toISOString(),
+  lieu: { id: 'mon:' + monument, label: 'Monument ' + monument, lon: 2.3, lat: 48.8, citycode: '75107', city: 'Paris 7e', commune: 'Paris 7e', qid: monument } });
+const ouvrir = async (lots) => Number((await q('select public.jeu_encheres_ouvrir($1) as n', [JSON.stringify(lots)]))[0].n);
+ok((await ouvrir([lotDe('9:0', 'Q1', 5000), lotDe('9:1', 'Q2', 3000), lotDe('9:2', 'Q1', 3000)])) === 2, 'ouvrir les lots : un monument n’est que dans un lot ouvert à la fois');
+ok((await ouvrir([lotDe('9:0', 'Q9', 5000)])) === 0, 'rouvrir un lot déjà là : ignoré');
+const miser = async (j, c, m) => (await q('select public.jeu_miser($1, $2, $3, 0.05) as r', [j, c, m]))[0].r;
+const miserRefus = (j, c, m) => refus('select public.jeu_miser($1, $2, $3, 0.05)', [j, c, m]);
+const menees = async (j) => (await q('select public.jeu_menees($1) as r', [j]))[0].r;
+ok((await miserRefus(A, '9:0', 4999)) === 'min', 'sous la mise de départ : refusé');
+ok((await miser(A, '9:0', 5000)).joueur === null, 'A mise le départ (personne ne menait)');
+ok((await miserRefus(B, '9:0', 5249)) === 'min', 'moins de 5 % au-dessus : refusé');
+ok((await miser(B, '9:0', 5250)).joueur === A, 'B surenchérit de 5 % : rend A, le meneur d’avant (pour le prévenir)');
+await q('update public.joueurs set pieces = 8000 where id = $1', [B]);
+ok((await miserRefus(B, '9:1', 3000)) === 'fonds', 'B a 8 000 pièces dont 5 250 bloquées : miser 3 000 ailleurs, refusé');
+ok(!!(await miser(B, '9:0', 5600)), 'B relève sa propre mise : sur ce lot, la nouvelle remplace l’ancienne (pas bloquée deux fois)');
+ok((await miserRefus(C, 'zz', 5000)) === 'lot', 'un lot qui n’existe pas : refusé');
+await miser(C, '9:1', 3000);
+const mB = await menees(B), mA = await menees(A);
+ok(Number(mB.menees['9:0']) === 5600 && !mB.depasse.length, 'B mène sur 9:0 (5 600 bloquées)', mB);
+ok(!Object.keys(mA.menees).length && mA.depasse.join() === '9:0', 'A est dépassé sur 9:0', mA);
+ok(Number((await q('select public.jeu_bloque($1, null) as b', [B]))[0].b) === 5600, 'les pièces bloquées de B : 5 600');
+ok((await q("select public.jeu_enchere_cloturer('9:0') as r"))[0].r === null, 'un lot pas encore fini ne se clôt pas');
+await q("update public.encheres set fin = now() - interval '1 second' where cle in ('9:0', '9:1')");
+ok((await miserRefus(A, '9:0', 9000)) === 'close', 'miser après la fin : refusé');
+await q('update public.joueurs set pieces = 100 where id = $1', [B]);
+const pA0 = await pieces(A), clos = (await q("select public.jeu_enchere_cloturer('9:0') as r"))[0].r;
+ok(clos.gagnant === A && Number(clos.prix) === 5000, 'B n’a plus les pièces : le monument passe à A, pour sa mise de 5 000', clos);
+const mon = (await q("select proprietaire, type, label, commune, niveau from public.lieux where id = 'mon:Q1'"))[0];
+ok(mon && mon.proprietaire === A && mon.type === 'monument' && mon.commune === 'Paris 7e' && mon.niveau === 0, 'A possède le monument', mon);
+ok((await pieces(A)) === pA0 - 5000 && (await pieces(B)) === 100, 'A a payé 5 000 ; B n’a rien payé');
+ok((await q("select public.jeu_enchere_cloturer('9:0') as r"))[0].r === null, 'clore deux fois : rien ne se passe');
+ok((await q("select public.jeu_enchere_cloturer('9:1') as r"))[0].r.gagnant === C, 'le lot 9:1 va à C');
+const lot0 = (await q("select statut, gagnant, prix from public.encheres where cle = '9:0'"))[0];
+ok(lot0.statut === 'close' && lot0.gagnant === A && Number(lot0.prix) === 5000, 'le lot clos garde son gagnant et son prix', lot0);
+ok(!Object.keys((await menees(B)).menees).length, 'après la clôture, plus rien n’est bloqué');
+ok((await ouvrir([lotDe('10:0', 'Q1', 1000)])) === 1, 'un monument déjà pris peut revenir dans un lot (la fonction « jeu » l’évite)');
+await q('update public.joueurs set pieces = 5000 where id = $1', [B]); await miser(B, '10:0', 1000); await q("update public.encheres set fin = now() - interval '1 second' where cle = '10:0'");
+const pB0 = await pieces(B), pris = (await q("select public.jeu_enchere_cloturer('10:0') as r"))[0].r;
+ok(pris.gagnant === null && (await pieces(B)) === pB0 && (await q("select proprietaire from public.lieux where id = 'mon:Q1'"))[0].proprietaire === A, 'un monument déjà à quelqu’un : le lot se clôt sans gagnant, personne ne paie', pris);
+
 // les droits : le jeu lit ses échanges, n'écrit jamais, n'appelle aucune fonction jeu_*
 await db.exec(`set role authenticated; set essai.uid = '${A}';`);
 const vus = await q('select id from public.echanges');
@@ -105,6 +149,13 @@ const maj = await refus('update public.echanges set statut = $1', ['acceptee']);
 ok(!!maj, 'le jeu ne peut pas changer un échange', maj);
 ok(!!(await refus('select public.jeu_echange_accepter($1, $2)', [e6, A])), 'le jeu ne peut pas appeler jeu_echange_accepter');
 ok(!!(await refus('select public.jeu_echanger($1, $2, $3, $4, $5)', [A, 'c2', ['b1'], 0, '{}'])), 'le jeu ne peut pas appeler jeu_echanger');
+ok((await q('select count(*)::int as n from public.mises'))[0].n > 0 && (await q('select count(*)::int as n from public.encheres'))[0].n > 0, 'le jeu lit les lots et les mises de tous');
+ok(!!(await refus("insert into public.mises (lot, joueur, montant) values ('9:1', $1, 999999)", [A])), 'le jeu ne peut pas écrire une mise');
+ok(!!(await refus("update public.encheres set gagnant = $1", [A])), 'le jeu ne peut pas se donner un lot');
+ok(!!(await refus('select public.jeu_miser($1, $2, $3, 0.05)', [A, '9:1', 1])), 'le jeu ne peut pas appeler jeu_miser');
+ok(!!(await refus("select public.jeu_enchere_cloturer('9:1')")), 'le jeu ne peut pas appeler jeu_enchere_cloturer');
+await db.exec('reset role; set role anon;');
+ok((await q('select count(*)::int as n from public.encheres'))[0].n > 0, 'sans compte aussi, on lit les lots');
 await db.exec('reset role;');
 console.log(echecs ? `${echecs} échec(s)` : 'Tout passe.');
 process.exit(echecs ? 1 : 0);

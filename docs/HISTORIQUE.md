@@ -72,6 +72,7 @@ Rien d'important ne vit dans une conversation : tout est dans le dépôt ou sur 
 - Gautier clone le dépôt sur son PC (dossier `Documents/jeu immo`) et lance la reprise. Les outils sont là ; un test échouait seulement sous Windows (PR #38). Choix de Gautier : ce correctif, puis les échanges sur le serveur (8.1f).
 - **Les échanges sur le serveur (8.1f)** (PR #39) : proposer ses lieux (plus des pièces) à un vrai joueur ou à un robot, recevoir un échange dans ses notifications avec la valeur de chaque côté, accepter ou refuser. Les robots répondent et proposent parfois des échanges, pour pouvoir essayer seul.
 - **La mise à jour du téléphone** (PR #40) : retour de Gautier, « les échanges ne sont pas en ligne ». Le site et le serveur les avaient : c'est son téléphone qui gardait l'ancienne version, parce qu'une fenêtre ouverte au retour dans le jeu faisait abandonner la mise à jour. Corrigé ; la version s'affiche dans les Réglages. Choix de Gautier ensuite : les enchères sur le serveur (8.1g).
+- **Les enchères sur le serveur (8.1g)** (PR #41) : les trois monuments de la semaine sont tenus par le serveur (une semaine = 7 minutes sur le serveur d'essai) ; on mise, on est prévenu quand on est dépassé, le monument va au gagnant à la fin. Les robots surenchérissent quand un vrai joueur mène. Tout le jeu passe maintenant par le serveur.
 
 ## Toutes les PR
 
@@ -138,6 +139,7 @@ Puis une PR par étape, fusionnée en squash :
 | #38 | 03/11 21:30 | Reprise dans Claude Code : le test du serveur passe aussi sous Windows |
 | #39 | 03/11 21:39 | Serveur 8.1f : les échanges entre joueurs |
 | #40 | 03/11 21:50 | La mise à jour du téléphone n'abandonne plus ; la version dans les Réglages |
+| #41 | 03/11 22:01 | Serveur 8.1g : les enchères de monuments |
 
 ## Les décisions de Gautier
 
@@ -164,7 +166,6 @@ Les décisions du 2 novembre (interview) sont dans `CLAUDE.md` § 4 et dans le G
 ## Ce qui reste à faire (au 3 novembre au soir)
 
 - **Le serveur, suite** (phase 8) :
-  - 8.1g : les enchères sur le serveur ;
   - 8.2 : le mode serveur par défaut, la fin des joueurs simulés, l'inscription des amis. Question posée à Gautier, sans réponse : couper la confirmation par e-mail pendant les essais ?
   - 8.3 : l'anti-triche.
 - **La boutique** (phase 9) : Stripe, packs et Pass mensuel, probabilités affichées, blocage Belgique et Pays-Bas, CGU, confidentialité, mentions légales.

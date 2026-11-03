@@ -135,6 +135,41 @@ async function nouveauJoueur(publique, secrete) {
         verifier(etatE.corps.pieces <= avantE - 10 + MARGE, 'les 10 pièces sont passées', { avant: avantE, apres: etatE.corps.pieces });
         const deuxFois = await B.jeu({ action: 'repondre_echange', echange: ech5.corps && ech5.corps.echange, accepter: true });
         verifier(deuxFois.corps && deuxFois.corps.ok === false && deuxFois.corps.code === 'echange', 'accepter deux fois : refusé', deuxFois);
+        // les enchères (8.1g) : la semaine en cours, puis un lot d'essai de 25 s (posé avec la clé du serveur, semaine -1 :
+        // invisible des joueurs) pour miser, surenchérir et clore, avec passage à la mise suivante
+        const sem = await jeu({ action: 'encheres' });
+        verifier(sem.corps && sem.corps.ok && Array.isArray(sem.corps.lots) && sem.corps.fin > Date.now() && Array.isArray(sem.corps.suivantes), `les enchères de la semaine : ${sem.corps && sem.corps.lots ? sem.corps.lots.length : '?'} lot(s)`, sem);
+        const cleEssai = 'essai-' + crypto.randomBytes(4).toString('hex'), monEssai = 'mon:' + cleEssai;
+        const parCle = (chemin, methode, corps) => requete(`${URL}/rest/v1/${chemin}`, { method: methode, headers: { ...entetesSecrets(secrete), 'Content-Type': 'application/json', Prefer: 'return=minimal' }, body: corps ? JSON.stringify(corps) : undefined });
+        try {
+          await parCle(`joueurs?id=in.(${id},${B.id})`, 'PATCH', { pieces: 20000 });
+          const finEssai = Date.now() + 25000;
+          const creeLot = await parCle('encheres', 'POST', { cle: cleEssai, semaine: -1, rang: 0, palier: 'regional', monument: cleEssai, depart: 1000, fin: new Date(finEssai).toISOString(),
+            lieu: { id: monEssai, label: 'Monument d’essai', lon: 2.3522, lat: 48.8566, citycode: '75104', city: 'Paris 4e', commune: 'Paris 4e', qid: null } });
+          verifier(creeLot.statut < 300, 'un lot d’essai de 25 secondes', creeLot);
+          const bas = await jeu({ action: 'miser', cle: cleEssai, montant: 999 });
+          verifier(bas.corps && bas.corps.ok === false && bas.corps.code === 'min', 'miser sous la mise de départ : refusé', bas);
+          const m1 = await jeu({ action: 'miser', cle: cleEssai, montant: 1000 });
+          verifier(m1.corps && m1.corps.ok && m1.corps.etat.encheresMenees[cleEssai] === 1000, 'miser le départ : je mène, 1 000 pièces bloquées', m1);
+          const m2 = await B.jeu({ action: 'miser', cle: cleEssai, montant: 1049 });
+          verifier(m2.corps && m2.corps.ok === false && m2.corps.code === 'min', 'surenchérir de moins de 5 % : refusé', m2);
+          const m3 = await B.jeu({ action: 'miser', cle: cleEssai, montant: 1050 });
+          verifier(m3.corps && m3.corps.ok && m3.corps.etat.encheresMenees[cleEssai] === 1050, 'un autre joueur surenchérit de 5 %', m3);
+          const dep = await jeu({ action: 'etat' });
+          verifier(dep.corps.ok && dep.corps.encheresDepasse.includes(cleEssai) && !dep.corps.encheresMenees[cleEssai] && dep.corps.notifs.some((n) => n.type === 'enchere' && /surenchéri/.test(n.text)), 'je suis dépassé, mes pièces sont libérées, j’en suis prévenu', dep.corps);
+          const m4 = await jeu({ action: 'miser', cle: cleEssai, montant: 2000 });
+          verifier(m4.corps && m4.corps.ok, 'je remise 2 000 : je mène', m4);
+          // je n'ai plus les pièces : à la clôture, le monument doit passer à la mise suivante (celle de l'autre joueur)
+          await parCle(`joueurs?id=eq.${id}`, 'PATCH', { pieces: 100 });
+          await new Promise((ok) => setTimeout(ok, Math.max(0, finEssai - Date.now()) + 2000));
+          const tard = await B.jeu({ action: 'miser', cle: cleEssai, montant: 5000 });
+          verifier(tard.corps && tard.corps.ok === false && tard.corps.code === 'close', 'miser après la fin : refusé', tard);
+          await B.jeu({ action: 'encheres' });
+          const finB = await B.jeu({ action: 'etat' });
+          verifier(finB.corps.ok && finB.corps.lieux.some((l) => l.id === monEssai && l.type === 'monument') && finB.corps.notifs.some((n) => /remporté/.test(n.text)) && finB.corps.pieces <= 20000 - 1050 + 2 * MARGE, 'clôture : je n’ai plus les pièces, le monument passe à l’autre joueur pour 1 050 ; il est prévenu', finB.corps);
+          const finA = await jeu({ action: 'etat' });
+          verifier(finA.corps.ok && !finA.corps.lieux.some((l) => l.id === monEssai) && finA.corps.pieces <= 100 + MARGE && finA.corps.notifs.some((n) => /Tu menais/.test(n.text)), 'je ne paie rien, et je suis prévenu que l’enchère est passée à la suivante', finA.corps.notifs);
+        } finally { await parCle(`encheres?cle=eq.${cleEssai}`, 'DELETE'); }
         const relire = await jeu({ action: 'notifs_lues' });
         verifier(relire.corps && relire.corps.ok && relire.corps.etat.notifs.every((n) => n.read), 'marquer les notifications lues', relire.corps.etat && relire.corps.etat.notifs);
       } finally { await B.supprimer(); }
@@ -151,6 +186,8 @@ async function nouveauJoueur(publique, secrete) {
     verifier(voler.statut >= 400, 'me donner un lieu directement : refusé', voler.statut);
     const echVol = await requete(`${URL}/rest/v1/echanges`, { method: 'POST', headers: { apikey: publique, Authorization: `Bearer ${acces}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ lieu: 'essai', proposeur: id, destinataire: id, donnes: ['essai'] }) });
     verifier(echVol.statut >= 400, 'écrire un échange directement : refusé', echVol.statut);
+    const miseVol = await requete(`${URL}/rest/v1/mises`, { method: 'POST', headers: { apikey: publique, Authorization: `Bearer ${acces}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ lot: 'essai', joueur: id, montant: 1 }) });
+    verifier(miseVol.statut >= 400, 'écrire une mise directement : refusé', miseVol.statut);
     const rpc = await requete(`${URL}/rest/v1/rpc/jeu_recolter`, { method: 'POST', headers: { apikey: publique, Authorization: `Bearer ${acces}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ j: id, montant: 1000000, avant: new Date().toISOString(), maintenant: new Date().toISOString() }) });
     verifier(rpc.statut >= 400, 'appeler une fonction du serveur directement : refusé', rpc.statut);
     const tous = await requete(`${URL}/rest/v1/lieux?select=id&limit=1`, { headers: { apikey: publique } });
