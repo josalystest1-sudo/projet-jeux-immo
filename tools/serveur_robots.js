@@ -7,6 +7,7 @@ const REF = process.argv[2] || 'hxtyecwofajiozmnfyxt';
 const JETON = process.env.SUPABASE_ACCESS_TOKEN;
 const URL = `https://${REF}.supabase.co`;
 const ECO = require('../data/economie.json');
+const DEPART_ROBOT = 100000;   // assez pour acheter les lieux des vrais joueurs (serveur d'essai)
 const ROBOTS = ['Léa', 'Marco', 'Inès', 'Yanis', 'Chloé', 'Sacha'];   // des prénoms inventés, avec l'icône 🤖
 
 async function requete(url, options) { const r = await fetch(url, options); const t = await r.text(); let j = null; try { j = JSON.parse(t); } catch (_) { j = t; } return { statut: r.status, corps: j }; }
@@ -34,7 +35,7 @@ async function cles() {
     const id = cree.corps && cree.corps.id; if (!id) throw new Error(`${nom} : compte non créé (HTTP ${cree.statut})`);
     const profil = await requete(`${URL}/rest/v1/profils`, { method: 'POST', headers: json, body: JSON.stringify({ id, pseudo: nom, avatar: '🤖' }) });
     if (profil.statut >= 300) { await requete(`${URL}/auth/v1/admin/users/${id}`, { method: 'DELETE', headers: H }); throw new Error(`${nom} : profil refusé (HTTP ${profil.statut}) ; compte retiré`); }
-    const joueur = await requete(`${URL}/rest/v1/rpc/jeu_nouveau_joueur`, { method: 'POST', headers: json, body: JSON.stringify({ j: id, depart: ECO.solde_depart }) });
+    const joueur = await requete(`${URL}/rest/v1/rpc/jeu_nouveau_joueur`, { method: 'POST', headers: json, body: JSON.stringify({ j: id, depart: DEPART_ROBOT }) });
     if (joueur.statut >= 300) throw new Error(`${nom} : partie refusée (HTTP ${joueur.statut})`);
     const robot = await requete(`${URL}/rest/v1/robots`, { method: 'POST', headers: json, body: JSON.stringify({ id, nom }) });
     if (robot.statut >= 300) throw new Error(`${nom} : marque de robot refusée (HTTP ${robot.statut})`);

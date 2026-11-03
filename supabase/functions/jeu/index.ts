@@ -245,6 +245,12 @@ ACTIONS.pack = async (j) => {
 };
 
 // ---------------------------------------------------------------- les joueurs robots (serveur d'essai)
+// les vendeurs qui ont un pseudo (vrais joueurs) ; les joueurs jetables de l'essai n'en ont pas
+async function connaitreVrais(lieux: Ligne[], vrais: Set<string>) {
+  const manque = [...new Set(lieux.map((l) => l.proprietaire))].filter((u) => !vrais.has(u)); if (!manque.length) return;
+  const { data } = await admin.from('profils').select('id').in('id', manque); for (const p of data || []) vrais.add(p.id);
+  for (let i = lieux.length - 1; i >= 0; i--) if (!vrais.has(lieux[i].proprietaire)) lieux.splice(i, 1);
+}
 // Demande de Gautier (3 nov. 2026) : de vrais comptes qui jouent seuls, pour tester le marché et les mairies.
 // Un tour au plus toutes les 20 s (quel que soit le nombre de joueurs), lancé après la réponse à un vrai joueur.
 const hasard = <T,>(l: T[]) => l[Math.floor(Math.random() * l.length)];
@@ -259,6 +265,10 @@ async function robotsTour() {
   const { data: avecPseudo } = proprios.length ? await admin.from('profils').select('id').in('id', proprios) : { data: [] };
   const vrais = new Set((avecPseudo || []).map((p: Ligne) => p.id)), reels = (tous || []).filter((l: Ligne) => vrais.has(l.proprietaire));
   if (!reels.length) return;   // personne à côtoyer : les robots attendent un vrai joueur
+  // tout ce que les vrais joueurs vendent (pas seulement leurs derniers lieux)
+  const { data: ventes } = await admin.from('lieux').select('*').not('proprietaire', 'in', exclus).not('prix_vente', 'is', null).limit(200);
+  const aVendre = (ventes || []).slice();
+  await connaitreVrais(aVendre, vrais);
   const jm = await jourMs(), jour = Regles.jourDuJeu(Date.now(), jm);
   for (const robot of robots.sort(() => Math.random() - 0.5).slice(0, 3)) {
     const j = robot.id;
@@ -281,9 +291,10 @@ async function robotsTour() {
         const l = hasard(reels), prix = arrondi(R.valeur(lieuDe(l)) * (0.85 + Math.random() * 0.55));
         if (prix <= pieces) { await ACTIONS.offrir(j, { id: l.id, prix }).catch(() => {}); }
       }
-      // 4. acheter un lieu mis en vente par un vrai joueur, s'il n'est pas trop cher (jusqu'à 125 % de sa valeur)
-      const enVente = reels.filter((l: Ligne) => l.prix_vente != null && Number(l.prix_vente) <= R.valeur(lieuDe(l)) * 1.25 && Number(l.prix_vente) <= pieces);
-      if (enVente.length && Math.random() < 0.15) { const l = hasard(enVente); await ACTIONS.acheter(j, { id: l.id, prix: Number(l.prix_vente) }).then(() => { pieces -= Number(l.prix_vente); }).catch(() => {}); }
+      // 4. acheter un lieu mis en vente par un vrai joueur, s'il n'est pas trop cher (jusqu'à 150 % de sa valeur) :
+      // une fois sur deux par robot et par tour (« personne ne m'achète », Gautier, 3 nov.)
+      const enVente = aVendre.filter((l: Ligne) => Number(l.prix_vente) <= R.valeur(lieuDe(l)) * 1.5 && Number(l.prix_vente) <= pieces);
+      if (enVente.length && Math.random() < 0.5) { const l = hasard(enVente); await ACTIONS.acheter(j, { id: l.id, prix: Number(l.prix_vente) }).then(() => { pieces -= Number(l.prix_vente); }).catch(() => {}); aVendre.splice(aVendre.indexOf(l), 1); }
       // 5. mettre un de ses lieux en vente (110 à 150 % de sa valeur), deux au plus à la fois
       if (mes.length && mes.filter((l: Ligne) => l.prix_vente != null).length < 2 && Math.random() < 0.3) {
         const l = hasard(mes); await rpc('jeu_vendre', { j, l: l.id, prix: arrondi(R.valeur(lieuDe(l)) * (1.1 + Math.random() * 0.4)) }).catch(() => {});

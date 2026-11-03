@@ -1259,7 +1259,11 @@ function renderNotifs(){ const el=document.getElementById('s-notifs'); let h=`<h
   let section='';
   for(const n of state.notifs){ const s2 = n.read ? 'Plus tôt' : 'Nouveau'; if(s2!==section){ section=s2; h+=`<h2 class="section">${section}</h2>`; }
     h+=`<div class="card notif ${n.read?'':'unread'}"><div class="ico">${iconeNotif(n)}</div><div style="flex:1;min-width:0"><div class="quand">${ilYa(n.ts)}</div><div class="texte">${avecPieces(n.text)}</div>`;
-    if(n.offerId){ const o=state.offersIn.find(x=>x.id===n.offerId); if(o && o.status==='attente') h+=`<div class="build"><button class="btn vert sm" onclick="repondreOffre('${o.id}',true)">Accepter · ${nb(o.price)}<i class="pc"></i></button><button class="btn sm" onclick="repondreOffre('${o.id}',false)">Refuser</button></div>`; else if(o) h+=`<div class="chip" style="margin-top:6px">${({acceptee:'✅ Acceptée', refusee:'❌ Refusée', annulee:'↩️ Retirée par l’acheteur', caduque:'⌛ Plus valable'})[o.status]||''}</div>`; }
+    if(n.offerId){ const o=state.offersIn.find(x=>x.id===n.offerId);
+      // une offre reçue : la valeur de mon lieu à côté, et l'écart, pour juger d'un coup d'œil (demande de Gautier, 3 nov.)
+      const lieuO = o && state.owned[o.addrId]; if(o && o.status==='attente' && lieuO){ const v=valeur(lieuO), e=Math.round(100*(o.price-v)/v);
+        h+=`<div class="offre-valeur"><span>Valeur de ton lieu <b>${pcs(v)}</b></span><b class="ecart ${e>=0?'plus':'moins'}">${e>0?'+':''}${e} %</b></div>`; }
+      if(o && o.status==='attente') h+=`<div class="build"><button class="btn vert sm" onclick="repondreOffre('${o.id}',true)">Accepter · ${nb(o.price)}<i class="pc"></i></button><button class="btn sm" onclick="repondreOffre('${o.id}',false)">Refuser</button></div>`; else if(o) h+=`<div class="chip" style="margin-top:6px">${({acceptee:'✅ Acceptée', refusee:'❌ Refusée', annulee:'↩️ Retirée par l’acheteur', caduque:'⌛ Plus valable'})[o.status]||''}</div>`; }
     if(n.addrId && state.owned[n.addrId]) h+=`<div class="build"><button class="btn clair sm" onclick="flyToAddr(state.owned['${n.addrId}'])">🗺️ Voir sur la carte</button></div>`;
     h+=`</div></div>`; }
   el.innerHTML=h; if(MODE_SERVEUR && state.notifs.some(n=>!n.read)) appelServeur('notifs_lues'); state.notifs.forEach(n=>n.read=true); save(); refreshTop(); }
