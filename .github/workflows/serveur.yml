@@ -9,6 +9,9 @@ on:
     paths:
       - 'supabase/**'
       - 'src/regles/**'
+      - 'src/tirage.js'
+      - 'geo.js'
+      - 'data/celebres/**'
       - 'data/economie.json'
       - 'data/standing.json'
       - 'data/monuments.json'

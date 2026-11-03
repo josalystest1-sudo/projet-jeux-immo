@@ -37,6 +37,7 @@ const VERSION='__VERSION__';
 <script src="src/regles/celebres.js"></script>
 <script src="src/regles/encheres.js"></script>
 <script src="src/regles/pack.js"></script>
+<script src="src/tirage.js"></script>
 <script src="src/regles/pseudo.js"></script>
 <script src="https://unpkg.com/@supabase/supabase-js@2.118.0/dist/umd/supabase.js"></script>
 <link rel="preload" href="fonts/baloo-2-latin-800-normal.woff2" as="font" type="font/woff2" crossorigin>
@@ -175,7 +176,7 @@ function sonGain(){ const a=audio(); if(!a) return; [988,1319].forEach((f,i)=>{ 
 function vibrer(motif){ if(state.prefs && state.prefs.vibrations===false) return; if(navigator.vibrate) navigator.vibrate(motif); }
 let toastMinuterie=0;
 function toast(t){ const el=document.getElementById('toast'); el.innerHTML=avecPieces(t); el.classList.add('on'); clearTimeout(toastMinuterie); toastMinuterie=setTimeout(()=>el.classList.remove('on'), 2300); }
-function communeName(citycode, city){ if(!citycode) return city||'?'; if(citycode.startsWith('751')) return 'Paris '+(parseInt(citycode.slice(3))+(parseInt(citycode.slice(3))===1?'er':'e')); return city||citycode; }
+function communeName(citycode, city){ return Regles.nomCommune(citycode, city); }
 // standing (plafond de construction) : démo, en vrai calculé avec DVF
 function rarete(a){ return R.rarete(a); }
 function enVente(a){ if(state.owned[a.id]) return !!state.owned[a.id].enVente; const o=ownerOf(a); return !!o && hash(a.id+'v')%100<25; }
@@ -983,49 +984,14 @@ function dispoPack(){ const sc=document.getElementById('packscene'), wrap=docume
   const hautFan=H/2+yFan-fh/2-16; const ss=Math.max(.5, Math.min(1, (hautFan-haut)/320)); const ys=(haut+hautFan)/2-H/2;
   pile.forEach(el=>pose(el, 0, ys, 0, ss)); }
 window.addEventListener('resize', ()=>dispoPack());
-// =================== tirage du pack (règles : src/regles/pack.js ; serveur simulé) ===================
-// Chaque carte : sa rareté tirée (60 / 25 / 10 / 4 / 1 %), puis un lieu libre de cette rareté n'importe où en France.
-//   Commun : l'adresse la plus proche d'un point au hasard ; Peu commun : une adresse d'une commune au standing 2 ;
-//   Rare : un lieu nommé (église, mairie, château, gare, musée) près d'un point au hasard ;
-//   Épique : une adresse d'une commune au standing 3 ; Légendaire : un lieu célèbre (Wikipédia).
-//   Jamais de monument (Extraordinaire : seulement aux enchères).
-const BOITE_FR=[-5.2,41.3,9.6,51.1];
-function dansAnneau(pt, ring){ let c=false; for(let i=0,j=ring.length-1;i<ring.length;j=i++){ const [xi,yi]=ring[i],[xj,yj]=ring[j]; if(((yi>pt[1])!==(yj>pt[1])) && pt[0]<(xj-xi)*(pt[1]-yi)/(yj-yi)+xi) c=!c; } return c; }
-function pointAuHasard(rng){ for(let k=0;k<300;k++){ const p=[BOITE_FR[0]+rng()*(BOITE_FR[2]-BOITE_FR[0]), BOITE_FR[1]+rng()*(BOITE_FR[3]-BOITE_FR[1])]; if(GEO.france.some(r=>dansAnneau(p,r))) return p; } return FRANCE[0]; }
-const CODES_STANDING = { 2:Object.keys(STANDING).filter(c=>STANDING[c]===2), 3:Object.keys(STANDING).filter(c=>STANDING[c]===3) };
-// Paris, Lyon et Marseille sont regroupées dans la table : on tire un arrondissement
-function communeReelle(code, rng){ const n=Math.floor(rng()*20); if(code==='75056') return '751'+String(1+n).padStart(2,'0'); if(code==='69123') return '6938'+(1+n%9); if(code==='13055') return '132'+String(1+n%16).padStart(2,'0'); return code; }
+// =================== tirage du pack (src/tirage.js, le même code que le serveur ; règles : src/regles/pack.js) ===================
+// En mode démo, le jeu tire lui-même ; les joueurs simulés possèdent les lieux selon la couleur de leur parcelle.
 async function geoJSON(chemin){ const r=await fetch('https://data.geopf.fr/geocodage/'+chemin); if(!r.ok) throw new Error('géocodage '+r.status); return r.json(); }
-async function adresseProche(lon,lat){ const j=await geoJSON(`reverse?lon=${lon}&lat=${lat}&limit=1&index=address&type=housenumber`); const x=(j.features||[])[0]; return x ? Object.assign(mkAddr(x,null),{type:'adresse'}) : null; }
-async function adresseDansCommune(code, rng){ for(const mot of ['rue','route','chemin','place']){ const j=await geoJSON(`search?q=${mot}&citycode=${code}&index=address&limit=20`); const f=(j.features||[]).filter(x=>x.properties.citycode===code);
-    if(f.length){ const [lon,lat]=f[Math.floor(rng()*f.length)].geometry.coordinates; return adresseProche(lon,lat); } } return null; }
-async function lieuNommeProche(lon,lat,rng){ const kinds=['eglise','mairie','chateau','gare','musee']; const k=kinds[Math.floor(rng()*kinds.length)];
-  // seulement les lieux qui ont un vrai nom (pas « Zone d'activité ou d'intérêt » ni « Mairie » tout court)
-  const j=await geoJSON(`search?index=poi&q=${k}&lat=${lat}&lon=${lon}&limit=10`); const f=(j.features||[]).filter(x=>{ const n=(x.properties.toponym||'').trim(), cats=(x.properties.category||[]).map(t=>t.toLowerCase());
-    return n.length>3 && !cats.includes(n.toLowerCase()) && !/^zone d.activit/i.test(n) && Celebres.significatifs(n).filter(m=>!/^(gares|eglises|mairies|musees|chateaux|chapelles)$/.test(m)).length>0; }); if(!f.length) return null; const x=f[Math.floor(rng()*f.length)], p=x.properties;
-  let carte={ id:'poi'+hash(p.toponym+x.geometry.coordinates), label:p.toponym, lon:x.geometry.coordinates[0], lat:x.geometry.coordinates[1], citycode:(p.citycode||[])[0]||'', city:(p.city||[])[0]||'', type:'lieu', cat:k };
-  const e=Celebres.trouver(carte, await chargerCelebres(Celebres.departement(carte.citycode))); if(e) carte=Object.assign(Celebres.lieuDe(e),{city:carte.city}); return carte; }
-async function celebreAuHasard(rng){ const dep=DEP_BOITES[Math.floor(rng()*DEP_BOITES.length)].code; const l=await chargerCelebres(dep); if(!l.length) return null; const e=l[Math.floor(rng()*l.length)];
-  const a=await adresseProche(e[3],e[4]); return Object.assign(Celebres.lieuDe(e), {city:a?a.city:''}); }
-async function lieuDeRarete(r, rng){
-  if(r===1){ const [lon,lat]=pointAuHasard(rng); return adresseProche(lon,lat); }
-  if(r===3){ const [lon,lat]=pointAuHasard(rng); return lieuNommeProche(lon,lat,rng); }
-  if(r===5) return celebreAuHasard(rng);
-  const codes=CODES_STANDING[r===2?2:3]; return adresseDansCommune(communeReelle(codes[Math.floor(rng()*codes.length)], rng), rng); }
 function estLibre(c){ return !state.owned[c.id] && ownerOf(c)===null; }
-// une carte de la rareté voulue (6 essais) ; si le réseau ou le hasard s'obstinent, une carte Commune
-async function tirerCarte(r, base, dejaTires){
-  for(const rv of (r===1?[1]:[r,1])) for(let essai=0; essai<6; essai++){ const rng=Pack.alea(Pack.graine(base+':'+rv+':'+essai));
-    try{ const c=await lieuDeRarete(rv, rng); if(Pack.convient(c, rv, rarete, estLibre, dejaTires)) return c; }catch(e){} }
-  return null; }
+const TIRAGE = Tirage.creer({ geoJSON, celebres:chargerCelebres, france:GEO.france, deps:DEP_BOITES.map(d=>d.code), standing:STANDING, Celebres, Pack, rarete, estLibre });
 async function ouvrirPack(){ if(!packDispo()){ const s=Math.max(0,Math.ceil(((jour()+1)*JOUR-now())/1000)); return toast(`Prochain pack dans ${s} s (démo : un jour = une minute)`); } const btn=document.getElementById('packbtn'); btn.dataset.ouverture='1'; document.getElementById('packt').textContent='…'; openScene();
-  const base=(state.pseudo||'?')+':'+jour(); const raretes=Pack.raretes(ECO.pack.cartes, ECO.pack.chances, Pack.alea(Pack.graine(base)));
-  const cards=[];
-  // les cartes sont tirées en parallèle, puis les doublons éventuels retirés à la carte près
-  const tirees=await Promise.all(raretes.map((r,i)=>tirerCarte(r, base+':'+i, [])));
-  for(const c of tirees) if(c && !cards.some(x=>x.id===c.id)) cards.push(c);
-  // une carte manquante (réseau capricieux) : complétée par une carte Commune, pour que le pack ait toujours ses 5 cartes
-  for(let k=0; cards.length<ECO.pack.cartes && k<4; k++){ const c=await tirerCarte(1, base+':plus:'+k, cards); if(c) cards.push(c); }
+  // les cartes sont tirées en parallèle ; une carte manquante (réseau capricieux) est complétée par une Commune
+  const base=(state.pseudo||'?')+':'+jour(); const cards=await TIRAGE.tirerPack(base, ECO.pack.chances, ECO.pack.cartes);
   delete btn.dataset.ouverture; refreshPack();
   if(!cards.length){ finPack(); return toast('Pack impossible à tirer : vérifie ta connexion'); }
   encaisser(true); state.lastPack=jour(); for(const c of cards){ state.owned[c.id]=Object.assign({}, c, {niveau:0, depuis:now()}); state.seen[c.id]='libre'; setBadge(c,0); } save(); refreshTop();

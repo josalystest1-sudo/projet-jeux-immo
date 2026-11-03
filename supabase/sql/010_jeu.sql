@@ -82,10 +82,33 @@ begin
   return p;
 end $$;
 
+-- le pack du jour : une fois par jour (heure de Paris) ; les lieux tirés par la fonction « jeu » deviennent à lui,
+-- sauf un lieu pris entre-temps par quelqu'un d'autre (ignoré). Rend la liste des lieux gagnés.
+create or replace function public.jeu_pack(j uuid, jour date, cartes jsonb) returns jsonb
+language plpgsql security definer set search_path = '' as $$
+declare gagnes jsonb;
+begin
+  update public.joueurs set dernier_pack = jour where id = j and (dernier_pack is null or dernier_pack < jour);
+  if not found then raise exception 'deja'; end if;
+  with ins as (
+    insert into public.lieux (id, proprietaire, type, label, lon, lat, citycode, city, commune, idu, notoriete, cat, qid)
+    select c.id, j, c.type, c.label, c.lon, c.lat, coalesce(c.citycode, ''), coalesce(c.city, ''), coalesce(c.commune, ''), c.idu, c.notoriete, c.cat, c.qid
+      from jsonb_to_recordset(cartes) as c(id text, type text, label text, lon double precision, lat double precision,
+                                          citycode text, city text, commune text, idu text, notoriete text, cat text, qid text)
+     where c.id is not null and c.type in ('adresse', 'lieu')
+    on conflict (id) do nothing
+    returning id
+  )
+  select coalesce(jsonb_agg(id), '[]'::jsonb) into gagnes from ins;
+  return gagnes;
+end $$;
+
 -- ces fonctions ne sont jamais appelables depuis le jeu : seulement par la fonction « jeu » (service_role)
 revoke all on function public.jeu_nouveau_joueur(uuid, bigint) from public, anon, authenticated;
 revoke all on function public.jeu_recolter(uuid, bigint, timestamptz, timestamptz) from public, anon, authenticated;
 revoke all on function public.jeu_construire(uuid, text, smallint, bigint) from public, anon, authenticated;
+revoke all on function public.jeu_pack(uuid, date, jsonb) from public, anon, authenticated;
 grant execute on function public.jeu_nouveau_joueur(uuid, bigint) to service_role;
 grant execute on function public.jeu_recolter(uuid, bigint, timestamptz, timestamptz) to service_role;
 grant execute on function public.jeu_construire(uuid, text, smallint, bigint) to service_role;
+grant execute on function public.jeu_pack(uuid, date, jsonb) to service_role;

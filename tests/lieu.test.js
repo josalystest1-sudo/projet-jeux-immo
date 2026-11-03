@@ -43,6 +43,10 @@ test('vendre : le prix est libre, un entier de 1 à un milliard, espaces accept�
   assert.deepEqual(R.lirePrix('12500'), { ok: true, prix: 12500 }); assert.deepEqual(R.lirePrix('12 500'), { ok: true, prix: 12500 });
   assert.deepEqual(R.lirePrix(' 3\u00a0200 '), { ok: true, prix: 3200 }); assert.equal(R.lirePrix('').raison, 'vide'); assert.equal(R.lirePrix('12,5').raison, 'vide');
   assert.equal(R.lirePrix('-5').raison, 'vide'); assert.equal(R.lirePrix('0').raison, 'zero'); assert.equal(R.lirePrix('1000000001').raison, 'trop'); assert.equal(R.lirePrix(1000000000).prix, 1000000000); });
+test('commune du jeu : Paris par arrondissement, les autres par leur nom', () => {
+  const { nomCommune } = require('../src/regles/lieu.js');
+  assert.equal(nomCommune('75109', 'Paris'), 'Paris 9e'); assert.equal(nomCommune('75101', 'Paris'), 'Paris 1er');
+  assert.equal(nomCommune('92007', 'Bagneux'), 'Bagneux'); assert.equal(nomCommune('', 'Nîmes'), 'Nîmes'); assert.equal(nomCommune('28105', ''), '28105'); });
 test('adresse : numéro et voie (plaque de rue + plaque du numéro)', () => {
   const { numeroEtVoie } = require('../src/regles/lieu.js');
   assert.deepEqual(numeroEtVoie('67 Rue des Martyrs'), { numero: '67', voie: 'Rue des Martyrs' });

@@ -72,6 +72,12 @@
     if (!m) return { numero: '', voie: t };
     return { numero: m[1] + (m[2] ? (m[2].length > 1 ? ' ' + m[2].toLowerCase() : m[2].toUpperCase()) : ''), voie: m[3] };
   }
-  const api = { creer, numeroEtVoie, bilanEchange, PRIX_MAX };
+  // la commune d'un lieu dans le jeu (classements des Maires) : Paris par arrondissement, les autres par leur nom
+  function nomCommune(citycode, city) {
+    if (!citycode) return city || '?';
+    if (String(citycode).startsWith('751')) { const n = parseInt(String(citycode).slice(3), 10); return 'Paris ' + n + (n === 1 ? 'er' : 'e'); }
+    return city || citycode;
+  }
+  const api = { creer, numeroEtVoie, bilanEchange, nomCommune, PRIX_MAX };
   if (typeof module !== 'undefined' && module.exports) module.exports = api; else racine.Regles = api;
 })(typeof globalThis !== 'undefined' ? globalThis : this);

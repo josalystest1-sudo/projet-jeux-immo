@@ -8,6 +8,7 @@ const REF = process.argv[2] || 'hxtyecwofajiozmnfyxt';
 const JETON = process.env.SUPABASE_ACCESS_TOKEN;
 const URL = `https://${REF}.supabase.co`;
 const ECO = require('../data/economie.json');
+const R = require('../src/regles/lieu.js').creer(ECO, require('../data/standing.json'));
 
 let echecs = 0;
 function verifier(ok, texte, detail) { console.log(`${ok ? '✓' : '✗'} ${texte}${!ok && detail !== undefined ? ' : ' + JSON.stringify(detail).slice(0, 300) : ''}`); if (!ok) echecs++; }
@@ -44,6 +45,22 @@ const entetesSecrets = (k) => (k.startsWith('sb_') ? { apikey: k } : { apikey: k
     verifier(rec.corps && rec.corps.ok && rec.corps.pieces >= ECO.solde_depart, 'récolter répond', rec);
     const cons = await jeu({ action: 'construire', id: 'pas-a-moi', niveau: 1 });
     verifier(cons.corps && cons.corps.ok === false && cons.corps.code === 'pas_a_toi', 'construire sur un lieu qui n’est pas à moi : refusé', cons);
+    // le pack du jour : tiré par le serveur, une fois par jour ; puis construire sur la carte la moins chère
+    const pack = await jeu({ action: 'pack' });
+    const cartes = (pack.corps && pack.corps.cartes) || [];
+    verifier(pack.corps && pack.corps.ok && cartes.length >= 1 && cartes.every((c) => R.rarete(c) <= 5), `pack du jour : ${cartes.length} carte(s) (raretés ${cartes.map((c) => R.rarete(c)).join(', ')})`, pack);
+    const encore = await jeu({ action: 'pack' });
+    verifier(encore.corps && encore.corps.ok === false && encore.corps.code === 'deja', 'un deuxième pack le même jour : refusé', encore);
+    const apres = await jeu({ action: 'etat' });
+    verifier(apres.corps && apres.corps.ok && apres.corps.lieux.length === cartes.length, 'les lieux du pack sont à moi', apres);
+    if (cartes.length) {
+      const c = cartes.slice().sort((a, b) => R.coutNiveau(a, 1) - R.coutNiveau(b, 1))[0], cout = R.coutNiveau(c, 1), avant = apres.corps.pieces;
+      const cons1 = await jeu({ action: 'construire', id: c.id, niveau: 1 });
+      if (cout <= avant) verifier(cons1.corps && cons1.corps.ok && cons1.corps.cout === cout && cons1.corps.pieces <= avant - cout + 5, `construire une Maison sur ${c.label} (${cout} pièces)`, cons1);
+      else verifier(cons1.corps && cons1.corps.ok === false && cons1.corps.code === 'fonds', `construire sans assez de pièces (${cout} pour ${avant}) : refusé`, cons1);
+      const saut = await jeu({ action: 'construire', id: c.id, niveau: 3 });
+      verifier(saut.corps && saut.corps.ok === false, 'sauter un niveau : refusé', saut);
+    }
     const inconnu = await jeu({ action: 'tricher' });
     verifier(inconnu.corps && inconnu.corps.ok === false && inconnu.corps.code === 'action', 'action inconnue : refusée', inconnu);
 
