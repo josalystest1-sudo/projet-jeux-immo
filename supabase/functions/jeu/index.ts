@@ -3,8 +3,8 @@
 // que le jeu (src/regles, recopiées dans _genere/ par tools/serveur_prepare.js), puis écrit par les fonctions SQL
 // jeu_* (supabase/sql/010_jeu.sql), chacune atomique. Réponse : { ok: true, ... } ou { ok: false, code, message }.
 import { createClient } from '@supabase/supabase-js';
-import { Regles } from './_genere/regles.mjs';
-import { ECO, STANDING } from './_genere/donnees.mjs';
+import { Regles, Pack, Celebres, Tirage } from './_genere/regles.mjs';
+import { ECO, STANDING, FRANCE, DEPARTEMENTS, CELEBRES } from './_genere/donnees.mjs';
 
 const JOUR_MS = 86_400_000;                           // le vrai jeu : un jour = 24 heures
 const R = Regles.creer(ECO, STANDING);
@@ -63,6 +63,7 @@ async function rpc(nom: string, args: Ligne) {
     if (/fonds/.test(m)) throw new Refus('fonds', 'Pas assez de pièces.');
     if (/pas_a_toi/.test(m)) throw new Refus('pas_a_toi', 'Ce lieu n’est pas à toi.');
     if (/niveau/.test(m)) throw new Refus('niveau', 'On construit un niveau à la fois.');
+    if (/deja/.test(m)) throw new Refus('deja', 'Ton pack du jour est déjà ouvert : le prochain arrive à minuit.');
     throw error;
   }
   return data;
@@ -81,12 +82,31 @@ async function recolter(j: string) {
   throw new Refus('occupe', 'Une autre récolte est en cours : réessaie.');
 }
 
+// ---------------------------------------------------------------- le pack du jour (src/tirage.js, le même tirage que le jeu)
+// le jour du jeu : la date à Paris (le pack se renouvelle à minuit)
+const aujourdhui = () => new Intl.DateTimeFormat('en-CA', { timeZone: 'Europe/Paris', year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date());
+async function geoJSON(chemin: string) {
+  const r = await fetch('https://data.geopf.fr/geocodage/' + chemin, { headers: { 'User-Agent': 'Cadastra (github.com/josalystest1-sudo/projet-jeux-immo)' } });
+  if (!r.ok) throw new Error('géocodage ' + r.status);
+  return r.json();
+}
+// libre = personne ne le possède (la table des lieux fait foi)
+async function estLibre(c: Ligne) {
+  const { data, error } = await admin.from('lieux').select('id').eq('id', c.id).maybeSingle();
+  if (error) throw error;
+  return !data;
+}
+const TIRAGE = Tirage.creer({
+  geoJSON, celebres: async (dep: string) => (CELEBRES as Ligne)[dep] || [], france: FRANCE, deps: DEPARTEMENTS, standing: STANDING,
+  Celebres, Pack, rarete: (l: Ligne) => R.rarete(l), estLibre,
+});
+
 const ACTIONS: Record<string, (j: string, corps: Ligne) => Promise<Ligne>> = {
   // ma partie : pièces, lieux, ce qui attend d'être récolté
   async etat(j) {
     const jr = await joueur(j), lieux = await mesLieux(j), maintenant = Date.now();
     return {
-      pieces: Number(jr.pieces), encaisse: ms(jr.encaisse), dernierPack: jr.dernier_pack, lieux, maintenant,
+      pieces: Number(jr.pieces), encaisse: ms(jr.encaisse), dernierPack: jr.dernier_pack, aujourdhui: aujourdhui(), lieux, maintenant,
       aRecolter: R.aEncaisser(lieux, ms(jr.encaisse), maintenant, JOUR_MS), jourMs: JOUR_MS,
     };
   },
@@ -104,6 +124,22 @@ const ACTIONS: Record<string, (j: string, corps: Ligne) => Promise<Ligne>> = {
     const pieces = await rpc('jeu_construire', { j, l: id, n: niveau, cout });
     return { pieces: Number(pieces), lieu: { ...a, niveau }, cout };
   },
+};
+
+// ouvrir le pack du jour : le serveur tire au hasard (graine secrète), une fois par jour
+ACTIONS.pack = async (j) => {
+  const jour = aujourdhui(), jr = await joueur(j);
+  if (jr.dernier_pack && jr.dernier_pack >= jour) throw new Refus('deja', 'Ton pack du jour est déjà ouvert : le prochain arrive à minuit.');
+  const cartes = await TIRAGE.tirerPack(crypto.randomUUID() + ':' + jour, ECO.pack.chances, ECO.pack.cartes);
+  if (!cartes.length) throw new Refus('reseau', 'Pack impossible à tirer pour l’instant : réessaie dans un instant.');
+  await recolter(j);   // les loyers d'avant sont encaissés : les nouveaux lieux comptent à partir de maintenant
+  const lignes = cartes.map((c: Ligne) => ({ ...c, commune: Regles.nomCommune(c.citycode, c.city) }));
+  const gagnes: string[] = await rpc('jeu_pack', { j, jour, cartes: lignes });
+  const maintenant = Date.now();
+  return {
+    cartes: cartes.filter((c: Ligne) => gagnes.includes(c.id)).map((c: Ligne) => ({ ...c, niveau: 0, depuis: maintenant })),
+    dernierPack: jour,
+  };
 };
 
 Deno.serve(async (req: Request) => {
