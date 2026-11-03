@@ -6,7 +6,6 @@ import { createClient } from '@supabase/supabase-js';
 import { Regles, Pack, Celebres, Tirage } from './_genere/regles.mjs';
 import { ECO, STANDING, FRANCE, DEPARTEMENTS, CELEBRES } from './_genere/donnees.mjs';
 
-const JOUR_MS = 86_400_000;                           // le vrai jeu : un jour = 24 heures
 const R = Regles.creer(ECO, STANDING);
 
 // la clé secrète du projet est donnée par Supabase à la fonction (jamais écrite dans le dépôt)
@@ -32,6 +31,16 @@ function enTetes(req: Request): Record<string, string> {
 // un refus attendu (pas assez de pièces…) : le message est montré tel quel au joueur
 class Refus extends Error { code: string; constructor(code: string, message: string) { super(message); this.code = code; } }
 
+// ---------------------------------------------------------------- la vitesse du temps (table reglages)
+// jour_secondes : 60 sur le serveur d'essai (un jour = une minute), 86400 pour le vrai jeu (pack à minuit à Paris)
+let vitesse = { jourMs: 60_000, lu: 0 };
+async function jourMs(): Promise<number> {
+  if (Date.now() - vitesse.lu < 30_000) return vitesse.jourMs;
+  const { data } = await admin.from('reglages').select('valeur').eq('cle', 'jour_secondes').maybeSingle();
+  const s = Number(data && data.valeur); vitesse = { jourMs: s >= 1 ? s * 1000 : 86_400_000, lu: Date.now() };
+  return vitesse.jourMs;
+}
+
 // ---------------------------------------------------------------- lire la partie
 type Ligne = Record<string, any>;
 const ms = (t: string | null) => (t ? Date.parse(t) : 0);
@@ -47,7 +56,7 @@ function lieuDe(l: Ligne) {
 }
 async function joueur(j: string) {
   await rpc('jeu_nouveau_joueur', { j, depart: ECO.solde_depart });
-  const { data, error } = await admin.from('joueurs').select('pieces, encaisse, dernier_pack').eq('id', j).single();
+  const { data, error } = await admin.from('joueurs').select('pieces, encaisse, dernier_jour').eq('id', j).single();
   if (error || !data) throw error || new Error('joueur introuvable');
   return data;
 }
@@ -59,7 +68,7 @@ async function mesLieux(j: string) {
 // les refus des fonctions SQL (raise exception '<code>') → un message pour le joueur ; toute autre erreur est une panne
 const REFUS_SQL: Record<string, string> = {
   fonds: 'Pas assez de pièces.', pas_a_toi: 'Ce lieu n’est pas à toi.', niveau: 'On construit un niveau à la fois.',
-  deja: 'Ton pack du jour est déjà ouvert : le prochain arrive à minuit.', plus_a_lui: 'Ce lieu a changé de propriétaire entre-temps.',
+  deja: 'Ton pack du jour est déjà ouvert : reviens au prochain jour du jeu.', plus_a_lui: 'Ce lieu a changé de propriétaire entre-temps.',
   prix_change: 'Le vendeur vient de changer son prix : regarde le nouveau.', soi_meme: 'Ce lieu est déjà à toi.',
   libre: 'Ce lieu n’est à personne : il ne sort que des packs.', offre: 'Cette offre n’est plus valable.', prix: 'Prix invalide.',
 };
@@ -74,7 +83,7 @@ async function rpc(nom: string, args: Ligne) {
 async function recolter(j: string) {
   for (let essai = 0; essai < 3; essai++) {
     const jr = await joueur(j), lieux = await mesLieux(j), maintenant = Date.now();
-    const montant = R.aEncaisser(lieux, ms(jr.encaisse), maintenant, JOUR_MS);
+    const montant = R.aEncaisser(lieux, ms(jr.encaisse), maintenant, await jourMs());
     if (montant < 1) return { recolte: 0, pieces: Number(jr.pieces) };
     const p = await rpc('jeu_recolter', { j, montant, avant: jr.encaisse, maintenant: new Date(maintenant).toISOString() });
     if (p != null) return { recolte: montant, pieces: Number(p) };
@@ -83,8 +92,6 @@ async function recolter(j: string) {
 }
 
 // ---------------------------------------------------------------- le pack du jour (src/tirage.js, le même tirage que le jeu)
-// le jour du jeu : la date à Paris (le pack se renouvelle à minuit)
-const aujourdhui = () => new Intl.DateTimeFormat('en-CA', { timeZone: 'Europe/Paris', year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date());
 async function geoJSON(chemin: string) {
   const r = await fetch('https://data.geopf.fr/geocodage/' + chemin, { headers: { 'User-Agent': 'Cadastra (github.com/josalystest1-sudo/projet-jeux-immo)' } });
   if (!r.ok) throw new Error('géocodage ' + r.status);
@@ -103,11 +110,11 @@ const TIRAGE = Tirage.creer({
 
 // ma partie : pièces, lieux, ce qui attend d'être récolté (rendue aussi après chaque action : le jeu se recale dessus)
 async function etatDe(j: string) {
-  const jr = await joueur(j), lieux = await mesLieux(j), maintenant = Date.now();
+  const jr = await joueur(j), lieux = await mesLieux(j), maintenant = Date.now(), jm = await jourMs();
   const [offres, notifs] = await Promise.all([mesOffres(j), mesNotifs(j)]);
   return {
-    pieces: Number(jr.pieces), encaisse: ms(jr.encaisse), dernierPack: jr.dernier_pack, aujourdhui: aujourdhui(), lieux, maintenant,
-    aRecolter: R.aEncaisser(lieux, ms(jr.encaisse), maintenant, JOUR_MS), jourMs: JOUR_MS, ...offres, notifs,
+    pieces: Number(jr.pieces), encaisse: ms(jr.encaisse), dernierJour: jr.dernier_jour == null ? null : Number(jr.dernier_jour), jour: Regles.jourDuJeu(maintenant, jm),
+    lieux, maintenant, aRecolter: R.aEncaisser(lieux, ms(jr.encaisse), maintenant, jm), jourMs: jm, ...offres, notifs,
   };
 }
 // mes offres reçues et envoyées (en attente, et les dernières réglées), avec le lieu et l'autre joueur
@@ -223,8 +230,8 @@ ACTIONS.notifs_lues = async (j) => { await rpc('jeu_notifs_lues', { j }); return
 
 // ouvrir le pack du jour : le serveur tire au hasard (graine secrète), une fois par jour
 ACTIONS.pack = async (j) => {
-  const jour = aujourdhui(), jr = await joueur(j);
-  if (jr.dernier_pack && jr.dernier_pack >= jour) throw new Refus('deja', 'Ton pack du jour est déjà ouvert : le prochain arrive à minuit.');
+  const jm = await jourMs(), jour = Regles.jourDuJeu(Date.now(), jm), jr = await joueur(j);
+  if (jr.dernier_jour != null && Number(jr.dernier_jour) >= jour) throw new Refus('deja', REFUS_SQL.deja);
   const cartes = await TIRAGE.tirerPack(crypto.randomUUID() + ':' + jour, ECO.pack.chances, ECO.pack.cartes);
   if (!cartes.length) throw new Refus('reseau', 'Pack impossible à tirer pour l’instant : réessaie dans un instant.');
   await recolter(j);   // les loyers d'avant sont encaissés : les nouveaux lieux comptent à partir de maintenant
@@ -233,7 +240,7 @@ ACTIONS.pack = async (j) => {
   const maintenant = Date.now();
   return {
     cartes: cartes.filter((c: Ligne) => gagnes.includes(c.id)).map((c: Ligne) => ({ ...c, niveau: 0, depuis: maintenant })),
-    dernierPack: jour,
+    dernierJour: jour,
   };
 };
 

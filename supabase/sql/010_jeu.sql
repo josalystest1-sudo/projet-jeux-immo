@@ -10,9 +10,10 @@ create table if not exists public.joueurs (
   id           uuid primary key references auth.users (id) on delete cascade,
   pieces       bigint not null default 1500 check (pieces >= 0),
   encaisse     timestamptz not null default now(),   -- dernière récolte (salaire + loyers, 24 h de stock au plus)
-  dernier_pack date,                                  -- jour (heure de Paris) du dernier pack gratuit ouvert
+  dernier_pack date,                                  -- (ancien : jour de calendrier du dernier pack)
   cree_le      timestamptz not null default now()
 );
+alter table public.joueurs add column if not exists dernier_jour bigint;   -- numéro du jour du jeu du dernier pack gratuit
 alter table public.joueurs enable row level security;
 drop policy if exists "mes pièces" on public.joueurs;
 create policy "mes pièces" on public.joueurs for select to authenticated using (id = (select auth.uid()));
@@ -82,13 +83,14 @@ begin
   return p;
 end $$;
 
--- le pack du jour : une fois par jour (heure de Paris) ; les lieux tirés par la fonction « jeu » deviennent à lui,
--- sauf un lieu pris entre-temps par quelqu'un d'autre (ignoré). Rend la liste des lieux gagnés.
-create or replace function public.jeu_pack(j uuid, jour date, cartes jsonb) returns jsonb
+-- le pack du jour : une fois par jour du jeu (numéro donné par la fonction « jeu » : minuit à Paris, ou une minute
+-- sur le serveur d'essai) ; les lieux tirés deviennent à lui, sauf un lieu pris entre-temps (ignoré). Rend les lieux gagnés.
+drop function if exists public.jeu_pack(uuid, date, jsonb);
+create or replace function public.jeu_pack(j uuid, jour bigint, cartes jsonb) returns jsonb
 language plpgsql security definer set search_path = '' as $$
 declare gagnes jsonb;
 begin
-  update public.joueurs set dernier_pack = jour where id = j and (dernier_pack is null or dernier_pack < jour);
+  update public.joueurs set dernier_jour = jour where id = j and (dernier_jour is null or dernier_jour < jour);
   if not found then raise exception 'deja'; end if;
   with ins as (
     insert into public.lieux (id, proprietaire, type, label, lon, lat, citycode, city, commune, idu, notoriete, cat, qid)
@@ -107,8 +109,8 @@ end $$;
 revoke all on function public.jeu_nouveau_joueur(uuid, bigint) from public, anon, authenticated;
 revoke all on function public.jeu_recolter(uuid, bigint, timestamptz, timestamptz) from public, anon, authenticated;
 revoke all on function public.jeu_construire(uuid, text, smallint, bigint) from public, anon, authenticated;
-revoke all on function public.jeu_pack(uuid, date, jsonb) from public, anon, authenticated;
+revoke all on function public.jeu_pack(uuid, bigint, jsonb) from public, anon, authenticated;
 grant execute on function public.jeu_nouveau_joueur(uuid, bigint) to service_role;
 grant execute on function public.jeu_recolter(uuid, bigint, timestamptz, timestamptz) to service_role;
 grant execute on function public.jeu_construire(uuid, text, smallint, bigint) to service_role;
-grant execute on function public.jeu_pack(uuid, date, jsonb) to service_role;
+grant execute on function public.jeu_pack(uuid, bigint, jsonb) to service_role;

@@ -47,6 +47,14 @@ test('commune du jeu : Paris par arrondissement, les autres par leur nom', () =>
   const { nomCommune } = require('../src/regles/lieu.js');
   assert.equal(nomCommune('75109', 'Paris'), 'Paris 9e'); assert.equal(nomCommune('75101', 'Paris'), 'Paris 1er');
   assert.equal(nomCommune('92007', 'Bagneux'), 'Bagneux'); assert.equal(nomCommune('', 'Nîmes'), 'Nîmes'); assert.equal(nomCommune('28105', ''), '28105'); });
+test('le jour du jeu : minuit à Paris en vrais jours, tranches de jourMs en accéléré', () => {
+  const { jourDuJeu, secondesAvantJourSuivant } = require('../src/regles/lieu.js');
+  const avantMinuit = Date.UTC(2026, 10, 3, 22, 59, 0), apresMinuit = Date.UTC(2026, 10, 3, 23, 1, 0);   // 23 h 59 et 0 h 01 à Paris (UTC+1)
+  assert.equal(jourDuJeu(apresMinuit, 86400000) - jourDuJeu(avantMinuit, 86400000), 1, 'le jour change à minuit, heure de Paris');
+  assert.equal(secondesAvantJourSuivant(avantMinuit, 86400000), 60);
+  assert.equal(jourDuJeu(125000, 60000), 2); assert.equal(secondesAvantJourSuivant(125000, 60000), 55);
+  const ete = Date.UTC(2026, 6, 1, 21, 30, 0);   // 23 h 30 à Paris l'été (UTC+2)
+  assert.equal(secondesAvantJourSuivant(ete, 86400000), 1800); });
 test('adresse : numéro et voie (plaque de rue + plaque du numéro)', () => {
   const { numeroEtVoie } = require('../src/regles/lieu.js');
   assert.deepEqual(numeroEtVoie('67 Rue des Martyrs'), { numero: '67', voie: 'Rue des Martyrs' });

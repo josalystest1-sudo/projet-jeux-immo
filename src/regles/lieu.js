@@ -78,6 +78,18 @@
     if (String(citycode).startsWith('751')) { const n = parseInt(String(citycode).slice(3), 10); return 'Paris ' + n + (n === 1 ? 'er' : 'e'); }
     return city || citycode;
   }
-  const api = { creer, numeroEtVoie, bilanEchange, nomCommune, PRIX_MAX };
+  // Le jour du jeu (pack du jour, récolte) : en vrais jours (24 h), le jour de calendrier à Paris (le pack se
+  // renouvelle à minuit) ; en jours accélérés (serveur d'essai, démo), des tranches de jourMs depuis 1970.
+  const PARIS_JOUR = typeof Intl !== 'undefined' ? new Intl.DateTimeFormat('en-CA', { timeZone: 'Europe/Paris', year: 'numeric', month: '2-digit', day: '2-digit' }) : null;
+  const PARIS_HEURE = typeof Intl !== 'undefined' ? new Intl.DateTimeFormat('en-GB', { timeZone: 'Europe/Paris', hour: '2-digit', minute: '2-digit', second: '2-digit', hourCycle: 'h23' }) : null;
+  function jourDuJeu(ms, jourMs) {
+    if (jourMs >= 86400000 && PARIS_JOUR) { const [y, m, j] = PARIS_JOUR.format(new Date(ms)).split('-').map(Number); return Math.round(Date.UTC(y, m - 1, j) / 86400000); }
+    return Math.floor(ms / jourMs);
+  }
+  function secondesAvantJourSuivant(ms, jourMs) {
+    if (jourMs >= 86400000 && PARIS_HEURE) { const [h, mi, s] = PARIS_HEURE.format(new Date(ms)).split(':').map(Number); return Math.max(1, 86400 - (h * 3600 + mi * 60 + s)); }
+    return Math.max(1, Math.ceil(((Math.floor(ms / jourMs) + 1) * jourMs - ms) / 1000));
+  }
+  const api = { creer, numeroEtVoie, bilanEchange, nomCommune, jourDuJeu, secondesAvantJourSuivant, PRIX_MAX };
   if (typeof module !== 'undefined' && module.exports) module.exports = api; else racine.Regles = api;
 })(typeof globalThis !== 'undefined' ? globalThis : this);
