@@ -8,6 +8,8 @@
 @font-face{font-family:'Nunito';font-style:normal;font-weight:700;font-display:swap;src:url(fonts/nunito-latin-700-normal.woff2) format('woff2')}
 @font-face{font-family:'Nunito';font-style:normal;font-weight:800;font-display:swap;src:url(fonts/nunito-latin-800-normal.woff2) format('woff2')}
 @font-face{font-family:'Nunito';font-style:normal;font-weight:900;font-display:swap;src:url(fonts/nunito-latin-900-normal.woff2) format('woff2')}
+@font-face{font-family:'Barlow Condensed';font-style:normal;font-weight:600;font-display:swap;src:url(fonts/barlow-condensed-latin-600-normal.woff2) format('woff2')}
+@font-face{font-family:'Barlow Condensed';font-style:normal;font-weight:700;font-display:swap;src:url(fonts/barlow-condensed-latin-700-normal.woff2) format('woff2')}
 
 /* ---------------------------------------------------------------- couleurs et mesures */
 :root{
@@ -16,7 +18,7 @@
   --cadre:#2E8B57; --cadre2:#1F6A40;
   --piece:#FFC233; --piece2:#D99114; --piece-clair:#FFF3CF;
   --brique:#E4573D; --brique2:#B43A23;
-  --titre:'Baloo 2',ui-rounded,system-ui,sans-serif; --texte:'Nunito',system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;
+  --titre:'Baloo 2',ui-rounded,system-ui,sans-serif; --texte:'Nunito',system-ui,-apple-system,'Segoe UI',Roboto,sans-serif; --panneau:'Barlow Condensed','Arial Narrow',system-ui,sans-serif;
   --ombre:0 6px 18px rgba(23,35,63,.13); --ombre-forte:0 12px 34px rgba(23,35,63,.22);
   --nav:70px;
   /* couleurs de la carte (inchangées) */
@@ -51,10 +53,35 @@ a{color:var(--plaque);font-weight:800}
 /* la pièce de Cadastra : une pièce d'or en forme de maison, frappée d'un C (icones/piece.svg) */
 .pc{display:inline-block;width:1.05em;height:1.05em;vertical-align:-.16em;background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='.9' y2='1'%3E%3Cstop offset='0' stop-color='%23FFF4BF'/%3E%3Cstop offset='.42' stop-color='%23FFC93D'/%3E%3Cstop offset='1' stop-color='%23DE8A08'/%3E%3C/linearGradient%3E%3C/defs%3E%3Cpath d='M16 2.3 29.7 13.5V27.3Q29.7 29.7 27.3 29.7H4.7Q2.3 29.7 2.3 27.3V13.5Z' fill='url(%23g)' stroke='%239A5F00' stroke-width='2.2' stroke-linejoin='round'/%3E%3Cpath d='M16 6.5 26.1 14.8V26.1H5.9V14.8Z' fill='none' stroke='%23FFF6CF' stroke-opacity='.8' stroke-width='1.2' stroke-linejoin='round'/%3E%3Cpath d='M5.2 12.6 15.2 4.5' stroke='%23fff' stroke-opacity='.75' stroke-width='1.6' stroke-linecap='round'/%3E%3Cpath d='M19.8 17.3A4.8 4.8 0 1 0 19.8 23.9' fill='none' stroke='%23FFF4BF' stroke-opacity='.85' stroke-width='3.1' stroke-linecap='round' transform='translate(.5 .55)'/%3E%3Cpath d='M19.8 17.3A4.8 4.8 0 1 0 19.8 23.9' fill='none' stroke='%239A5F00' stroke-width='3.1' stroke-linecap='round'/%3E%3C/svg%3E") center/contain no-repeat;flex:none;font-style:normal}
 
-/* ---------------------------------------------------------------- la plaque de rue */
-.plaque{display:inline-flex;flex-direction:column;align-items:center;justify-content:center;max-width:100%;background:var(--plaque);color:#fff;border:2.5px solid #fff;outline:3px solid var(--cadre);outline-offset:0;border-radius:10px;padding:5px 14px 3px;font-family:var(--titre);font-weight:800;font-size:19px;line-height:1.08;text-align:center;box-shadow:0 4px 0 var(--plaque2),0 8px 18px rgba(23,35,63,.22);margin:3px 3px 10px}
-.plaque small{font-family:var(--texte);font-weight:800;font-size:11px;letter-spacing:.02em;opacity:.85;margin-bottom:1px}
-.plaque.petite{font-size:15px;padding:3px 10px 2px;border-width:2px;outline-width:2px;margin:2px 2px 6px;box-shadow:0 3px 0 var(--plaque2)}
+/* ---------------------------------------------------------------- la plaque de rue (émail parisien, dessiné) */
+.plaque{position:relative;overflow-wrap:anywhere;hyphens:auto;display:inline-flex;flex-direction:column;align-items:center;justify-content:center;max-width:100%;box-sizing:border-box;padding:7px 26px 6px;margin:7px 7px 13px;border-radius:8px;color:#fff;font-family:var(--panneau);font-weight:700;font-size:21px;line-height:1.02;letter-spacing:.035em;text-transform:uppercase;text-align:center;text-shadow:0 1px 0 rgba(4,16,48,.35);
+  background:
+    linear-gradient(168deg,rgba(255,255,255,.22) 0%,rgba(255,255,255,.08) 33%,rgba(255,255,255,0) 34.5%,rgba(0,0,0,0) 70%,rgba(0,0,0,.14) 100%),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 .07 0'/%3E%3C/filter%3E%3Crect width='120' height='120' filter='url(%23n)'/%3E%3C/svg%3E"),
+    radial-gradient(130% 150% at 28% 12%,#2E5CB4 0%,#204899 48%,#183A80 100%);
+  box-shadow:inset 0 0 0 2.5px #204899,inset 0 0 0 4px #F2EFE6,inset 0 1px 7px 4px rgba(6,20,60,.32),0 0 0 3px #2D7A55,0 0 0 4.5px #184B34,0 4px 0 4.5px #12392A,0 9px 14px 4px rgba(23,35,63,.28)}
+.plaque::before,.plaque::after{content:'';position:absolute;top:50%;width:7px;height:7px;margin-top:-3.5px;border-radius:50%;background:linear-gradient(45deg,transparent 42%,rgba(55,62,74,.85) 43% 57%,transparent 58%),radial-gradient(circle at 35% 30%,#fff 0,#D9DEE6 35%,#8F98A6 75%,#5A6270 100%);box-shadow:0 1px 1px rgba(0,0,0,.5)}
+.plaque::before{left:9px}.plaque::after{right:9px}
+.plaque small{display:block;font-family:var(--panneau);font-weight:600;font-size:.52em;text-transform:none;letter-spacing:.05em;line-height:1.15;padding:0 8px 2px;margin-bottom:3px;border-bottom:1.5px solid rgba(242,239,230,.85);opacity:.95}
+.plaque.petite{font-size:16px;padding:5px 22px 4px;margin:5px 5px 10px;border-radius:7px}
+.plaque.petite::before,.plaque.petite::after{width:5px;height:5px;margin-top:-2.5px}.plaque.petite::before{left:8px}.plaque.petite::after{right:8px}
+/* le numéro de la maison : la petite plaque bleue sous la plaque de rue */
+.numero{display:inline-flex;align-items:center;justify-content:center;min-width:36px;box-sizing:border-box;padding:4px 10px 3px;border-radius:7px;color:#fff;font-family:var(--panneau);font-weight:700;font-size:21px;line-height:1;letter-spacing:.02em;text-shadow:0 1px 0 rgba(4,16,48,.35);
+  background:linear-gradient(168deg,rgba(255,255,255,.2) 0%,rgba(255,255,255,.06) 40%,rgba(255,255,255,0) 41%),radial-gradient(130% 150% at 28% 12%,#2E5CB4,#204899 50%,#183A80);
+  box-shadow:inset 0 0 0 2px #204899,inset 0 0 0 3.2px #F2EFE6,0 0 0 1.5px #12306B,0 3px 0 1.5px #0E2457,0 5px 8px rgba(0,0,0,.28)}
+/* un pan de façade en pierre de taille, où la plaque est vissée (cartes) */
+.facade{position:relative;width:100%;box-sizing:border-box;border-radius:12px;padding:16px 8px 14px;display:flex;flex-direction:column;align-items:center;gap:4px;
+  background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='64' height='44'%3E%3Cg stroke='%23A08C66' stroke-opacity='.32' stroke-width='1.2'%3E%3Cpath d='M0 .6H64M0 22.6H64M.6 0V22M32.6 22V44'/%3E%3C/g%3E%3C/svg%3E"),linear-gradient(180deg,#F1E8D4 0%,#E6D9BE 100%);
+  box-shadow:inset 0 0 0 1px rgba(140,118,84,.25),inset 0 -12px 20px rgba(140,118,84,.14),inset 0 10px 16px rgba(255,255,255,.35)}
+.facade .plaque{margin:4px 4px 8px;max-width:calc(100% - 12px)}
+.facade .numero{align-self:flex-end;margin-right:14%}
+.facade.l .plaque{font-size:18px}.facade.xl .plaque{font-size:15px}
+.ccarte .facade{padding:10px 4px 9px;border-radius:10px;margin:8px 0 6px}
+.ccarte .facade .plaque{font-size:15px;padding:5px 15px 4px;margin:3px 2px 7px;border-radius:6px}
+.ccarte .facade .plaque small{font-size:9.5px;padding:0 4px 1px;margin-bottom:2px}
+.ccarte .facade .plaque::before,.ccarte .facade .plaque::after{width:4px;height:4px;margin-top:-2px}.ccarte .facade .plaque::before{left:5px}.ccarte .facade .plaque::after{right:5px}
+.ccarte .facade .numero{font-size:14px;min-width:26px;padding:3px 7px 2px;border-radius:5px;margin-right:10%}
+.ccarte .facade.l .plaque{font-size:13.5px}.ccarte .facade.xl .plaque{font-size:12px}
 
 /* ---------------------------------------------------------------- pastilles */
 .chips{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0}
@@ -213,7 +240,7 @@ h2{margin:4px 0 2px;font-size:22px}
 .ccarte .m{color:var(--gris);font-size:12px;font-weight:800;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .ccarte .pied{margin-top:auto;padding-top:8px;display:flex;justify-content:space-between;align-items:center;gap:4px;font-family:var(--titre);font-weight:800;font-size:14px}
 .ccarte .pied .loyer{color:var(--cadre2);font-size:13px}
-.ccarte .vente{position:absolute;left:-30px;top:50px;transform:rotate(-38deg);background:var(--cadre);color:#fff;font-size:11px;font-weight:900;padding:3px 34px;box-shadow:0 2px 6px rgba(0,0,0,.2)}
+.ccarte .vente{z-index:3;position:absolute;left:-30px;top:50px;transform:rotate(-38deg);background:var(--cadre);color:#fff;font-size:11px;font-weight:900;padding:3px 34px;box-shadow:0 2px 6px rgba(0,0,0,.2)}
 .ccarte.r4::after,.ccarte.r5::after{content:'';position:absolute;inset:0;background:linear-gradient(115deg,transparent 40%,rgba(255,255,255,.6) 50%,transparent 60%);background-size:260% 100%;animation:reflet 4.5s ease-in-out infinite;pointer-events:none}
 @keyframes reflet{0%,60%{background-position:130% 0}100%{background-position:-60% 0}}
 .filtres{display:flex;gap:7px;overflow-x:auto;padding:2px 2px 10px;margin:0 -2px 4px;scrollbar-width:none}
@@ -367,8 +394,9 @@ h2{margin:4px 0 2px;font-size:22px}
 /* ---------------------------------------------------------------- l'écran d'accueil (pendant le chargement de la carte) */
 #accueil{position:absolute;inset:0;z-index:100;background:radial-gradient(circle at 50% 38%,#fff 0,var(--ciel) 55%,#CFE0FA 100%);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:26px;transition:opacity .5s ease}
 #accueil.fin{opacity:0;pointer-events:none}
-#accueil .logo{font-size:44px;padding:10px 26px 6px;animation:pop .5s cubic-bezier(.2,1.4,.4,1)}
-#accueil .logo small{font-size:14px}
+#accueil .logo{font-size:46px;padding:10px 42px 8px;border-radius:11px;animation:pop .5s cubic-bezier(.2,1.4,.4,1)}
+#accueil .logo small{font-size:19px}
+#accueil .logo::before{left:14px}#accueil .logo::after{right:14px}
 .chargement{display:flex;gap:10px}
 .chargement .pc{width:20px;height:20px;animation:saut 1s ease-in-out infinite}
 .chargement .pc:nth-child(2){animation-delay:.15s}.chargement .pc:nth-child(3){animation-delay:.3s}
@@ -388,7 +416,7 @@ button.chip:active{transform:scale(.96)}
 #voyage .voyage-carte{display:flex;flex-direction:column;align-items:center;gap:12px;padding:0 24px;text-align:center;transform:translateY(8px);transition:transform .35s cubic-bezier(.2,1.3,.4,1)}
 #voyage.on .voyage-carte{transform:none}
 #voyage .voyage-pin{font-size:44px;animation:saut 1.1s ease-in-out infinite;filter:drop-shadow(0 6px 4px rgba(23,35,63,.18))}
-#voyage .plaque{font-size:22px;max-width:300px;padding:8px 18px 6px;line-height:1.15}
+#voyage .plaque{font-size:25px;max-width:310px;padding:9px 32px 7px;line-height:1.05}
 #voyage .voyage-sous{font-weight:800;color:var(--encre2);font-size:14px;min-height:18px}
 #charge{position:absolute;left:50%;top:calc(122px + env(safe-area-inset-top));transform:translate(-50%,-8px);z-index:5;background:#fff;border-radius:999px;padding:7px 14px 7px 10px;font-weight:800;font-size:13px;color:var(--encre2);box-shadow:0 6px 18px rgba(23,35,63,.16);display:flex;align-items:center;gap:8px;opacity:0;pointer-events:none;transition:opacity .2s,transform .2s;white-space:nowrap}
 #charge.on{opacity:1;transform:translate(-50%,0)}
@@ -401,3 +429,20 @@ button.chip:active{transform:scale(.96)}
 .mon-anneau i:nth-child(2){animation-delay:1.2s}
 .mon-anneau.national i{left:-38px;top:-38px;width:76px;height:76px}
 @keyframes anneau{0%{transform:scale(.35);opacity:.95}100%{transform:scale(1.5);opacity:0}}
+
+.ico-lieu .numero{font-size:17px;min-width:30px;padding:3px 7px 2px;border-radius:6px}
+.mini-plaque{display:inline-block;width:34px;height:22px;border-radius:5px;background:radial-gradient(130% 150% at 28% 12%,#2E5CB4,#204899 50%,#183A80);box-shadow:inset 0 0 0 2px #204899,inset 0 0 0 3px #F2EFE6,0 0 0 2px #2D7A55,0 2px 0 2px #12392A}
+.rcard .front .facade{margin:4px 0 2px}
+
+/* mettre en vente : le prix au choix */
+.vente-valeur{display:flex;justify-content:space-between;align-items:center;background:var(--piece-clair);color:#7A5200;border-radius:14px;padding:10px 14px;font-weight:800;margin:4px 0 12px}
+.vente-valeur b{font-family:var(--titre);font-size:18px}
+.champ-prix{display:flex;align-items:center;gap:8px;border:2.5px solid var(--plaque);border-radius:16px;padding:6px 14px;background:#fff;box-shadow:0 4px 0 var(--plaque-clair)}
+.champ-prix span{font-weight:900;color:var(--encre2);font-size:13px;white-space:nowrap}
+.champ-prix input{flex:1;min-width:0;border:0;outline:0;background:none;text-align:right;font-family:var(--titre);font-weight:800;font-size:28px;color:var(--encre);padding:2px 0}
+.champ-prix .pc{width:26px;height:26px}
+#prix-vite{margin:12px 0 4px;gap:6px;flex-wrap:wrap}
+#prix-vite .chip{border:0;cursor:pointer}
+.prix-note{min-height:20px;font-size:13px;font-weight:800;color:var(--cadre2);margin:6px 2px 12px}
+.prix-note.bas{color:#B5651D}.prix-note.err{color:#C62828}
+.prix-vente{border:0;background:var(--piece-clair);color:#7A5200;border-radius:999px;padding:5px 10px;font-family:var(--titre);font-weight:800;font-size:14px;display:inline-flex;align-items:center;gap:3px;cursor:pointer;white-space:nowrap}
