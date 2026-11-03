@@ -54,6 +54,8 @@
 
 - 3 nov. 2026 : **la mise à jour emporte aussi les règles** : chaque publication numérote tous les scripts du jeu (règles, données) ; avant, le navigateur pouvait garder les anciennes règles sous la nouvelle page (vu sur le site : la nouvelle page avec les anciens plafonds).
 
+- 3 nov. 2026 : **chercher une commune** (demande de Gautier : « pas pratique de trouver la commune voulue ») : l'écran Communes a une barre de recherche (toutes les communes de France, Paris par arrondissement) ; chaque proposition montre déjà son Maire ; toucher une commune ouvre son classement en tête, avec « Voir la commune sur la carte ». Mes communes sont en lignes courtes (Maire, mes lieux, ce qu'il me manque) qu'on touche pour voir le classement.
+
 ## En cours
 - Lieux célèbres : les autres catégories (châteaux, mairies, gares, musées, ponts, phares, moulins…) dès que Wikidata répond (`python3 tools/wikidata_celebres.py`, puis `--fusion` et `gen_donnees.py celebres`).
 - Phase 1.1 à 1.4 : la carte et le modèle des lieux reconstruits en modules (`src/`) à partir du prototype ; puis le marché (phase 4 : historique des ventes d'un lieu) et les communes et Maires (phase 6). Ensuite : Signaler envoyé au serveur dès qu'il y aura de vrais joueurs à l'écran ; Google ; un service d'envoi d'e-mails avant le lancement (le service de Supabase n'écrit qu'aux membres de l'équipe Supabase, deux e-mails par heure).

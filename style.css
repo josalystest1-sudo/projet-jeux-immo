@@ -551,3 +551,25 @@ body.fiche-ouverte #top .barre,body.fiche-ouverte #sugg,body.fiche-ouverte #ctrl
 .card.lot.r6:not(.nat){border:3px solid #E3D6FB}
 .mon-anneau i{border-color:transparent;background:var(--arc-rond) border-box;-webkit-mask:radial-gradient(farthest-side,transparent calc(100% - 3px),#000 calc(100% - 3px));mask:radial-gradient(farthest-side,transparent calc(100% - 3px),#000 calc(100% - 3px));box-shadow:none;filter:drop-shadow(0 0 6px rgba(255,255,255,.8))}
 @media (prefers-reduced-motion:reduce){.ccarte.r6,.rcard.r6 .front,.ccarte.r6 .rar,.rcard.r6 .front .rar,.card.lot.nat{animation:none}}
+
+/* ===== Communes : la recherche, la commune ouverte, mes communes en lignes (demande de Gautier, 3 nov.) ===== */
+.recherche-commune{position:relative;margin:4px 0 14px}
+.recherche-commune .loupe{position:absolute;left:14px;top:13px;font-size:17px;pointer-events:none}
+.recherche-commune input.txt{padding-left:42px;border-radius:16px;box-shadow:var(--ombre)}
+.recherche-commune input::-webkit-search-cancel-button{display:none}
+#com-sugg{display:none;margin-top:6px;background:#fff;border-radius:16px;box-shadow:var(--ombre-forte);overflow:hidden}
+.sugg-commune{display:flex;align-items:center;gap:10px;width:100%;border:0;background:#fff;padding:11px 14px;border-bottom:1px solid var(--trait);text-align:left;font-family:inherit;color:var(--encre);cursor:pointer}
+.sugg-commune:last-child{border-bottom:0}.sugg-commune:active{background:var(--ciel)}
+.sugg-commune .nom,.ligne-commune .nom{flex:1;min-width:0;font-weight:800;font-size:15px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.sugg-commune small,.ligne-commune small{display:block;font-size:12px;font-weight:700;color:var(--gris);overflow:hidden;text-overflow:ellipsis}
+.sugg-commune .maire-mini{flex:none;max-width:45%;font-size:12px;font-weight:800;color:#7A5200;background:var(--piece-clair);border-radius:999px;padding:4px 9px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#com-sugg .aucune{padding:14px;font-weight:800;color:var(--gris);font-size:14px}
+.commune-ouverte{position:relative;border:2.5px solid var(--piece)}
+.fermer-commune{position:absolute;right:10px;top:10px;width:36px;height:36px;border-radius:50%;border:0;background:var(--ciel);font-size:16px;font-weight:900;color:var(--encre);cursor:pointer}
+.maire-ligne{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:4px 0 6px}
+.liste-communes{padding:4px 6px}
+.ligne-commune{display:flex;align-items:center;gap:10px;width:100%;border:0;background:none;padding:11px 6px;border-bottom:1.5px solid var(--ciel);text-align:left;font-family:inherit;color:var(--encre);cursor:pointer}
+.ligne-commune:last-child{border-bottom:0}.ligne-commune.on{background:var(--piece-clair);border-radius:12px}
+.ligne-commune .moi-n{flex:none;text-align:right;font-family:var(--titre);font-weight:800;font-size:15px}
+.ligne-commune .moi-n small{font-family:var(--texte)}
+.ligne-commune .chevron{flex:none;font-size:22px;color:var(--gris);font-weight:900}

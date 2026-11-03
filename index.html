@@ -1105,19 +1105,53 @@ function renderEncheres(){ const el=document.getElementById('s-encheres'); const
   el.innerHTML=h; }
 
 // Communes et Maires : le Maire possède le plus de lieux de la commune ; à égalité, deux Maires ; le titre dure tant qu'on reste en tête
-function renderCommunes(){ const el=document.getElementById('s-communes'); const mine={}; Object.values(state.owned).forEach(a=>{ const k=communeName(a.citycode,a.city); mine[k]=(mine[k]||0)+1; });
-  const communes = Object.keys(mine).sort((a,b)=>mine[b]-mine[a]); if(!communes.length) communes.push('Paris 9e');
-  let h=`<h1>Communes</h1><div class="card flex"><div class="couronne" style="font-size:38px">👑</div><div style="flex:1"><div class="t">Deviens Maire</div><div class="m">Le Maire d’une commune est le joueur qui y possède le plus de lieux. À égalité, il y a deux Maires. Le titre dure tant que tu restes en tête.</div></div></div>`;
-  const medailles=['🥇','🥈','🥉'];
-  for(const k of communes){ const rows=FAKE.map(f=>({who:f, n:(hash(k+f)%9)+ (hash(k)%3===0?6:0)})); rows.push({who:ME, n:mine[k]||0}); rows.sort((a,b)=>b.n-a.n || (a.who===ME?-1:b.who===ME?1:0));
-    const max=rows[0].n, maires=rows.filter(r=>r.n===max && max>0), jeSuisMaire=maires.some(r=>r.who===ME), moi=mine[k]||0;
-    const nomsMaires = maires.map(r=>r.who===ME?'toi':r.who).join(' et ');
-    h+=`<div class="card"><div style="text-align:center"><div class="plaque petite"><small>Commune</small>${echapper(k)}</div></div>
-      <div class="flex" style="margin:4px 0 6px"><div><div class="m" style="margin:0">Maire${maires.length>1?'s':''}</div><div class="t">👑 ${echapper(nomsMaires)}${jeSuisMaire?' 🎉':''}</div></div>
-      ${jeSuisMaire?'<span class="chip or">Tu tiens la mairie</span>':`<span class="chip bleu">Encore <b>${max-moi}</b> lieu${max-moi>1?'x':''}</span>`}</div>`;
-    rows.forEach((r,i)=>{ h+=`<div class="rank${r.who===ME?' moi':''}"><span class="pos">${i<3&&r.n>0?medailles[i]:i+1}</span><span class="who" onclick="showPlayer('${r.who}')">${r.who===ME?echapper(disp(ME))+' (toi)':echapper(r.who)}</span><b>${r.n} lieu${r.n>1?'x':''}</b></div>`; }); h+=`</div>`; }
-  h+=`<div class="card vide" style="padding:18px"><div class="ico">🔍</div><div class="m" style="margin:0 0 10px">Une commune apparaît ici dès que tu y possèdes un lieu. Cherche une ville sur la carte pour en découvrir d’autres.</div><button class="btn bleu" onclick="showScreen('carte');setTimeout(()=>document.getElementById('q').focus(),200)">Chercher une ville</button></div>`;
-  el.innerHTML=h; }
+// Le classement d'une commune (joueurs simulés en attendant le serveur ; même règle pour l'écran Communes, la recherche et le profil)
+function mesLieuxParCommune(){ const mine={}; Object.values(state.owned).forEach(a=>{ const k=communeName(a.citycode,a.city); mine[k]=(mine[k]||0)+1; }); return mine; }
+function classementCommune(k, mine){ mine=mine||mesLieuxParCommune(); const moi=mine[k]||0;
+  const rows=FAKE.map(f=>({who:f, n:(hash(k+f)%9)+ (hash(k)%3===0?6:0)})); rows.push({who:ME, n:moi}); rows.sort((a,b)=>b.n-a.n || (a.who===ME?-1:b.who===ME?1:0));
+  const max=rows[0].n, maires=rows.filter(r=>r.n===max && max>0); return { rows, max, maires, moi, jeSuisMaire:maires.some(r=>r.who===ME) }; }
+const nomsMairesDe = c => c.maires.length ? c.maires.map(r=>r.who===ME?'toi':r.who).join(' et ') : 'personne';
+// la clé d'une commune trouvée par la recherche, comme celle d'un lieu (communeName) : Paris par arrondissement, Lyon et Marseille entières
+function cleCommune(p){ const code=p.citycode||''; if(code.startsWith('751')) return communeName(code, p.city); return (p.name||p.city||'').replace(/\s+\d+(er|e)\s+Arrondissement$/i,''); }
+let communeVue=null;   // la commune ouverte en tête de l'écran : { k, sous, lon, lat }
+function carteCommune(k, sous, lon, lat){ const c=classementCommune(k), medailles=['🥇','🥈','🥉'];
+  let h=`<div class="card commune-ouverte"><button class="fermer-commune" onclick="fermerCommune()" aria-label="Fermer">✕</button>
+    <div style="text-align:center"><div class="plaque petite"><small>Commune</small>${echapper(k)}</div>${sous?`<div class="m" style="margin:0 0 6px">${echapper(sous)}</div>`:''}</div>
+    <div class="maire-ligne"><div style="min-width:0"><div class="m" style="margin:0">Maire${c.maires.length>1?'s':''}</div><div class="t">👑 ${echapper(nomsMairesDe(c))}${c.jeSuisMaire?' 🎉':''}</div></div>
+    ${c.jeSuisMaire?'<span class="chip or">Tu tiens la mairie</span>':`<span class="chip bleu">Encore <b>${c.max-c.moi}</b> lieu${c.max-c.moi>1?'x':''}</span>`}</div>`;
+  c.rows.forEach((r,i)=>{ h+=`<div class="rank${r.who===ME?' moi':''}"><span class="pos">${i<3&&r.n>0?medailles[i]:i+1}</span><span class="who" onclick="showPlayer('${r.who}')">${r.who===ME?echapper(disp(ME))+' (toi)':echapper(r.who)}</span><b>${r.n} lieu${r.n>1?'x':''}</b></div>`; });
+  if(lon!=null) h+=`<button class="btn bleu large" style="margin-top:12px" id="voir-commune">🗺️ Voir la commune sur la carte</button>`;
+  return h+`</div>`; }
+function ouvrirCommune(k, sous, lon, lat){ communeVue={k, sous, lon, lat}; renderCommunes(); const el=document.getElementById('s-communes'); el.scrollTop=0; vibrer(8); }
+function fermerCommune(){ communeVue=null; renderCommunes(); }
+// une commune de mes lieux : le point d'un de mes lieux sert à « Voir sur la carte »
+function ouvrirMaCommune(k){ const a=Object.values(state.owned).find(x=>communeName(x.citycode,x.city)===k); ouvrirCommune(k, '', a?a.lon:null, a?a.lat:null); }
+function renderCommunes(){ const el=document.getElementById('s-communes'); const mine=mesLieuxParCommune();
+  let h=`<h1>Communes</h1>
+    <div class="recherche-commune"><span class="loupe">🔍</span><input class="txt" id="com-q" type="search" enterkeyhint="search" autocomplete="off" placeholder="Chercher une commune…" aria-label="Chercher une commune"><div id="com-sugg"></div></div>`;
+  if(communeVue) h+=carteCommune(communeVue.k, communeVue.sous, communeVue.lon, communeVue.lat);
+  else h+=`<div class="card flex"><div class="couronne" style="font-size:34px">👑</div><div style="flex:1"><div class="t">Deviens Maire</div><div class="m">Le Maire d’une commune est le joueur qui y possède le plus de lieux. À égalité, il y a deux Maires. Le titre dure tant que tu restes en tête.</div></div></div>`;
+  const communes=Object.keys(mine).sort((a,b)=>mine[b]-mine[a] || a.localeCompare(b,'fr'));
+  h+=`<h2 class="section">Mes communes${communes.length?` (${communes.length})`:''}</h2>`;
+  if(!communes.length) h+=`<div class="card vide" style="padding:18px"><div class="ico">🏘️</div><div class="m" style="margin:0">Une commune s’ajoute ici dès que tu y possèdes un lieu. En attendant, cherche n’importe quelle commune ci-dessus pour voir son Maire.</div></div>`;
+  else { h+=`<div class="card liste-communes">`; for(const k of communes){ const c=classementCommune(k, mine);
+      h+=`<button class="ligne-commune${communeVue&&communeVue.k===k?' on':''}" data-k="${echapper(k)}"><span class="nom">${c.jeSuisMaire?'👑 ':''}${echapper(k)}<small>Maire : ${echapper(nomsMairesDe(c))}</small></span><span class="moi-n">${c.moi} lieu${c.moi>1?'x':''}<small>${c.jeSuisMaire?'Tu es Maire':`encore ${c.max-c.moi}`}</small></span><span class="chevron">›</span></button>`; }
+    h+=`</div>`; }
+  el.innerHTML=h;
+  // les noms de communes passent par des attributs data- (une apostrophe, « L'Haÿ-les-Roses », casserait un onclick)
+  el.querySelectorAll('.ligne-commune').forEach(b=>b.onclick=()=>ouvrirMaCommune(b.dataset.k));
+  const voir=el.querySelector('#voir-commune'); if(voir){ const v=communeVue; voir.onclick=()=>{ showScreen('carte'); allerA(v.lon, v.lat, 15.5, null, v.k, 'Commune'); }; }
+  const inp=el.querySelector('#com-q'), box=el.querySelector('#com-sugg'); let minut=null, num=0;
+  const proposer=async()=>{ const t=inp.value.trim(), moiNum=++num; if(t.length<2){ box.innerHTML=''; box.style.display='none'; return; }
+    try{ const r=await fetch(`https://data.geopf.fr/geocodage/search?q=${encodeURIComponent(t)}&index=address&type=municipality&autocomplete=1&limit=8`); const j=await r.json(); if(moiNum!==num) return;
+      const vus=new Set(), res=[]; for(const f of (j.features||[])){ const p=f.properties; if(p.citycode==='75056') continue;   // Paris se joue par arrondissement
+        const k=cleCommune(p); if(!k || vus.has(k)) continue; vus.add(k); res.push({k, sous:(p.context||'').split(',').slice(0,2).map(x=>x.trim()).join(' · '), lon:f.geometry.coordinates[0], lat:f.geometry.coordinates[1]}); }
+      box.innerHTML=''; res.slice(0,6).forEach(x=>{ const c=classementCommune(x.k, mine); const d=document.createElement('button'); d.className='sugg-commune';
+        d.innerHTML=`<span class="nom">${echapper(x.k)}<small>${echapper(x.sous)}</small></span><span class="maire-mini">👑 ${echapper(nomsMairesDe(c))}</span>`;
+        d.onclick=()=>{ inp.blur(); ouvrirCommune(x.k, x.sous, x.lon, x.lat); }; box.appendChild(d); });
+      if(!res.length) box.innerHTML=`<div class="aucune">Aucune commune trouvée</div>`; box.style.display='block'; }catch(e){ box.innerHTML=`<div class="aucune">Recherche impossible : vérifie ta connexion</div>`; box.style.display='block'; } };
+  inp.addEventListener('input', ()=>{ clearTimeout(minut); minut=setTimeout(proposer, 250); });
+  inp.addEventListener('keydown', e=>{ if(e.key==='Enter'){ e.preventDefault(); clearTimeout(minut); proposer().then(()=>{ const b=box.querySelector('.sugg-commune'); if(b) b.click(); }); } }); }
 
 function setPref(k,v){ state.prefs[k]=v; save(); }
 // les notifications : une icône par sorte, l'heure relative, les actions ; les réglages sont à part
@@ -1181,8 +1215,7 @@ function showPlayer(name){ const box=document.getElementById('modalbox'); let h;
   const compte = (name===ME && window.Compte && Compte.actif() && Compte.session) ? `<div class="m" style="text-align:center;margin-top:12px">Compte : ${echapper(Compte.session.user.email||'')}</div><button class="btn clair large" style="margin-top:6px" onclick="Compte.deconnecter()">Se déconnecter</button>` : '';
   box.innerHTML = h + signaler + compte + `<div class="liste-btn"><button class="btn clair large" onclick="closeModal()">Fermer</button></div>`; document.getElementById('modal').classList.add('on'); }
 // les communes où je suis Maire (mêmes règles que l'écran Communes)
-function mesMairies(){ const mine={}; Object.values(state.owned).forEach(a=>{ const k=communeName(a.citycode,a.city); mine[k]=(mine[k]||0)+1; });
-  return Object.keys(mine).filter(k=>{ const max=Math.max(...FAKE.map(f=>(hash(k+f)%9)+(hash(k)%3===0?6:0))); return mine[k]>=max; }); }
+function mesMairies(){ const mine=mesLieuxParCommune(); return Object.keys(mine).filter(k=>classementCommune(k, mine).jeSuisMaire); }
 // Signaler un joueur : une raison, un mot facultatif ; la file de signalements est traitée à la main par Gautier
 // (serveur simulé : gardée dans le profil ; avec Supabase : une table « signalements »).
 const RAISONS = { pseudo:'Pseudo inapproprié', triche:'Triche ou plusieurs comptes', comportement:'Comportement (offres, messages…)', autre:'Autre' };
