@@ -638,11 +638,17 @@ function addrRow(a, withBuild){
       row.appendChild(actions); } }
   else if(o){ const existing = state.offersOut.find(x=>x.addrId===a.id && x.status==='attente');
     if(vente){ const prixV = MODE_SERVEUR ? prixDemande(a) : valeur(rec); const b=document.createElement('button'); b.className='btn'; b.innerHTML=`Acheter · ${pcs(prixV)}`; b.disabled=dispo()<prixV;
-      b.onclick=()=>{ if(MODE_SERVEUR) return bientot(); encaisser(true); state.wallet-=valeur(rec); state.owned[a.id]=Object.assign({}, a, {niveau:lv, depuis:now()}); state.seen[a.id]='libre'; save(); refreshTop(); setBadge(a,lv); if(a.idu) paintParcel(a.idu); toast(`${a.label} achetée à ${o} !`); fete(); apresAction(); };
+      b.onclick=async()=>{ if(MODE_SERVEUR){ b.disabled=true; const r=await agir('acheter', {id:a.id, prix:prixV}); b.disabled=false; if(!r){ chargerZoneBientot(); return; }
+          delete PROPRIOS[a.id]; setBadge(a, levelOf(a)); toast(`${a.label} achetée à ${r.vendeur} !`); fete(); apresAction(); return; }
+        encaisser(true); state.wallet-=valeur(rec); state.owned[a.id]=Object.assign({}, a, {niveau:lv, depuis:now()}); state.seen[a.id]='libre'; save(); refreshTop(); setBadge(a,lv); if(a.idu) paintParcel(a.idu); toast(`${a.label} achetée à ${o} !`); fete(); apresAction(); };
       actions.appendChild(b); row.appendChild(actions); }
-    else if(existing){ const t=document.createElement('div'); t.className='chip bleu'; t.innerHTML=`📨 Offre envoyée : <b>${nb(existing.price)}</b><i class="pc"></i> · en attente`; actions.appendChild(t); row.appendChild(actions); }
+    else if(existing && !modifOffre[a.id]){ const t=document.createElement('div'); t.className='chip bleu'; t.innerHTML=`📨 Offre envoyée : <b>${nb(existing.price)}</b><i class="pc"></i> · en attente`; actions.appendChild(t);
+      const ch=document.createElement('button'); ch.className='btn clair sm'; ch.textContent='✏️ Changer'; ch.onclick=()=>{ modifOffre[a.id]=existing.price; renderAddrs(); if(ficheOuverte) ouvrirFicheLieu(ficheOuverte); };
+      const an=document.createElement('button'); an.className='btn clair sm'; an.textContent='Annuler mon offre'; an.onclick=()=>annulerOffre(existing.id);
+      const l=document.createElement('div'); l.className='rangee-btn'; l.style.marginTop='8px'; l.append(ch, an); actions.appendChild(l); row.appendChild(actions); }
     else { const off=document.createElement('div'); off.className='offre'; const inp=document.createElement('input'); inp.className='num'; inp.type='number'; inp.inputMode='numeric'; inp.value=Math.round(valeur(rec)*1.1);
-      const b=document.createElement('button'); b.className='btn bleu'; b.textContent='📨 Faire une offre'; b.onclick=()=>faireOffre(a, parseInt(inp.value)||0); off.appendChild(inp); off.appendChild(b); row.appendChild(off);
+      if(modifOffre[a.id]) inp.value=modifOffre[a.id];
+      const b=document.createElement('button'); b.className='btn bleu'; b.textContent=modifOffre[a.id] ? '📨 Changer mon offre' : '📨 Faire une offre'; b.onclick=()=>faireOffre(a, parseInt(inp.value)||0); off.appendChild(inp); off.appendChild(b); row.appendChild(off);
       const vite=document.createElement('div'); vite.className='vite'; const v=valeur(rec);
       [['Sa valeur',v],['+10 %',v*1.1],['+25 %',v*1.25]].forEach(([t,x])=>{ const c=document.createElement('button'); c.className='raccourci'; c.innerHTML=`<span>${t}</span><b>${nb(arrondiMise(x))}</b>`; c.onclick=()=>{ inp.value=arrondiMise(x); }; vite.appendChild(c); });
       row.appendChild(vite); }
@@ -655,11 +661,11 @@ function addrRow(a, withBuild){
   // un lieu libre ne s'achète pas : il ne s'obtient que dans un pack (décision de Gautier, 3 nov.)
   else { const t=document.createElement('div'); t.className='libre-info'; t.innerHTML='🎁 <span><b>Lieu libre</b> : il n’appartient à personne et ne s’achète pas. Il peut sortir dans un pack.</span>'; actions.appendChild(t); row.appendChild(actions); }
   return row; }
-function retirerVente(id){ if(MODE_SERVEUR) return bientot(); const a=state.owned[id]; if(!a) return; a.enVente=false; save(); setBadge(a, a.niveau||0); toast('Retiré de la vente'); apresAction(); }
+async function retirerVente(id){ const a=state.owned[id]; if(!a) return; if(MODE_SERVEUR){ const r=await agir('retirer', {id}); if(r){ setBadge(a,0); toast('Retiré de la vente'); apresAction(); } return; } a.enVente=false; save(); setBadge(a, a.niveau||0); toast('Retiré de la vente'); apresAction(); }
 // le prix demandé : celui que le joueur a fixé (sinon la valeur du lieu)
 function prixDemande(a){ if(MODE_SERVEUR && !state.owned[a.id] && PROPRIOS[a.id] && PROPRIOS[a.id].prixVente) return PROPRIOS[a.id].prixVente; const r=state.owned[a.id]; return r && r.enVente && r.prixVente ? r.prixVente : valeur(r||a); }
 // Mettre en vente (ou changer le prix) : le joueur tape le montant qu'il veut ; des raccourcis autour de la valeur.
-function mettreEnVente(id){ if(MODE_SERVEUR) return bientot(); const a=state.owned[id]; if(!a) return; const retour=ficheOuverte; const v=valeur(a);
+function mettreEnVente(id){ const a=state.owned[id]; if(!a) return; const retour=ficheOuverte; const v=valeur(a);
   const box=document.getElementById('modalbox');
   box.innerHTML=`<h2>💰 ${a.enVente?'Changer le prix':'Mettre en vente'}</h2><div class="sub">${echapper(a.label)} · ${echapper(communeName(a.citycode,a.city))}</div>
     <div class="vente-valeur"><span>Valeur du lieu</span><b>${pcs(v)}</b></div>
@@ -678,7 +684,9 @@ function mettreEnVente(id){ if(MODE_SERVEUR) return bientot(); const a=state.own
   inp.addEventListener('input', maj); inp.addEventListener('focus', ()=>inp.select()); inp.addEventListener('keydown', e=>{ if(e.key==='Enter') ok.click(); });
   const fermer=()=>{ if(retour) ouvrirFicheLieu(retour); else closeModal(); };
   box.querySelector('#prix-non').onclick=fermer;
-  ok.onclick=()=>{ const r=R.lirePrix(inp.value); if(!r.ok) return; const deja=a.enVente; a.enVente=true; a.prixVente=r.prix; save(); setBadge(a, a.niveau||0);
+  ok.onclick=async()=>{ const r=R.lirePrix(inp.value); if(!r.ok) return; const deja=a.enVente;
+    if(MODE_SERVEUR){ ok.disabled=true; const s=await agir('vendre', {id, prix:r.prix}); ok.disabled=false; if(!s) return; const b=state.owned[id]; if(b) setBadge(b, b.niveau||0); }
+    else { a.enVente=true; a.prixVente=r.prix; save(); setBadge(a, a.niveau||0); }
     toast(deja ? `Nouveau prix : ${fmt(r.prix)}` : `${a.label} en vente à ${fmt(r.prix)}`); vibrer(12); fermer(); apresAction(); };
   maj(); }
 async function construire(id, niveau, cost){ const a=state.owned[id]; if(!a || dispo()<cost) return;
@@ -693,8 +701,16 @@ async function construire(id, niveau, cost){ const a=state.owned[id]; if(!a || d
 function closeSheet(){ document.getElementById('sheet').classList.remove('open'); document.body.classList.remove('fiche-ouverte'); document.getElementById('sv').src='about:blank'; if(selected){ map.setFeatureState({source:'pci', sourceLayer:'parcelle', id:selected}, {sel:false}); selected=null; paintBuildings(); } }
 
 // =================== offres ===================
-function faireOffre(a, price){ if(MODE_SERVEUR) return bientot(); if(price<=0) return toast('Montant invalide'); if(dispo()<price) return toast('Fonds insuffisants');
+async function faireOffre(a, price){ if(price<=0) return toast('Montant invalide'); if(dispo()<price) return toast('Fonds insuffisants');
+  if(MODE_SERVEUR){ const r=await agir('offrir', {id:a.id, prix:price}); if(!r) return; delete modifOffre[a.id]; toast(`Offre de ${fmt(price)} envoyée à ${r.vendeur}`); vibrer(12); renderAddrs(); if(ficheOuverte) ouvrirFicheLieu(ficheOuverte); return; }
+  const ancienne=state.offersOut.find(x=>x.addrId===a.id && x.status==='attente'); if(ancienne) ancienne.status='annulee'; delete modifOffre[a.id];
   state.offersOut.push({ id:'o'+now(), addrId:a.id, addr:a, to:ownerOf(a), price, ts:now(), status:'attente' }); save(); toast(`Offre de ${fmt(price)} envoyée à ${ownerOf(a)}`); renderAddrs(); }
+// une offre envoyée : la changer (le champ revient, prérempli) ou l'annuler
+const modifOffre = {};
+async function annulerOffre(id){ const o=state.offersOut.find(x=>x.id===id); if(!o || o.status!=='attente') return;
+  if(MODE_SERVEUR){ const r=await agir('annuler_offre', {offre:id}); if(!r) return; }
+  else { o.status='annulee'; save(); }
+  toast('Offre annulée'); vibrer(12); apresAction(); }
 // =================== échanges ===================
 // Proposer à un joueur d'échanger son lieu contre un des miens (plus des pièces si je veux). Demande de Gautier (3 nov.).
 const ECHANGE_ACCEPTE = 1.1;   // joueurs simulés : ils acceptent si on leur donne au moins 10 % de plus que ce qu'ils cèdent
@@ -763,7 +779,9 @@ function tickOffers(){ let changed=false; tickEchanges();
     state.lastOfferIn=now();
     if(!(state.prefs.seuil && price < valeur(a))){ state.offersIn.unshift({ id:'i'+now(), addrId:a.id, from, price, ts:now(), status:'attente' }); notify('offre', `${from} te propose ${fmt(price)} pour ${a.label} (valeur ${fmt(valeur(a))})`, {offerId:state.offersIn[0].id}); changed=true; } }
   if(changed){ save(); refreshTop(); } }
-function repondreOffre(id, ok){ if(MODE_SERVEUR) return bientot(); const o=state.offersIn.find(x=>x.id===id); if(!o || o.status!=='attente') return; const a=state.owned[o.addrId];
+async function repondreOffre(id, ok){ const o=state.offersIn.find(x=>x.id===id); if(!o || o.status!=='attente') return; const a=state.owned[o.addrId];
+  if(MODE_SERVEUR){ const r=await agir('repondre_offre', {offre:id, accepter:ok}); if(r){ if(r.accepte){ if(a){ setBadge(a,0); } toast(`Vendu à ${r.acheteur} pour ${fmt(r.prix)}`); fete(); } else toast('Offre refusée'); }
+    renderNotifs(); renderPatrimoine(); return; }
   if(ok && a){ o.status='acceptee'; state.wallet += o.price; delete state.owned[o.addrId]; state.seen[o.addrId]='libre'; setBadge(a,0); if(a.idu) paintParcel(a.idu); toast(`Vendu à ${o.from} pour ${fmt(o.price)}`); }
   else { o.status='refusee'; toast('Offre refusée'); }
   save(); refreshTop(); renderNotifs(); renderPatrimoine(); }
@@ -1018,6 +1036,7 @@ async function appelServeur(action, corps){
   catch(e){ return { ok:false, code:'reseau', message:'Serveur injoignable : vérifie ta connexion et réessaie.' }; } }
 // ma partie, telle que le serveur la donne : pièces, dernière récolte, pack du jour, lieux
 function appliquerEtat(e){ if(!e) return; state.wallet=e.pieces; state.encaisse=e.encaisse; state.dernierPack=e.dernierPack||'';
+  if(e.offresRecues) state.offersIn=e.offresRecues; if(e.offresEnvoyees) state.offersOut=e.offresEnvoyees; if(e.notifs) state.notifs=e.notifs;
   const avant=state.owned; state.owned={}; for(const l of (e.lieux||[])) state.owned[l.id]=Object.assign({}, l);
   for(const id of Object.keys(avant)) if(!state.owned[id]) setBadge(avant[id], 0);
   save(); refreshTop(); refreshPack(); restoreBadges(); try{ peindreReel(); }catch(err){} }
@@ -1070,6 +1089,14 @@ async function chargerMaires(ks){ ks=[...new Set(ks)].filter(Boolean); if(!ks.le
 async function chargerClassement(k){ if(!(window.Compte && Compte.client)) return; const { data } = await Compte.client.rpc('classement_commune', { c:k });
   CLASSEMENTS[k]=(data||[]).map(r=>{ if(r.joueur && r.pseudo){ JOUEURS[r.joueur]=JOUEURS[r.joueur]||{ pseudo:r.pseudo, avatar:r.avatar }; PAR_PSEUDO[r.pseudo]=r.joueur; } return { who:quiEst(r.joueur), n:Number(r.n) }; }); }
 if(MODE_SERVEUR){ map.on('moveend', chargerZoneBientot); map.once('idle', chargerZoneBientot); }
+// toutes les minutes (page visible) : ce qui a changé sur le serveur (une offre reçue, un lieu vendu…)
+async function surveiller(){ if(document.hidden || serveurOccupe || !(window.Compte && Compte.session) || document.getElementById('packscene').classList.contains('on')) return;
+  const vus=new Set(state.notifs.map(n=>n.id)), lieux=Object.keys(state.owned).sort().join();
+  const r=await appelServeur('etat'); if(!r || !r.ok) return; appliquerEtat(r);
+  const neuves=state.notifs.filter(n=>!n.read && !vus.has(n.id)); if(neuves.length){ toast(neuves[0].text); vibrer(20); }
+  if(document.getElementById('s-notifs').classList.contains('on')) renderNotifs();
+  if(lieux!==Object.keys(state.owned).sort().join() && document.getElementById('s-patrimoine').classList.contains('on')) renderPatrimoine(); }
+if(MODE_SERVEUR) setInterval(surveiller, 60000);
 function changerMode(serveur){ try{ localStorage.setItem('cadastra-mode', serveur ? 'serveur' : 'demo'); }catch(e){} location.reload(); }
 
 // =================== tirage du pack (src/tirage.js, le même code que le serveur ; règles : src/regles/pack.js) ===================
@@ -1231,10 +1258,10 @@ function renderNotifs(){ const el=document.getElementById('s-notifs'); let h=`<h
   let section='';
   for(const n of state.notifs){ const s2 = n.read ? 'Plus tôt' : 'Nouveau'; if(s2!==section){ section=s2; h+=`<h2 class="section">${section}</h2>`; }
     h+=`<div class="card notif ${n.read?'':'unread'}"><div class="ico">${iconeNotif(n)}</div><div style="flex:1;min-width:0"><div class="quand">${ilYa(n.ts)}</div><div class="texte">${avecPieces(n.text)}</div>`;
-    if(n.offerId){ const o=state.offersIn.find(x=>x.id===n.offerId); if(o && o.status==='attente') h+=`<div class="build"><button class="btn vert sm" onclick="repondreOffre('${o.id}',true)">Accepter · ${nb(o.price)}<i class="pc"></i></button><button class="btn sm" onclick="repondreOffre('${o.id}',false)">Refuser</button></div>`; else if(o) h+=`<div class="chip" style="margin-top:6px">${o.status==='acceptee'?'✅ Acceptée':'❌ Refusée'}</div>`; }
+    if(n.offerId){ const o=state.offersIn.find(x=>x.id===n.offerId); if(o && o.status==='attente') h+=`<div class="build"><button class="btn vert sm" onclick="repondreOffre('${o.id}',true)">Accepter · ${nb(o.price)}<i class="pc"></i></button><button class="btn sm" onclick="repondreOffre('${o.id}',false)">Refuser</button></div>`; else if(o) h+=`<div class="chip" style="margin-top:6px">${({acceptee:'✅ Acceptée', refusee:'❌ Refusée', annulee:'↩️ Retirée par l’acheteur', caduque:'⌛ Plus valable'})[o.status]||''}</div>`; }
     if(n.addrId && state.owned[n.addrId]) h+=`<div class="build"><button class="btn clair sm" onclick="flyToAddr(state.owned['${n.addrId}'])">🗺️ Voir sur la carte</button></div>`;
     h+=`</div></div>`; }
-  el.innerHTML=h; state.notifs.forEach(n=>n.read=true); save(); refreshTop(); }
+  el.innerHTML=h; if(MODE_SERVEUR && state.notifs.some(n=>!n.read)) appelServeur('notifs_lues'); state.notifs.forEach(n=>n.read=true); save(); refreshTop(); }
 // ---- le guide des premiers pas : chaque élément important éclairé tour à tour, avec une bulle
 const GUIDE=[
   { cible:'#packbtn', titre:'🎁 Ton pack du jour', texte:'Chaque jour, 5 lieux tirés dans toute la France. Le bouton brille quand un nouveau pack t’attend.' },
@@ -1265,7 +1292,7 @@ function ouvrirReglages(){ const box=document.getElementById('modalbox');
     <div class="sw"><span>M’alerter quand je suis dépassé aux enchères</span><input type="checkbox" ${state.prefs.encheres?'checked':''} onchange="setPref('encheres',this.checked)"></div>
     <div class="sw"><span>Sons</span><input type="checkbox" ${state.prefs.sons!==false?'checked':''} onchange="setPref('sons',this.checked)"></div>
     <div class="sw"><span>Vibrations</span><input type="checkbox" ${state.prefs.vibrations!==false?'checked':''} onchange="setPref('vibrations',this.checked)"></div>
-    ${window.Compte && Compte.actif() ? `<div class="sw mode"><span>Jouer sur le vrai serveur (essai)<small>${MODE_SERVEUR ? 'Ta partie est sur le serveur, en vrais jours de 24 h. Pas encore : vente, offres, échanges, enchères.' : 'Ta partie de démo reste sur ce téléphone ; celle du serveur part de zéro.'}</small></span><input type="checkbox" ${MODE_SERVEUR?'checked':''} onchange="changerMode(this.checked)"></div>` : ''}
+    ${window.Compte && Compte.actif() ? `<div class="sw mode"><span>Jouer sur le vrai serveur (essai)<small>${MODE_SERVEUR ? 'Ta partie est sur le serveur, en vrais jours de 24 h. Pas encore : échanges, enchères.' : 'Ta partie de démo reste sur ce téléphone ; celle du serveur part de zéro.'}</small></span><input type="checkbox" ${MODE_SERVEUR?'checked':''} onchange="changerMode(this.checked)"></div>` : ''}
     ${(state.signalements||[]).length?`<div class="m" style="margin-top:10px">🚩 Signalements envoyés : ${state.signalements.length}</div>`:''}
     <div class="liste-btn"><button class="btn bleu large" onclick="closeModal();setTimeout(()=>guide(0),300)">🧭 Revoir le guide</button><button class="btn clair large" onclick="closeModal()">Fermer</button></div>`;
   document.getElementById('modal').classList.add('on'); }
