@@ -1319,12 +1319,13 @@ async function profilReel(name){ let uid=PAR_PSEUDO[name];
   if(!uid){ const { data } = await Compte.client.from('profils').select('id,pseudo,avatar,cree_le').eq('pseudo', name).maybeSingle(); if(data){ uid=data.id; JOUEURS[uid]={ pseudo:data.pseudo, avatar:data.avatar, cree_le:data.cree_le }; PAR_PSEUDO[name]=uid; } }
   const zone=document.getElementById('pj-chiffres'); if(!zone) return; if(!uid){ zone.textContent='Joueur introuvable.'; return; }
   if(!(JOUEURS[uid]||{}).cree_le){ const { data } = await Compte.client.from('profils').select('id,avatar,cree_le').eq('id', uid).maybeSingle(); if(data) Object.assign(JOUEURS[uid]=JOUEURS[uid]||{pseudo:name}, { avatar:data.avatar, cree_le:data.cree_le }); }
-  const { data } = await Compte.client.from('lieux').select(COLS_LIEU).eq('proprietaire', uid).limit(5000); const liste=(data||[]).map(lieuDuServeur);
+  const [{ data }, robot] = await Promise.all([ Compte.client.from('lieux').select(COLS_LIEU).eq('proprietaire', uid).limit(5000), Compte.client.from('robots').select('id').eq('id', uid).maybeSingle() ]);
+  const liste=(data||[]).map(lieuDuServeur);
   const n=liste.length, v=liste.reduce((s,a)=>s+valeur(a),0), b=liste.filter(a=>a.niveau>0).length, c=new Set((data||[]).map(r=>r.commune)).size;
   const j=Math.max(0, Math.floor((Date.now()-Date.parse((JOUEURS[uid]||{}).cree_le||Date.now()))/86400000));
   const av=document.querySelector('#modalbox .profil-tete .av'); if(av && (JOUEURS[uid]||{}).avatar) av.textContent=JOUEURS[uid].avatar;
   const dep=document.getElementById('pj-depuis'); if(dep) dep.textContent = j ? `Membre depuis ${j} jour${j>1?'s':''}` : 'Membre depuis aujourd’hui';
-  zone.outerHTML=`<div class="kpis"><div class="kpi"><b>${n}</b><small>lieu${n>1?'x':''}</small></div><div class="kpi"><b>${nb(v)}<i class="pc"></i></b><small>de valeur</small></div><div class="kpi"><b>${b}</b><small>construit${b>1?'s':''}</small></div></div>
+  zone.outerHTML=(robot && robot.data ? `<div class="card" style="box-shadow:none;background:var(--plaque-clair);text-align:center"><div class="t">🤖 Joueur d’essai</div><div class="m">Un robot du serveur d’essai : il joue tout seul (lieux, ventes, offres) pour qu’on puisse tester.</div></div>` : '')+`<div class="kpis"><div class="kpi"><b>${n}</b><small>lieu${n>1?'x':''}</small></div><div class="kpi"><b>${nb(v)}<i class="pc"></i></b><small>de valeur</small></div><div class="kpi"><b>${b}</b><small>construit${b>1?'s':''}</small></div></div>
     <div class="card" style="box-shadow:none;background:var(--ciel)"><div class="t">📍 Présent dans ${c} commune${c>1?'s':''}</div><div class="m">Ses lieux sont en rouge sur la carte.</div></div>`; }
 // les communes où je suis Maire (mêmes règles que l'écran Communes)
 function mesMairies(){ const mine=mesLieuxParCommune(); return Object.keys(mine).filter(k=>classementCommune(k, mine).jeSuisMaire); }

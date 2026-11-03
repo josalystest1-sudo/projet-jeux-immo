@@ -244,6 +244,59 @@ ACTIONS.pack = async (j) => {
   };
 };
 
+// ---------------------------------------------------------------- les joueurs robots (serveur d'essai)
+// Demande de Gautier (3 nov. 2026) : de vrais comptes qui jouent seuls, pour tester le marché et les mairies.
+// Un tour au plus toutes les 20 s (quel que soit le nombre de joueurs), lancé après la réponse à un vrai joueur.
+const hasard = <T,>(l: T[]) => l[Math.floor(Math.random() * l.length)];
+const arrondi = (n: number) => Math.max(50, Math.round(n / 50) * 50);
+async function robotsTour() {
+  if (!(await rpc('jeu_robots_tour', { intervalle: 20 }))) return;
+  const { data: robots } = await admin.from('robots').select('id, nom'); if (!robots || !robots.length) return;
+  const ids = robots.map((r: Ligne) => r.id), exclus = `(${ids.join(',')})`;
+  const { data: tous } = await admin.from('lieux').select('*').not('proprietaire', 'in', exclus).order('maj', { ascending: false }).limit(300);
+  // seulement les vrais joueurs (avec un pseudo) : pas les joueurs jetables de l'essai automatique
+  const proprios = [...new Set((tous || []).map((l: Ligne) => l.proprietaire))];
+  const { data: avecPseudo } = proprios.length ? await admin.from('profils').select('id').in('id', proprios) : { data: [] };
+  const vrais = new Set((avecPseudo || []).map((p: Ligne) => p.id)), reels = (tous || []).filter((l: Ligne) => vrais.has(l.proprietaire));
+  if (!reels.length) return;   // personne à côtoyer : les robots attendent un vrai joueur
+  const jm = await jourMs(), jour = Regles.jourDuJeu(Date.now(), jm);
+  for (const robot of robots.sort(() => Math.random() - 0.5).slice(0, 3)) {
+    const j = robot.id;
+    try {
+      await recolter(j);
+      const mes = (await admin.from('lieux').select('*').eq('proprietaire', j)).data || [];
+      const jr = await joueur(j); let pieces = Number(jr.pieces);
+      // 1. un lieu de plus, près d'un lieu d'un vrai joueur (une fois par jour du jeu, quinze au plus)
+      if (mes.length < 15) {
+        const r = hasard(reels), lon = r.lon + (Math.random() - 0.5) * 0.006, lat = r.lat + (Math.random() - 0.5) * 0.004;
+        const c = await TIRAGE.adresseProche(lon, lat);
+        if (c && await estLibre(c)) { try { await rpc('jeu_pack', { j, jour, cartes: [{ ...c, commune: Regles.nomCommune(c.citycode, c.city) }] }); } catch (_) { /* déjà pris aujourd'hui */ } }
+      }
+      // 2. répondre aux offres reçues depuis 20 s : oui à partir de 110 % de la valeur, sinon non
+      const { data: recues } = await admin.from('offres').select('*').eq('vendeur', j).eq('statut', 'attente').lt('cree_le', new Date(Date.now() - 20_000).toISOString());
+      for (const o of recues || []) await ACTIONS.repondre_offre(j, { offre: o.id, accepter: (() => { const l = mes.find((x: Ligne) => x.id === o.lieu); return !!l && Number(o.prix) >= R.valeur(lieuDe(l)) * 1.1; })() }).catch(() => {});
+      // 3. une offre sur un lieu d'un vrai joueur (entre 85 et 140 % de sa valeur), une seule en attente à la fois
+      const { count: enAttente } = await admin.from('offres').select('id', { count: 'exact', head: true }).eq('acheteur', j).eq('statut', 'attente');
+      if (!enAttente && Math.random() < 0.15) {
+        const l = hasard(reels), prix = arrondi(R.valeur(lieuDe(l)) * (0.85 + Math.random() * 0.55));
+        if (prix <= pieces) { await ACTIONS.offrir(j, { id: l.id, prix }).catch(() => {}); }
+      }
+      // 4. acheter un lieu mis en vente par un vrai joueur, s'il n'est pas trop cher (jusqu'à 125 % de sa valeur)
+      const enVente = reels.filter((l: Ligne) => l.prix_vente != null && Number(l.prix_vente) <= R.valeur(lieuDe(l)) * 1.25 && Number(l.prix_vente) <= pieces);
+      if (enVente.length && Math.random() < 0.15) { const l = hasard(enVente); await ACTIONS.acheter(j, { id: l.id, prix: Number(l.prix_vente) }).then(() => { pieces -= Number(l.prix_vente); }).catch(() => {}); }
+      // 5. mettre un de ses lieux en vente (110 à 150 % de sa valeur), deux au plus à la fois
+      if (mes.length && mes.filter((l: Ligne) => l.prix_vente != null).length < 2 && Math.random() < 0.3) {
+        const l = hasard(mes); await rpc('jeu_vendre', { j, l: l.id, prix: arrondi(R.valeur(lieuDe(l)) * (1.1 + Math.random() * 0.4)) }).catch(() => {});
+      }
+      // 6. construire le niveau suivant quand c'est possible
+      if (mes.length && Math.random() < 0.4) {
+        const l = lieuDe(hasard(mes)), n = (l.niveau || 0) + 1;
+        if (R.peutConstruire(l, n) && R.coutNiveau(l, n) <= pieces) await ACTIONS.construire(j, { id: l.id, niveau: n }).catch(() => {});
+      }
+    } catch (e) { console.error('robot', robot.nom, e); }
+  }
+}
+
 Deno.serve(async (req: Request) => {
   const h = enTetes(req);
   if (req.method === 'OPTIONS') return new Response('ok', { headers: h });
@@ -256,6 +309,8 @@ Deno.serve(async (req: Request) => {
     const action = ACTIONS[String(corps.action || '')];
     if (!action) throw new Refus('action', 'Action inconnue.');
     const res = await action(data.user.id, corps);
+    // les robots jouent un tour après la réponse (sans faire attendre le vrai joueur)
+    const runtime = (globalThis as Ligne).EdgeRuntime; if (runtime && runtime.waitUntil) runtime.waitUntil(robotsTour().catch((e) => console.error('robots', e)));
     // après une action qui change la partie, sa partie à jour (pièces, lieux, récolte) pour que le jeu se recale
     if (corps.action !== 'etat') res.etat = await etatDe(data.user.id);
     return repondre({ ok: true, ...res });

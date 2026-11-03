@@ -68,6 +68,8 @@
 
 - 3 nov. 2026 : **le serveur en accéléré** (demande de Gautier : « je ne peux pas attendre des heures pour ouvrir un pack », et la démo locale ne montre pas les problèmes du serveur) : tant qu'on teste, un jour du jeu dure une minute sur le serveur aussi (pack, loyers, récolte) ; réglage `jour_secondes` (60) dans la table `reglages` ; au lancement, on le remet à 24 h (pack à minuit) et on repart de zéro.
 
+- 3 nov. 2026 : **des joueurs robots sur le serveur d'essai** (idée de Gautier : « crée des comptes et fais-les jouer ») : six vrais comptes (🤖 Léa, Marco, Inès, Yanis, Chloé, Sacha) qui prennent des lieux près des tiens, vendent, font des offres, répondent aux tiennes et construisent ; leur profil dit « Joueur d'essai ». À supprimer au lancement.
+
 ## En cours
 - Lieux célèbres : les autres catégories (châteaux, mairies, gares, musées, ponts, phares, moulins…) dès que Wikidata répond (`python3 tools/wikidata_celebres.py`, puis `--fusion` et `gen_donnees.py celebres`).
 - Phase 1.1 à 1.4 : la carte et le modèle des lieux reconstruits en modules (`src/`) à partir du prototype ; puis le marché (phase 4 : historique des ventes d'un lieu) et les communes et Maires (phase 6). Ensuite : Signaler envoyé au serveur dès qu'il y aura de vrais joueurs à l'écran ; Google ; un service d'envoi d'e-mails avant le lancement (le service de Supabase n'écrit qu'aux membres de l'équipe Supabase, deux e-mails par heure).

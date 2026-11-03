@@ -29,6 +29,10 @@
 - `surveiller()` toutes les minutes (page visible, pas pendant un pack) : la partie, les offres et notifications à jour, un bandeau pour une nouvelle notification.
 - Ce qui n'est pas encore sur le serveur (échanges, enchères) répond `bientot()` ; les minuteries de la démo (offres et enchères simulées) sont arrêtées.
 
+## Les joueurs robots (serveur d'essai)
+
+Demande de Gautier (3 nov.) : de vrais comptes qui jouent seuls, pour tester le marché et les mairies sans attendre d'autres joueurs. Six robots (`tools/serveur_robots.js`, créés par la publication s'ils manquent ; pseudo à prénom inventé, icône 🤖, table `robots`). Après chaque appel d'un vrai joueur, la fonction `jeu` leur fait jouer un tour (au plus toutes les 20 s, `jeu_robots_tour`, trois robots par tour) : récolter ; prendre un lieu **près d'un lieu d'un vrai joueur** (un par jour du jeu, quinze au plus) ; répondre aux offres reçues depuis 20 s (oui à partir de 110 % de la valeur) ; parfois faire une offre (85 à 140 % de la valeur, une seule en attente), acheter un lieu en vente pas trop cher (jusqu'à 125 %), mettre un lieu en vente (110 à 150 %), construire. Ils ignorent les joueurs jetables de l'essai (sans pseudo). **Au lancement : les supprimer** (`supabase/sql/050_robots.sql`).
+
 ## La mise à jour
 
 `.github/workflows/serveur.yml`, à chaque fusion qui touche le serveur ou les règles : tests → SQL envoyé par l'API de gestion Supabase → fonction `jeu` déployée → essai complet (`tools/serveur_essai.js` : un joueur jetable se connecte, joue, essaie de tricher, puis est supprimé). Besoin : le secret GitHub `SUPABASE_ACCESS_TOKEN` (`GUIDE-SERVEUR.md`).
