@@ -19,22 +19,19 @@
       return (table && table[communeDvf(lieu.citycode || lieu.insee)]) || 1;
     }
     function notoriete(lieu) { return lieu.notoriete || (lieu.type === 'monument' ? 'monument' : (lieu.type === 'lieu' ? 'connue' : 'commune')); }
-    // Plafond de construction : standing + bonus de notoriété, au plus la Tour ; un lieu célèbre (Légendaire) monte
-    // jusqu'au Gratte-ciel, un monument (Extraordinaire) jusqu'au Prestige : chaque rareté du haut a son bâtiment en plus.
-    function plafond(lieu) {
-      if (notoriete(lieu) === 'monument') return idx('prestige');
-      if (notoriete(lieu) === 'celebre') return idx('gratte_ciel');
-      return Math.min(idx('tour'), standing(lieu) + eco.notoriete[notoriete(lieu)]);
-    }
-    // Rareté (décision de Gautier, 3 nov. 2026) : 1 Commun, 2 Peu commun (vert), 3 Rare (bleu), 4 Épique (violet),
-    // 5 Légendaire (orange) = un lieu célèbre (Wikipédia), 6 Extraordinaire (arc-en-ciel) = un monument (enchères seulement).
+    // Rareté (décision de Gautier, 3 nov. 2026) : 1 Commun (adresse, standing 1), 2 Peu commun (adresse, standing 2),
+    // 3 Rare (lieu nommé au standing 1), 4 Épique (adresse au standing 3, ou lieu nommé au standing 2 ou 3),
+    // 5 Légendaire (lieu célèbre, Wikipédia), 6 Extraordinaire (monument, enchères seulement).
     function rarete(lieu) {
-      const n = notoriete(lieu); if (n === 'monument') return 6;
+      const n = notoriete(lieu), s = standing(lieu);
+      if (n === 'monument') return 6;
       if (n === 'celebre') return 5;
-      const p = plafond(lieu); if (p >= idx('tour')) return 4;
-      if (n === 'connue') return 3;
-      return standing(lieu) >= 2 ? 2 : 1;
+      if (n === 'connue') return s >= 2 ? 4 : 3;
+      return s >= 3 ? 4 : (s >= 2 ? 2 : 1);
     }
+    // Plafond de construction : un bâtiment par rareté (« il ne faut pas deux Immeubles », Gautier, 3 nov.) :
+    // Maison, Immeuble, Tour, Gratte-ciel, Palace, Prestige (data/economie.json → plafond_par_rarete).
+    function plafond(lieu) { return idx(eco.plafond_par_rarete[String(rarete(lieu))]); }
     function valeurBase(lieu) { return eco.standing[String(standing(lieu))].base * eco.multiplicateur_valeur[notoriete(lieu)]; }
     function coutNiveau(lieu, niveau) { return Math.round(valeurBase(lieu) * NIVEAUX[niveau].cout); }
     function peutConstruire(lieu, niveau) { return niveau === (lieu.niveau || 0) + 1 && niveau <= plafond(lieu); }

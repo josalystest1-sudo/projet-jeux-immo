@@ -46,6 +46,14 @@ const ECO = {
    "hauteur": 75
   },
   {
+   "id": "palace",
+   "nom": "Palace",
+   "icone": "🏨",
+   "cout": 12,
+   "loyer": 800,
+   "hauteur": 90
+  },
+  {
    "id": "prestige",
    "nom": "Prestige",
    "icone": "🏛️",
@@ -68,11 +76,13 @@ const ECO = {
    "base": 4000
   }
  },
- "notoriete": {
-  "commune": 0,
-  "connue": 1,
-  "celebre": 2,
-  "monument": 3
+ "plafond_par_rarete": {
+  "1": "maison",
+  "2": "immeuble",
+  "3": "tour",
+  "4": "gratte_ciel",
+  "5": "palace",
+  "6": "prestige"
  },
  "multiplicateur_valeur": {
   "commune": 1,
