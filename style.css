@@ -575,3 +575,9 @@ body.fiche-ouverte #top .barre,body.fiche-ouverte #sugg,body.fiche-ouverte #ctrl
 .ligne-commune .moi-n{flex:none;text-align:right;font-family:var(--titre);font-weight:800;font-size:15px}
 .ligne-commune .moi-n small{font-family:var(--texte)}
 .ligne-commune .chevron{flex:none;font-size:22px;color:var(--gris);font-weight:900}
+
+/* une offre reçue : la valeur de mon lieu et l'écart (au-dessus en vert, en dessous en orange) */
+.offre-valeur{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:8px;padding:7px 10px;border-radius:12px;background:var(--ciel);font-size:13px;font-weight:800;color:var(--gris)}
+.offre-valeur b{color:var(--encre)} .offre-valeur .montant{font-size:14px}
+.offre-valeur .ecart{flex:none;border-radius:999px;padding:2px 9px;font-size:13px}
+.offre-valeur .ecart.plus{background:#DDF3E6;color:var(--cadre2)} .offre-valeur .ecart.moins{background:#FDEBD8;color:#B5651D}

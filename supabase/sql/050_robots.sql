@@ -13,6 +13,9 @@ revoke all on public.robots from anon, authenticated;
 grant select on public.robots to anon, authenticated;
 grant all on public.robots to service_role;
 
+-- des robots assez riches pour acheter les lieux des vrais joueurs (serveur d'essai seulement)
+update public.joueurs set pieces = greatest(pieces, 100000) where id in (select id from public.robots);
+
 -- un tour des robots au plus toutes les « intervalle » secondes, quel que soit le nombre de joueurs connectés
 create or replace function public.jeu_robots_tour(intervalle integer) returns boolean
 language plpgsql security definer set search_path = '' as $$
