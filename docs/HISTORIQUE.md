@@ -82,6 +82,7 @@ Rien d'important ne vit dans une conversation : tout est dans le dépôt ou sur 
 - **Les monuments validés** par Gautier. Puis **huit monuments de plus** (PR #46) : Versailles, Chartres, Reims, Saint-Denis, le Panthéon, l'Opéra Garnier, la Concorde, le Pont du Gard. Et la vraie cause des défauts de près, trouvée et corrigée pour tous : une question de précision des calculs de la carte graphique.
 - **Décision de Gautier pour la boutique** (PR #47) : le Pass mensuel donnera un pack du jour de 8 cartes au lieu de 5 et un bon par mois pour prendre l'adresse libre de son choix, jusqu'à Épique (3 bons gardés au plus) ; jamais de revente de lieux contre de l'argent réel (risque de jeu d'argent). À construire avec la boutique.
 - **Dix monuments de plus** (PR #48) : les Invalides, l'Élysée, la Sorbonne, la Sainte-Chapelle, le Luxembourg, Fontainebleau, Chambord, et les cathédrales d'Amiens, de Rouen et de Strasbourg (22 maquettes en tout). Et les maquettes ne ralentissent plus la carte.
+- **La nuit des monuments** : Gautier va se coucher et demande d'en faire le maximum sans attendre sa validation. Premier lot (PR #49) : le Louvre, le Mont-Saint-Michel, Carcassonne, Chenonceau, le palais des Papes, la Madeleine.
 
 ## Toutes les PR
 
@@ -156,6 +157,7 @@ Puis une PR par étape, fusionnée en squash :
 | #46 | 04/11 00:03 | Graphismes : huit monuments de plus en 3D ; les maquettes nettes de près (précision) |
 | #47 | 04/11 00:15 | GDD : le Pass mensuel décidé par Gautier (pack de 8 cartes, bon mensuel pour une adresse au choix) |
 | #48 | 04/11 00:38 | Graphismes : dix monuments de plus en 3D ; les maquettes ne ralentissent plus la carte |
+| #49 | 04/11 00:56 | Graphismes : le Louvre, le Mont-Saint-Michel, Carcassonne, Chenonceau, le palais des Papes et la Madeleine en 3D |
 
 ## Les décisions de Gautier
 
@@ -186,7 +188,7 @@ Les décisions du 2 novembre (interview) sont dans `CLAUDE.md` § 4 et dans le G
 - **Le serveur, suite** (phase 8) :
   - 8.2 : le mode serveur par défaut, la fin des joueurs simulés, l'inscription des amis. Question posée à Gautier, sans réponse : couper la confirmation par e-mail pendant les essais ?
   - 8.3 : l'anti-triche.
-- **Les graphismes** (phase 10, avant 8.2 : décision de Gautier) : la preuve, l'ouverture et 22 monuments en 3D faits ; ensuite les 38 autres monuments nationaux (le Louvre, le Mont-Saint-Michel, Carcassonne, Chenonceau, le Palais des papes…), l'habillage de la révélation, l'icône et le logo (`docs/BIBLE-GRAPHIQUE.md`).
+- **Les graphismes** (phase 10, avant 8.2 : décision de Gautier) : la preuve, l'ouverture et 28 monuments en 3D faits ; ensuite les autres monuments nationaux (le Grand Palais, les ponts de Paris, Vaux-le-Vicomte, Notre-Dame-de-la-Garde, le viaduc de Millau…), l'habillage de la révélation, l'icône et le logo (`docs/BIBLE-GRAPHIQUE.md`).
 - **La boutique** (phase 9) : Stripe, packs et Pass mensuel (pack de 8 cartes, bon mensuel : GDD § 3), probabilités affichées, blocage Belgique et Pays-Bas, CGU, confidentialité, mentions légales.
 - **Ensuite** : les graphismes (phase 10), l'équilibrage et le lancement (phase 11).
 - **Au lancement** :

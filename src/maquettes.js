@@ -77,7 +77,50 @@
     const combles = (lx, h, lz, x, y, z, mat) => piece((e) => new THREE.ConeGeometry(Math.SQRT1_2, 1, 4).rotateY(Math.PI / 4).translate(0, 0.5, 0).scale(lx + 2 * e, h + 2 * e, lz + 2 * e).translate(0, -e, 0), mat, V(x, y, z));
     // une plaque sans contour (vitraux, drapeau, marquise) : trop fine pour un trait d'encre
     const plaque = (lx, ly, lz, x, y, z, mat, rotY) => piece(() => new THREE.BoxGeometry(lx, ly, lz).translate(0, ly / 2, 0), mat, V(x, y, z), qY(rotY), true);
-    return { THREE, groupe, matiere, V, piece, poutre, dalle, tronc, arche, boite, toit, dome, cylindre, pyramide, boule, abside, demiCone, extrusion, formeArche, combles, plaque };
+    // -- ajouts du 4 nov. 2026 (nuit) : des pièces répétées réunies en une seule forme (une colonnade, des tours, des
+    // créneaux) : la carte graphique les dessine d'un coup ; et quelques formes de plus
+    const fusion = (geos) => { const gs = geos.map((g) => (g.index ? g.toNonIndexed() : g)); let n = 0; for (const g of gs) n += g.attributes.position.array.length;
+      const pos = new Float32Array(n), nor = new Float32Array(n); let o = 0;
+      for (const g of gs) { pos.set(g.attributes.position.array, o); nor.set(g.attributes.normal.array, o); o += g.attributes.position.array.length; }
+      const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.BufferAttribute(pos, 3)); g.setAttribute('normal', new THREE.BufferAttribute(nor, 3)); return g; };
+    const angleDe = (ax, az, bx, bz) => Math.atan2(-(bz - az), bx - ax);
+    const fusionnee = (m) => { m.userData.fusion = true; return m; };   // (repérée par les essais : sa boîte englobe toutes ses pièces)
+    // des cylindres : [x, z, r, h, y (base), rb (rayon du bas)] ; seg côtés
+    const cylindres = (liste, mat, seg) => fusionnee(piece((e) => fusion(liste.map(([x, z, r, h, y, rb]) => new THREE.CylinderGeometry(r + e, (rb || r) + e, h + 2 * e, seg || 12).translate(x, (y || 0) + h / 2, z))), mat));
+    // des cônes (toits de tours) : [x, z, r, y (base), h]
+    const cones = (liste, mat, seg) => fusionnee(piece((e) => fusion(liste.map(([x, z, r, y, h]) => new THREE.ConeGeometry(r + e, h + 2 * e, seg || 16).translate(x, y + h / 2, z))), mat));
+    // des boîtes : [lx, ly, lz, x, y, z, rotY]
+    const boites = (liste, mat) => fusionnee(piece((e) => fusion(liste.map(([lx, ly, lz, x, y, z, r]) => new THREE.BoxGeometry(lx + 2 * e, ly + 2 * e, lz + 2 * e).translate(0, ly / 2, 0).rotateY(r || 0).translate(x, y, z))), mat));
+    // des plaques sans contour (fenêtres) : [lx, ly, lz, x, y, z, rotY]
+    const plaques = (liste, mat) => fusionnee(piece(() => fusion(liste.map(([lx, ly, lz, x, y, z, r]) => new THREE.BoxGeometry(lx, ly, lz).translate(0, ly / 2, 0).rotateY(r || 0).translate(x, y, z))), mat, null, null, true));
+    // des combles à quatre pans : [lx, h, lz, x, y, z, rotY]
+    const comblesN = (liste, mat) => fusionnee(piece((e) => fusion(liste.map(([lx, h, lz, x, y, z, r]) => new THREE.ConeGeometry(Math.SQRT1_2, 1, 4).rotateY(Math.PI / 4).translate(0, 0.5, 0).scale(lx + 2 * e, h + 2 * e, lz + 2 * e).translate(0, -e, 0).rotateY(r || 0).translate(x, y, z))), mat));
+    // des toits à deux pans : [larg, haut, long, x, y, z, rotY] (le faîte suit x, comme toit)
+    const formeToit = (larg, haut, long, e) => { const f = new THREE.Shape(); f.moveTo(-larg / 2 - e, -e); f.lineTo(larg / 2 + e, -e); f.lineTo(0, haut + e); f.closePath();
+      const g = new THREE.ExtrudeGeometry(f, { depth: long + 2 * e, bevelEnabled: false }); g.translate(0, 0, -(long / 2 + e)); g.rotateY(Math.PI / 2); return g; };
+    const toits = (liste, mat) => fusionnee(piece((e) => fusion(liste.map(([larg, haut, long, x, y, z, r]) => formeToit(larg, haut, long, e).rotateY(r || 0).translate(x, y, z))), mat));
+    // un dôme carré (les pavillons du Louvre) : base lx × lz, hauteur h
+    const domeCarre = (lx, h, lz, x, y, z, mat) => piece((e) => new THREE.SphereGeometry(Math.SQRT1_2, 4, 8, 0, Math.PI * 2, 0, Math.PI / 2).rotateY(Math.PI / 4).scale(lx + 2 * e, (h + 2 * e) / Math.SQRT1_2, lz + 2 * e).translate(0, -e, 0), mat, V(x, y, z));
+    // des murs le long de lignes (listes de points [x, z]), hauts de h, épais de ep
+    const remparts = (lignes, h, ep, mat, y0) => fusionnee(piece((e) => { const gs = [];
+      for (const pts of lignes) for (let i = 1; i < pts.length; i++) { const [ax, az] = pts[i - 1], [bx, bz] = pts[i], L = Math.hypot(bx - ax, bz - az); if (L < 0.1) continue;
+        gs.push(new THREE.BoxGeometry(L + ep + 2 * e, h + 2 * e, ep + 2 * e).translate(0, h / 2 + (y0 || 0), 0).rotateY(angleDe(ax, az, bx, bz)).translate((ax + bx) / 2, 0, (az + bz) / 2)); }
+      return fusion(gs); }, mat));
+    // des créneaux le long de lignes, posés à la hauteur y (sans contour : trop découpés pour un trait d'encre)
+    const peigne = (L, h) => { const n = Math.max(2, Math.round(L / 2.4)), w = L / (2 * n - 1), f = new THREE.Shape(); f.moveTo(-L / 2, 0);
+      for (let i = 0; i < n; i++) { const a = -L / 2 + 2 * i * w; f.lineTo(a, h); f.lineTo(a + w, h); if (i < n - 1) { f.lineTo(a + w, h * 0.45); f.lineTo(a + 2 * w, h * 0.45); } }
+      f.lineTo(L / 2, 0); f.closePath(); return f; };
+    const creneaux = (lignes, y, ep, mat) => fusionnee(piece(() => { const gs = [];
+      for (const pts of lignes) for (let i = 1; i < pts.length; i++) { const [ax, az] = pts[i - 1], [bx, bz] = pts[i], L = Math.hypot(bx - ax, bz - az); if (L < 1) continue;
+        gs.push(new THREE.ExtrudeGeometry(peigne(L, 1.8), { depth: ep, bevelEnabled: false }).translate(0, 0, -ep / 2).rotateY(angleDe(ax, az, bx, bz)).translate((ax + bx) / 2, y, (az + bz) / 2)); }
+      return fusion(gs); }, mat, null, null, true));
+    // le tour d'un rectangle, pour ses créneaux
+    const tourDe = (lx, lz, x, z) => [[x - lx / 2, z - lz / 2], [x + lx / 2, z - lz / 2], [x + lx / 2, z + lz / 2], [x - lx / 2, z + lz / 2], [x - lx / 2, z - lz / 2]];
+    // une ogive dessinée (arc brisé) : largeur, hauteur du sommet
+    const formeOgive = (larg, haut) => { const r = larg / 2, y0 = haut - larg * 0.85, f = new THREE.Shape(); f.moveTo(-r, 0); f.lineTo(r, 0); f.lineTo(r, y0);
+      f.quadraticCurveTo(r, y0 + larg * 0.55, 0, haut); f.quadraticCurveTo(-r, y0 + larg * 0.55, -r, y0); f.closePath(); return f; };
+    return { THREE, groupe, matiere, V, piece, poutre, dalle, tronc, arche, boite, toit, dome, cylindre, pyramide, boule, abside, demiCone, extrusion, formeArche, combles, plaque,
+      fusion, cylindres, cones, boites, plaques, comblesN, toits, domeCarre, remparts, creneaux, tourDe, formeOgive };
   }
 
   // ---------------------------------------------------------------- la tour Eiffel (330 m), d'après ses vraies proportions
@@ -499,6 +542,166 @@
     tours: [{ z: -17.5, h: 66, octogone: { h: 34, r: 7.5 }, fleche: 40, r: 6.5, couleur: 0xC98F7B }, { z: 17.5, h: 66 }],
     flecheCroisee: { tour: 6, cote: 15, seg: 8, h: 10, r: 8 } });
 
+  // ---------------------------------------------------------------- l'église de la Madeleine (x : l'axe, le portique au
+  // sud-ouest en -x, face à la rue Royale)
+  // un temple grec : le soubassement et ses marches, la cella, 48 colonnes corinthiennes, l'entablement, les frontons,
+  // le toit de zinc, la porte de bronze
+  function madeleine(THREE) {
+    const A = atelier(THREE);
+    const pierre = A.matiere(0xEFE6D2), pierreFoncee = A.matiere(0xD6C8A8), zinc = A.matiere(0x8E9AB4), bronze = A.matiere(0x7A5A3A);
+    A.boite(104, 7, 45, 0, 0, 0, pierreFoncee); A.boite(10, 2.3, 34, -56, 0, 0, pierreFoncee); A.boite(7, 4.6, 34, -54.5, 0, 0, pierreFoncee);
+    A.boite(84, 20, 26, 2, 7, 0, pierre);
+    const col = []; for (let i = 0; i < 8; i++) for (const x of [-49, 49]) col.push([x, -19.6 + i * 5.6, 1.05, 19.5, 7]);
+    for (let i = 1; i < 17; i++) for (const z of [-19.6, 19.6]) col.push([-49 + i * 98 / 17, z, 1.05, 19.5, 7]);
+    A.cylindres(col, pierre, 12);
+    A.boite(102, 3, 43, 0, 26.5, 0, pierreFoncee);
+    for (const s of [1, -1]) A.toit(43, 7, 2, s * 50, 29.5, 0, pierre);
+    A.toit(43.6, 7.2, 97, 0, 29.5, 0, zinc);
+    A.plaque(0.4, 11, 7, -40.2, 7, 0, bronze);
+    return A.groupe;
+  }
+
+  // ---------------------------------------------------------------- le palais des Papes d'Avignon (x : vers l'est-sud-est ;
+  // la grande façade à l'ouest, en -x, sur la place du Palais)
+  // une forteresse : des ailes crénelées autour de la cour d'honneur (au sud) et du cloître (au nord), leurs toits de
+  // tuiles, les hautes tours, les grandes arcades en ogive de la façade, la porte des Champeaux et ses deux tourelles
+  function palaisDesPapes(THREE) {
+    const A = atelier(THREE);
+    const pierre = A.matiere(0xE9D3A6), pierreFoncee = A.matiere(0xCDB07C), tuile = A.matiere(0xC8704A), ombre = A.matiere(0xA88E64);
+    const ailes = [[-53, -31, -8, 72, 32], [-31, 25, 55, 72, 38], [9, 25, -8, 55, 30], [-31, 9, -8, 2, 28],
+      [-30, 40, -70, -55, 28], [-30, -10, -55, -8, 30], [26, 44, -55, -8, 28], [-10, 26, -20, -8, 26]];
+    const tours = [[-24, -51, 17, 15, 52], [45, -72, 18, 18, 42], [-1, 75, 20, 16, 42], [30, 2, 18, 18, 46], [-50, 22, 14, 14, 40], [-44, 68, 16, 14, 40]];
+    const toits = [], bords = [];
+    for (const [x0, x1, z0, z1, h] of ailes) {
+      const lx = x1 - x0, lz = z1 - z0, x = (x0 + x1) / 2, z = (z0 + z1) / 2;
+      A.boite(lx, h, lz, x, 0, z, pierre); bords.push([lx, h, lz, x, z]);
+      toits.push(lx > lz ? [lz - 2, 3.5, lx - 2, x, h, z, 0] : [lx - 2, 3.5, lz - 2, x, h, z, Math.PI / 2]);
+    }
+    A.toits(toits, tuile);
+    for (const [x, z, lx, lz, h] of tours) { A.boite(lx, h, lz, x, 0, z, pierre); A.boite(lx + 1.4, 2.2, lz + 1.4, x, h - 3.5, z, pierreFoncee); bords.push([lx + 1.4, h - 1.3, lz + 1.4, x, z]); }
+    for (const [lx, h, lz, x, z] of bords) A.creneaux([A.tourDe(lx, lz, x, z)], h, 0.9, pierreFoncee);
+    for (const z of [0, 12, 24, 48, 60]) A.extrusion(A.formeOgive(6, 24), 0.6, -53.2, 0, z, ombre, Math.PI / 2);
+    A.extrusion(A.formeOgive(5, 9), 0.6, -53.3, 0, 36, ombre, Math.PI / 2);
+    for (const s of [1, -1]) { A.cylindre(1.8, 1.8, 9, 10, -54.5, 26, 36 + s * 5, pierre); A.pyramide(2.2, 6, 10, -54.5, 35, 36 + s * 5, pierreFoncee); }
+    return A.groupe;
+  }
+
+  // ---------------------------------------------------------------- le château de Chenonceau (x : le long du Cher ; la
+  // galerie traverse la rivière vers le sud, en +z)
+  // le logis carré sur ses piles, ses tourelles d'angle, son haut toit d'ardoise et ses cheminées, la chapelle ; la galerie
+  // à deux étages sur ses arches, ses fenêtres et ses lucarnes ; la tour des Marques sur la terrasse
+  function chenonceau(THREE) {
+    const A = atelier(THREE);
+    const pierre = A.matiere(0xF4EEDF), pierreFoncee = A.matiere(0xDCD0B4), ardoise = A.matiere(0x4F5D8C), fenetre = A.matiere(0x4A5A7A, 0x101828);
+    A.boite(30, 3, 26, -18.5, 0, -8, pierreFoncee); A.boite(30, 13, 26, -18.5, 3, -8, pierre); A.combles(30.6, 12, 26.6, -18.5, 16, -8, ardoise);
+    const tourelles = []; for (const [dx, dz] of [[1, 1], [1, -1], [-1, 1], [-1, -1]]) tourelles.push([-18.5 + dx * 15, -8 + dz * 13, 2.2, 10, 7]);
+    A.cylindres(tourelles, pierre, 14); A.cones(tourelles.map(([x, z]) => [x, z, 2.5, 17, 6]), ardoise, 14);
+    A.boite(6, 12, 8, -0.5, 0, 1, pierre); A.toit(8.4, 4, 6, -0.5, 12, 1, ardoise, Math.PI / 2);
+    A.boites([[-27, -14], [-27, -2], [-10, -14], [-10, -2]].map(([x, z]) => [1.8, 9, 3.2, x, 20, z]), pierreFoncee);
+    A.plaques([-12, -4].flatMap((z) => [7.5, 11.5].flatMap((y) => [[-33.6, y, z], [-3.4, y, z]])).map(([x, y, z]) => [0.3, 2.4, 2, x, y, z]), fenetre);
+    const piles = [13.4, 25, 37, 50.6, 62.5];
+    A.boites(piles.map((z) => [9, 7, 3, -25.5, 0, z]).concat([[9, 7, 3, -25.5, 0, 65.5]]), pierreFoncee);
+    A.cylindres(piles.flatMap((z) => [[-31, z, 2.1, 7, 0], [-20, z, 2.1, 7, 0]]), pierreFoncee, 4);
+    const bords = [5.5]; for (const z of piles) bords.push(z - 1.5, z + 1.5); bords.push(64);
+    for (let i = 0; i + 1 < bords.length; i += 2) { const z0 = bords[i], z1 = bords[i + 1], r = (z1 - z0) / 2, f = new THREE.Shape();
+      f.moveTo(-r, 1.5); f.absarc(0, 1.5, r, Math.PI, 0, true); f.lineTo(r, 7.05); f.lineTo(-r, 7.05); f.closePath(); A.extrusion(f, 8.96, -25.5, 0, (z0 + z1) / 2, pierre, Math.PI / 2, true); }
+    A.boite(9, 10, 61.5, -25.5, 7, 36.25, pierre); A.toit(9.6, 6, 61.5, -25.5, 17, 36.25, ardoise, Math.PI / 2);
+    const fen = []; for (let k = 0; k < 9; k++) for (const y of [8.5, 12.8]) for (const s of [1, -1]) fen.push([0.3, 2.6, 2, -25.5 + s * 4.6, y, 9 + k * 6.6]);
+    A.plaques(fen, fenetre);
+    const luc = []; for (let k = 0; k < 6; k++) for (const s of [1, -1]) luc.push([1.8, 2.6, 2, -25.5 + s * 3.4, 17, 11 + k * 10.5]);
+    A.boites(luc, pierre); A.toits(luc.map(([, , , x, , z]) => [2.6, 1.3, 2.2, x, 19.6, z, Math.PI / 2]), ardoise);
+    A.cylindre(6, 6, 18, 20, -34, 0, -50, pierre); A.pyramide(6.5, 9, 20, -34, 18, -50, ardoise); A.cylindre(1, 1, 3, 8, -34, 25.5, -50, pierre); A.pyramide(1.3, 2.5, 8, -34, 28.5, -50, ardoise);
+    return A.groupe;
+  }
+
+  // ---------------------------------------------------------------- l'abbaye du Mont-Saint-Michel (x : l'axe de l'église,
+  // le chœur à l'est-nord-est ; la Merveille au nord, en -z)
+  // le rocher de granit (la carte est plate : il porte l'abbaye), la Merveille, le logis abbatial, la plate-forme,
+  // l'église (nef, transept, chœur gothique), le clocher, la flèche et l'archange doré
+  function montSaintMichel(THREE) {
+    const A = atelier(THREE);
+    const granit = A.matiere(0x9A9284), granitFonce = A.matiere(0x7F786C), pierre = A.matiere(0xE2DACB), pierreFoncee = A.matiere(0xC6BBA6), ardoise = A.matiere(0x4F5D8C), ardoiseFoncee = A.matiere(0x3F4B78), or = A.matiere(0xFFC233, 0x7A4A00);
+    A.cylindre(40, 46, 18, 9, 5, 0, 0, granit); A.cylindre(32, 40, 18, 9, 3, 18, -2, granitFonce); A.cylindre(26, 32, 14, 9, 6, 36, -3, granit);
+    A.boite(56, 30, 14, 10, 20, -28, pierre); A.creneaux([A.tourDe(56, 14, 10, -28)], 50, 0.8, pierreFoncee);
+    A.boite(30, 26, 12, 15, 24, 20, pierre); A.toit(12.6, 6, 30, 15, 50, 20, ardoise);
+    A.boite(70, 4, 48, 6, 46, -3, pierreFoncee);
+    A.boite(40, 16, 14, -8, 50, -3, pierre); A.toit(14.6, 7, 40, -8, 66, -3, ardoise);
+    A.boite(12, 16, 32, 15, 50, -3, pierre); A.toit(12.6, 7, 32, 15, 66, -3, ardoise, Math.PI / 2);
+    A.boite(20, 20, 18, 31, 50, -3, pierre); A.abside(9, 20, 41, 50, -3, pierre); A.toit(18.6, 7, 20, 31, 70, -3, ardoise); A.demiCone(9.5, 7, 41, 70, -3, ardoise);
+    A.boite(11, 26, 11, 15, 50, -3, pierre); A.cylindre(5, 5, 10, 8, 15, 76, -3, pierre); A.pyramide(5.5, 40, 8, 15, 86, -3, ardoiseFoncee);
+    A.boite(1, 4, 1, 15, 126, -3, or); A.boule(1.2, 15, 131, -3, or); A.boite(4, 1.2, 0.4, 15, 129, -3, or);
+    return A.groupe;
+  }
+
+  // ---------------------------------------------------------------- le Louvre (x : l'axe historique, vers l'est ; la
+  // pyramide au centre ; l'aile Richelieu au nord, en -z ; l'aile Denon et la Seine au sud, en +z)
+  // la pyramide de verre et les trois petites, les ailes Richelieu et Denon autour de la cour Napoléon, leurs pavillons
+  // à dôme carré, les cours couvertes de verre, la cour Carrée (le pavillon de l'Horloge, la Colonnade), la Grande
+  // Galerie jusqu'au pavillon de Flore, l'aile de Rivoli jusqu'au pavillon de Marsan
+  function louvre(THREE) {
+    const A = atelier(THREE);
+    const pierre = A.matiere(0xEFE3C8), pierreFoncee = A.matiere(0xD8C6A0), ardoise = A.matiere(0x56659A), zinc = A.matiere(0x9AA3B5),
+      verre = A.matiere(0x9FD8F5, 0x1A4A66), or = A.matiere(0xFFC233, 0x7A4A00);
+    const aile = (x0, x1, z0, z1, h, plat) => { const lx = x1 - x0, lz = z1 - z0, x = (x0 + x1) / 2, z = (z0 + z1) / 2; A.boite(lx, h, lz, x, 0, z, pierre);
+      if (plat) A.boite(lx + 0.6, 1.4, lz + 0.6, x, h, z, zinc); else if (lx > lz) A.toit(lz + 0.6, Math.min(10, lz * 0.38), lx, x, h, z, ardoise); else A.toit(lx + 0.6, Math.min(10, lx * 0.38), lz, x, h, z, ardoise, Math.PI / 2); };
+    const pavillon = (x, z, lx, lz, h, hd) => { A.boite(lx, h, lz, x, 0, z, pierre); A.boite(lx + 1, 1.4, lz + 1, x, h - 1.4, z, pierreFoncee); A.domeCarre(lx - 1, hd, lz - 1, x, h, z, ardoise); A.boule(0.9, x, h + hd + 0.6, z, or); };
+    // la pyramide (35 m de côté, 21,6 m) et les trois petites
+    A.pyramide(25, 21.6, 4, 0, 0, 0, verre); for (const [x, z] of [[0, -38], [0, 38], [38, 0]]) A.pyramide(3.7, 5, 4, x, 0, z, verre);
+    // l'aile Richelieu et ses trois cours couvertes
+    aile(-108, 123, -151, -124, 25); aile(-108, 123, -85, -63, 25); aile(-108, 123, -63, -57, 12, true);
+    aile(-108, -66, -124, -85, 25); aile(-9, 12, -124, -85, 25); aile(68, 82, -124, -85, 25); aile(101, 123, -124, -85, 25);
+    A.plaques([[57, 1, 39, -37.5, 21, -104.5], [56, 1, 39, 40, 21, -104.5], [19, 1, 39, 91.5, 21, -104.5]], verre);
+    for (const x of [-76.5, 0.5, 76.5]) pavillon(x, -72, 26, 26, 28, 13);
+    pavillon(2, -137, 26, 28, 28, 12);
+    // l'aile Denon
+    aile(-138, 127, 70, 92, 25); aile(-138, 127, 63, 70, 12, true); aile(-138, 127, 121, 143, 25);
+    aile(-138, -110, 92, 121, 25); aile(-10, 10, 92, 121, 25); aile(60, 80, 92, 121, 25); aile(105, 127, 92, 121, 25);
+    for (const x of [-79, -1.5, 77.5]) pavillon(x, 76, 26, 26, 28, 13);
+    // la cour Carrée : les toits plats, l'aile Lescot à l'ouest et le pavillon de l'Horloge, la Colonnade à l'est
+    aile(123, 148, -89, 88, 27); aile(148, 270, -89, -64, 27, true); aile(148, 270, 63, 88, 27, true); aile(270, 295, -89, 88, 27, true);
+    for (const [x, z] of [[135.5, -76.5], [135.5, 75.5], [282.5, -76.5], [282.5, 75.5]]) { A.boite(27, 29, 27, x, 0, z, pierre); A.combles(27.6, 8, 27.6, x, 29, z, ardoise); }
+    A.boite(28, 32, 30, 135.5, 0, 0, pierre); A.domeCarre(26, 17, 28, 135.5, 32, 0, ardoise); A.boule(1.2, 135.5, 49.8, 0, or);
+    A.boite(4, 9, 130, 297, 0, 0, pierreFoncee); A.cylindres(Array.from({ length: 22 }, (_, k) => [297.5, -60 + k * 120 / 21, 0.8, 14, 9]), pierre, 10); A.boite(4.4, 3, 130, 297, 23, 0, pierreFoncee);
+    // la Grande Galerie et le pavillon de Flore ; l'aile de Rivoli et le pavillon de Marsan
+    aile(-339, -138, 120, 143, 23); pavillon(-245, 131.5, 26, 30, 26, 10); pavillon(-359, 127, 40, 44, 30, 14);
+    aile(-330, -108, -151, -127, 24); pavillon(-329.5, -151.5, 39, 49, 30, 14);
+    return A.groupe;
+  }
+
+  // ---------------------------------------------------------------- la Cité de Carcassonne (x : vers l'est)
+  // les deux enceintes (la haute, intérieure, et les lices), leurs créneaux, une cinquantaine de tours à leur place et à
+  // leur hauteur (relevées sur la BD TOPO : murs et tours), les toits pointus d'ardoise (tours hautes) ou de tuiles
+  // (tours basses), le château comtal, la basilique Saint-Nazaire
+  const CARCA = {
+    T: [[-164, 190.5, 12.5, 13, 0, 23], [103.5, 124, 14, 13.5, 88, 25], [-114, 196, 9, 8, 50, 18], [-115.5, 220.5, 7.5, 6.5, 13, 10], [-63, 179.5, 13, 13, 13, 23], [-35.5, 174.5, 9.5, 11, 11, 17], [10, 165.5, 9.5, 9.5, 0, 19], [19.5, 190, 8, 6, 20, 10], [34.5, 154.5, 8, 7, 28, 15], [57, 140.5, 7.5, 7, 41, 15], [62.5, 167, 8, 5, 32, 9], [-177, 145, 8, 6.5, 54, 10], [-165, 147.5, 9, 10, 10, 20], [-180, 220.5, 11, 10.5, 58, 16], [-146.5, 89, 11.5, 12, 63, 26], [-38, -184, 9, 7, 35, 8], [-63, -128.5, 9.5, 8, 71, 17], [-67, -108.5, 6, 6, 21, 17], [-39.5, -131.5, 4.5, 8, 76, 17], [3, -212, 7.5, 5, 23, 7], [47.5, -224.5, 8.5, 5.5, 2, 8], [39.5, -207, 8.5, 8, 88, 15], [65, -199, 8, 8.5, 61, 14], [-22, -172, 8, 8.5, 39, 17], [-16, -125, 8.5, 10.5, 78, 17], [-23.5, -98.5, 9, 9, 78, 17], [-67.5, -74, 21.5, 14, 78, 17], [-80.5, -50.5, 4.5, 7.5, 88, 31], [-31, -70, 17, 8, 77, 17], [-37, -45, 8, 8.5, 25, 17], [-77, -19, 9, 10, 20, 18], [-124.5, 44, 6.5, 7, 0, 0], [-121.5, 54, 10.5, 10, 15, 0], [-108, 37.5, 7, 7, 48, 0], [92, -191.5, 10, 8.5, 65, 15], [107, -173, 8.5, 7.5, 19, 14], [116, -151, 7, 5, 19, 20], [145, -161, 7.5, 9.5, 31, 9], [153, -101.5, 19, 15, 15, 32], [173.5, -109, 10, 11.5, 8, 10], [138, -51, 31, 17, 65, 28], [126.5, -18.5, 3.5, 5, 0, 16], [117, 5, 8, 8, 71, 16], [104.5, 35, 6.5, 7, 71, 14], [97.5, 57.5, 10, 9, 78, 13], [133.5, 40, 12.5, 10.5, 80, 8], [87.5, 101.5, 12.5, 9.5, 62, 24]],
+    Ch: [[-61.5, -103.5, 39.5, 13, 79, 17], [-22, -113.5, 22, 5, 75, 17], [-28.5, -86.5, 17, 5.5, 75, 17], [-75, -60.5, 7.5, 7.5, 2, 17], [-58.5, -50, 9, 38, 81, 17], [-49.5, -65, 11.5, 27, 76, 17]],
+    M: [[0, -158.5, 123.5, -156, 118], [0, -158.5, 218.5, -119.5, 218.5], [1, 60.5, 139, 76.5, 118], [1, -108.5, 194, -74.5, 182.5, -67.5, 183], [1, -158, 192, -119.5, 196.5], [1, -58, 177, -41, 176], [0, -112.5, 216.5, -66.5, 206.5, -62.5, 214, -52.5, 214.5, -49.5, 212, -48, 202.5, 15, 189], [1, -30, 174, 5, 166.5], [1, 15.5, 163, 30.5, 156], [1, 37.5, 151.5, 55, 144], [0, 22.5, 185.5, 58, 167.5], [1, 64.5, 163, 91.5, 144, 85.5, 136, 96.5, 125], [0, -162.5, 118, -175, 141.5], [1, -166.5, 142.5, -156, 118], [0, -176, 149.5, -178, 215], [1, -164, 183.5, -166.5, 152], [0, -174, 218.5, -123.5, 218.5], [1, -158, 192, -123.5, 196], [1, -150, 92, -158.5, 110.5], [1, -158.5, 123.5, -146.5, 93.5], [0, -128, -123.5, -119, -137.5, -75, -127.5], [1, -124.5, -118, -115, -125, -85, -120.5, -90, -73.5, -81.5, -74, -78, -84], [1, -25, -168, -56.5, -146, -60, -134], [1, -60, -134, -73, -135], [0, -41, -179.5, -72, -153.5, -70, -151.5, -78, -118, -77.5, -99, -80.5, -84], [0, 43.5, -222, 7.5, -211.5], [1, 44, -208, 61.5, -201.5], [0, 0.5, -208, -33, -185], [1, -18.5, -174, 35.5, -208], [1, 70, -198, 88, -194], [0, 78, -165, 81.5, -156], [1, -83.5, -48, -83, -24, -86.5, -23.5, -91, -2.5, -109.5, 18], [0, -105, 35, -80.5, 2, -77, -13], [1, -85, -73.5, -84, -52], [1, -76.5, -27, -77, -47.5], [0, -105, 23, -122.5, 40.5], [0, -118, 49.5, -110, 40.5], [0, -127.5, 48, -146, 83], [0, -140, 85, -124.5, 59], [0, -2, -94.5, -8.5, -41.5, -12.5, -43, -17.5, -34], [1, 60.5, 139, 84.5, 106], [0, 140, -162.5, 105, -207.5, 110.5, -212, 108, -222.5, 100, -223, 96, -215, 52, -222], [1, 106.5, -176.5, 95, -189], [1, 114.5, -153.5, 110, -169.5], [1, 152, -108.5, 117.5, -148.5], [0, 168, -113.5, 144, -156.5], [1, 118.5, 1.5, 125, -16], [1, 127.5, -21, 133.5, -36.5], [1, 106, 32, 115.5, 9], [1, 144, -66, 155.5, -94], [1, 169.5, -104, 159, -59, 165.5, -53, 165.5, -46.5, 158, -38.5, 151.5, -39.5, 149, -34, 152, -33.5, 130.5, 34.5], [1, 158, -38.5, 168.5, -29, 164, -23, 149.5, -35.5], [0, 100, 54, 104, 38], [1, 89, 95.5, 99, 62.5], [0, 128, 42, 110, 101.5, 101.5, 116.5], [0, 164, 18, 140.5, 79, 129.5, 117], [0, 212, -43.5, 202.5, -89.5], [1, 79.5, 152.5, 91.5, 144, 85.5, 136, 96.5, 125], [1, -150, 92, -175, 141.5], [1, -166.5, 142.5, -146.5, 93.5], [0, -128, -123.5, -123.5, -130.5]],
+    ids: ['0080120119', '0080119911', '0080119841', '0080119952', '0080119777', '0080119842', '0080119845', '0080119868', '0080119823', '0080119955', '0080119943', '0080120020', '0080120107', '0080120021', '0080120096', '0080119794', '0351172416', '0351172418', '0351172415', '0080119798', '0080119803', '0080119813', '0080119796', '0080119804', '0351172414', '0351172412', '0351172409', '0080119971', '0351172410', '0351172407', '0080119912', '0351172402', '0351172398', '0351172399', '0080119886', '0080119814', '0080119788', '0080119875', '0080119844', '0080119882', '0080119872', '0223351845', '0080119859', '0080119843', '0080119962', '0080119908', '0080119867', '0351172417', '0351172413', '0351172411', '0351172405', '0351172406', '0351172408', '0351172401', '0351170606', '0351170604'],
+  };
+  function carcassonne(THREE) {
+    const A = atelier(THREE);
+    const pierre = A.matiere(0xE3CFA6), pierreFoncee = A.matiere(0xC7AE80), ardoise = A.matiere(0x4F5D8C), tuile = A.matiere(0xC8704A);
+    const lignes = (haut) => CARCA.M.filter((m) => m[0] === haut).map((m) => { const p = []; for (let i = 1; i < m.length; i += 2) p.push([m[i], m[i + 1]]); return p; });
+    for (const [haut, h] of [[1, 13], [0, 8]]) { const ls = lignes(haut); A.remparts(ls, h, 3, pierre); A.creneaux(ls, h, 1, pierreFoncee); }
+    const rondes = [], cones = [], conesTuile = [], carrees = [], combles = [], bandes = [];
+    for (const [x, z, la, lb, ang, h0] of CARCA.T) {
+      const h = Math.max(h0, 12) + 2, haute = h0 >= 13 || h0 === 0;
+      if (Math.min(la, lb) / Math.max(la, lb) > 0.72 && Math.max(la, lb) < 16) { const r = Math.max(3, (la + lb) / 4);
+        rondes.push([x, z, r, h]); bandes.push([x, z, r + 0.5, 1.6, h - 1.6]); (haute ? cones : conesTuile).push([x, z, r + 0.7, h, haute ? r * 2.3 : r * 0.9]); }
+      else { carrees.push([la, h, lb, x, 0, z, ang * Math.PI / 180]); combles.push([la + 0.8, haute ? 9 : 4, lb + 0.8, x, h, z, ang * Math.PI / 180]); }
+    }
+    A.cylindres(rondes, pierre, 16); A.cylindres(bandes, pierreFoncee, 16); A.cones(cones, ardoise, 16); A.cones(conesTuile, tuile, 16);
+    A.boites(carrees, pierre); A.comblesN(combles, ardoise);
+    // le château comtal : ses corps de logis, leurs toits
+    A.boites(CARCA.Ch.map(([x, z, la, lb, ang, h]) => [la, h, lb, x, 0, z, ang * Math.PI / 180]), pierre);
+    A.toits(CARCA.Ch.map(([x, z, la, lb, ang, h]) => (la >= lb ? [lb + 0.6, Math.min(7, lb * 0.5), la, x, h, z, ang * Math.PI / 180] : [la + 0.6, Math.min(7, la * 0.5), lb, x, h, z, (ang + 90) * Math.PI / 180])), ardoise);
+    // la basilique Saint-Nazaire : la nef romane, le transept et le chœur gothiques
+    A.boite(44, 17, 16, -86, 0, 124.5, pierre); A.toit(16.6, 6, 44, -86, 17, 124.5, ardoise);
+    A.boite(14, 20, 38, -59, 0, 124.5, pierre); A.toit(14.6, 6, 38, -59, 20, 124.5, ardoise, Math.PI / 2);
+    A.boite(6, 20, 16, -49, 0, 124.5, pierre); A.abside(8, 20, -46, 0, 124.5, pierre); A.demiCone(8.5, 6, -46, 20, 124.5, ardoise);
+    return A.groupe;
+  }
+
   // les maquettes connues : le monument (identifiant de data/monuments.json), où et comment la poser, et les
   // bâtiments de l'IGN qu'elle remplace (sinon les blocs gris de la BD TOPO resteraient dedans)
   const MODELES = {
@@ -589,6 +792,25 @@
     Q745460: {   // Strasbourg : la façade à l'ouest-sud-ouest, la tour et sa flèche au nord
       construire: strasbourg, centre: [7.751021, 48.581869], orientation: 30, masquer: ['BATIMENT0000002223298147', 'BATIMENT0000002223298145'],
     },
+    // lot du 4 nov. 2026 (nuit)
+    Q330564: {   // la Madeleine : le portique vers la rue Royale (sud-ouest)
+      construire: madeleine, centre: [2.324458, 48.870038], orientation: 63, masquer: ['BATIMENT0000000000158567'],
+    },
+    Q143463: {   // le palais des Papes : la grande façade à l'ouest, sur la place du Palais
+      construire: palaisDesPapes, centre: [4.807538, 43.950766], orientation: -13, masquer: ['BATIMENT0000002206956146', 'BATIMENT0000000297746541', 'BATIMENT0000000297746540', 'BATIMENT0000000297746539', 'BATIMENT0000002206956145'],
+    },
+    Q193215: {   // Chenonceau : le logis au nord, la galerie traverse le Cher vers le sud
+      construire: chenonceau, centre: [1.0706, 47.3249], orientation: 28, masquer: ['BATIMENT0000000323194311', 'BATIMENT0000000323194308', 'BATIMENT0000000323194310', 'BATIMENT0000000323194312', 'BATIMENT0000000323194313', 'BATIMENT0000000323194314', 'BATIMENT0000000323194315', 'BATIMENT0000000323194316', 'BATIMENT0000000323194317', 'BATIMENT0000000323194318'],
+    },
+    Q651388: {   // le Mont-Saint-Michel : l'église au sommet, le chœur à l'est-nord-est, la Merveille au nord
+      construire: montSaintMichel, centre: [-1.5114, 48.6361], orientation: 12, masquer: ['BATIMENT0000000301499771', 'BATIMENT0000000301499768', 'BATIMENT0000000301499767', 'BATIMENT0000000301499754', 'BATIMENT0000000301499752', 'BATIMENT0000000301499769', 'BATIMENT0000000301499749', 'BATIMENT0000000301499748', 'BATIMENT0000000301499750'],   // (et les bâtiments pris dans le rocher)
+    },
+    Q1075988: {   // le Louvre : l'axe historique ; la pyramide au centre de la cour Napoléon
+      construire: louvre, centre: [2.335857, 48.86101], orientation: -20, masquer: ['BATIMENT0000000245184875', 'BATIMENT0000000245185612', 'BATIMENT0000002007491720', 'BATIMENT0000000245160141', 'BATIMENT0000000245160142', 'BATIMENT0000000245184969', 'BATIMENT0000000245185616', 'BATIMENT0000000245185619', 'BATIMENT0000000245185618', 'BATIMENT0000000245185621', 'BATIMENT0000000245185611', 'BATIMENT0000000245185609', 'BATIMENT0000000245185608', 'BATIMENT0000000245185617', 'BATIMENT0000000245185620', 'BATIMENT0000000245185610', 'BATIMENT0000000245185607', 'BATIMENT0000002011662621', 'BATIMENT0000002007491717', 'BATIMENT0000002007491718', 'BATIMENT0000000253246143', 'BATIMENT0000000253248249', 'BATIMENT0000000253248246'],
+    },
+    Q389269: {   // Carcassonne : les murs et les tours relevés sur la BD TOPO (CARCA)
+      construire: carcassonne, centre: [2.3638, 43.2064], orientation: 0, masquer: CARCA.ids.map((s) => 'BATIMENT000000' + s),
+    },
   };
   const MASQUES = Object.values(MODELES).flatMap((m) => m.masquer);
 
@@ -644,6 +866,7 @@
   }
 
   const api = { MODELES, MASQUES, couche, tourEiffel, cathedrale, notreDame, chartres, reims, saintDenis, arcDeTriomphe, sacreCoeur, pantheon, garnier, concorde, pontDuGard, versailles,
-    elysee, sorbonne, sainteChapelle, invalides, luxembourg, fontainebleau, chambord, amiens, rouen, strasbourg };
+    elysee, sorbonne, sainteChapelle, invalides, luxembourg, fontainebleau, chambord, amiens, rouen, strasbourg,
+    madeleine, palaisDesPapes, chenonceau, montSaintMichel, louvre, carcassonne, CARCA };
   if (typeof module !== 'undefined' && module.exports) module.exports = api; else racine.Maquettes = api;
 })(typeof globalThis !== 'undefined' ? globalThis : this);
