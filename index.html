@@ -126,7 +126,11 @@ const ME = 'moi';
 const AVATARS=['🦊','🐻','🐼','🦁','🐯','🐸','🐙','🦄','🐲','🤖','👑','🎩'];
 function disp(n){ return n===ME ? (state.pseudo||'Moi') : n; }
 const FAKE = ['Léa','Marco','Inès','Yanis','Chloé','Sacha'];
-const JOUR = 60*1000;            // démo : un jour = une minute
+// Le mode serveur (phase 8, essai : Réglages) : la partie vit sur le vrai serveur, en vrais jours de 24 h ;
+// sinon, la démo sur l'appareil (un jour = une minute, joueurs simulés). Les deux parties sont gardées à part.
+const MODE_SERVEUR = (()=>{ try{ return localStorage.getItem('cadastra-mode')==='serveur'; }catch(e){ return false; } })();
+const JOUR = MODE_SERVEUR ? 86400000 : 60*1000;
+const CLE_ETAT = MODE_SERVEUR ? 'cadastra-serveur-v1' : 'proto-cadastre-v3';
 const R = Regles.creer(ECO, STANDING); // moteur de règles (src/regles/lieu.js) : réglages data/economie.json, standing réel data/standing.json
 const NIVEAUX = R.NIVEAUX; const SALAIRE = ECO.salaire_par_jour; const LOYER_BASE = ECO.loyer_terrain; const RARETES = ECO.raretes;
 // Les 458 monuments (data/monuments.json), tous Extraordinaires : 60 nationaux et 398 régionaux ; chaque semaine, 1 national et 2 régionaux aux enchères.
@@ -140,7 +144,7 @@ const FRANCE = [[2.3522,48.8566],[2.2945,48.8584],[2.3912,48.8600],[2.3200,48.83
 
 // =================== état ===================
 let state = { wallet: 1500, owned:{}, pseudo:'', avatar:'🦊', prefs:{offres:true, seuil:true, encheres:true}, lastPack:-1, offersIn:[], offersOut:[], notifs:[], encaisse:Date.now(), encheres:{ mises:{}, clos:{}, depasse:{} }, seen:{} };
-try { const s = localStorage.getItem('proto-cadastre-v3'); if (s) state = Object.assign(state, JSON.parse(s)); } catch(e){}
+try { const s = localStorage.getItem(CLE_ETAT); if (s) state = Object.assign(state, JSON.parse(s)); } catch(e){}
 // les enchères : mes mises par lot (« semaine:place »), les lots clos, les surenchères déjà signalées (l'ancienne enchère unique est abandonnée)
 if(!state.encheres) state.encheres = { mises:{}, clos:{}, depasse:{} }; delete state.auction;
 if(!state.echangesOut) state.echangesOut=[]; if(!state.cedes) state.cedes={};   // échanges proposés ; lieux cédés par échange (id → joueur)
@@ -148,7 +152,7 @@ if(!state.echangesOut) state.echangesOut=[]; if(!state.cedes) state.cedes={};   
 if(!state.niveaux6){ for(const a of Object.values(state.owned)) if(a.type==='monument' && (a.niveau||0)>=4) a.niveau=(a.niveau||0)+1; state.niveaux6=true; }
 // puis le Palace s'insère avant le Prestige (un bâtiment par rareté) : un monument au Prestige (niveau 5) passe au niveau 6
 if(!state.niveaux7){ for(const a of Object.values(state.owned)) if(a.type==='monument' && (a.niveau||0)>=5) a.niveau=(a.niveau||0)+1; state.niveaux7=true; }
-function save(){ try{ localStorage.setItem('proto-cadastre-v3', JSON.stringify(state)); }catch(e){} }
+function save(){ try{ localStorage.setItem(CLE_ETAT, JSON.stringify(state)); }catch(e){} }
 const now = ()=>Date.now();
 const jour = ()=>Math.floor(now()/JOUR);
 
@@ -187,7 +191,7 @@ function valeur(a){ return R.valeur(a); }
 function loyer(a){ return R.loyerParJour(a); }
 function loyerTotal(){ return Object.values(state.owned).reduce((s,a)=>s+loyer(a),0); }
 function pendingRent(){ return R.aEncaisser(Object.values(state.owned), state.encaisse, now(), JOUR); }
-function encaisser(silent){ const p=pendingRent(); if(p>=1){ state.wallet += Math.floor(p); state.encaisse = now(); save(); if(!silent) toast(`+${Math.floor(p)} ₳ encaissés (salaire + loyers)`); } else if(!silent) toast('Rien à encaisser pour l’instant'); refreshTop(); }
+function encaisser(silent){ if(MODE_SERVEUR) return; const p=pendingRent(); if(p>=1){ state.wallet += Math.floor(p); state.encaisse = now(); save(); if(!silent) toast(`+${Math.floor(p)} ₳ encaissés (salaire + loyers)`); } else if(!silent) toast('Rien à encaisser pour l’instant'); refreshTop(); }
 function dispo(){ return state.wallet - bloqueEncheres(); }
 function notify(type, text, extra){ state.notifs.unshift({ts:now(), type, text, read:false, ...(extra||{})}); if(state.notifs.length>60) state.notifs.length=60; save(); refreshTop(); }
 // propriétaires simulés (par adresse)
@@ -623,7 +627,7 @@ function addrRow(a, withBuild){
       row.appendChild(actions); } }
   else if(o){ const existing = state.offersOut.find(x=>x.addrId===a.id && x.status==='attente');
     if(vente){ const b=document.createElement('button'); b.className='btn'; b.innerHTML=`Acheter · ${pcs(valeur(rec))}`; b.disabled=dispo()<valeur(rec);
-      b.onclick=()=>{ encaisser(true); state.wallet-=valeur(rec); state.owned[a.id]=Object.assign({}, a, {niveau:lv, depuis:now()}); state.seen[a.id]='libre'; save(); refreshTop(); setBadge(a,lv); if(a.idu) paintParcel(a.idu); toast(`${a.label} achetée à ${o} !`); fete(); apresAction(); };
+      b.onclick=()=>{ if(MODE_SERVEUR) return bientot(); encaisser(true); state.wallet-=valeur(rec); state.owned[a.id]=Object.assign({}, a, {niveau:lv, depuis:now()}); state.seen[a.id]='libre'; save(); refreshTop(); setBadge(a,lv); if(a.idu) paintParcel(a.idu); toast(`${a.label} achetée à ${o} !`); fete(); apresAction(); };
       actions.appendChild(b); row.appendChild(actions); }
     else if(existing){ const t=document.createElement('div'); t.className='chip bleu'; t.innerHTML=`📨 Offre envoyée : <b>${nb(existing.price)}</b><i class="pc"></i> · en attente`; actions.appendChild(t); row.appendChild(actions); }
     else { const off=document.createElement('div'); off.className='offre'; const inp=document.createElement('input'); inp.className='num'; inp.type='number'; inp.inputMode='numeric'; inp.value=Math.round(valeur(rec)*1.1);
@@ -640,11 +644,11 @@ function addrRow(a, withBuild){
   // un lieu libre ne s'achète pas : il ne s'obtient que dans un pack (décision de Gautier, 3 nov.)
   else { const t=document.createElement('div'); t.className='libre-info'; t.innerHTML='🎁 <span><b>Lieu libre</b> : il n’appartient à personne et ne s’achète pas. Il peut sortir dans un pack.</span>'; actions.appendChild(t); row.appendChild(actions); }
   return row; }
-function retirerVente(id){ const a=state.owned[id]; if(!a) return; a.enVente=false; save(); setBadge(a, a.niveau||0); toast('Retiré de la vente'); apresAction(); }
+function retirerVente(id){ if(MODE_SERVEUR) return bientot(); const a=state.owned[id]; if(!a) return; a.enVente=false; save(); setBadge(a, a.niveau||0); toast('Retiré de la vente'); apresAction(); }
 // le prix demandé : celui que le joueur a fixé (sinon la valeur du lieu)
 function prixDemande(a){ const r=state.owned[a.id]; return r && r.enVente && r.prixVente ? r.prixVente : valeur(r||a); }
 // Mettre en vente (ou changer le prix) : le joueur tape le montant qu'il veut ; des raccourcis autour de la valeur.
-function mettreEnVente(id){ const a=state.owned[id]; if(!a) return; const retour=ficheOuverte; const v=valeur(a);
+function mettreEnVente(id){ if(MODE_SERVEUR) return bientot(); const a=state.owned[id]; if(!a) return; const retour=ficheOuverte; const v=valeur(a);
   const box=document.getElementById('modalbox');
   box.innerHTML=`<h2>💰 ${a.enVente?'Changer le prix':'Mettre en vente'}</h2><div class="sub">${echapper(a.label)} · ${echapper(communeName(a.citycode,a.city))}</div>
     <div class="vente-valeur"><span>Valeur du lieu</span><b>${pcs(v)}</b></div>
@@ -666,8 +670,10 @@ function mettreEnVente(id){ const a=state.owned[id]; if(!a) return; const retour
   ok.onclick=()=>{ const r=R.lirePrix(inp.value); if(!r.ok) return; const deja=a.enVente; a.enVente=true; a.prixVente=r.prix; save(); setBadge(a, a.niveau||0);
     toast(deja ? `Nouveau prix : ${fmt(r.prix)}` : `${a.label} en vente à ${fmt(r.prix)}`); vibrer(12); fermer(); apresAction(); };
   maj(); }
-function construire(id, niveau, cost){ const a=state.owned[id]; if(!a || dispo()<cost) return; encaisser(true); state.wallet -= cost; a.niveau = niveau; save(); refreshTop();
-  if(a.idu) paintParcel(a.idu); setBadge(a, niveau); toast(`${NIVEAUX[niveau].icone} ${NIVEAUX[niveau].nom} construit${niveau===1?'e':''} : ${a.label}`); fete(); apresAction(); }
+async function construire(id, niveau, cost){ const a=state.owned[id]; if(!a || dispo()<cost) return;
+  if(MODE_SERVEUR){ if(serveurOccupe) return; const r=await agir('construire', {id, niveau}); if(!r) return; }
+  else { encaisser(true); state.wallet -= cost; a.niveau = niveau; save(); }
+  refreshTop(); if(a.idu) paintParcel(a.idu); setBadge(a, niveau); toast(`${NIVEAUX[niveau].icone} ${NIVEAUX[niveau].nom} construit${niveau===1?'e':''} : ${a.label}`); fete(); apresAction(); }
 // la fiche se ferme en la faisant glisser vers le bas (quand elle est tout en haut de son défilement)
 (function(){ const sh=document.getElementById('sheet'); let y0=null, dy=0;
   sh.addEventListener('touchstart', e=>{ if(sh.scrollTop>0) { y0=null; return; } y0=e.touches[0].clientY; dy=0; }, {passive:true});
@@ -676,14 +682,14 @@ function construire(id, niveau, cost){ const a=state.owned[id]; if(!a || dispo()
 function closeSheet(){ document.getElementById('sheet').classList.remove('open'); document.body.classList.remove('fiche-ouverte'); document.getElementById('sv').src='about:blank'; if(selected){ map.setFeatureState({source:'pci', sourceLayer:'parcelle', id:selected}, {sel:false}); selected=null; paintBuildings(); } }
 
 // =================== offres ===================
-function faireOffre(a, price){ if(price<=0) return toast('Montant invalide'); if(dispo()<price) return toast('Fonds insuffisants');
+function faireOffre(a, price){ if(MODE_SERVEUR) return bientot(); if(price<=0) return toast('Montant invalide'); if(dispo()<price) return toast('Fonds insuffisants');
   state.offersOut.push({ id:'o'+now(), addrId:a.id, addr:a, to:ownerOf(a), price, ts:now(), status:'attente' }); save(); toast(`Offre de ${fmt(price)} envoyée à ${ownerOf(a)}`); renderAddrs(); }
 // =================== échanges ===================
 // Proposer à un joueur d'échanger son lieu contre un des miens (plus des pièces si je veux). Demande de Gautier (3 nov.).
 const ECHANGE_ACCEPTE = 1.1;   // joueurs simulés : ils acceptent si on leur donne au moins 10 % de plus que ce qu'ils cèdent
 function seuilEchange(vise){ return Math.round(vise*ECHANGE_ACCEPTE); }   // ce que le joueur simulé veut recevoir en tout
 function valeurChez(a){ return valeur(Object.assign({}, a, {niveau:levelOf(a)})); }
-function proposerEchange(a){ const qui=ownerOf(a); const mes=Object.values(state.owned);
+function proposerEchange(a){ if(MODE_SERVEUR) return bientot(); const qui=ownerOf(a); const mes=Object.values(state.owned);
   if(!mes.length) return toast('Tu n’as pas encore de lieu à échanger : ouvre ton pack du jour');
   const vise=valeurChez(a); const retour=ficheOuverte; const choisis=new Set();
   const deja=new Set(state.echangesOut.filter(x=>x.status==='attente').flatMap(donnesDe));
@@ -746,7 +752,7 @@ function tickOffers(){ let changed=false; tickEchanges();
     state.lastOfferIn=now();
     if(!(state.prefs.seuil && price < valeur(a))){ state.offersIn.unshift({ id:'i'+now(), addrId:a.id, from, price, ts:now(), status:'attente' }); notify('offre', `${from} te propose ${fmt(price)} pour ${a.label} (valeur ${fmt(valeur(a))})`, {offerId:state.offersIn[0].id}); changed=true; } }
   if(changed){ save(); refreshTop(); } }
-function repondreOffre(id, ok){ const o=state.offersIn.find(x=>x.id===id); if(!o || o.status!=='attente') return; const a=state.owned[o.addrId];
+function repondreOffre(id, ok){ if(MODE_SERVEUR) return bientot(); const o=state.offersIn.find(x=>x.id===id); if(!o || o.status!=='attente') return; const a=state.owned[o.addrId];
   if(ok && a){ o.status='acceptee'; state.wallet += o.price; delete state.owned[o.addrId]; state.seen[o.addrId]='libre'; setBadge(a,0); if(a.idu) paintParcel(a.idu); toast(`Vendu à ${o.from} pour ${fmt(o.price)}`); }
   else { o.status='refusee'; toast('Offre refusée'); }
   save(); refreshTop(); renderNotifs(); renderPatrimoine(); }
@@ -762,7 +768,7 @@ function mesMises(cle){ return state.encheres.mises[cle]||[]; }
 function misesDe(lot){ return misesSimulees(lot).concat(mesMises(lot.cle)); }
 function bloqueEncheres(sauf){ const o={}; for(const l of lotsDe(semaineEnCours())) o[l.cle]=misesDe(l); return ENC.bloque(o, ME, sauf); }
 const saisieEnch = {}; // ce que le joueur tape dans chaque champ de mise (gardé quand l'écran se redessine)
-function encherir(cle, montant){ const lot=lotsDe(semaineEnCours()).find(l=>l.cle===cle); if(!lot) return toast('Cette enchère est close');
+function encherir(cle, montant){ if(MODE_SERVEUR) return bientot(); const lot=lotsDe(semaineEnCours()).find(l=>l.cle===cle); if(!lot) return toast('Cette enchère est close');
   const r=ENC.peutMiser(lot.m, misesDe(lot), montant, state.wallet, bloqueEncheres(cle));
   if(!r.ok) return toast(r.raison==='min' ? `Mise minimale : ${fmt(r.min)}` : `Fonds insuffisants : ${fmt(Math.max(0,r.dispo))} disponibles (tes mises qui mènent ailleurs sont bloquées)`);
   (state.encheres.mises[cle]=state.encheres.mises[cle]||[]).push({ qui:ME, montant, ts:now() }); delete state.encheres.depasse[cle]; delete saisieEnch[cle]; save();
@@ -784,7 +790,12 @@ function tickAuction(){ const idx=semaineEnCours(), e=state.encheres; let change
   const a=document.activeElement; if(document.getElementById('s-encheres').classList.contains('on') && !(a && a.id && a.id.startsWith('bid-'))) renderEncheres(); }
 
 // =================== pack du jour ===================
-function packDispo(){ return state.lastPack < jour(); }
+function packDispo(){ return MODE_SERVEUR ? (state.dernierPack||'') < aujourdhuiParis() : state.lastPack < jour(); }
+// le jour du vrai jeu : la date à Paris (le pack se renouvelle à minuit) ; secondes jusqu'à minuit à Paris
+function aujourdhuiParis(){ return new Intl.DateTimeFormat('en-CA',{timeZone:'Europe/Paris',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date()); }
+function secondesAvantPack(){ if(!MODE_SERVEUR) return Math.max(0,Math.ceil(((jour()+1)*JOUR-now())/1000));
+  const p=new Intl.DateTimeFormat('en-GB',{timeZone:'Europe/Paris',hour:'2-digit',minute:'2-digit',second:'2-digit',hourCycle:'h23'}).format(new Date()).split(':').map(Number);
+  return Math.max(0, 86400-(p[0]*3600+p[1]*60+p[2])); }
 
 // =================== pack 3D (Three.js) ===================
 const GL = { r:null, scene:null, cam:null, pack:null, strip:null, parts:null, tilt:{x:0,y:0}, target:{x:0,y:0}, t0:0, torn:false, raf:0, shrink:0, audio:null };
@@ -984,24 +995,49 @@ function dispoPack(){ const sc=document.getElementById('packscene'), wrap=docume
   const hautFan=H/2+yFan-fh/2-16; const ss=Math.max(.5, Math.min(1, (hautFan-haut)/320)); const ys=(haut+hautFan)/2-H/2;
   pile.forEach(el=>pose(el, 0, ys, 0, ss)); }
 window.addEventListener('resize', ()=>dispoPack());
+// =================== le serveur (mode serveur) : toute action passe par la fonction « jeu » ===================
+// Réponse : { ok:true, ..., etat } (ma partie à jour, sur laquelle le jeu se recale) ou { ok:false, code, message }.
+let serveurOccupe=false;
+function bientot(){ toast('Pas encore en mode serveur : cette action arrive aux prochaines étapes'); vibrer(20); }
+async function appelServeur(action, corps){
+  if(!(window.Compte && Compte.client && Compte.session)) return { ok:false, code:'non_connecte', message:'Connecte-toi pour jouer.' };
+  try{ const { data, error } = await Compte.client.functions.invoke('jeu', { body:Object.assign({ action }, corps||{}) });
+    if(error){ let j=null; try{ j=await error.context.json(); }catch(e){} return j && j.message ? j : { ok:false, code:'reseau', message:'Serveur injoignable : vérifie ta connexion et réessaie.' }; }
+    return data; }
+  catch(e){ return { ok:false, code:'reseau', message:'Serveur injoignable : vérifie ta connexion et réessaie.' }; } }
+// ma partie, telle que le serveur la donne : pièces, dernière récolte, pack du jour, lieux
+function appliquerEtat(e){ if(!e) return; state.wallet=e.pieces; state.encaisse=e.encaisse; state.dernierPack=e.dernierPack||'';
+  const avant=state.owned; state.owned={}; for(const l of (e.lieux||[])) state.owned[l.id]=Object.assign({}, l);
+  for(const id of Object.keys(avant)) if(!state.owned[id]) setBadge(avant[id], 0);
+  save(); refreshTop(); refreshPack(); restoreBadges(); }
+async function agir(action, corps){ serveurOccupe=true; let r; try{ r=await appelServeur(action, corps); } finally { serveurOccupe=false; }
+  if(!r || !r.ok){ toast((r && r.message) || 'Le serveur ne répond pas'); vibrer(30); return null; }
+  if(r.etat) appliquerEtat(r.etat); return r; }
+async function synchroniser(){ const r=await appelServeur('etat'); if(r && r.ok){ appliquerEtat(r); apresAction(); } return r; }
+function changerMode(serveur){ try{ localStorage.setItem('cadastra-mode', serveur ? 'serveur' : 'demo'); }catch(e){} location.reload(); }
+
 // =================== tirage du pack (src/tirage.js, le même code que le serveur ; règles : src/regles/pack.js) ===================
 // En mode démo, le jeu tire lui-même ; les joueurs simulés possèdent les lieux selon la couleur de leur parcelle.
 async function geoJSON(chemin){ const r=await fetch('https://data.geopf.fr/geocodage/'+chemin); if(!r.ok) throw new Error('géocodage '+r.status); return r.json(); }
 function estLibre(c){ return !state.owned[c.id] && ownerOf(c)===null; }
 const TIRAGE = Tirage.creer({ geoJSON, celebres:chargerCelebres, france:GEO.france, deps:DEP_BOITES.map(d=>d.code), standing:STANDING, Celebres, Pack, rarete, estLibre });
-async function ouvrirPack(){ if(!packDispo()){ const s=Math.max(0,Math.ceil(((jour()+1)*JOUR-now())/1000)); return toast(`Prochain pack dans ${s} s (démo : un jour = une minute)`); } const btn=document.getElementById('packbtn'); btn.dataset.ouverture='1'; document.getElementById('packt').textContent='…'; openScene();
+async function ouvrirPack(){ if(!packDispo()){ const s=secondesAvantPack(); return toast(MODE_SERVEUR ? `Prochain pack à minuit (dans ${dureeCourte(s)})` : `Prochain pack dans ${s} s (démo : un jour = une minute)`); } const btn=document.getElementById('packbtn'); btn.dataset.ouverture='1'; document.getElementById('packt').textContent='…'; openScene();
   // les cartes sont tirées en parallèle ; une carte manquante (réseau capricieux) est complétée par une Commune
-  const base=(state.pseudo||'?')+':'+jour(); const cards=await TIRAGE.tirerPack(base, ECO.pack.chances, ECO.pack.cartes);
+  // (mode serveur : le serveur tire, avec une graine secrète, et les lieux sont à toi dès qu'il répond)
+  let cards;
+  if(MODE_SERVEUR){ const r=await agir('pack'); cards = r ? r.cartes : []; if(!r){ delete btn.dataset.ouverture; refreshPack(); finPack(); return; } }
+  else { const base=(state.pseudo||'?')+':'+jour(); cards=await TIRAGE.tirerPack(base, ECO.pack.chances, ECO.pack.cartes); }
   delete btn.dataset.ouverture; refreshPack();
   if(!cards.length){ finPack(); return toast('Pack impossible à tirer : vérifie ta connexion'); }
-  encaisser(true); state.lastPack=jour(); for(const c of cards){ state.owned[c.id]=Object.assign({}, c, {niveau:0, depuis:now()}); state.seen[c.id]='libre'; setBadge(c,0); } save(); refreshTop();
+  encaisser(true); state.lastPack=jour(); for(const c of cards){ if(!MODE_SERVEUR) state.owned[c.id]=Object.assign({}, c, {niveau:0, depuis:now()}); state.seen[c.id]='libre'; setBadge(c,0); } save(); refreshTop();
   // tri : les communes d'abord, la meilleure carte en dernier (suspense)
   cards.sort((a,b)=>rarete(a)-rarete(b)); packCards=cards; cards.forEach(c=>fetchCommune(c)); document.getElementById('pkload').textContent=''; if(GL.uni) GL.uni.uReady.value=1; document.getElementById('pkhint').textContent='Glisse ton doigt sur le haut du pack pour l’ouvrir'; }
 function closeModal(){ document.getElementById('modal').classList.remove('on'); ficheOuverte=null; }
 document.getElementById('packbtn').onclick=ouvrirPack;
 function refreshPack(){ const b=document.getElementById('packbtn'), t=document.getElementById('packt'); if(!b||b.dataset.ouverture) return;
   if(packDispo()){ b.classList.add('pret'); b.classList.remove('attente'); t.textContent='Ouvrir !'; }
-  else { b.classList.remove('pret'); b.classList.add('attente'); const s=Math.max(0,Math.ceil(((jour()+1)*JOUR-now())/1000)); t.textContent = s>=60 ? `${Math.floor(s/60)} min ${String(s%60).padStart(2,'0')}` : `${s} s`; } }
+  else { b.classList.remove('pret'); b.classList.add('attente'); const s=secondesAvantPack(); t.textContent = dureeCourte(s); } }
+function dureeCourte(s){ return s>=3600 ? `${Math.floor(s/3600)} h ${String(Math.floor(s%3600/60)).padStart(2,'0')}` : (s>=60 ? `${Math.floor(s/60)} min ${String(s%60).padStart(2,'0')}` : `${s} s`); }
 
 // =================== écrans ===================
 function showScreen(name){ vibrer(8); document.querySelectorAll('.screen').forEach(s=>s.classList.remove('on')); document.querySelectorAll('#nav button[data-s]').forEach(b=>b.classList.toggle('on', b.dataset.s===name));
@@ -1043,7 +1079,9 @@ function ouvrirFicheLieu(id){ const a=state.owned[id]; const box=document.getEle
   const pied=document.createElement('div'); pied.className='liste-btn';
   pied.innerHTML=`<button class="btn bleu large" onclick="flyToAddr(state.owned['${a.id}'])">🗺️ Voir sur la carte</button><button class="btn clair large" onclick="closeModal()">Fermer</button>`;
   box.appendChild(pied); document.getElementById('modal').classList.add('on'); }
-function recolter(){ const p=Math.floor(pendingRent()); if(p<1) return toast('Rien à récolter pour l’instant'); encaisser(true); fete(Math.min(22, 8+Math.floor(p/200))); toast(`+${nb(p)} 🪙 récoltées`); apresAction(); refreshTop(); }
+async function recolter(){ const p=Math.floor(pendingRent()); if(p<1) return toast('Rien à récolter pour l’instant');
+  if(MODE_SERVEUR){ const r=await agir('recolter'); if(!r) return; const g=r.recolte||0; if(g<1) return toast('Rien à récolter pour l’instant'); fete(Math.min(22, 8+Math.floor(g/200))); toast(`+${nb(g)} 🪙 récoltées`); apresAction(); refreshTop(); return; }
+  encaisser(true); fete(Math.min(22, 8+Math.floor(p/200))); toast(`+${nb(p)} 🪙 récoltées`); apresAction(); refreshTop(); }
 
 function arrondiMise(x){ return x<10000 ? Math.ceil(x/50)*50 : Math.ceil(x/100)*100; }
 function dureeTexte(ms){ const s=Math.max(0,Math.floor(ms/1000)); const j=Math.floor(s/86400), h=Math.floor(s%86400/3600), m=Math.floor(s%3600/60); return j ? `${j} j ${h} h` : (h ? `${h} h ${String(m).padStart(2,'0')}` : `${m} min ${String(s%60).padStart(2,'0')} s`); }
@@ -1162,6 +1200,7 @@ function ouvrirReglages(){ const box=document.getElementById('modalbox');
     <div class="sw"><span>M’alerter quand je suis dépassé aux enchères</span><input type="checkbox" ${state.prefs.encheres?'checked':''} onchange="setPref('encheres',this.checked)"></div>
     <div class="sw"><span>Sons</span><input type="checkbox" ${state.prefs.sons!==false?'checked':''} onchange="setPref('sons',this.checked)"></div>
     <div class="sw"><span>Vibrations</span><input type="checkbox" ${state.prefs.vibrations!==false?'checked':''} onchange="setPref('vibrations',this.checked)"></div>
+    ${window.Compte && Compte.actif() ? `<div class="sw mode"><span>Jouer sur le vrai serveur (essai)<small>${MODE_SERVEUR ? 'Ta partie est sur le serveur, en vrais jours de 24 h. Pas encore : vente, offres, échanges, enchères.' : 'Ta partie de démo reste sur ce téléphone ; celle du serveur part de zéro.'}</small></span><input type="checkbox" ${MODE_SERVEUR?'checked':''} onchange="changerMode(this.checked)"></div>` : ''}
     ${(state.signalements||[]).length?`<div class="m" style="margin-top:10px">🚩 Signalements envoyés : ${state.signalements.length}</div>`:''}
     <div class="liste-btn"><button class="btn bleu large" onclick="closeModal();setTimeout(()=>guide(0),300)">🧭 Revoir le guide</button><button class="btn clair large" onclick="closeModal()">Fermer</button></div>`;
   document.getElementById('modal').classList.add('on'); }
@@ -1230,13 +1269,14 @@ function afficherBourse(cible){ const el=document.getElementById('wallet'); cibl
   if(bourseAffichee===null || Math.abs(cible-bourseAffichee)<2){ bourseAffichee=cible; el.textContent=nb(cible); return; }
   cancelAnimationFrame(bourseAnim); const depart=bourseAffichee, t0=performance.now(), duree=Math.min(900, 300+Math.abs(cible-depart)/20);
   const pas=()=>{ const t=Math.min(1,(performance.now()-t0)/duree), e=1-Math.pow(1-t,3); bourseAffichee=Math.round(depart+(cible-depart)*e); el.textContent=nb(bourseAffichee); if(t<1) bourseAnim=requestAnimationFrame(pas); }; pas(); }
-function refreshTop(){ afficherBourse(dispo()); document.getElementById('meav').textContent=state.avatar||'🙂'; document.getElementById('mename').textContent=disp(ME); const n=Object.keys(state.owned).length; document.getElementById('count').textContent = `${n} lieu${n>1?'x':''}`;
+function refreshTop(){ afficherBourse(dispo()); document.getElementById('meav').textContent=state.avatar||'🙂'; document.getElementById('mename').textContent=disp(ME); const n=Object.keys(state.owned).length; document.getElementById('count').textContent = `${n} lieu${n>1?'x':''}${MODE_SERVEUR?' · serveur':''}`;
   const p=Math.floor(pendingRent()); document.getElementById('pending').textContent = p>0 ? `+${nb(p)}` : '';
   const unread=state.notifs.filter(n=>!n.read).length; const c=document.getElementById('cnt-notif'); c.style.display=unread?'block':'none'; c.textContent=unread; refreshPack(); }
-setInterval(()=>{ refreshTop(); tickOffers(); tickAuction(); }, 1000);
+setInterval(()=>{ refreshTop(); if(!MODE_SERVEUR){ tickOffers(); tickAuction(); } else refreshPack(); }, 1000);
 // À la connexion : la récolte des loyers (24 h au plus), puis le pack du jour s'il est prêt
 function packAuDemarrage(){ if(!packDispo()){ if(!state.prefs.guideVu) setTimeout(()=>guide(0), 800); return; } if(map.loaded()) setTimeout(ouvrirPack, 600); else map.once('idle', ()=>setTimeout(ouvrirPack, 900)); }
-function recolteConnexion(ensuite){ const p=Math.floor(pendingRent()); if(p<1) return ensuite();
+async function recolteConnexion(ensuite){ if(MODE_SERVEUR){ const r=await synchroniser(); if(!r || !r.ok){ toast((r&&r.message)||'Serveur injoignable'); return ensuite(); } }
+  const p=Math.floor(pendingRent()); if(p<1) return ensuite();
   const absent=now()-state.encaisse, plein=absent>=ECO.stock_loyer_heures*JOUR/24, lieux=Object.keys(state.owned).length;
   const box=document.getElementById('modalbox');
   box.innerHTML=`<h2>🌾 La récolte</h2><div class="sub">Pendant ton absence, ton salaire${lieux?` et les loyers de tes ${lieux} lieu${lieux>1?'x':''}`:''} ont rapporté :</div>
@@ -1246,7 +1286,7 @@ function recolteConnexion(ensuite){ const p=Math.floor(pendingRent()); if(p<1) r
   box.querySelector('#recolter').onclick=()=>{ closeModal(); recolter(); setTimeout(ensuite, 1000); }; }
 // sans serveur (data/serveur.json vide) : le profil local ; avec serveur, src/compte.js passe d'abord par le compte
 function demarrageLocal(){ if(!state.pseudo) setTimeout(creationProfil, 600); else setTimeout(()=>recolteConnexion(packAuDemarrage), 500); }
-refreshTop(); tickAuction();
+refreshTop(); if(!MODE_SERVEUR) tickAuction();
 </script>
 <script src="src/compte.js?v=20261103b"></script>
 </body>

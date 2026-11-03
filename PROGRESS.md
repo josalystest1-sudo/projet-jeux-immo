@@ -60,6 +60,8 @@
 
 - 3 nov. 2026 : **le pack du jour tiré par le serveur (8.1c, côté serveur)** : le tirage est sorti de la page dans `src/tirage.js`, le même code pour le jeu (démo) et le serveur ; action `pack` (une fois par jour, heure de Paris, graine secrète, lieux libres d'après la table `lieux`) ; l'essai automatique ouvre un pack, vérifie le refus d'un deuxième, puis construit.
 
+- 3 nov. 2026 : **le jeu joue sur le vrai serveur (8.1b, essai)** : Réglages → « Jouer sur le vrai serveur (essai) » : la partie part de zéro sur le serveur (1 500 pièces), en vrais jours (pack à minuit, loyers sur 24 h) ; pièces, lieux, récolte, construction et pack du jour passent par le serveur ; vente, offres, échanges et enchères répondent « pas encore » ; la partie de démo reste sur le téléphone (on rebascule quand on veut). Essayé avec un faux serveur dans la page (pack, récolte, construction, deuxième pack refusé).
+
 ## En cours
 - Lieux célèbres : les autres catégories (châteaux, mairies, gares, musées, ponts, phares, moulins…) dès que Wikidata répond (`python3 tools/wikidata_celebres.py`, puis `--fusion` et `gen_donnees.py celebres`).
 - Phase 1.1 à 1.4 : la carte et le modèle des lieux reconstruits en modules (`src/`) à partir du prototype ; puis le marché (phase 4 : historique des ventes d'un lieu) et les communes et Maires (phase 6). Ensuite : Signaler envoyé au serveur dès qu'il y aura de vrais joueurs à l'écran ; Google ; un service d'envoi d'e-mails avant le lancement (le service de Supabase n'écrit qu'aux membres de l'équipe Supabase, deux e-mails par heure).
