@@ -40,3 +40,8 @@ test('adresse : numéro et voie (plaque de rue + plaque du numéro)', () => {
   assert.deepEqual(numeroEtVoie('2 Petit Keriolas'), { numero: '2', voie: 'Petit Keriolas' });
   assert.deepEqual(numeroEtVoie('Place du Marché'), { numero: '', voie: 'Place du Marché' });
   assert.deepEqual(numeroEtVoie('3 Avenue de la Liberté'), { numero: '3', voie: 'Avenue de la Liberté' }); });
+test('échange : la balance compte le lieu donné et les pièces ajoutées', () => {
+  const { bilanEchange } = require('../src/regles/lieu.js');
+  assert.deepEqual(bilanEchange(8000, 0, 10000), { donne: 8000, recoit: 10000, ecart: -0.2 });
+  assert.deepEqual(bilanEchange(8000, 3000, 10000), { donne: 11000, recoit: 10000, ecart: 0.1 });
+  assert.equal(bilanEchange(5000, -100, 5000).ecart, 0, 'des pièces en moins ne comptent pas'); });

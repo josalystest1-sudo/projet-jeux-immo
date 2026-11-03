@@ -141,6 +141,7 @@ let state = { wallet: 1500, owned:{}, pseudo:'', avatar:'🦊', prefs:{offres:tr
 try { const s = localStorage.getItem('proto-cadastre-v3'); if (s) state = Object.assign(state, JSON.parse(s)); } catch(e){}
 // les enchères : mes mises par lot (« semaine:place »), les lots clos, les surenchères déjà signalées (l'ancienne enchère unique est abandonnée)
 if(!state.encheres) state.encheres = { mises:{}, clos:{}, depasse:{} }; delete state.auction;
+if(!state.echangesOut) state.echangesOut=[]; if(!state.cedes) state.cedes={};   // échanges proposés ; lieux cédés par échange (id → joueur)
 function save(){ try{ localStorage.setItem('proto-cadastre-v3', JSON.stringify(state)); }catch(e){} }
 const now = ()=>Date.now();
 const jour = ()=>Math.floor(now()/JOUR);
@@ -186,8 +187,8 @@ function notify(type, text, extra){ state.notifs.unshift({ts:now(), type, text, 
 // propriétaires simulés (par adresse)
 function fakeOwner(addrId){ const h=hash(addrId)%100; return h<12 ? FAKE[hash(addrId+'o')%FAKE.length] : null; }
 function fakeLevel(addrId){ const h=hash(addrId+'n')%10; return h<5?0:(h<8?1:(h<9?2:3)); }
-function ownerOf(a){ if(state.owned[a.id]) return ME; if(state.seen[a.id]==='libre') return null; return fakeOwner(a.id); }
-function levelOf(a){ if(state.owned[a.id]) return state.owned[a.id].niveau||0; return ownerOf(a) ? fakeLevel(a.id) : 0; }
+function ownerOf(a){ if(state.owned[a.id]) return ME; if(state.cedes && state.cedes[a.id]) return state.cedes[a.id].qui; if(state.seen[a.id]==='libre') return null; return fakeOwner(a.id); }
+function levelOf(a){ if(state.owned[a.id]) return state.owned[a.id].niveau||0; if(state.cedes && state.cedes[a.id]) return state.cedes[a.id].niveau||0; return ownerOf(a) ? fakeLevel(a.id) : 0; }
 
 // =================== carte ===================
 const ST = ['coalesce',['feature-state','st'],'free'];
@@ -487,7 +488,13 @@ function addrRow(a, withBuild){
       const b=document.createElement('button'); b.className='btn bleu'; b.textContent='📨 Faire une offre'; b.onclick=()=>faireOffre(a, parseInt(inp.value)||0); off.appendChild(inp); off.appendChild(b); row.appendChild(off);
       const vite=document.createElement('div'); vite.className='chips'; const v=valeur(rec);
       [['La valeur',v],['+10 %',v*1.1],['+25 %',v*1.25]].forEach(([t,x])=>{ const c=document.createElement('button'); c.className='chip'; c.style.border='0'; c.style.cursor='pointer'; c.innerHTML=`${t} <b>${nb(arrondiMise(x))}</b>`; c.onclick=()=>{ inp.value=arrondiMise(x); }; vite.appendChild(c); });
-      row.appendChild(vite); } }
+      row.appendChild(vite); }
+    // échanger un de mes lieux contre celui-ci
+    const ech=state.echangesOut.find(x=>x.addrId===a.id && x.status==='attente'); const zone=document.createElement('div'); zone.className='echange-zone';
+    if(ech){ const d=state.owned[ech.donne]; zone.innerHTML=`<div class="chip bleu">🔁 Échange proposé : <b>${echapper(d?d.label:'ton lieu')}</b>${ech.ajout?` + ${nb(ech.ajout)}<i class="pc"></i>`:''} · en attente</div>`;
+      const an=document.createElement('button'); an.className='btn clair sm'; an.textContent='Annuler'; an.onclick=()=>annulerEchange(ech.id); zone.appendChild(an); }
+    else { const b=document.createElement('button'); b.className='btn clair'; b.innerHTML='🔁 Proposer un échange'; b.onclick=()=>proposerEchange(a); zone.appendChild(b); }
+    row.appendChild(zone); }
   else { const b=document.createElement('button'); b.className='btn'; b.innerHTML=`Acheter · ${pcs(valeur(rec))}`; b.disabled = dispo() < valeur(rec); b.onclick = ()=>buy(a, valeur(rec)); actions.appendChild(b); row.appendChild(actions); }
   return row; }
 function buy(a, price){ if(dispo() < price) return; encaisser(true); state.wallet -= price;
@@ -530,7 +537,58 @@ function closeSheet(){ document.getElementById('sheet').classList.remove('open')
 // =================== offres ===================
 function faireOffre(a, price){ if(price<=0) return toast('Montant invalide'); if(dispo()<price) return toast('Fonds insuffisants');
   state.offersOut.push({ id:'o'+now(), addrId:a.id, addr:a, to:ownerOf(a), price, ts:now(), status:'attente' }); save(); toast(`Offre de ${fmt(price)} envoyée à ${ownerOf(a)}`); renderAddrs(); }
-function tickOffers(){ let changed=false;
+// =================== échanges ===================
+// Proposer à un joueur d'échanger son lieu contre un des miens (plus des pièces si je veux). Demande de Gautier (3 nov.).
+const ECHANGE_ACCEPTE = 1.1;   // joueurs simulés : ils acceptent si on leur donne au moins 10 % de plus que ce qu'ils cèdent
+function seuilEchange(vise){ return Math.round(vise*ECHANGE_ACCEPTE); }   // ce que le joueur simulé veut recevoir en tout
+function valeurChez(a){ return valeur(Object.assign({}, a, {niveau:levelOf(a)})); }
+function proposerEchange(a){ const qui=ownerOf(a); const mes=Object.values(state.owned);
+  if(!mes.length) return toast('Tu n’as pas encore de lieu à échanger : ouvre ton pack du jour');
+  const vise=valeurChez(a); const retour=ficheOuverte; let choisi=null;
+  const deja=new Set(state.echangesOut.filter(x=>x.status==='attente').map(x=>x.donne));
+  mes.sort((x,y)=>Math.abs(valeur(x)-vise)-Math.abs(valeur(y)-vise));
+  const box=document.getElementById('modalbox');
+  box.innerHTML=`<h2>🔁 Proposer un échange</h2><div class="sub">À <b>${echapper(qui)}</b>, contre son lieu :</div>
+    <div class="ech-vise"><div class="ico-lieu r${rarete(a)}">${icoLieuHTML(a)}</div><div class="corps"><div class="n">${echapper(a.label)}</div><div class="m">${echapper(communeName(a.citycode,a.city))}</div></div><b>${pcs(vise)}</b></div>
+    <h3 class="ech-titre">Choisis un de tes lieux</h3><div class="ech-liste">${mes.map(x=>`<button class="ech-lieu" data-id="${echapper(x.id)}"${deja.has(x.id)?' disabled':''}><div class="ico-lieu r${rarete(x)}">${icoLieuHTML(x)}</div><div class="corps"><div class="n">${echapper(x.label)}</div><div class="m">${deja.has(x.id)?'déjà proposé dans un autre échange':echapper(communeName(x.citycode,x.city))}</div></div><b>${pcs(valeur(x))}</b></button>`).join('')}</div>
+    <label class="champ-prix ech-ajout"><span>+ des pièces<br><small>facultatif</small></span><input class="num" id="ech-ajout" type="text" inputmode="numeric" autocomplete="off" maxlength="13" placeholder="0"><i class="pc"></i></label>
+    <div class="chips" id="ech-vite"></div><div class="ech-balance" id="ech-balance">Choisis le lieu que tu donnes.</div>
+    <div class="liste-btn"><button class="btn large" id="ech-ok" disabled>Envoyer la proposition</button><button class="btn clair large" id="ech-non">Annuler</button></div>`;
+  document.getElementById('modal').classList.add('on'); box.scrollTop=0;
+  const inp=box.querySelector('#ech-ajout'), bal=box.querySelector('#ech-balance'), ok=box.querySelector('#ech-ok'), vite=box.querySelector('#ech-vite');
+  const ajout=()=>{ const t=inp.value.trim(); if(t==='' || /^[0\s]+$/.test(t)) return 0; const r=R.lirePrix(t); return r.ok ? r.prix : -1; };
+  const maj=()=>{ const aj=ajout(); vite.innerHTML='';
+    if(!choisi){ ok.disabled=true; bal.className='ech-balance'; bal.textContent='Choisis le lieu que tu donnes.'; return; }
+    const v=valeur(choisi); const manque=Math.max(0, seuilEchange(vise) - v);
+    if(manque>0){ const c=document.createElement('button'); c.className='chip'; c.innerHTML=`Compenser <b>+${nb(arrondiMise(manque))}</b><i class="pc"></i>`; c.onclick=()=>{ inp.value=nb(arrondiMise(manque)); maj(); vibrer(8); }; vite.appendChild(c); }
+    if(aj<0){ ok.disabled=true; bal.className='ech-balance err'; bal.textContent='Tape un nombre entier de pièces (ou rien).'; return; }
+    if(aj>dispo()){ ok.disabled=true; bal.className='ech-balance err'; bal.innerHTML=`Tu n’as que ${pcs(dispo())} disponibles.`; return; }
+    const b=Regles.bilanEchange(v, aj, vise); ok.disabled=false;
+    bal.className='ech-balance'+(b.ecart<0?' bas':'');
+    bal.innerHTML=`Tu donnes <b>${pcs(b.donne)}</b> · tu reçois <b>${pcs(b.recoit)}</b><br>${b.ecart<0 ? `${Math.round(-b.ecart*100)} % de moins que son lieu : ${echapper(qui)} risque de refuser.` : (b.donne<seuilEchange(vise) ? 'À peu près la même valeur : la réponse peut être non.' : 'Une belle proposition !')}`; };
+  box.querySelectorAll('.ech-lieu').forEach(el=>el.onclick=()=>{ box.querySelectorAll('.ech-lieu.on').forEach(x=>x.classList.remove('on')); el.classList.add('on'); choisi=state.owned[el.dataset.id]; vibrer(8); maj(); });
+  inp.addEventListener('input', maj); inp.addEventListener('focus', ()=>inp.select());
+  const fermer=()=>{ if(retour) ouvrirFicheLieu(retour); else closeModal(); };
+  box.querySelector('#ech-non').onclick=fermer;
+  ok.onclick=()=>{ const aj=ajout(); if(!choisi || aj<0 || aj>dispo()) return;
+    state.echangesOut.push({ id:'e'+now(), addrId:a.id, addr:Object.assign({}, a), to:qui, donne:choisi.id, ajout:aj, ts:now(), status:'attente' }); save();
+    toast(`Proposition envoyée à ${qui}`); vibrer(12); fermer(); apresAction(); };
+  maj(); }
+function annulerEchange(id){ const e=state.echangesOut.find(x=>x.id===id); if(!e || e.status!=='attente') return; e.status='annulee'; save(); toast('Proposition d’échange annulée'); apresAction(); }
+function tickEchanges(){ let change=false;
+  for(const e of state.echangesOut){ if(e.status!=='attente' || now()-e.ts < 45000) continue; change=true;
+    const mien=state.owned[e.donne], sien=e.addr, vise=valeur(Object.assign({}, sien, {niveau:levelOf(sien)}));
+    if(!mien){ e.status='refusee'; notify('echange', `Échange annulé avec ${e.to} : tu ne possèdes plus le lieu proposé`, {addrId:e.addrId}); continue; }
+    if(ownerOf(sien)!==e.to){ e.status='refusee'; notify('echange', `Échange annulé : ${sien.label} n’appartient plus à ${e.to}`); continue; }
+    const b=Regles.bilanEchange(valeur(mien), e.ajout, vise);
+    if(b.donne >= seuilEchange(vise) && dispo()>=e.ajout){ e.status='acceptee'; encaisser(true); state.wallet-=e.ajout;
+      const niv=levelOf(sien); delete state.owned[mien.id]; state.cedes[mien.id]={ qui:e.to, niveau:mien.niveau||0 }; setBadge(mien,0); if(mien.idu) paintParcel(mien.idu);
+      delete state.cedes[sien.id]; state.owned[sien.id]=Object.assign({}, sien, {niveau:niv, depuis:now(), enVente:false}); state.seen[sien.id]='libre'; setBadge(state.owned[sien.id], niv); if(sien.idu) paintParcel(sien.idu);
+      state.echangesOut.forEach(x=>{ if(x!==e && x.status==='attente' && (x.addrId===sien.id)) x.status='annulee'; });
+      notify('echange', `${e.to} a accepté l’échange : ${sien.label} est à toi, contre ${mien.label}${e.ajout?` et ${fmt(e.ajout)}`:''}`, {addrId:sien.id}); fete(); }
+    else { e.status='refusee'; notify('echange', `${e.to} a refusé l’échange de ${mien.label} contre ${sien.label} (il fallait au moins ${fmt(seuilEchange(vise))} en tout)`, {addrId:sien.id}); } }
+  if(change){ save(); refreshTop(); apresAction(); } }
+function tickOffers(){ let changed=false; tickEchanges();
   // réponses des joueurs simulés à mes offres (après 45 s)
   for(const o of state.offersOut){ if(o.status!=='attente' || now()-o.ts < 45000) continue;
     const v = valeur(Object.assign({}, o.addr, {niveau:fakeLevel(o.addrId)}));
@@ -855,6 +913,8 @@ function renderPatrimoine(){ const el=document.getElementById('s-patrimoine'); c
   h+=`<div class="card flex"><div><div class="t">🌾 ${p>=1?`<span style="color:var(--cadre2)">+${nb(p)}</span> à récolter`:'Les loyers poussent…'}</div><div class="m">Salaire ${nb(SALAIRE)} + loyers ${nb(loyerTotal())} par jour, stockés 24 h au plus.</div></div>${p>=1?`<button class="btn vert" onclick="recolter()">Récolter</button>`:''}</div>`;
   const offres=state.offersIn.filter(o=>o.status==='attente');
   if(offres.length) h+=`<div class="card flex"><div><div class="t">📨 ${offres.length} offre${offres.length>1?'s':''} pour tes lieux</div><div class="m">Accepte ou refuse dans tes notifications.</div></div><button class="btn bleu sm" onclick="showScreen('notifs')">Voir</button></div>`;
+  const echs=state.echangesOut.filter(e=>e.status==='attente');
+  if(echs.length) h+=`<div class="card"><div class="t">🔁 Échanges proposés (${echs.length})</div>${echs.map(e=>{ const d=state.owned[e.donne]; return `<div class="rank"><span class="who">${echapper(d?d.label:'?')} <span class="fleche">→</span> ${echapper(e.addr.label)}<small>à ${echapper(e.to)}${e.ajout?` · + ${nb(e.ajout)} pièces`:''} · en attente</small></span><button class="btn sm" onclick="annulerEchange('${e.id}')">Annuler</button></div>`; }).join('')}</div>`;
   const ventes=tous.filter(a=>a.enVente);
   if(ventes.length) h+=`<div class="card"><div class="t">💰 En vente (${ventes.length})</div>${ventes.map(a=>`<div class="rank"><span class="who" onclick="ouvrirFicheLieu('${a.id}')">${echapper(a.label)}</span><button class="prix-vente" onclick="mettreEnVente('${a.id}')" aria-label="Changer le prix">${nb(prixDemande(a))}<i class="pc"></i> ✏️</button><button class="btn sm" onclick="retirerVente('${a.id}')">Retirer</button></div>`).join('')}</div>`;
   if(!tous.length){ h+=`<div class="card vide"><div class="ico">🎁</div><div class="t">Ta collection est vide</div><div class="m">Ton pack du jour contient 5 lieux de toute la France.</div>${packDispo()?`<button class="btn large" onclick="ouvrirPack()">Ouvrir mon pack</button>`:`<button class="btn bleu large" onclick="showScreen('carte')">Explorer la carte</button>`}</div>`; el.innerHTML=h; return; }
@@ -916,7 +976,7 @@ function renderCommunes(){ const el=document.getElementById('s-communes'); const
 
 function setPref(k,v){ state.prefs[k]=v; save(); }
 // les notifications : une icône par sorte, l'heure relative, les actions ; les réglages sont à part
-function iconeNotif(n){ const t=n.text||''; if(n.type==='enchere') return /remporté/.test(t)?'🏆':(/surenchéri/.test(t)?'⚠️':'🔨'); if(n.type==='offre') return /accepté/.test(t)?'✅':(/refusé/.test(t)?'❌':'📨'); if(n.type==='vente') return '💰'; return '🔔'; }
+function iconeNotif(n){ const t=n.text||''; if(n.type==='enchere') return /remporté/.test(t)?'🏆':(/surenchéri/.test(t)?'⚠️':'🔨'); if(n.type==='offre') return /accepté/.test(t)?'✅':(/refusé/.test(t)?'❌':'📨'); if(n.type==='vente') return '💰'; if(n.type==='echange') return /accepté/.test(t)?'🤝':(/refusé|annulé/.test(t)?'❌':'🔁'); return '🔔'; }
 function ilYa(ts){ const s=Math.max(0,Math.floor((now()-ts)/1000)); if(s<60) return 'à l’instant'; const m=Math.floor(s/60); if(m<60) return `il y a ${m} min`; const h=Math.floor(m/60); if(h<24) return `il y a ${h} h`; return `il y a ${Math.floor(h/24)} j`; }
 function renderNotifs(){ const el=document.getElementById('s-notifs'); let h=`<h1>Notifications <button class="act rond" style="width:44px;height:44px;font-size:20px" onclick="ouvrirReglages()" aria-label="Réglages">⚙️</button></h1>`;
   if(!state.notifs.length) h+=`<div class="card vide"><div class="ico">🔔</div><div class="t">Rien de neuf</div><div class="m">Les offres reçues, les enchères et les ventes arrivent ici.</div></div>`;

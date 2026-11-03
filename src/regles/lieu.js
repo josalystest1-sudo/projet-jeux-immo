@@ -56,6 +56,12 @@
     return { lirePrix, PRIX_MAX, numeroEtVoie, communeDvf, standing, notoriete, plafond, rarete, valeurBase, coutNiveau, peutConstruire, valeur, loyerParJour, loyerTotal, aEncaisser, nomRarete, texteNiveau, NIVEAUX, eco };
   }
   const PRIX_MAX = 1000000000;
+  // Échanger un de ses lieux (plus, si on veut, des pièces) contre le lieu d'un autre joueur.
+  // Ce que chacun met dans la balance : écart = (ce que je donne − ce que je reçois) ÷ ce que je reçois.
+  function bilanEchange(valeurDonnee, ajout, valeurRecue) {
+    const donne = Math.max(0, valeurDonnee) + Math.max(0, ajout || 0), recoit = Math.max(0, valeurRecue);
+    return { donne, recoit, ecart: recoit ? (donne - recoit) / recoit : 0 };
+  }
   // « 67 Rue des Martyrs » → { numero:'67', voie:'Rue des Martyrs' } ; « 12 bis Rue X » → '12 bis' ; sans numéro → numero ''.
   function numeroEtVoie(label) {
     const t = String(label || '').trim();
@@ -63,6 +69,6 @@
     if (!m) return { numero: '', voie: t };
     return { numero: m[1] + (m[2] ? (m[2].length > 1 ? ' ' + m[2].toLowerCase() : m[2].toUpperCase()) : ''), voie: m[3] };
   }
-  const api = { creer, numeroEtVoie, PRIX_MAX };
+  const api = { creer, numeroEtVoie, bilanEchange, PRIX_MAX };
   if (typeof module !== 'undefined' && module.exports) module.exports = api; else racine.Regles = api;
 })(typeof globalThis !== 'undefined' ? globalThis : this);

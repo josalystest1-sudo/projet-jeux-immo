@@ -80,7 +80,8 @@ const ETAT = () => { const t = Date.now(), j = Math.floor(t / 60000); return {
   await page.evaluate(() => showScreen('carte'));
   await ecran('16-autre', async () => { await page.evaluate(() => { let id = ''; for (let k = 0; k < 500; k++) { if (fakeOwner('essai-' + k) && !(hash('essai-' + k + 'v') % 100 < 25)) { id = 'essai-' + k; break; } }
       const a = { id, label: '14 Rue Lepic', lon: 2.3336, lat: 48.8853, citycode: '75118', city: 'Paris', type: 'adresse' };
-      const box = document.getElementById('modalbox'); box.innerHTML = ''; box.appendChild(addrRow(a, true)); document.getElementById('modal').classList.add('on'); }); });
+      const box = document.getElementById('modalbox'); box.innerHTML = ''; box.appendChild(addrRow(a, true)); document.getElementById('modal').classList.add('on'); window.__autre = a; }); });
+  await ecran('22-echange', async () => { await page.evaluate(() => { proposerEchange(window.__autre); const b = document.querySelectorAll('.ech-lieu')[1]; if (b) b.click(); }); });
   await fermer();
   await ecran('17-recherche', async () => { await page.evaluate(() => showScreen('carte')); await page.fill('#q', 'rue lepic'); await page.waitForTimeout(2500); });
   await page.evaluate(() => { document.getElementById('sugg').style.display = 'none'; document.getElementById('q').value = ''; document.getElementById('q').blur(); });
