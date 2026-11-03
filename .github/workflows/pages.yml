@@ -32,6 +32,9 @@ jobs:
           V=$(echo "$GITHUB_SHA" | cut -c1-10)
           echo "{\"v\":\"$V\"}" > build/version.json
           sed -i "s/__VERSION__/$V/g; s/style\.css?v=[0-9a-z]*/style.css?v=$V/; s/compte\.js?v=[0-9a-z]*/compte.js?v=$V/" build/index.html
+          # tous nos scripts (règles, données) prennent aussi le numéro : sinon le téléphone garde les anciennes règles
+          sed -i -E "s#<script src=\"((geo|data/[a-z_]+|src/[a-z_/]+)\.js)\"#<script src=\"\1?v=$V\"#g" build/index.html
+          grep -c "\.js?v=$V" build/index.html
           grep -o "VERSION='[0-9a-z]*'" build/index.html
       - uses: actions/upload-pages-artifact@v3
         with:
