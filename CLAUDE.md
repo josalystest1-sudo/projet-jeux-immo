@@ -17,8 +17,8 @@ Ce fichier dit **ce qu'est le jeu, comment on travaille, ce qui est décidé et 
 1. Un jeu web mobile (PWA, portrait) où l'on **collectionne des lieux réels** de France : adresses, lieux nommés (églises, mairies, châteaux, gares…), monuments.
 2. Chaque lieu est **unique** : un seul propriétaire.
 3. On obtient des lieux par le **pack gratuit du jour** (5 lieux au hasard dans toute la France), des packs payants, le **marché** entre joueurs (vente à prix libre, offres sur n'importe quel lieu) et les **enchères** de monuments (3 par semaine, nationales).
-4. Les lieux rapportent un **loyer** selon ce qu'on y **construit** (Maison, Immeuble, Tour ; Prestige pour les monuments), récolté à la connexion, 24 h de stock au plus. Un salaire quotidien pour tous.
-5. Le **standing** du quartier (prix immobiliers réels) fixe jusqu'où on peut construire ; la **notoriété** (Wikipédia, catégorie) ajoute des niveaux et fait la **rareté** de la carte (Commun → Légendaire).
+4. Les lieux rapportent un **loyer** selon ce qu'on y **construit** (Maison, Immeuble, Tour ; Gratte-ciel pour les lieux célèbres et les monuments ; Prestige pour les monuments), récolté à la connexion, 24 h de stock au plus. Un salaire quotidien pour tous.
+5. Le **standing** du quartier (prix immobiliers réels) fixe jusqu'où on peut construire ; la **notoriété** (Wikipédia, catégorie) ajoute des niveaux et fait la **rareté** de la carte : Commun, Peu commun (vert), Rare (bleu), Épique (violet), Légendaire (orange : lieu célèbre), Extraordinaire (arc-en-ciel : monument, enchères seulement) ; chaque rareté du haut construit un bâtiment de plus.
 6. Le loyer ne dépend jamais de la chance : une belle adresse permet de construire plus haut, elle ne rapporte pas plus toute seule.
 7. Le **Maire** d'une commune est celui qui y possède le plus de lieux (égalité = deux Maires), tant que ça dure.
 8. Pas de taxe, pas de délai, pas de vente à la banque, pas de blockchain, jamais de monnaie du jeu contre des euros.
@@ -38,9 +38,9 @@ Ce fichier dit **ce qu'est le jeu, comment on travaille, ce qui est décidé et 
 
 1. Collection, compétition (Maire), fortune : les trois moteurs, dans cet ordre. Sessions de 10 min. Tout public.
 2. 1 pack gratuit/jour, 5 lieux, toute la France. Packs payants 1,99 € · 7,99 € (5) · 16,99 € (12) · Pass mensuel 4,99 €.
-3. Loyer récolté à la connexion, 24 h max. Construction instantanée. Niveau « Prestige » unique aux monuments, au-dessus de la Tour.
+3. Loyer récolté à la connexion, 24 h max. Construction instantanée. Niveau « Prestige » unique aux monuments, au-dessus du Gratte-ciel (lieux célèbres et monuments, 3 nov.).
 4. Marché : prix libre, offres sans expiration, modifiables/annulables, pas de vente à la banque.
-5. Enchères : nationales, 3 monuments par semaine (1 légendaire + 2 régionaux, répartition proposée par Claude).
+5. Enchères : nationales, 3 monuments par semaine (1 national + 2 régionaux, tous Extraordinaires ; répartition proposée par Claude).
 6. Maire = le plus de lieux dans la commune ; égalité = deux Maires ; titre valable tant que la condition tient.
 7. Pas de taxe, pas de délai de blocage, skins en V2. Gautier est réservé sur toute limite de propriété (capacité de gestion) : proposée, à valider après simulation.
 8. Standing (prix du m²) = plafond de construction ; lieux marquants (mairie, église…) = potentiel supérieur.
@@ -70,6 +70,7 @@ Ce fichier dit **ce qu'est le jeu, comment on travaille, ce qui est décidé et 
 - **Mise à jour des téléphones** : GitHub Pages laisse le téléphone garder l'ancienne page 10 minutes. La publication écrit le numéro de version (début du commit) dans `version.json` et dans `index.html` (`__VERSION__`, et les `?v=` de `style.css` et `src/compte.js`) ; au démarrage et au retour dans le jeu, la page compare et se recharge à une adresse neuve si une version plus récente est en ligne (jamais pendant un pack ou une fenêtre ouverte). Rien à changer à la main.
 - **Le style** : tout est dans `style.css` (référence `docs/DESIGN.md`, « la plaque et la pièce ») ; polices embarquées dans `fonts/` (jamais de Google Fonts). Montants : `nb(n)` (chiffre, avec une espace insécable ordinaire : la police n'a pas l'espace fine de `toLocaleString`), `pcs(n)` (chiffre + pièce dessinée, en page), `fmt(n)` (texte avec 🪙, pour bandeaux et notifications).
 - **Une carte** (pack, collection) est « full art » : `carteArt(a, bandeau)` (adresse : mur de briques + plaque de la voie + numéro, découpés par `Regles.numeroEtVoie` ; lieu nommé ou monument : ciel de la rareté + `iconeLieu(a)` + plaque du nom ; le bandeau sombre du bas porte les chiffres). Vendre : `mettreEnVente(id)` (prix tapé, lu par `R.lirePrix`), le prix demandé par `prixDemande(a)`.
+- **Raretés** : 1 à 6 (`data/economie.json` → `raretes`, `R.rarete`) ; la 6 (Extraordinaire, monuments) n'a pas de couleur unie : ses bordures et pastilles passent par `var(--arc)` (dégradé arc-en-ciel) avec l'astuce `padding-box` / `border-box`. Un monument possédé avant le 3 nov. au Prestige (ancien niveau 4) passe au niveau 5 au chargement (`state.niveaux6`).
 - **Joueurs simulés** : le propriétaire d'un lieu suit la couleur de sa parcelle (`proprioSimule` : graine `parcelSeed(idu)` ; rouge = un joueur, violet = deux) ; `parcelState` : violet dès qu'il y a plusieurs propriétaires. Ne jamais tirer couleur et propriétaire séparément.
 - **Échanges** : `proposerEchange(a)` (fenêtre, un ou plusieurs de mes lieux : `donne` est une liste, lue par `donnesDe(e)` ; `nomsDonnes(e)` pour l'affichage), `state.echangesOut` (attente / acceptee / refusee / annulee), réponses simulées dans `tickEchanges()` ; un lieu cédé par échange va dans `state.cedes` (id → joueur, niveau), que `ownerOf` et `levelOf` lisent.
 - **Un lieu s'affiche toujours avec `addrRow(a, withBuild)`** (fiche de parcelle et détail d'une carte) ; après toute action sur un lieu, appeler `apresAction()` (tout ce qui l'affiche se redessine). Les fenêtres passent par `#modal` / `closeModal()` ; la fête par `fete(n)` ; les vibrations par `vibrer()` (réglage).

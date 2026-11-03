@@ -13,10 +13,11 @@ test('le même joueur, le même jour : le même tirage', () => {
   assert.ok(Array.isArray(c));
 });
 
-test('les chances par carte : 60 / 26 / 11 / 3 %, jamais de monument', () => {
-  const rng = P.alea(42), n = 200000, compte = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 };
+test('les chances par carte : 60 / 25 / 10 / 4 / 1 %, jamais de monument (Extraordinaire)', () => {
+  const rng = P.alea(42), n = 200000, compte = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0 };
   for (let i = 0; i < n; i++) compte[P.rarete(ECO.pack.chances, rng)]++;
-  assert.strictEqual(compte[5], 0);
+  assert.strictEqual(compte[6], 0); assert.ok(compte[5] > 0, 'des Légendaires sortent des packs');
+  assert.strictEqual(Object.values(ECO.pack.chances).reduce((s, x) => s + x, 0), 100);
   for (const [r, pct] of Object.entries(ECO.pack.chances)) {
     assert.ok(Math.abs(100 * compte[r] / n - pct) < 0.5, `rareté ${r} : ${(100 * compte[r] / n).toFixed(2)} % au lieu de ${pct} %`);
   }

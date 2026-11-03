@@ -38,6 +38,14 @@ const ECO = {
    "hauteur": 45
   },
   {
+   "id": "gratte_ciel",
+   "nom": "Gratte-ciel",
+   "icone": "🌆",
+   "cout": 10,
+   "loyer": 600,
+   "hauteur": 75
+  },
+  {
    "id": "prestige",
    "nom": "Prestige",
    "icone": "🏛️",
@@ -77,9 +85,10 @@ const ECO = {
   "par_jour": 1,
   "chances": {
    "1": 60,
-   "2": 26,
-   "3": 11,
-   "4": 3
+   "2": 25,
+   "3": 10,
+   "4": 4,
+   "5": 1
   }
  },
  "raretes": {
@@ -87,7 +96,8 @@ const ECO = {
   "2": "Peu commun",
   "3": "Rare",
   "4": "Épique",
-  "5": "Légendaire"
+  "5": "Légendaire",
+  "6": "Extraordinaire"
  },
  "encheres": {
   "nationaux_par_semaine": 1,
