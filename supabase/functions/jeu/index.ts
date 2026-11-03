@@ -71,6 +71,9 @@ const REFUS_SQL: Record<string, string> = {
   deja: 'Ton pack du jour est déjà ouvert : reviens au prochain jour du jeu.', plus_a_lui: 'Ce lieu a changé de propriétaire entre-temps.',
   prix_change: 'Le vendeur vient de changer son prix : regarde le nouveau.', soi_meme: 'Ce lieu est déjà à toi.',
   libre: 'Ce lieu n’est à personne : il ne sort que des packs.', offre: 'Cette offre n’est plus valable.', prix: 'Prix invalide.',
+  echange: 'Cet échange n’est plus valable.', echange_change: 'Un des lieux proposés a changé de main : l’échange est annulé.',
+  deja_echange: 'Tu as déjà proposé un échange pour ce lieu : annule-le d’abord.', deja_propose: 'Un de ces lieux est déjà proposé dans un autre échange.',
+  rien: 'Choisis au moins un de tes lieux.', trop: 'Trente lieux au plus dans un échange.',
 };
 async function rpc(nom: string, args: Ligne) {
   const { data, error } = await admin.rpc(nom, args);
@@ -111,10 +114,10 @@ const TIRAGE = Tirage.creer({
 // ma partie : pièces, lieux, ce qui attend d'être récolté (rendue aussi après chaque action : le jeu se recale dessus)
 async function etatDe(j: string) {
   const jr = await joueur(j), lieux = await mesLieux(j), maintenant = Date.now(), jm = await jourMs();
-  const [offres, notifs] = await Promise.all([mesOffres(j), mesNotifs(j)]);
+  const [offres, echanges, notifs] = await Promise.all([mesOffres(j), mesEchanges(j), mesNotifs(j)]);
   return {
     pieces: Number(jr.pieces), encaisse: ms(jr.encaisse), dernierJour: jr.dernier_jour == null ? null : Number(jr.dernier_jour), jour: Regles.jourDuJeu(maintenant, jm),
-    lieux, maintenant, aRecolter: R.aEncaisser(lieux, ms(jr.encaisse), maintenant, jm), jourMs: jm, ...offres, notifs,
+    lieux, maintenant, aRecolter: R.aEncaisser(lieux, ms(jr.encaisse), maintenant, jm), jourMs: jm, ...offres, ...echanges, notifs,
   };
 }
 // mes offres reçues et envoyées (en attente, et les dernières réglées), avec le lieu et l'autre joueur
@@ -135,7 +138,26 @@ async function mesNotifs(j: string) {
   const { data, error } = await admin.from('notifications').select('id, type, texte, donnees, lu, cree_le').eq('joueur', j).order('cree_le', { ascending: false }).limit(60);
   if (error) throw error;
   return (data || []).map((n: Ligne) => ({ id: n.id, ts: ms(n.cree_le), type: n.type, text: n.texte, read: n.lu,
-    ...(n.donnees && n.donnees.offre ? { offerId: String(n.donnees.offre) } : {}), ...(n.donnees && n.donnees.lieu ? { addrId: n.donnees.lieu } : {}) }));
+    ...(n.donnees && n.donnees.offre ? { offerId: String(n.donnees.offre) } : {}), ...(n.donnees && n.donnees.echange ? { echangeId: String(n.donnees.echange) } : {}),
+    ...(n.donnees && n.donnees.lieu ? { addrId: n.donnees.lieu } : {}) }));
+}
+// mes échanges proposés et reçus (en attente, et les derniers réglés) ; pour un échange reçu en attente, les lieux
+// offerts tels qu'ils sont (constructions comprises), pour juger ce qu'on reçoit
+async function mesEchanges(j: string) {
+  const { data, error } = await admin.from('echanges').select('id, lieu, proposeur, destinataire, donnes, noms, ajout, statut, cree_le, lieux(label, lon, lat, citycode, city, type, notoriete, cat, qid, niveau, idu)')
+    .or(`proposeur.eq.${j},destinataire.eq.${j}`).order('maj', { ascending: false }).limit(40);
+  if (error) throw error;
+  const lignes = (data || []) as Ligne[], noms = await pseudos(lignes.flatMap((x) => [x.proposeur, x.destinataire]));
+  const ids = [...new Set(lignes.filter((x) => x.destinataire === j && x.statut === 'attente').flatMap((x) => x.donnes as string[]))];
+  const offerts: Record<string, Ligne> = {};
+  if (ids.length) { const { data: ls, error: e2 } = await admin.from('lieux').select('*').in('id', ids); if (e2) throw e2; for (const l of ls || []) offerts[l.id] = l; }
+  const recus: Ligne[] = [], envoyes: Ligne[] = [];
+  for (const x of lignes) {
+    const base = { id: String(x.id), addrId: x.lieu, donne: x.donnes, noms: x.noms || {}, ajout: Number(x.ajout), status: x.statut, ts: ms(x.cree_le) };
+    if (x.destinataire === j) recus.push({ ...base, from: noms[x.proposeur] || 'Un joueur', lieux: (x.donnes as string[]).filter((id) => offerts[id] && offerts[id].proprietaire === x.proposeur).map((id) => lieuDe(offerts[id])) });
+    else envoyes.push({ ...base, to: noms[x.destinataire] || 'Un joueur', addr: x.lieux ? { id: x.lieu, ...x.lieux } : { id: x.lieu, label: 'un lieu' } });
+  }
+  return { echangesRecus: recus, echangesEnvoyes: envoyes };
 }
 async function pseudos(uids: string[]) {
   const ids = [...new Set(uids.filter(Boolean))]; if (!ids.length) return {} as Record<string, string>;
@@ -228,6 +250,72 @@ ACTIONS.repondre_offre = async (j, corps) => {
 };
 ACTIONS.notifs_lues = async (j) => { await rpc('jeu_notifs_lues', { j }); return {}; };
 
+// ---------------------------------------------------------------- les échanges (8.1f ; demande de Gautier, 3 nov.)
+// « A, B et C » (trois noms au plus, sinon « A, B et N autres »)
+function liste(noms: string[]) {
+  const n = noms.map((x) => x || 'un lieu'); if (n.length <= 1) return n[0] || 'un lieu';
+  if (n.length > 3) return `${n.slice(0, 2).join(', ')} et ${n.length - 2} autres`;
+  return `${n.slice(0, -1).join(', ')} et ${n[n.length - 1]}`;
+}
+// proposer un ou plusieurs de ses lieux (plus des pièces, facultatif) contre le lieu d'un autre joueur
+ACTIONS.echanger = async (j, corps) => {
+  const l = await lieuEnBase(String(corps.id || ''));
+  if (!l) throw new Refus('libre', REFUS_SQL.libre);
+  if (l.proprietaire === j) throw new Refus('soi_meme', REFUS_SQL.soi_meme);
+  const dons = [...new Set((Array.isArray(corps.donnes) ? corps.donnes : []).map((x: unknown) => String(x || '')).filter(Boolean))] as string[];
+  if (!dons.length) throw new Refus('rien', REFUS_SQL.rien);
+  if (dons.length > 30) throw new Refus('trop', REFUS_SQL.trop);
+  const ajout = corps.ajout == null || /^[0\s]*$/.test(String(corps.ajout)) ? 0 : prixLu(corps.ajout);
+  const { data: miens, error } = await admin.from('lieux').select('id, label').in('id', dons).eq('proprietaire', j);
+  if (error) throw error;
+  if ((miens || []).length !== dons.length) throw new Refus('pas_a_toi', 'Un des lieux proposés n’est pas à toi.');
+  const noms: Record<string, string> = Object.fromEntries((miens || []).map((m: Ligne) => [m.id, m.label]));
+  const echange = await rpc('jeu_echanger', { j, l: l.id, dons, supplement: ajout, noms_dons: noms }), ps = await pseudos([j, l.proprietaire]);
+  await notifier(l.proprietaire, 'echange', `${ps[j] || 'Un joueur'} te propose ${liste(dons.map((id) => noms[id]))}${ajout ? `, plus ${fmt(ajout)},` : ''} contre ${l.label}.`, { echange, lieu: l.id });
+  return { echange: String(echange), destinataire: ps[l.proprietaire] || 'Un joueur' };
+};
+ACTIONS.annuler_echange = async (j, corps) => { await rpc('jeu_echange_statut', { e: Number(corps.echange), qui: j, statut: 'annulee' }); return {}; };
+// accepter (les lieux changent de main, si chacun a encore ce qu'il a promis) ou refuser un échange reçu
+ACTIONS.repondre_echange = async (j, corps) => {
+  const { data: x } = await admin.from('echanges').select('*').eq('id', Number(corps.echange)).maybeSingle();
+  if (!x || x.destinataire !== j || x.statut !== 'attente') throw new Refus('echange', REFUS_SQL.echange);
+  const l = await lieuEnBase(x.lieu), ps = await pseudos([j, x.proposeur]), nomsX: Ligne = x.noms || {};
+  const dons = liste((x.donnes as string[]).map((id) => nomsX[id])), ajout = Number(x.ajout), label = l ? l.label : 'ton lieu';
+  const avecAjout = ajout ? `, plus ${fmt(ajout)}` : '', lui = ps[x.proposeur] || 'Le joueur', moi = ps[j] || 'Un joueur';
+  // l'échange tombe : le proposeur est prévenu, le destinataire voit pourquoi
+  const tomber = async (pourLui: string, pourMoi: string, code: string): Promise<never> => {
+    await rpc('jeu_echange_statut', { e: x.id, qui: j, statut: 'caduque' }).catch(() => {});
+    await notifier(x.proposeur, 'echange', pourLui, { lieu: x.lieu });
+    throw new Refus(code, pourMoi);
+  };
+  const lieuParti = () => tomber(`Ton échange pour ${label} est annulé : ce lieu a changé de main.`, 'Ce lieu n’est plus à toi : l’échange est annulé.', 'plus_a_lui');
+  if (!corps.accepter) {
+    await rpc('jeu_echange_statut', { e: x.id, qui: j, statut: 'refusee' });
+    await notifier(x.proposeur, 'echange', `${moi} a refusé ton échange : ${dons}${avecAjout}${ajout ? ',' : ''} contre ${label}.`, { lieu: x.lieu });
+    return { accepte: false };
+  }
+  if (!l || l.proprietaire !== j) await lieuParti();
+  // les loyers de chacun sont encaissés avant (personne ne perd ce qui a poussé)
+  await recolter(j); await recolter(x.proposeur);
+  let tombes: Ligne[] = [];
+  try { tombes = (await rpc('jeu_echange_accepter', { e: x.id, qui: j })) || []; }
+  catch (e) {
+    if (!(e instanceof Refus)) throw e;
+    if (e.code === 'fonds') await tomber(`Ton échange pour ${label} n’a pas abouti : tu n’avais plus assez de pièces.`, `${lui} n’a plus assez de pièces : l’échange est annulé.`, 'fonds');
+    if (e.code === 'echange_change') await tomber(`Ton échange pour ${label} est annulé : un des lieux proposés n’est plus à toi.`, `${lui} n’a plus tous les lieux proposés : l’échange est annulé.`, 'echange_change');
+    if (e.code === 'plus_a_lui') await lieuParti();
+    throw e;
+  }
+  await notifier(x.proposeur, 'echange', `${moi} a accepté ton échange : ${label} est à toi, contre ${dons}${avecAjout} !`, { lieu: x.lieu });
+  // les offres et les autres échanges qui portaient sur ces lieux sont tombés : prévenir leurs auteurs
+  const nomDe = (id: string) => (id === x.lieu ? label : (nomsX[id] || 'un lieu'));
+  for (const t of tombes) {
+    if (t.joueur === j || t.joueur === x.proposeur) continue;
+    await notifier(t.joueur, t.type, t.type === 'offre' ? `${nomDe(t.lieu)} a changé de main : ton offre est annulée.` : `${nomDe(t.lieu)} a changé de main : ta proposition d’échange est annulée.`, { lieu: null });
+  }
+  return { accepte: true, label, dons, ajout, proposeur: lui, recus: x.donnes };
+};
+
 // ouvrir le pack du jour : le serveur tire au hasard (graine secrète), une fois par jour
 ACTIONS.pack = async (j) => {
   const jm = await jourMs(), jour = Regles.jourDuJeu(Date.now(), jm), jr = await joueur(j);
@@ -304,11 +392,26 @@ async function robotsTour() {
       // 2. répondre aux offres reçues depuis 20 s : oui à partir de 110 % de la valeur, sinon non
       const { data: recues } = await admin.from('offres').select('*').eq('vendeur', j).eq('statut', 'attente').lt('cree_le', new Date(Date.now() - 20_000).toISOString());
       for (const o of recues || []) await ACTIONS.repondre_offre(j, { offre: o.id, accepter: (() => { const l = mes.find((x: Ligne) => x.id === o.lieu); return !!l && Number(o.prix) >= valeurM(l) * 1.1; })() }).catch(() => {});
+      // 2 bis. répondre aux échanges reçus depuis 20 s : oui si on leur donne au moins 110 % de ce qu'ils cèdent
+      const { data: echRecus } = await admin.from('echanges').select('*').eq('destinataire', j).eq('statut', 'attente').lt('cree_le', new Date(Date.now() - 20_000).toISOString());
+      for (const x of echRecus || []) {
+        const sien = mes.find((l: Ligne) => l.id === x.lieu), { data: dons } = await admin.from('lieux').select('*').in('id', x.donnes);
+        const donne = (dons || []).reduce((t: number, l: Ligne) => t + valeurM(l), 0) + Number(x.ajout);
+        await ACTIONS.repondre_echange(j, { echange: x.id, accepter: !!sien && donne >= valeurM(sien) * 1.1 }).catch(() => {});
+      }
       // 3. une offre sur un lieu d'un vrai joueur (entre 85 et 140 % de sa valeur), une seule en attente à la fois
       const { count: enAttente } = await admin.from('offres').select('id', { count: 'exact', head: true }).eq('acheteur', j).eq('statut', 'attente');
       if (!enAttente && Math.random() < 0.15) {
         const l = hasard(reels), prix = arrondi(valeurM(l) * (0.85 + Math.random() * 0.55));
         if (prix <= pieces) { await ACTIONS.offrir(j, { id: l.id, prix }).catch(() => {}); }
+      }
+      // 3 bis. parfois, proposer un échange à un vrai joueur : un ou deux de ses lieux, plus des pièces pour arriver
+      // à 100-130 % de la valeur du lieu voulu ; une seule proposition en attente à la fois
+      const { count: echEnAttente } = await admin.from('echanges').select('id', { count: 'exact', head: true }).eq('proposeur', j).eq('statut', 'attente');
+      if (!echEnAttente && mes.length && Math.random() < 0.1) {
+        const l = hasard(reels), dons = mes.slice().sort(() => Math.random() - 0.5).slice(0, 1 + Math.floor(Math.random() * 2));
+        const v = dons.reduce((t: number, d: Ligne) => t + valeurM(d), 0), cible = valeurM(l) * (1 + Math.random() * 0.3), ajout = v < cible ? arrondi(cible - v) : 0;
+        if (ajout <= pieces) await ACTIONS.echanger(j, { id: l.id, donnes: dons.map((d: Ligne) => d.id), ajout }).catch(() => {});
       }
       // 4. acheter un lieu mis en vente par un vrai joueur, s'il n'est pas trop cher (jusqu'à 150 % de sa valeur) :
       // une fois sur deux par robot et par tour (« personne ne m'achète », Gautier, 3 nov.)

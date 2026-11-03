@@ -84,12 +84,14 @@
 
 - 3 nov. 2026 (soir) : **reprise dans Claude Code sur le PC de Gautier** (dossier `Documents/jeu immo`) : outils vérifiés (git, node, npm, python, gh) ; le test du serveur échouait sous Windows (un chemin `C:\…` passé tel quel à `import()`) : il passe maintenant par `pathToFileURL`. 46 tests sur 46. `CLAUDE.md` § 3 bis : le dossier, et comment pousser sur GitHub depuis le PC.
 
+- 3 nov. 2026 (soir) : **les échanges sur le serveur (8.1f)** : en mode serveur, « Proposer un échange » marche avec les vrais joueurs et les robots (un ou plusieurs de ses lieux, plus des pièces) ; l'autre joueur le reçoit dans ses notifications avec les lieux offerts, leur valeur, les pièces et l'écart avec son lieu, et accepte ou refuse ; le patrimoine annonce les échanges reçus ; on annule sa proposition tant qu'il n'a pas répondu. À l'acceptation, tout change de main d'un bloc (constructions gardées, ventes retirées), les offres et autres échanges sur ces lieux tombent et leurs auteurs sont prévenus. Les robots répondent aux échanges (oui à partir de 110 % de leur lieu) et en proposent parfois. Serveur : table `echanges`, fonctions `jeu_echanger`, `jeu_echange_statut`, `jeu_echange_accepter` (`supabase/sql/070_echanges.sql`), actions `echanger`, `annuler_echange`, `repondre_echange`. Vérifié : le SQL dans un vrai Postgres local (`tools/essai_sql.mjs`, PGlite, 44 vérifications), la fonction avec `deno check`, la page dans le navigateur avec un serveur simulé (proposer, compenser, refus faute de pièces, annuler, accepter un échange reçu) ; l'essai automatique du serveur essaie les échanges avec deux joueurs jetables. 46 tests.
+
 ## En cours
 - Lieux célèbres : les autres catégories (châteaux, mairies, gares, musées, ponts, phares, moulins…) dès que Wikidata répond (`python3 tools/wikidata_celebres.py`, puis `--fusion` et `gen_donnees.py celebres`).
 - Phase 1.1 à 1.4 : la carte et le modèle des lieux reconstruits en modules (`src/`) à partir du prototype ; puis le marché (phase 4 : historique des ventes d'un lieu) et les communes et Maires (phase 6). Ensuite : Signaler envoyé au serveur dès qu'il y aura de vrais joueurs à l'écran ; Google ; un service d'envoi d'e-mails avant le lancement (le service de Supabase n'écrit qu'aux membres de l'équipe Supabase, deux e-mails par heure).
 
 ## À faire
-- La suite du serveur : 8.1f (les échanges sur le serveur), 8.1g (les enchères sur le serveur), 8.2 (le mode serveur par défaut, la fin des joueurs simulés, l'inscription des amis), 8.3 (anti-triche) ; puis la boutique (phase 9). Liste complète, avec ce qu'il faudra faire au lancement : `docs/HISTORIQUE.md` § « Ce qui reste à faire » ; l'ordre : `docs/PLAN.md` (phases 1 à 11).
+- La suite du serveur : 8.1g (les enchères sur le serveur), 8.2 (le mode serveur par défaut, la fin des joueurs simulés, l'inscription des amis), 8.3 (anti-triche) ; puis la boutique (phase 9). Liste complète, avec ce qu'il faudra faire au lancement : `docs/HISTORIQUE.md` § « Ce qui reste à faire » ; l'ordre : `docs/PLAN.md` (phases 1 à 11).
 
 ## Questions ouvertes
 - Relire la liste des 60 monuments nationaux (`data/monuments.json`, `palier: national`).
@@ -100,4 +102,5 @@
 - Inscription des amis pendant les essais (8.2) : couper la confirmation par e-mail le temps des essais (le service d'e-mails de Supabase n'écrit qu'à l'équipe) ? Question posée, sans réponse.
 
 ## Bugs connus
+- Mode serveur : si la partie arrive du serveur avant que la carte ait fini de charger, un cadre rose « Erreur de style : The layer 'parcel-fill' does not exist… » peut s'afficher (la page cherche les parcelles avant que leurs calques soient posés) ; sans conséquence pour la partie. Vu le 3 nov. au soir, pas encore corrigé.
 - Les badges 💰 des joueurs simulés n'apparaissent qu'après ouverture de leur parcelle (limite du prototype local).
