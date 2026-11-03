@@ -45,14 +45,14 @@ test('trop loin : jamais le même lieu', () => {
   assert.strictEqual(C.trouver({ label: 'Église Saint-Martin', lon: MARTIN[3], lat: aNord(MARTIN, 600) }, [MARTIN]), null);
 });
 
-test('un lieu célèbre devient Épique, même au standing 1', () => {
+test('un lieu célèbre devient Légendaire et monte au Gratte-ciel, même au standing 1', () => {
   const R = Regles.creer(ECO, {});
   const lieu = C.lieuDe(MARTIN);
   assert.strictEqual(lieu.id, 'wd:Q1');
   assert.strictEqual(R.standing(lieu), 1);
   assert.strictEqual(R.notoriete(lieu), 'celebre');
-  assert.strictEqual(R.texteNiveau(R.plafond(lieu)), 'Tour');
-  assert.strictEqual(R.rarete(lieu), 4);
+  assert.strictEqual(R.texteNiveau(R.plafond(lieu)), 'Gratte-ciel');
+  assert.strictEqual(R.rarete(lieu), 5);
   // un lieu nommé sans article reste Rare
   assert.strictEqual(R.rarete({ type: 'lieu', citycode: '28105' }), 3);
 });

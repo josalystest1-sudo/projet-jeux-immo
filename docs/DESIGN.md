@@ -23,7 +23,7 @@ Autour : des panneaux blancs et arrondis posés sur la carte, une police ronde e
 | ciel | `#EAF2FF` | fond des écrans |
 | blanc | `#FFFFFF` | panneaux |
 
-Raretés : Commun `#8E9AAF` (ardoise), Peu commun `#2FB36D`, Rare `#2F80ED`, Épique `#9B51E0`, Légendaire `#F2A900`.
+Raretés (décision de Gautier, 3 nov.) : Commun `#8E9AAF` (ardoise), Peu commun `#2FB36D` (vert), Rare `#2F80ED` (bleu), Épique `#9B51E0` (violet), Légendaire `#FF7A00` (orange), Extraordinaire = arc-en-ciel (`--arc`, dégradé qui glisse lentement sur le contour de la carte, sa pastille et l'icône ; ciel arc-en-ciel derrière le monument).
 
 ## Polices
 

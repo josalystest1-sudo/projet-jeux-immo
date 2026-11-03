@@ -128,7 +128,7 @@ const FAKE = ['Léa','Marco','Inès','Yanis','Chloé','Sacha'];
 const JOUR = 60*1000;            // démo : un jour = une minute
 const R = Regles.creer(ECO, STANDING); // moteur de règles (src/regles/lieu.js) : réglages data/economie.json, standing réel data/standing.json
 const NIVEAUX = R.NIVEAUX; const SALAIRE = ECO.salaire_par_jour; const LOYER_BASE = ECO.loyer_terrain; const RARETES = ECO.raretes;
-// Les 458 monuments (data/monuments.json) : 60 nationaux (légendaires) et 398 régionaux ; chaque semaine, 1 national et 2 régionaux aux enchères.
+// Les 458 monuments (data/monuments.json), tous Extraordinaires : 60 nationaux et 398 régionaux ; chaque semaine, 1 national et 2 régionaux aux enchères.
 const ENC = Encheres.creer(ECO); // règles des enchères (src/regles/encheres.js)
 function iconeMonument(n){ n=n.toLowerCase(); if(/tour eiffel/.test(n)) return '🗼'; if(/cathédrale|basilique|église|chapelle|abbaye|abbatiale|primatiale|collégiale|monastère|synagogue|temple|couvent|chartreuse/.test(n)) return '⛪'; if(/château|forteresse|citadelle|fort |cité de/.test(n)) return '🏰'; if(/pont|viaduc/.test(n)) return '🌉'; if(/grotte|abri|caune/.test(n)) return '🪨'; if(/théâtre|opéra|palais garnier/.test(n)) return '🎭'; if(/phare/.test(n)) return '🗼'; if(/jardin|parc/.test(n)) return '🌳'; return '🏛️'; }
 const LISTE_MON = MONUMENTS.map(m=>({ ...m, icone: iconeMonument(m.nom), depart: ENC.miseDepart(m) }));
@@ -143,6 +143,8 @@ try { const s = localStorage.getItem('proto-cadastre-v3'); if (s) state = Object
 // les enchères : mes mises par lot (« semaine:place »), les lots clos, les surenchères déjà signalées (l'ancienne enchère unique est abandonnée)
 if(!state.encheres) state.encheres = { mises:{}, clos:{}, depasse:{} }; delete state.auction;
 if(!state.echangesOut) state.echangesOut=[]; if(!state.cedes) state.cedes={};   // échanges proposés ; lieux cédés par échange (id → joueur)
+// 3 nov. 2026 : le Gratte-ciel s'insère avant le Prestige ; un monument déjà au Prestige (ancien niveau 4) passe au niveau 5
+if(!state.niveaux6){ for(const a of Object.values(state.owned)) if(a.type==='monument' && (a.niveau||0)>=4) a.niveau=(a.niveau||0)+1; state.niveaux6=true; }
 function save(){ try{ localStorage.setItem('proto-cadastre-v3', JSON.stringify(state)); }catch(e){} }
 const now = ()=>Date.now();
 const jour = ()=>Math.floor(now()/JOUR);
@@ -351,7 +353,7 @@ map.on('load', ()=>{
     layout:{ 'text-field':['get','nom'], 'text-font':['Open Sans Regular'], 'text-size':['case',['get','national'],15,13], 'text-offset':[0,-2.2], 'text-anchor':'bottom', 'text-allow-overlap':false },
     paint:{ 'text-color':'#5a3d00', 'text-halo-color':'#ffd65a', 'text-halo-width':2.2 } });
   map.on('click','mon-halo', (e)=>{ const f=e.features[0]; const m=LISTE_MON.find(x=>x.id===f.properties.id); if(!m) return;
-    const enJeu = lotsDe(semaineEnCours()).some(l=>l.m.id===m.id); toast(`${m.icone} ${m.nom} · monument ${m.palier==='national'?'national (légendaire)':'régional'}${enJeu?' · aux enchères cette semaine !':''}`); if(enJeu) setTimeout(()=>showScreen('encheres'), 900); });
+    const enJeu = lotsDe(semaineEnCours()).some(l=>l.m.id===m.id); toast(`${m.icone} ${m.nom} · monument ${m.palier==='national'?'national':'régional'} (Extraordinaire)${enJeu?' · aux enchères cette semaine !':''}`); if(enJeu) setTimeout(()=>showScreen('encheres'), 900); });
 });
 // Les lieux célèbres (article Wikipédia) : un fichier par département (data/celebres/), chargé à la demande.
 const CELEBRES = {};
@@ -557,10 +559,10 @@ function renderAddrs(){ const {p, idu, geometry} = currentParcel; const addrs = 
   if(!nb){ if(!mons.length) box.innerHTML = '<div class="vide"><div class="ico">🌳</div><div class="t">Rien à posséder ici</div><div class="m">Cette parcelle n’a pas d’adresse (cour, voirie, jardin…). Touche un bâtiment voisin.</div></div>'; return; }
   addrs.forEach(a=>box.appendChild(addrRow(a, true))); }
 // la fiche d'un monument qu'on ne possède pas : ce qu'il est, et s'il passe aux enchères cette semaine
-function ficheMonument(m){ const nat=m.palier==='national', r=nat?5:4, enJeu=lotsDe(semaineEnCours()).some(l=>l.m.id===m.id);
+function ficheMonument(m){ const nat=m.palier==='national', r=6, enJeu=lotsDe(semaineEnCours()).some(l=>l.m.id===m.id);
   const row=document.createElement('div'); row.className='addr r'+r;
   row.innerHTML=`<div class="tete"><div class="ico-lieu r${r}">${iconeMonument(m.nom)}</div><div class="corps"><div class="n">${echapper(m.nom)}</div><div class="m">${echapper(m.ville)}</div>
-    <div class="lignes"><span class="tag r${r}">${nat?'Légendaire · monument national':'Monument régional'}</span><a class="tag bleu-lien" target="_blank" rel="noopener" href="https://www.wikidata.org/wiki/Special:GoToLinkedPage/frwiki/${m.id}">📖 Wikipédia</a></div></div></div>
+    <div class="lignes"><span class="tag r${r}">${nat?'👑 Extraordinaire · national':'Extraordinaire · régional'}</span><a class="tag bleu-lien" target="_blank" rel="noopener" href="https://www.wikidata.org/wiki/Special:GoToLinkedPage/frwiki/${m.id}">📖 Wikipédia</a></div></div></div>
     <div class="libre-info" style="margin-top:12px">${enJeu?'🔨':'🏛️'} <span>${enJeu?'<b>Aux enchères cette semaine</b> : il ira au plus offrant.':'<b>Monument</b> : il ne sort pas des packs, il se gagne aux enchères (trois monuments chaque semaine).'}</span></div>
     ${enJeu?'<div class="actions"><button class="btn" onclick="showScreen(\'encheres\')">🔨 Voir l’enchère</button></div>':''}`;
   return row; }
@@ -584,11 +586,11 @@ function echapper(t){ return String(t==null?'':t).replace(/[&<>"]/g, c=>({'&':'&
 // après une action sur un lieu : tout ce qui l'affiche se redessine
 function apresAction(){ if(currentParcel) renderAddrs(); if(document.getElementById('s-patrimoine').classList.contains('on')) renderPatrimoine(); if(ficheOuverte) ouvrirFicheLieu(ficheOuverte); }
 let ficheOuverte=null;
-function echelleHTML(a, lv, pl, moi, rec){ let h='<div class="echelle">';
-  const max = pl>=4 ? 4 : 3;
+function echelleHTML(a, lv, pl, moi, rec){
+  const max = Math.max(3, pl); let h=`<div class="echelle${max>=5?' longue':''}">`;   // Terrain → Tour pour tous ; le Gratte-ciel (Légendaire) et le Prestige (Extraordinaire) en plus
   for(let i=0;i<=max;i++){ const n=NIVEAUX[i]; let etat = i<=lv ? 'fait' : (i>pl ? 'bloque' : (moi && i===lv+1 ? 'suivant' : 'futur'));
     const icone = i===0 ? '🌱' : (etat==='bloque' ? '🔒' : n.icone);
-    const texte = etat==='bloque' ? 'Hors plafond' : (moi && etat!=='fait' ? `${n.nom}<br><span class="prix">${nb(coutNiveau(rec,i))}<i class="pc"></i></span>` : n.nom);
+    const texte = etat==='bloque' ? 'Hors plafond' : (etat==='suivant' ? `${n.nom}<br><span class="prix">${nb(coutNiveau(rec,i))}<i class="pc"></i></span>` : n.nom);
     h+=`<div class="pas ${etat}"${etat==='suivant' ? ` role="button" data-construire="${i}"` : ''}><div class="rond-pas">${icone}</div><div>${texte}</div></div>`; }
   return h+'</div>'; }
 function addrRow(a, withBuild){
@@ -605,7 +607,7 @@ function addrRow(a, withBuild){
   const joueur=row.querySelector('[data-joueur]'); if(joueur) joueur.onclick=()=>showPlayer(o);
   const actions=document.createElement('div'); actions.className='actions';
   if(moi){
-    if(withBuild){ const suiv=lv+1, peut = suiv<=pl && suiv<NIVEAUX.length && !(suiv===4 && pl<4);
+    if(withBuild){ const suiv=lv+1, peut = suiv<=pl && suiv<NIVEAUX.length;
       if(peut){ const cost=coutNiveau(rec,suiv); const b=document.createElement('button'); b.className='btn'; b.innerHTML=`${NIVEAUX[suiv].icone} Construire · ${pcs(cost)}`; b.disabled=dispo()<cost; b.onclick=()=>construire(a.id, suiv, cost); actions.appendChild(b);
         row.querySelectorAll('[data-construire]').forEach(p=>p.onclick=()=>{ if(dispo()>=cost) construire(a.id, suiv, cost); else toast(`Il te manque ${fmt(cost-dispo())} pour construire`); }); }
       else { const t=document.createElement('div'); t.className='chip vert'; t.textContent = lv>=pl ? '✓ Construit jusqu’au plafond' : ''; if(t.textContent) actions.appendChild(t); }
@@ -879,7 +881,7 @@ function askGyro(){ if(gyroOn) return; const D=window.DeviceOrientationEvent; co
 function audio(){ if(state.prefs && state.prefs.sons===false) return null; if(!GL.audio){ try{ GL.audio=new (window.AudioContext||window.webkitAudioContext)(); }catch(e){} } return GL.audio; }
 function sonDechirure(){ const a=audio(); if(!a) return; const n=a.sampleRate*0.35; const b=a.createBuffer(1,n,a.sampleRate); const d=b.getChannelData(0); for(let i=0;i<n;i++){ d[i]=(Math.random()*2-1)*Math.pow(1-i/n,1.6)*(0.5+0.5*Math.sin(i/40)); }
   const src=a.createBufferSource(); src.buffer=b; const f=a.createBiquadFilter(); f.type='bandpass'; f.frequency.value=2200; f.Q.value=0.7; const g=a.createGain(); g.gain.value=0.5; src.connect(f); f.connect(g); g.connect(a.destination); src.start(); vibrer([30,20,40]); }
-function sonCarte(r){ const a=audio(); if(!a) return; const notes = r>=4 ? [523,659,784,1046,1318] : (r===3 ? [523,659,784] : [660,880]); notes.forEach((fq,i)=>{ const o=a.createOscillator(); const g=a.createGain(); o.type='sine'; o.frequency.value=fq; g.gain.setValueAtTime(0.0001,a.currentTime+i*0.08); g.gain.exponentialRampToValueAtTime(0.25,a.currentTime+i*0.08+0.02); g.gain.exponentialRampToValueAtTime(0.0001,a.currentTime+i*0.08+0.6); o.connect(g); g.connect(a.destination); o.start(a.currentTime+i*0.08); o.stop(a.currentTime+i*0.08+0.7); }); vibrer(r>=4?[20,30,60]:20); }
+function sonCarte(r){ const a=audio(); if(!a) return; const notes = r>=5 ? [523,659,784,1046,1318,1568,2093] : r>=4 ? [523,659,784,1046,1318] : (r===3 ? [523,659,784] : [660,880]); notes.forEach((fq,i)=>{ const o=a.createOscillator(); const g=a.createGain(); o.type='sine'; o.frequency.value=fq; g.gain.setValueAtTime(0.0001,a.currentTime+i*0.08); g.gain.exponentialRampToValueAtTime(0.25,a.currentTime+i*0.08+0.02); g.gain.exponentialRampToValueAtTime(0.0001,a.currentTime+i*0.08+0.6); o.connect(g); g.connect(a.destination); o.start(a.currentTime+i*0.08); o.stop(a.currentTime+i*0.08+0.7); }); vibrer(r>=4?[20,30,60]:20); }
 
 
 // =================== révélation façon FIFA (France → département → commune → rue) ===================
@@ -978,10 +980,11 @@ function dispoPack(){ const sc=document.getElementById('packscene'), wrap=docume
   pile.forEach(el=>pose(el, 0, ys, 0, ss)); }
 window.addEventListener('resize', ()=>dispoPack());
 // =================== tirage du pack (règles : src/regles/pack.js ; serveur simulé) ===================
-// Chaque carte : sa rareté tirée (60 / 26 / 11 / 3 %), puis un lieu libre de cette rareté n'importe où en France.
+// Chaque carte : sa rareté tirée (60 / 25 / 10 / 4 / 1 %), puis un lieu libre de cette rareté n'importe où en France.
 //   Commun : l'adresse la plus proche d'un point au hasard ; Peu commun : une adresse d'une commune au standing 2 ;
 //   Rare : un lieu nommé (église, mairie, château, gare, musée) près d'un point au hasard ;
-//   Épique : un lieu célèbre (Wikipédia) ou une adresse d'une commune au standing 3. Jamais de monument.
+//   Épique : une adresse d'une commune au standing 3 ; Légendaire : un lieu célèbre (Wikipédia).
+//   Jamais de monument (Extraordinaire : seulement aux enchères).
 const BOITE_FR=[-5.2,41.3,9.6,51.1];
 function dansAnneau(pt, ring){ let c=false; for(let i=0,j=ring.length-1;i<ring.length;j=i++){ const [xi,yi]=ring[i],[xj,yj]=ring[j]; if(((yi>pt[1])!==(yj>pt[1])) && pt[0]<(xj-xi)*(pt[1]-yi)/(yj-yi)+xi) c=!c; } return c; }
 function pointAuHasard(rng){ for(let k=0;k<300;k++){ const p=[BOITE_FR[0]+rng()*(BOITE_FR[2]-BOITE_FR[0]), BOITE_FR[1]+rng()*(BOITE_FR[3]-BOITE_FR[1])]; if(GEO.france.some(r=>dansAnneau(p,r))) return p; } return FRANCE[0]; }
@@ -1003,7 +1006,7 @@ async function celebreAuHasard(rng){ const dep=DEP_BOITES[Math.floor(rng()*DEP_B
 async function lieuDeRarete(r, rng){
   if(r===1){ const [lon,lat]=pointAuHasard(rng); return adresseProche(lon,lat); }
   if(r===3){ const [lon,lat]=pointAuHasard(rng); return lieuNommeProche(lon,lat,rng); }
-  if(r===4 && rng()<0.5) return celebreAuHasard(rng);
+  if(r===5) return celebreAuHasard(rng);
   const codes=CODES_STANDING[r===2?2:3]; return adresseDansCommune(communeReelle(codes[Math.floor(rng()*codes.length)], rng), rng); }
 function estLibre(c){ return !state.owned[c.id] && ownerOf(c)===null; }
 // une carte de la rareté voulue (6 essais) ; si le réseau ou le hasard s'obstinent, une carte Commune
@@ -1057,8 +1060,8 @@ function renderPatrimoine(){ const el=document.getElementById('s-patrimoine'); c
   if(ventes.length) h+=`<div class="card"><div class="t">💰 En vente (${ventes.length})</div>${ventes.map(a=>`<div class="rank"><span class="who" onclick="ouvrirFicheLieu('${a.id}')">${echapper(a.label)}</span><button class="prix-vente" onclick="mettreEnVente('${a.id}')" aria-label="Changer le prix">${nb(prixDemande(a))}<i class="pc"></i> ✏️</button><button class="btn sm" onclick="retirerVente('${a.id}')">Retirer</button></div>`).join('')}</div>`;
   if(!tous.length){ h+=`<div class="card vide"><div class="ico">🎁</div><div class="t">Ta collection est vide</div><div class="m">Ton pack du jour contient 5 lieux de toute la France.</div>${packDispo()?`<button class="btn large" onclick="ouvrirPack()">Ouvrir mon pack</button>`:`<button class="btn bleu large" onclick="showScreen('carte')">Explorer la carte</button>`}</div>`; el.innerHTML=h; return; }
   const counts={}; tous.forEach(a=>{ counts[rarete(a)]=(counts[rarete(a)]||0)+1; });
-  h+=`<h2 class="section flex">Ma collection <button class="btn clair sm" onclick="changerTri()">↕︎ ${TRIS[triPatri][0]}</button></h2><div class="filtres"><button class="filtre${filtrePatri?'':' on'}" onclick="filtrerPatri(0)">Toutes <b>${tous.length}</b></button>${[5,4,3,2,1].map(r=>`<button class="filtre r${r}${filtrePatri===r?' on':''}" onclick="filtrerPatri(${r})"><i class="dot"></i>${RARETES[r]} <b>${counts[r]||0}</b></button>`).join('')}</div>`;
-  if(!list.length) h+=`<div class="card vide"><div class="ico">🔍</div><div class="t">Aucune carte ${RARETES[filtrePatri]}</div><div class="m">Elles tombent dans les packs${filtrePatri===5?' ; les monuments se gagnent aux enchères':''}.</div></div>`;
+  h+=`<h2 class="section flex">Ma collection <button class="btn clair sm" onclick="changerTri()">↕︎ ${TRIS[triPatri][0]}</button></h2><div class="filtres"><button class="filtre${filtrePatri?'':' on'}" onclick="filtrerPatri(0)">Toutes <b>${tous.length}</b></button>${[6,5,4,3,2,1].map(r=>`<button class="filtre r${r}${filtrePatri===r?' on':''}" onclick="filtrerPatri(${r})"><i class="dot"></i>${RARETES[r]} <b>${counts[r]||0}</b></button>`).join('')}</div>`;
+  if(!list.length) h+=`<div class="card vide"><div class="ico">🔍</div><div class="t">Aucune carte ${RARETES[filtrePatri]}</div><div class="m">${filtrePatri===6?'Les monuments ne sortent pas des packs : ils se gagnent aux enchères':'Elles tombent dans les packs'}.</div></div>`;
   h+=`<div class="collection">`;
   list.sort(TRIS[triPatri][1]).forEach(a=>{ const lv=a.niveau||0, r=rarete(a);
     h+=`<div class="ccarte r${r}" role="button" onclick="ouvrirFicheLieu('${a.id}')"><span class="rar">${RARETES[r]}</span>${lv?`<span class="niv">${NIVEAUX[lv].icone}</span>`:''}${a.enVente?'<span class="vente">En vente</span>':''}
@@ -1076,15 +1079,15 @@ function arrondiMise(x){ return x<10000 ? Math.ceil(x/50)*50 : Math.ceil(x/100)*
 function dureeTexte(ms){ const s=Math.max(0,Math.floor(ms/1000)); const j=Math.floor(s/86400), h=Math.floor(s%86400/3600), m=Math.floor(s%3600/60); return j ? `${j} j ${h} h` : (h ? `${h} h ${String(m).padStart(2,'0')}` : `${m} min ${String(s%60).padStart(2,'0')} s`); }
 function renderEncheres(){ const el=document.getElementById('s-encheres'); const idx=semaineEnCours(), debut=idx*SEMAINE, reste=debut+SEMAINE-now(), pct=100*(now()-debut)/SEMAINE;
   let h=`<h1>Enchères <span class="act compte-a-rebours">⏳ ${dureeTexte(reste)}</span></h1>
-    <div class="card"><div class="t">Les 3 monuments de la semaine</div><div class="m">Un monument national (légendaire) et deux régionaux, pour toute la France. Démo : une semaine dure 7 minutes.</div>
+    <div class="card"><div class="t">Les 3 monuments de la semaine</div><div class="m">Des monuments Extraordinaires, qui ne sortent jamais des packs : un national et deux régionaux, pour toute la France. Démo : une semaine dure 7 minutes.</div>
     <div class="bar"><i style="width:${pct}%"></i></div><div class="flex"><span class="m" style="margin:0">Disponible pour miser</span><span class="montant" style="font-size:20px">${nb(dispo())}<i class="pc"></i></span></div></div>`;
   for(const lot of lotsDe(idx)){ const mises=misesDe(lot), top=ENC.meilleure(mises), min=ENC.miseMin(lot.m, mises), nat=lot.palier==='national', id='bid-'+lot.cle.replace(':','-');
     const moi=mesMises(lot.cle), derniere=moi.length?moi[moi.length-1].montant:0, valeur=saisieEnch[lot.cle]||min, jeMene=top&&top.qui===ME;
     const base = top ? top.montant : ENC.miseDepart(lot.m); const rapides=[min, Math.max(min, arrondiMise(base*1.10)), Math.max(min, arrondiMise(base*1.25))];
     const statut = !derniere ? '' : (jeMene ? '<span class="chip vert">🏆 Tu mènes · fonds bloqués</span>' : '<span class="chip" style="background:#FDE3DE;color:var(--brique2)">⚠️ Dépassé · fonds libérés</span>');
-    h+=`<div class="card lot r5" style="border:3px solid ${nat?'var(--piece)':'#BFD3F5'}">
-      <div class="tete" style="display:flex;gap:12px;align-items:center"><div class="ico-lieu ${nat?'r5':'r3'}">${lot.m.icone}</div><div style="flex:1;min-width:0">
-        <span class="tag ${nat?'monument':'r3'}" style="margin:0 0 4px">${nat?'👑 Légendaire national':'Monument régional'}</span>
+    h+=`<div class="card lot r6${nat?' nat':''}">
+      <div class="tete" style="display:flex;gap:12px;align-items:center"><div class="ico-lieu r6">${lot.m.icone}</div><div style="flex:1;min-width:0">
+        <span class="tag r6" style="margin:0 0 4px">${nat?'👑 Extraordinaire · national':'Extraordinaire · régional'}</span>
         <div class="t" style="line-height:1.15">${echapper(lot.m.nom)}</div><div class="m">${echapper(lot.m.ville)} · départ ${pcs(ENC.miseDepart(lot.m))}</div></div></div>
       <div class="flex" style="margin-top:12px;align-items:flex-end"><div><div class="m" style="margin:0">Meilleure mise</div><div class="mise">${top?nb(top.montant):'—'}${top?'<i class="pc"></i>':''}</div></div>
         <div style="text-align:right">${top?`<span class="own ${jeMene?'me':'other'}" onclick="showPlayer('${top.qui}')">${jeMene?'🎉 Toi':'👤 '+echapper(top.qui)}</span>`:'<span class="m">Aucune mise</span>'}</div></div>

@@ -18,7 +18,7 @@ Méthode (la même que le Projet Arena) : **tout le game design d'abord, puis le
 
 ## Phase 2 — Le compte et le patrimoine (2 soirées)
 - 2.1 Inscription obligatoire (e-mail + mot de passe, Google/Apple), puis pseudo (filtre de mots) et avatar.
-- 2.2 Patrimoine : cartes par rareté, valeur, revenu, récolte à la connexion (24 h max), construction instantanée (Maison / Immeuble / Tour / Prestige).
+- 2.2 Patrimoine : cartes par rareté, valeur, revenu, récolte à la connexion (24 h max), construction instantanée (Maison / Immeuble / Tour / Gratte-ciel / Prestige).
 - 2.3 Profil public d'un joueur, bouton Signaler (file de signalements pour Gautier).
 
 ## Phase 3 — Le pack du jour (2 soirées)

@@ -19,14 +19,20 @@
       return (table && table[communeDvf(lieu.citycode || lieu.insee)]) || 1;
     }
     function notoriete(lieu) { return lieu.notoriete || (lieu.type === 'monument' ? 'monument' : (lieu.type === 'lieu' ? 'connue' : 'commune')); }
+    // Plafond de construction : standing + bonus de notoriété, au plus la Tour ; un lieu célèbre (Légendaire) monte
+    // jusqu'au Gratte-ciel, un monument (Extraordinaire) jusqu'au Prestige : chaque rareté du haut a son bâtiment en plus.
     function plafond(lieu) {
       if (notoriete(lieu) === 'monument') return idx('prestige');
+      if (notoriete(lieu) === 'celebre') return idx('gratte_ciel');
       return Math.min(idx('tour'), standing(lieu) + eco.notoriete[notoriete(lieu)]);
     }
+    // Rareté (décision de Gautier, 3 nov. 2026) : 1 Commun, 2 Peu commun (vert), 3 Rare (bleu), 4 Épique (violet),
+    // 5 Légendaire (orange) = un lieu célèbre (Wikipédia), 6 Extraordinaire (arc-en-ciel) = un monument (enchères seulement).
     function rarete(lieu) {
-      const n = notoriete(lieu); if (n === 'monument') return 5;
+      const n = notoriete(lieu); if (n === 'monument') return 6;
+      if (n === 'celebre') return 5;
       const p = plafond(lieu); if (p >= idx('tour')) return 4;
-      if (n === 'connue' || n === 'celebre') return 3;
+      if (n === 'connue') return 3;
       return standing(lieu) >= 2 ? 2 : 1;
     }
     function valeurBase(lieu) { return eco.standing[String(standing(lieu))].base * eco.multiplicateur_valeur[notoriete(lieu)]; }

@@ -1,5 +1,6 @@
 // Le pack (GDD « Les packs ») : la rareté de chaque carte, tirée avec les chances de data/economie.json → pack.chances
-// (60 % Commun, 26 % Peu commun, 11 % Rare, 3 % Épique ; jamais de monument). Module pur : le hasard vient d'une graine.
+// (60 % Commun, 25 % Peu commun, 10 % Rare, 4 % Épique, 1 % Légendaire ; jamais de monument, qui est Extraordinaire).
+// Module pur : le hasard vient d'une graine.
 (function (racine) {
   // une graine (entier 32 bits) depuis un texte : « joueur:jour:numéro du pack »
   function graine(texte) {
@@ -20,7 +21,7 @@
     };
   }
 
-  // une rareté (1 à 4) selon les chances { "1": 60, "2": 26, ... }
+  // une rareté (1 à 5) selon les chances { "1": 60, "2": 25, ... }
   function rarete(chances, rng) {
     const cles = Object.keys(chances).map(Number).sort((a, b) => a - b);
     const total = cles.reduce((s, k) => s + chances[k], 0);
