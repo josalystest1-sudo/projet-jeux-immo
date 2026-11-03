@@ -495,10 +495,9 @@ function addrRow(a, withBuild){
       const an=document.createElement('button'); an.className='btn clair sm'; an.textContent='Annuler'; an.onclick=()=>annulerEchange(ech.id); zone.appendChild(an); }
     else { const b=document.createElement('button'); b.className='btn clair'; b.innerHTML='🔁 Proposer un échange'; b.onclick=()=>proposerEchange(a); zone.appendChild(b); }
     row.appendChild(zone); }
-  else { const b=document.createElement('button'); b.className='btn'; b.innerHTML=`Acheter · ${pcs(valeur(rec))}`; b.disabled = dispo() < valeur(rec); b.onclick = ()=>buy(a, valeur(rec)); actions.appendChild(b); row.appendChild(actions); }
+  // un lieu libre ne s'achète pas : il ne s'obtient que dans un pack (décision de Gautier, 3 nov.)
+  else { const t=document.createElement('div'); t.className='libre-info'; t.innerHTML='🎁 <span><b>Lieu libre</b> : il n’appartient à personne et ne s’achète pas. Il peut sortir dans un pack.</span>'; actions.appendChild(t); row.appendChild(actions); }
   return row; }
-function buy(a, price){ if(dispo() < price) return; encaisser(true); state.wallet -= price;
-  state.owned[a.id] = Object.assign({}, a, { niveau:0, depuis:now() }); save(); refreshTop(); if(a.idu) paintParcel(a.idu); setBadge(a,0); toast(`${a.label} est à toi !`); fete(); apresAction(); }
 function retirerVente(id){ const a=state.owned[id]; if(!a) return; a.enVente=false; save(); setBadge(a, a.niveau||0); toast('Retiré de la vente'); apresAction(); }
 // le prix demandé : celui que le joueur a fixé (sinon la valeur du lieu)
 function prixDemande(a){ const r=state.owned[a.id]; return r && r.enVente && r.prixVente ? r.prixVente : valeur(r||a); }

@@ -34,6 +34,8 @@
 
 - 3 nov. 2026 (matin, suite) : **échanger un lieu** (demande de Gautier) : sur le lieu d'un autre joueur, « Proposer un échange » (un de mes lieux, plus des pièces si je veux, la balance affichée, « Compenser » propose la différence) ; en attente dans la fiche et dans le patrimoine, annulable ; réponse des joueurs simulés en 45 s (acceptent à +10 %), les lieux changent de main, notification. `bilanEchange` dans le moteur (1 test). 37 tests.
 
+- 3 nov. 2026 : **un lieu libre ne s'achète plus** (décision de Gautier) : sa fiche dit qu'il peut sortir dans un pack ; on n'achète qu'à un joueur qui vend, ou par offre ou échange.
+
 ## En cours
 - Lieux célèbres : les autres catégories (châteaux, mairies, gares, musées, ponts, phares, moulins…) dès que Wikidata répond (`python3 tools/wikidata_celebres.py`, puis `--fusion` et `gen_donnees.py celebres`).
 - Phase 1.1 à 1.4 : la carte et le modèle des lieux reconstruits en modules (`src/`) à partir du prototype ; puis le marché (phase 4 : historique des ventes d'un lieu) et les communes et Maires (phase 6). Ensuite : Signaler envoyé au serveur dès qu'il y aura de vrais joueurs à l'écran ; Google ; un service d'envoi d'e-mails avant le lancement (le service de Supabase n'écrit qu'aux membres de l'équipe Supabase, deux e-mails par heure).
