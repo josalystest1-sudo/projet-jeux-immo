@@ -27,3 +27,16 @@ test('encaissement : salaire + loyers, plafonné à 24 h', () => {
   const lieux = [{ ...martyrs, niveau: 2 }];
   assert.equal(R.aEncaisser(lieux, 0, JOUR / 2, JOUR), Math.floor((200 + 120) / 2));
   assert.equal(R.aEncaisser(lieux, 0, 3 * JOUR, JOUR), 320, 'trois jours absent = un seul jour encaissé'); });
+
+test('vendre : le prix est libre, un entier de 1 à un milliard, espaces acceptés', () => {
+  assert.deepEqual(R.lirePrix('12500'), { ok: true, prix: 12500 }); assert.deepEqual(R.lirePrix('12 500'), { ok: true, prix: 12500 });
+  assert.deepEqual(R.lirePrix(' 3\u00a0200 '), { ok: true, prix: 3200 }); assert.equal(R.lirePrix('').raison, 'vide'); assert.equal(R.lirePrix('12,5').raison, 'vide');
+  assert.equal(R.lirePrix('-5').raison, 'vide'); assert.equal(R.lirePrix('0').raison, 'zero'); assert.equal(R.lirePrix('1000000001').raison, 'trop'); assert.equal(R.lirePrix(1000000000).prix, 1000000000); });
+test('adresse : numéro et voie (plaque de rue + plaque du numéro)', () => {
+  const { numeroEtVoie } = require('../src/regles/lieu.js');
+  assert.deepEqual(numeroEtVoie('67 Rue des Martyrs'), { numero: '67', voie: 'Rue des Martyrs' });
+  assert.deepEqual(numeroEtVoie('12 bis Avenue Trudaine'), { numero: '12 bis', voie: 'Avenue Trudaine' });
+  assert.deepEqual(numeroEtVoie('8B Rue Sainte-Catherine'), { numero: '8B', voie: 'Rue Sainte-Catherine' });
+  assert.deepEqual(numeroEtVoie('2 Petit Keriolas'), { numero: '2', voie: 'Petit Keriolas' });
+  assert.deepEqual(numeroEtVoie('Place du Marché'), { numero: '', voie: 'Place du Marché' });
+  assert.deepEqual(numeroEtVoie('3 Avenue de la Liberté'), { numero: '3', voie: 'Avenue de la Liberté' }); });

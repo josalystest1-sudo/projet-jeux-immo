@@ -41,10 +41,28 @@
       const dt = Math.max(0, Math.min(maintenantMs - depuisMs, plafondMs));
       return Math.floor((eco.salaire_par_jour + loyerTotal(lieux)) * dt / msParJour);
     }
+    // Vendre : le vendeur fixe son prix (prix libre, GDD § marché). Un nombre entier de pièces, de 1 à PRIX_MAX.
+    // Le texte tapé peut contenir des espaces (« 12 500 ») ; renvoie { ok, prix } ou { ok:false, raison:'vide'|'zero'|'trop' }.
+    function lirePrix(texte) {
+      const t = String(texte == null ? '' : texte).replace(/[\s\u00a0\u202f.]/g, '');
+      if (!/^\d+$/.test(t)) return { ok: false, raison: 'vide' };
+      const prix = parseInt(t, 10);
+      if (prix < 1) return { ok: false, raison: 'zero' };
+      if (prix > PRIX_MAX) return { ok: false, raison: 'trop' };
+      return { ok: true, prix };
+    }
     function nomRarete(r) { return eco.raretes[String(r)]; }
     function texteNiveau(n) { return NIVEAUX[n].nom; }
-    return { communeDvf, standing, notoriete, plafond, rarete, valeurBase, coutNiveau, peutConstruire, valeur, loyerParJour, loyerTotal, aEncaisser, nomRarete, texteNiveau, NIVEAUX, eco };
+    return { lirePrix, PRIX_MAX, numeroEtVoie, communeDvf, standing, notoriete, plafond, rarete, valeurBase, coutNiveau, peutConstruire, valeur, loyerParJour, loyerTotal, aEncaisser, nomRarete, texteNiveau, NIVEAUX, eco };
   }
-  const api = { creer };
+  const PRIX_MAX = 1000000000;
+  // « 67 Rue des Martyrs » → { numero:'67', voie:'Rue des Martyrs' } ; « 12 bis Rue X » → '12 bis' ; sans numéro → numero ''.
+  function numeroEtVoie(label) {
+    const t = String(label || '').trim();
+    const m = t.match(/^(\d+)\s*(bis|ter|quater|[A-Za-z](?![A-Za-z]))?\s+(\S.*)$/i);
+    if (!m) return { numero: '', voie: t };
+    return { numero: m[1] + (m[2] ? (m[2].length > 1 ? ' ' + m[2].toLowerCase() : m[2].toUpperCase()) : ''), voie: m[3] };
+  }
+  const api = { creer, numeroEtVoie, PRIX_MAX };
   if (typeof module !== 'undefined' && module.exports) module.exports = api; else racine.Regles = api;
 })(typeof globalThis !== 'undefined' ? globalThis : this);

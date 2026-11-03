@@ -44,7 +44,9 @@ const ETAT = () => { const t = Date.now(), j = Math.floor(t / 60000); return {
   page.on('pageerror', (e) => { if (!/localStorage/.test(e.message)) console.log('erreur page :', e.message); });
   await page.addInitScript((etat) => { try { if (!sessionStorage.getItem('fait')) { localStorage.setItem('proto-cadastre-v3', JSON.stringify(etat)); sessionStorage.setItem('fait', '1'); } } catch (e) {} }, ETAT());
   await page.goto('http://jeu.local/');
-  await page.waitForTimeout(4500);
+  await page.waitForTimeout(150);
+  if (!SEULS.length || SEULS.includes('00-accueil')) { await page.waitForTimeout(500); await page.screenshot({ path: path.join(SORTIE, '00-accueil.png') }); console.log('capture 00-accueil'); }
+  await page.waitForTimeout(3800);
   const fermer = () => page.evaluate(() => { try { closeModal(); } catch (e) {} try { closeSheet(); } catch (e) {} });
   const shot = async (nom) => { if (SEULS.length && !SEULS.includes(nom)) return; await page.waitForTimeout(700); await page.screenshot({ path: path.join(SORTIE, nom + '.png') }); console.log('capture', nom); };
   const ecran = async (nom, fn) => { if (SEULS.length && !SEULS.includes(nom)) return; try { await fn(); await shot(nom); } catch (e) { console.log('échec', nom, e.message.split('\n')[0]); } };
@@ -72,6 +74,8 @@ const ETAT = () => { const t = Date.now(), j = Math.floor(t / 60000); return {
   await ecran('14-reglages', async () => { await page.evaluate(() => ouvrirReglages()); });
   await fermer();
   await ecran('15-detail', async () => { await page.evaluate(() => { showScreen('patrimoine'); ouvrirFicheLieu('a-martyrs'); }); });
+  await fermer();
+  await ecran('21-vente', async () => { await page.evaluate(() => { showScreen('patrimoine'); ouvrirFicheLieu('a-martyrs'); mettreEnVente('a-martyrs'); const i = document.getElementById('prix-vente'); i.value = '24 500'; i.dispatchEvent(new Event('input')); }); });
   await fermer();
   await page.evaluate(() => showScreen('carte'));
   await ecran('16-autre', async () => { await page.evaluate(() => { let id = ''; for (let k = 0; k < 500; k++) { if (fakeOwner('essai-' + k) && !(hash('essai-' + k + 'v') % 100 < 25)) { id = 'essai-' + k; break; } }

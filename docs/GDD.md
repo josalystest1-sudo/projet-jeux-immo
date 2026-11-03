@@ -49,7 +49,7 @@ Chaque lieu porte :
 
 ### Le marché entre joueurs **[Décidé]**
 - Pas de vente à la banque : un lieu ne se vend qu'à un joueur.
-- Un propriétaire peut **mettre en vente** à un prix libre : le lieu porte un badge 💰 sur la carte, n'importe qui l'achète au prix affiché.
+- Un propriétaire peut **mettre en vente** à un prix libre : le lieu porte un badge 💰 sur la carte, n'importe qui l'achète au prix affiché. Mise en œuvre (3 nov. 2026, demande de Gautier : « on doit pouvoir mettre le montant qu'on veut ») : le vendeur tape son prix (un entier de 1 à un milliard de pièces, raccourcis « la valeur », +10 %, +25 %, +50 %, × 2, l'écart à la valeur affiché), peut le changer ou retirer le lieu de la vente. Les achats par les autres joueurs viendront avec le serveur. **[Décidé par Gautier]**
 - N'importe qui peut **faire une offre** sur n'importe quel lieu, même pas en vente. Une offre n'expire jamais ; elle peut être modifiée ou annulée à tout moment ; le propriétaire accepte ou refuse. Les fonds sont vérifiés à l'acceptation.
 - Aucune taxe, aucun délai de blocage. **[Décidé]**
 

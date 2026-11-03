@@ -27,7 +27,8 @@
 <script src="https://unpkg.com/@supabase/supabase-js@2.118.0/dist/umd/supabase.js"></script>
 <link rel="preload" href="fonts/baloo-2-latin-800-normal.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="fonts/nunito-latin-800-normal.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="style.css?v=20261103a">
+<link rel="preload" href="fonts/barlow-condensed-latin-700-normal.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="style.css?v=20261103b">
 <meta name="theme-color" content="#EAF2FF">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" type="image/png" href="icones/icone-192.png">
@@ -416,6 +417,12 @@ function renderAddrs(){ const {p, idu, geometry} = currentParcel; const addrs = 
 // ---- un lieu : icône, nom, rareté, chiffres, échelle de construction, actions (fiche de parcelle et détail d'une carte)
 const ICONES_CAT = { eglise:'⛪', chapelle:'⛪', cathedrale:'⛪', abbaye:'⛪', monastere:'⛪', prieure:'⛪', basilique:'⛪', temple:'⛪', synagogue:'🕍', mairie:'🏛️', gare:'🚉', musee:'🖼️', chateau:'🏰', chateau_fort:'🏰', fort:'🏯', manoir:'🏡', phare:'🗼', tour:'🗼', pont:'🌉', moulin_vent:'🌾', moulin_eau:'🌾', theatre:'🎭', fontaine:'⛲', stade:'🏟️', porte:'🚪' };
 function iconeLieu(a){ if(a.type==='monument') return iconeMonument(a.label||''); if(a.type==='lieu') return ICONES_CAT[a.cat] || (a.qid?'⭐':'📌'); const lv=a.niveau||levelOf(a)||0; return lv ? NIVEAUX[lv].icone : '📍'; }
+// Une adresse se montre comme dans la rue : la plaque émaillée de la voie (la commune en tête), vissée sur un pan de façade,
+// et la petite plaque bleue du numéro en dessous (demande de Gautier : plutôt qu'une épingle rouge).
+function estAdresse(a){ return a.type!=='lieu' && a.type!=='monument'; }
+function facadeHTML(a){ const { numero, voie } = Regles.numeroEtVoie(a.label); const n=voie.length;
+  return `<div class="facade${n>26?' xl':(n>16?' l':'')}"><div class="plaque"><small>${echapper(communeName(a.citycode,a.city))}</small>${echapper(voie)}</div>${numero?`<span class="numero">${echapper(numero)}</span>`:''}</div>`; }
+function icoLieuHTML(a){ if(!estAdresse(a)) return iconeLieu(a); const { numero } = Regles.numeroEtVoie(a.label); return numero ? `<span class="numero">${echapper(numero.split(' ')[0])}</span>` : '<span class="mini-plaque"></span>'; }
 function echapper(t){ return String(t==null?'':t).replace(/[&<>"]/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
 // après une action sur un lieu : tout ce qui l'affiche se redessine
 function apresAction(){ if(currentParcel) renderAddrs(); if(document.getElementById('s-patrimoine').classList.contains('on')) renderPatrimoine(); if(ficheOuverte) ouvrirFicheLieu(ficheOuverte); }
@@ -432,7 +439,7 @@ function addrRow(a, withBuild){
   const vente = enVente(a), moi = o===ME;
   const row = document.createElement('div'); row.className='addr r'+r;
   const proprio = moi ? `<span class="own me">À moi</span>` : (o ? `<span class="own other" data-joueur="${echapper(o)}">👤 ${echapper(o)}</span>` : `<span class="own libre">Libre</span>`);
-  row.innerHTML = `<div class="tete"><div class="ico-lieu r${r}">${iconeLieu(rec)}</div><div class="corps">
+  row.innerHTML = `<div class="tete"><div class="ico-lieu r${r}">${icoLieuHTML(rec)}</div><div class="corps">
       <div class="n">${echapper(a.label)}</div><div class="m">${echapper(communeName(a.citycode,a.city))}</div>
       <div class="lignes"><span class="tag r${r}">${RARETES[r]}</span>${a.qid?`<a class="tag bleu-lien" target="_blank" rel="noopener" href="https://www.wikidata.org/wiki/Special:GoToLinkedPage/frwiki/${a.qid}">📖 Wikipédia</a>`:''}${vente?'<span class="tag" style="background:#DDF3E6;color:var(--cadre2)">💰 En vente</span>':''}${proprio}</div>
     </div></div>
@@ -445,9 +452,11 @@ function addrRow(a, withBuild){
       if(peut){ const cost=coutNiveau(rec,suiv); const b=document.createElement('button'); b.className='btn'; b.innerHTML=`${NIVEAUX[suiv].icone} Construire · ${pcs(cost)}`; b.disabled=dispo()<cost; b.onclick=()=>construire(a.id, suiv, cost); actions.appendChild(b);
         row.querySelectorAll('[data-construire]').forEach(p=>p.onclick=()=>{ if(dispo()>=cost) construire(a.id, suiv, cost); else toast(`Il te manque ${fmt(cost-dispo())} pour construire`); }); }
       else { const t=document.createElement('div'); t.className='chip vert'; t.textContent = lv>=pl ? '✓ Construit jusqu’au plafond' : ''; if(t.textContent) actions.appendChild(t); }
-      const sell=document.createElement('button'); sell.className='btn clair'; sell.textContent = rec.enVente ? 'Retirer de la vente' : '💰 Mettre en vente';
-      sell.onclick=()=>{ state.owned[a.id].enVente=!state.owned[a.id].enVente; save(); setBadge(state.owned[a.id], lv); toast(state.owned[a.id].enVente?`${a.label} en vente à ${fmt(valeur(rec))}`:'Retiré de la vente'); apresAction(); };
-      actions.appendChild(sell); row.appendChild(actions); } }
+      if(rec.enVente){ const t=document.createElement('div'); t.className='chip vert'; t.innerHTML=`💰 En vente à <b>${nb(prixDemande(rec))}</b><i class="pc"></i>`; actions.appendChild(t);
+        const ch=document.createElement('button'); ch.className='btn clair'; ch.textContent='✏️ Changer le prix'; ch.onclick=()=>mettreEnVente(a.id); actions.appendChild(ch);
+        const re=document.createElement('button'); re.className='btn clair'; re.textContent='Retirer de la vente'; re.onclick=()=>retirerVente(a.id); actions.appendChild(re); }
+      else { const sell=document.createElement('button'); sell.className='btn clair'; sell.textContent='💰 Mettre en vente'; sell.onclick=()=>mettreEnVente(a.id); actions.appendChild(sell); }
+      row.appendChild(actions); } }
   else if(o){ const existing = state.offersOut.find(x=>x.addrId===a.id && x.status==='attente');
     if(vente){ const b=document.createElement('button'); b.className='btn'; b.innerHTML=`Acheter · ${pcs(valeur(rec))}`; b.disabled=dispo()<valeur(rec);
       b.onclick=()=>{ encaisser(true); state.wallet-=valeur(rec); state.owned[a.id]=Object.assign({}, a, {niveau:lv, depuis:now()}); state.seen[a.id]='libre'; save(); refreshTop(); setBadge(a,lv); if(a.idu) paintParcel(a.idu); toast(`${a.label} achetée à ${o} !`); fete(); apresAction(); };
@@ -463,6 +472,31 @@ function addrRow(a, withBuild){
 function buy(a, price){ if(dispo() < price) return; encaisser(true); state.wallet -= price;
   state.owned[a.id] = Object.assign({}, a, { niveau:0, depuis:now() }); save(); refreshTop(); if(a.idu) paintParcel(a.idu); setBadge(a,0); toast(`${a.label} est à toi !`); fete(); apresAction(); }
 function retirerVente(id){ const a=state.owned[id]; if(!a) return; a.enVente=false; save(); setBadge(a, a.niveau||0); toast('Retiré de la vente'); apresAction(); }
+// le prix demandé : celui que le joueur a fixé (sinon la valeur du lieu)
+function prixDemande(a){ const r=state.owned[a.id]; return r && r.enVente && r.prixVente ? r.prixVente : valeur(r||a); }
+// Mettre en vente (ou changer le prix) : le joueur tape le montant qu'il veut ; des raccourcis autour de la valeur.
+function mettreEnVente(id){ const a=state.owned[id]; if(!a) return; const retour=ficheOuverte; const v=valeur(a);
+  const box=document.getElementById('modalbox');
+  box.innerHTML=`<h2>💰 ${a.enVente?'Changer le prix':'Mettre en vente'}</h2><div class="sub">${echapper(a.label)} · ${echapper(communeName(a.citycode,a.city))}</div>
+    <div class="vente-valeur"><span>Valeur du lieu</span><b>${pcs(v)}</b></div>
+    <label class="champ-prix"><span>Ton prix</span><input class="num" id="prix-vente" type="text" inputmode="numeric" autocomplete="off" maxlength="13" value="${nb(a.enVente&&a.prixVente?a.prixVente:v)}"><i class="pc"></i></label>
+    <div class="chips" id="prix-vite"></div><div class="prix-note" id="prix-note"></div>
+    <div class="liste-btn"><button class="btn large" id="prix-ok"></button><button class="btn clair large" id="prix-non">Annuler</button></div>`;
+  document.getElementById('modal').classList.add('on');
+  const inp=box.querySelector('#prix-vente'), note=box.querySelector('#prix-note'), ok=box.querySelector('#prix-ok');
+  const maj=()=>{ const r=R.lirePrix(inp.value); ok.disabled=!r.ok;
+    if(!r.ok){ note.className='prix-note err'; note.textContent = r.raison==='trop' ? 'Un milliard de pièces au plus.' : (r.raison==='zero' ? 'Au moins une pièce.' : 'Tape un nombre entier de pièces.'); ok.textContent='Mettre en vente'; return; }
+    const e=Math.round((r.prix/v-1)*100); note.className='prix-note'+(e<0?' bas':'');
+    note.textContent = e===0 ? 'Pile sa valeur.' : (e>0 ? `${e} % au-dessus de sa valeur : les acheteurs feront peut-être des offres plus basses.` : `${-e} % sous sa valeur : tu vends moins cher qu’il ne vaut.`);
+    ok.innerHTML=`${a.enVente?'Vendre':'Mettre en vente'} à ${pcs(r.prix)}`; };
+  const vite=box.querySelector('#prix-vite');
+  [['La valeur',v],['+10 %',v*1.1],['+25 %',v*1.25],['+50 %',v*1.5],['× 2',v*2]].forEach(([t,x])=>{ const c=document.createElement('button'); c.className='chip'; c.innerHTML=`${t} <b>${nb(arrondiMise(x))}</b>`; c.onclick=()=>{ inp.value=nb(arrondiMise(x)); maj(); vibrer(8); }; vite.appendChild(c); });
+  inp.addEventListener('input', maj); inp.addEventListener('focus', ()=>inp.select()); inp.addEventListener('keydown', e=>{ if(e.key==='Enter') ok.click(); });
+  const fermer=()=>{ if(retour) ouvrirFicheLieu(retour); else closeModal(); };
+  box.querySelector('#prix-non').onclick=fermer;
+  ok.onclick=()=>{ const r=R.lirePrix(inp.value); if(!r.ok) return; const deja=a.enVente; a.enVente=true; a.prixVente=r.prix; save(); setBadge(a, a.niveau||0);
+    toast(deja ? `Nouveau prix : ${fmt(r.prix)}` : `${a.label} en vente à ${fmt(r.prix)}`); vibrer(12); fermer(); apresAction(); };
+  maj(); }
 function construire(id, niveau, cost){ const a=state.owned[id]; if(!a || dispo()<cost) return; encaisser(true); state.wallet -= cost; a.niveau = niveau; save(); refreshTop();
   if(a.idu) paintParcel(a.idu); setBadge(a, niveau); toast(`${NIVEAUX[niveau].icone} ${NIVEAUX[niveau].nom} construit${niveau===1?'e':''} : ${a.label}`); fete(); apresAction(); }
 // la fiche se ferme en la faisant glisser vers le bas (quand elle est tout en haut de son défilement)
@@ -692,7 +726,7 @@ function dechirer(){ packTorn=true; GL.torn=true; GL.tornAt=performance.now(); s
   setTimeout(()=>{ sortirCartes(); }, 650); setTimeout(()=>{ document.getElementById('pkgl').style.display='none'; disposeGL(); }, 1800); }
 function sortirCartes(){ const wrap=document.getElementById('pkcards'); const sc=document.getElementById('packscene'); const n=packCards.length; let revealed=0;
   packCards.forEach((c,i)=>{ const el=document.createElement('div'); const r=rarete(c); el.className='rcard r'+r;
-    el.innerHTML=`<div class="face back">🎁</div><div class="face front"><div class="rar">${RARETES[r]}</div><div class="big">${iconeLieu(c)}</div><div class="n">${echapper(c.label)}</div><div class="m">${echapper(communeName(c.citycode,c.city))}</div><div class="chips" style="justify-content:center;margin:6px 0 0"><span class="chip or"><b>${nb(valeur(c))}</b><i class="pc"></i></span><span class="chip">Jusqu’à ${NIVEAUX[plafond(c)].icone} ${NIVEAUX[plafond(c)].nom}</span></div></div>`;
+    el.innerHTML=`<div class="face back">🎁</div><div class="face front"><div class="rar">${RARETES[r]}</div>${estAdresse(c) ? facadeHTML(c) : `<div class="big">${iconeLieu(c)}</div><div class="n">${echapper(c.label)}</div><div class="m">${echapper(communeName(c.citycode,c.city))}</div>`}<div class="chips" style="justify-content:center;margin:6px 0 0"><span class="chip or"><b>${nb(valeur(c))}</b><i class="pc"></i></span><span class="chip">Jusqu’à ${NIVEAUX[plafond(c)].icone} ${NIVEAUX[plafond(c)].nom}</span></div></div>`;
     el.style.setProperty('--x','0px'); el.style.setProperty('--y','0px'); el.style.setProperty('--r','0deg'); el.style.setProperty('--s','1');
     wrap.appendChild(el);
     setTimeout(()=>{ el.classList.add('in','pos'); }, 120+i*140);
@@ -801,7 +835,7 @@ function renderPatrimoine(){ const el=document.getElementById('s-patrimoine'); c
   const offres=state.offersIn.filter(o=>o.status==='attente');
   if(offres.length) h+=`<div class="card flex"><div><div class="t">📨 ${offres.length} offre${offres.length>1?'s':''} pour tes lieux</div><div class="m">Accepte ou refuse dans tes notifications.</div></div><button class="btn bleu sm" onclick="showScreen('notifs')">Voir</button></div>`;
   const ventes=tous.filter(a=>a.enVente);
-  if(ventes.length) h+=`<div class="card"><div class="t">💰 En vente (${ventes.length})</div>${ventes.map(a=>`<div class="rank"><span class="who" onclick="ouvrirFicheLieu('${a.id}')">${echapper(a.label)}</span><b>${nb(valeur(a))}<i class="pc"></i></b><button class="btn sm" onclick="retirerVente('${a.id}')">Retirer</button></div>`).join('')}</div>`;
+  if(ventes.length) h+=`<div class="card"><div class="t">💰 En vente (${ventes.length})</div>${ventes.map(a=>`<div class="rank"><span class="who" onclick="ouvrirFicheLieu('${a.id}')">${echapper(a.label)}</span><button class="prix-vente" onclick="mettreEnVente('${a.id}')" aria-label="Changer le prix">${nb(prixDemande(a))}<i class="pc"></i> ✏️</button><button class="btn sm" onclick="retirerVente('${a.id}')">Retirer</button></div>`).join('')}</div>`;
   if(!tous.length){ h+=`<div class="card vide"><div class="ico">🎁</div><div class="t">Ta collection est vide</div><div class="m">Ton pack du jour contient 5 lieux de toute la France.</div>${packDispo()?`<button class="btn large" onclick="ouvrirPack()">Ouvrir mon pack</button>`:`<button class="btn bleu large" onclick="showScreen('carte')">Explorer la carte</button>`}</div>`; el.innerHTML=h; return; }
   const counts={}; tous.forEach(a=>{ counts[rarete(a)]=(counts[rarete(a)]||0)+1; });
   h+=`<h2 class="section flex">Ma collection <button class="btn clair sm" onclick="changerTri()">↕︎ ${TRIS[triPatri][0]}</button></h2><div class="filtres"><button class="filtre${filtrePatri?'':' on'}" onclick="filtrerPatri(0)">Toutes <b>${tous.length}</b></button>${[5,4,3,2,1].map(r=>`<button class="filtre r${r}${filtrePatri===r?' on':''}" onclick="filtrerPatri(${r})"><i class="dot"></i>${RARETES[r]} <b>${counts[r]||0}</b></button>`).join('')}</div>`;
@@ -809,7 +843,7 @@ function renderPatrimoine(){ const el=document.getElementById('s-patrimoine'); c
   h+=`<div class="collection">`;
   list.sort(TRIS[triPatri][1]).forEach(a=>{ const lv=a.niveau||0, r=rarete(a);
     h+=`<div class="ccarte r${r}" role="button" onclick="ouvrirFicheLieu('${a.id}')"><span class="rar">${RARETES[r]}</span>${lv?`<span class="niv">${NIVEAUX[lv].icone}</span>`:''}${a.enVente?'<span class="vente">En vente</span>':''}
-      <div class="big">${iconeLieu(a)}</div><div class="n">${echapper(a.label)}</div><div class="m">${echapper(communeName(a.citycode,a.city))}</div>
+      ${estAdresse(a) ? facadeHTML(a) : `<div class="big">${iconeLieu(a)}</div><div class="n">${echapper(a.label)}</div><div class="m">${echapper(communeName(a.citycode,a.city))}</div>`}
       <div class="pied"><span>${nb(valeur(a))}<i class="pc"></i></span><span class="loyer">+${nb(loyer(a))}/j</span></div></div>`; });
   h+=`</div>`; el.innerHTML=h; }
 // le détail d'une carte : le lieu complet et ses actions
@@ -990,6 +1024,6 @@ function recolteConnexion(ensuite){ const p=Math.floor(pendingRent()); if(p<1) r
 function demarrageLocal(){ if(!state.pseudo) setTimeout(creationProfil, 600); else setTimeout(()=>recolteConnexion(packAuDemarrage), 500); }
 refreshTop(); tickAuction();
 </script>
-<script src="src/compte.js?v=20261103a"></script>
+<script src="src/compte.js?v=20261103b"></script>
 </body>
 </html>
