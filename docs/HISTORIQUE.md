@@ -76,6 +76,7 @@ Rien d'important ne vit dans une conversation : tout est dans le dépôt ou sur 
 - **Les graphismes avant 8.2** (décision de Gautier) : rendu « jeu mobile coloré », on commence par le pack et les cartes, avec des outils gratuits. La bible graphique et la preuve (PR #42) : nouvelles cartes par rareté, nouveau dos, nouvelle pochette.
 - **La preuve validée** par Gautier (« Oui, on continue »). Puis **l'ouverture du pack** (PR #43) : la déchirure qui suit le doigt, les cartes qui glissent hors du pack, de nouveaux sons ; la pochette ne devient plus toute blanche quand elle penche.
 - **L'ouverture validée** par Gautier. Puis **la tour Eiffel en 3D** sur la carte (PR #44), la preuve des monuments : une maquette de dessin animé à sa vraie place et à sa vraie taille.
+- **La tour validée** par Gautier, puis **Notre-Dame, l'Arc de triomphe et le Sacré-Cœur** en 3D (PR #45). Retour de Gautier pendant le travail : « de près, le bâtiment devient moche et perd ses couleurs » ; corrigé pour tous les monuments (dessin des faces, contour, lumière, bâtiments de l'IGN qui perçaient Notre-Dame).
 
 ## Toutes les PR
 
@@ -146,6 +147,7 @@ Puis une PR par étape, fusionnée en squash :
 | #42 | 03/11 22:57 | Graphismes, la preuve : bible graphique, cartes par rareté, dos des cartes, pochette du pack |
 | #43 | 03/11 23:11 | Graphismes : l’ouverture du pack (déchirure au doigt, cartes qui sortent, sons) |
 | #44 | 03/11 23:29 | Graphismes : la tour Eiffel en 3D sur la carte |
+| #45 | 03/11 23:48 | Graphismes : Notre-Dame, l’Arc de triomphe et le Sacré-Cœur en 3D ; les monuments restent beaux de près |
 
 ## Les décisions de Gautier
 
