@@ -486,6 +486,8 @@ button.chip:active{transform:scale(.96)}
 .ech-lieu.on{border-color:var(--plaque);background:var(--plaque-clair);box-shadow:0 3px 0 var(--plaque)}
 .ech-lieu:disabled{opacity:.45;cursor:default}
 .ech-ajout span{line-height:1.1}.ech-ajout small{font-weight:700;color:var(--gris);font-size:11px}
+.ech-recu{margin-top:8px}.ech-recu .ech-vise{width:100%;border:0;font:inherit;color:inherit;cursor:pointer;margin:0 0 6px;text-align:left}.ech-recu div.ech-vise{cursor:default}
+.ico-lieu.pieces{--rc:var(--piece);--rc2:var(--piece2)}
 .ech-ajout input{font-size:24px}
 #ech-vite{margin:8px 0 0}#ech-vite .chip{border:0;cursor:pointer}
 .ech-balance{font-size:13px;font-weight:800;color:var(--cadre2);margin:10px 2px 6px;line-height:1.45;min-height:20px}

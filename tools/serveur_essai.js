@@ -112,6 +112,29 @@ async function nouveauJoueur(publique, secrete) {
         verifier(tropCher.corps && tropCher.corps.ok === false && tropCher.corps.code === 'fonds', 'une offre plus chère que ses pièces : refusée', tropCher);
         const o3 = await B.jeu({ action: 'offrir', id: N.id, prix: 20 }), annul = await B.jeu({ action: 'annuler_offre', offre: o3.corps.offre });
         verifier(annul.corps && annul.corps.ok && annul.corps.etat.offresEnvoyees.some((o) => o.id === o3.corps.offre && o.status === 'annulee'), 'annuler son offre', annul);
+        // les échanges (8.1f) : mon lieu N (+ 10 pièces) contre L, qui est maintenant à B
+        const ech1 = await jeu({ action: 'echanger', id: L.id, donnes: [N.id], ajout: 10 });
+        verifier(ech1.corps && ech1.corps.ok && ech1.corps.echange && ech1.corps.etat.echangesEnvoyes.some((x) => x.id === ech1.corps.echange && x.status === 'attente'), 'proposer un échange : mon lieu et 10 pièces contre le sien', ech1);
+        const ech2 = await jeu({ action: 'echanger', id: M.id, donnes: [N.id] });
+        verifier(ech2.corps && ech2.corps.ok === false && ech2.corps.code === 'deja_propose', 'proposer le même lieu dans un deuxième échange : refusé', ech2);
+        const ech3 = await jeu({ action: 'echanger', id: M.id, donnes: [L.id] });
+        verifier(ech3.corps && ech3.corps.ok === false && ech3.corps.code === 'pas_a_toi', 'donner un lieu qui n’est pas à moi : refusé', ech3);
+        const recuB = await B.jeu({ action: 'etat' }), xB = recuB.corps && recuB.corps.echangesRecus && recuB.corps.echangesRecus.find((x) => x.id === ech1.corps.echange);
+        verifier(xB && xB.status === 'attente' && xB.ajout === 10 && xB.lieux.some((l) => l.id === N.id) && recuB.corps.notifs.some((n) => n.echangeId === ech1.corps.echange), 'l’autre joueur reçoit l’échange (mon lieu, les pièces, une notification)', recuB.corps);
+        const refusE = await B.jeu({ action: 'repondre_echange', echange: ech1.corps.echange, accepter: false });
+        verifier(refusE.corps && refusE.corps.ok && refusE.corps.accepte === false, 'il refuse l’échange', refusE);
+        const ech4 = await jeu({ action: 'echanger', id: L.id, donnes: [N.id], ajout: 10 });
+        const annE = await jeu({ action: 'annuler_echange', echange: ech4.corps && ech4.corps.echange });
+        verifier(annE.corps && annE.corps.ok && annE.corps.etat.echangesEnvoyes.some((x) => x.id === ech4.corps.echange && x.status === 'annulee'), 'annuler sa proposition d’échange', annE);
+        const ech5 = await jeu({ action: 'echanger', id: L.id, donnes: [N.id], ajout: 10 });
+        const avantE = ech5.corps && ech5.corps.etat ? ech5.corps.etat.pieces : 0;
+        const accE = await B.jeu({ action: 'repondre_echange', echange: ech5.corps && ech5.corps.echange, accepter: true });
+        verifier(accE.corps && accE.corps.ok && accE.corps.accepte && accE.corps.etat.lieux.some((l) => l.id === N.id) && !accE.corps.etat.lieux.some((l) => l.id === L.id), 'il accepte : mon lieu est à lui, le sien part', accE);
+        const etatE = await jeu({ action: 'etat' });
+        verifier(etatE.corps.ok && etatE.corps.lieux.some((l) => l.id === L.id) && !etatE.corps.lieux.some((l) => l.id === N.id) && etatE.corps.notifs.some((n) => n.type === 'echange' && /accepté/.test(n.text)), 'son lieu est à moi, et j’en suis prévenu', etatE.corps.notifs);
+        verifier(etatE.corps.pieces <= avantE - 10 + MARGE, 'les 10 pièces sont passées', { avant: avantE, apres: etatE.corps.pieces });
+        const deuxFois = await B.jeu({ action: 'repondre_echange', echange: ech5.corps && ech5.corps.echange, accepter: true });
+        verifier(deuxFois.corps && deuxFois.corps.ok === false && deuxFois.corps.code === 'echange', 'accepter deux fois : refusé', deuxFois);
         const relire = await jeu({ action: 'notifs_lues' });
         verifier(relire.corps && relire.corps.ok && relire.corps.etat.notifs.every((n) => n.read), 'marquer les notifications lues', relire.corps.etat && relire.corps.etat.notifs);
       } finally { await B.supprimer(); }
@@ -126,6 +149,8 @@ async function nouveauJoueur(publique, secrete) {
     verifier(tricher.statut >= 400 || (Array.isArray(tricher.corps) && tricher.corps.length === 0), 'me donner des pièces directement : refusé', tricher.statut);
     const voler = await requete(`${URL}/rest/v1/lieux`, { method: 'POST', headers: { apikey: publique, Authorization: `Bearer ${acces}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ id: 'essai', proprietaire: id, type: 'adresse', label: 'x', lon: 0, lat: 0 }) });
     verifier(voler.statut >= 400, 'me donner un lieu directement : refusé', voler.statut);
+    const echVol = await requete(`${URL}/rest/v1/echanges`, { method: 'POST', headers: { apikey: publique, Authorization: `Bearer ${acces}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ lieu: 'essai', proposeur: id, destinataire: id, donnes: ['essai'] }) });
+    verifier(echVol.statut >= 400, 'écrire un échange directement : refusé', echVol.statut);
     const rpc = await requete(`${URL}/rest/v1/rpc/jeu_recolter`, { method: 'POST', headers: { apikey: publique, Authorization: `Bearer ${acces}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ j: id, montant: 1000000, avant: new Date().toISOString(), maintenant: new Date().toISOString() }) });
     verifier(rpc.statut >= 400, 'appeler une fonction du serveur directement : refusé', rpc.statut);
     const tous = await requete(`${URL}/rest/v1/lieux?select=id&limit=1`, { headers: { apikey: publique } });

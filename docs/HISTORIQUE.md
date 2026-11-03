@@ -70,6 +70,7 @@ Rien d'important ne vit dans une conversation : tout est dans le dépôt ou sur 
 
 ### 3 novembre 2026, soir : la reprise dans Claude Code
 - Gautier clone le dépôt sur son PC (dossier `Documents/jeu immo`) et lance la reprise. Les outils sont là ; un test échouait seulement sous Windows (PR #38). Choix de Gautier : ce correctif, puis les échanges sur le serveur (8.1f).
+- **Les échanges sur le serveur (8.1f)** (PR #39) : proposer ses lieux (plus des pièces) à un vrai joueur ou à un robot, recevoir un échange dans ses notifications avec la valeur de chaque côté, accepter ou refuser. Les robots répondent et proposent parfois des échanges, pour pouvoir essayer seul.
 
 ## Toutes les PR
 
@@ -134,6 +135,7 @@ Puis une PR par étape, fusionnée en squash :
 | #36 | 03/11 18:19 | Promenade : on peut toujours tourner dans Street View (le geste ne part plus dans la page Google) |
 | #37 | 03/11 20:51 | Notes : une phrase de CLAUDE.md corrigée, heures des PR |
 | #38 | 03/11 21:30 | Reprise dans Claude Code : le test du serveur passe aussi sous Windows |
+| #39 | 03/11 21:39 | Serveur 8.1f : les échanges entre joueurs |
 
 ## Les décisions de Gautier
 
@@ -160,7 +162,6 @@ Les décisions du 2 novembre (interview) sont dans `CLAUDE.md` § 4 et dans le G
 ## Ce qui reste à faire (au 3 novembre au soir)
 
 - **Le serveur, suite** (phase 8) :
-  - 8.1f : les échanges sur le serveur ;
   - 8.1g : les enchères sur le serveur ;
   - 8.2 : le mode serveur par défaut, la fin des joueurs simulés, l'inscription des amis. Question posée à Gautier, sans réponse : couper la confirmation par e-mail pendant les essais ?
   - 8.3 : l'anti-triche.
