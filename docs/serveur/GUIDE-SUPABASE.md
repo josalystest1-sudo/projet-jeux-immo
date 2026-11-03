@@ -25,7 +25,7 @@ Ton organisation gratuite a droit à **deux projets actifs** : « Agent de synth
 
 ## Étape 2 — les tables
 
-Dans **SQL Editor** → **New query**, tu colles le texte que je t'envoie (`docs/serveur/supabase.sql`) puis **Run** : « Success » doit s'afficher. Il crée les tables du jeu et leurs règles de sécurité (un joueur ne modifie que ce qui est à lui).
+Fait une première fois à la main (SQL Editor). Depuis le 3 nov. 2026, les tables sont dans `supabase/sql/` et la publication les envoie toute seule au serveur (voir `GUIDE-SERVEUR.md`).
 
 ## Avant le lancement public (plus tard)
 

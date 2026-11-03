@@ -1,0 +1,6 @@
+# Le projet Supabase « cadastra » (organisation Josalys). Seule la fonction « jeu » est mise en ligne d'ici
+# (.github/workflows/serveur.yml) ; elle vérifie elle-même le joueur connecté.
+project_id = "hxtyecwofajiozmnfyxt"
+
+[functions.jeu]
+verify_jwt = false
