@@ -1,4 +1,4 @@
-// Visite de tous les écrans du jeu (téléphone 390 × 844), avec un joueur fictif bien rempli. Mode local (serveur coupé).
+// Visite de tous les écrans du jeu (téléphone 390 × 844 ; autre taille : LARGEUR=360 HAUTEUR=780), avec un joueur fictif bien rempli. Mode local (serveur coupé).
 //   node tools/visite_ecrans.js <racine du jeu> <dossier des captures> [écrans séparés par des virgules]
 //   puis : python3 tools/planche.py <dossier des captures> <préfixe des planches>   (8 captures par planche)
 // Prérequis (une fois) : npm i -g playwright ; npm i --prefix /tmp/ml maplibre-gl@4.7.1 three@0.147.0 @supabase/supabase-js@2.118.0
@@ -34,7 +34,7 @@ const ETAT = () => { const t = Date.now(), j = Math.floor(t / 60000); return {
 (async () => {
   const proxy = process.env.HTTPS_PROXY ? { server: process.env.HTTPS_PROXY } : undefined;
   const navigateur = await chromium.launch({ proxy, args: ['--use-gl=swiftshader', '--enable-webgl', '--ignore-gpu-blocklist'] });
-  const contexte = await navigateur.newContext({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 2, ignoreHTTPSErrors: true, hasTouch: true });
+  const contexte = await navigateur.newContext({ viewport: { width: +(process.env.LARGEUR || 390), height: +(process.env.HAUTEUR || 844) }, deviceScaleFactor: 2, ignoreHTTPSErrors: true, hasTouch: true });
   const page = await contexte.newPage();
   await page.route('https://unpkg.com/**', (route) => { const u = new URL(route.request().url()); const m = u.pathname.match(/^\/((?:@[^/]+\/)?[^@/]+)@[^/]+\/(.*)$/); const f = path.join(ML, m[1], m[2]); route.fulfill({ body: fs.readFileSync(f), contentType: f.endsWith('.css') ? 'text/css' : 'application/javascript' }); });
   await page.route('http://jeu.local/**', (route) => { const u = new URL(route.request().url());
