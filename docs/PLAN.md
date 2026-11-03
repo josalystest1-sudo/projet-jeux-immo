@@ -48,7 +48,7 @@ Méthode (la même que le Projet Arena) : **tout le game design d'abord, puis le
 - 8.3 Anti-triche : limites par compte et par appareil, un pack par jour vérifié côté serveur, détection des multi-comptes (appareil, IP, rythme).
 
 ## Phase 9 — Boutique (1 à 2 soirées)
-- 9.1 Packs payants et Pass mensuel : Stripe sur le web (PWA) ; les stores plus tard.
+- 9.1 Packs payants et Pass mensuel : Stripe sur le web (PWA) ; les stores plus tard. Le Pass (décision du 4 nov.) : pack du jour de 8 cartes au lieu de 5, un bon par mois pour l'adresse libre de son choix jusqu'à Épique (3 bons gardés au plus) ; `docs/GDD.md` § 3.
 - 9.2 Probabilités affichées, blocage Belgique / Pays-Bas, CGU et politique de confidentialité, mentions légales (micro-entreprise Josalys).
 
 ## Phase 10 — Graphismes (plusieurs semaines, par preuve avant la série)
