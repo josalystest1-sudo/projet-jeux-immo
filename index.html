@@ -116,6 +116,7 @@ const VERSION='__VERSION__';
     <div id="prom-touche" aria-label="Glisse pour tourner, touche pour avancer"></div>
     <div class="prom-aide" id="prom-aide">👆 Glisse pour tourner · touche pour avancer</div>
     <div class="prom-charge"><i class="pc"></i></div>
+    <a class="prom-google" id="prom-google" target="_blank" rel="noopener">Google Maps ↗</a>
     <button class="prom-quitter" onclick="finPromenade()" aria-label="Arrêter la promenade">✕</button>
   </div>
   <div class="prom-bas">
@@ -719,7 +720,9 @@ function promAfficher(){ const a=document.getElementById('prom-sv-a'), b=documen
   const montrer=()=>{ if(n!==PROM.cadre) return; PROM.cadre++; neuf.classList.add('vu'); box.classList.remove('charge');
     if(vu){ vu.classList.remove('vu'); setTimeout(()=>{ if(!vu.classList.contains('vu')){ vu.onload=null; vu.src='about:blank'; vu.dataset.src=''; vu.style.transform=''; } }, 400); } };
   neuf.onload=()=>setTimeout(montrer, 450); setTimeout(montrer, 5000);
-  neuf.style.transform=''; neuf.dataset.src=src; neuf.src=src; }
+  neuf.style.transform=''; neuf.dataset.src=src; neuf.src=src;
+  // la même vue dans Google Maps (les cadres sont inertes : on ne touche pas l'intégration elle-même)
+  document.getElementById('prom-google').href=`https://www.google.com/maps/@?api=1&map_action=pano&viewpoint=${PROM.lat.toFixed(6)},${PROM.lon.toFixed(6)}&heading=${Math.round(PROM.cap)}${PROM.pano ? '&pano='+encodeURIComponent(PROM.pano) : ''}`; }
 // Ce qu'on longe. En regardant le long de la rue : la parcelle de gauche et celle de droite ; tourné vers une façade :
 // celle d'en face. Elles sont surlignées sur la carte, et leurs lieux s'affichent sous la carte (le propriétaire, le prix
 // s'il est en vente) ; les toucher ouvre la fiche, d'où l'on achète ou fait une offre.
