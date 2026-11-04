@@ -53,12 +53,12 @@ Chaque lieu porte :
 - Un pack peut contenir **toutes les raretés** sauf les monuments (réservés aux enchères), avec des chances décroissantes : Commun > Peu commun > Rare > Épique > Légendaire. **[Décidé]** Chiffres de départ : 60 % / 25 % / 10 % / 4 % / 1 % par carte. **[Proposé]**
   - Mise en œuvre (2 nov. 2026, `src/regles/pack.js`, tirage simulé dans la page en attendant le serveur) **[Proposé]** : la rareté de chaque carte est tirée avec une graine (joueur + jour) ; puis un lieu libre de cette rareté n'importe où en France. Commun : l'adresse la plus proche d'un point au hasard du territoire. Peu commun : une adresse d'une commune au standing 2. Rare : un lieu nommé (lieu de culte de toute religion, mairie, château, gare, musée) qui a un vrai nom, près d'un point au hasard. Épique : une adresse d'une commune au standing 3. Légendaire : un lieu célèbre (Wikipédia) au hasard en France. Un lieu déjà possédé est remplacé par un autre tirage de même rareté ; si la rareté voulue échoue (réseau), la carte devient Commune, et le pack a toujours ses 5 cartes.
   - La révélation d'une carte : un toucher passe à l'étape suivante (la France, la région, le département, la commune, la rue). **[Décidé par Gautier, 4 nov. ; avant : un toucher l'accélérait]**
-- Packs payants : 1 pack 1,99 € · 5 packs 7,99 € · 12 packs 16,99 € · **Pass mensuel 4,99 €** : voir ci-dessous. Prix de lancement à ajuster avec les premiers chiffres. **[Décidé]** Probabilités affichées dans la boutique (obligation loot boxes) ; pas de vente en Belgique et aux Pays-Bas.
-- **Le Pass mensuel** (4,99 €, décision de Gautier du 4 nov. 2026, remplace « +1 pack par jour ») **[Décidé]** :
-  1. **le pack du jour a 8 cartes au lieu de 5** (environ ×1,5), tant que le Pass est actif ;
-  2. **un bon par mois** pour prendre **l'adresse libre de son choix**, jusqu'à la rareté **Épique** (jamais un lieu célèbre ni un monument). Les bons non utilisés se gardent, **3 au plus**, tant que le Pass est actif. Si l'adresse choisie est déjà à quelqu'un, le bon ne sert pas : on fait une offre à son propriétaire, comme d'habitude. C'est la seule exception à « un lieu libre ne s'achète pas, il sort des packs » (3 nov.) ;
+- **Tout ce qui est payant s'achète en gemmes** (la monnaie premium, § 9), jamais directement en euros : **pack national** (5 lieux, toute la France) et **pack régional** (5 lieux dans la région choisie, un peu plus cher : on réduit le hasard). Probabilités affichées dans la boutique (obligation loot boxes) ; pas de vente en Belgique et aux Pays-Bas. **[Décidé par Gautier, 4 nov. après-midi ; remplace les prix en euros du matin]**
+- **Le Pass 15 jours** (décision de Gautier du 4 nov. après-midi ; avant : Pass mensuel) **[Décidé]** :
+  1. **le pack du jour a 8 cartes au lieu de 5**, tant que le Pass est actif ;
+  2. **une adresse cible** : un bon pour prendre **l'adresse libre de son choix**, **hors Légendaire et monument** (donc jusqu'à Épique). Si l'adresse choisie est déjà à quelqu'un, le bon ne sert pas : on fait une offre à son propriétaire. C'est la seule exception à « un lieu libre ne s'achète pas, il sort des packs » (3 nov.) ;
   3. **pas de revente de lieux contre de l'argent réel** (packs payants + hasard + revente en euros = risque de jeu d'argent).
-  À construire avec la boutique (phase 9). Détail **[Proposé]** : le bon se choisit depuis la fiche d'une adresse libre (« Prendre avec mon bon ») ; il est donné le jour du paiement, puis chaque mois tant que le Pass est renouvelé ; un lieu pris avec un bon est un lieu comme un autre (il se construit, se vend en pièces, s'échange).
+  À construire avec la boutique (phase 9). Détail **[Proposé]** : un bon par Pass, donné le jour de l'achat, se garde tant qu'un Pass est actif (3 au plus) ; le bon se choisit depuis la fiche d'une adresse libre (« Prendre avec mon bon ») ; un lieu pris avec un bon est un lieu comme un autre (il se construit, se vend, s'échange).
 - L'ouverture est un moment : fondu au noir, pack 3D métallisé, déchirure au doigt, révélation façon FIFA (la rareté d'abord : une comète de sa couleur, une alerte pour les rares ; puis France → région → département → commune → rue) puis la carte se retourne (cf. prototype). **[Décidé]**
 
 ### Le marché entre joueurs **[Décidé]**
@@ -115,10 +115,41 @@ La liste (`data/monuments.json`, 2 nov. 2026) : 458 monuments tirés de Wikidata
   Salaire : 200 ₳/jour. Valeur de base : standing 1 = 500, 2 = 1 500, 3 = 4 000 ; lieu Connu ×2, Célèbre ×4, monument ×10.
 - Garde-fous contre « packs → revente → ₳ » : pas de vente à la banque (un stock invendu ne vaut rien), et la **capacité de gestion** : un compte gère au plus N lieux, N monte avec le niveau de joueur (gagné en jouant : connexion quotidienne, constructions, collections). Quand on est plein, un pack propose de remplacer un lieu par le nouveau. **[Proposé]** — Gautier préfère éviter les limites ; à valider après la simulation.
 
-## 5. Le Maire **[Décidé]**
+## 5. Le Maire **[Décidé par Gautier le 4 nov. 2026 ; remplace « le plus de lieux »]**
 
-- Dans chaque commune (arrondissement à Paris/Lyon/Marseille), le Maire est le joueur qui possède le **plus de lieux**. En cas d'égalité, les deux sont Maires. Le titre vaut tant que la condition tient (pas de saison).
-- Le titre est du prestige : visible sur le profil, sur la fiche de la commune, sur la carte (écusson). Aucun bonus en V1. **[Proposé]**
+Pourquoi le changement : un titre fondé sur un **stock** (le plus de lieux, ou la plus grande valeur) se fige dès que la commune est pleine : le Maire le reste « jusqu'à la mort » s'il ne vend rien. Le titre doit donc dépendre d'un **flux**, remis à zéro chaque mois.
+
+- Chaque commune (arrondissement à Paris/Lyon/Marseille) a une **caisse de travaux**. Tout propriétaire d'au moins un lieu dans la commune peut y verser des pièces quand il veut (« financer la rénovation de la place »). La caisse et les contributions sont **publiques en temps réel** (qui mène, de combien).
+- **Le 1er du mois à minuit (heure de Paris)** : le plus gros contributeur du mois civil devient **Maire**, la caisse est vidée, les compteurs repartent à zéro. Égalité = co-Maires.
+- **Ce que le Maire gagne** : **5 % des loyers générés dans la commune** pendant son mandat par les lieux **des autres joueurs** (jamais sur ses propres lieux), **plafonnés à 2 000 pièces par mois et par mairie** ; une plaque sur la fiche de la commune, un écusson sur ses lieux et son profil.
+- La caisse fait monter le **niveau visuel de la commune** (lampadaires, fontaine… jusqu'au niveau 5), visible de tous sur la carte : même ceux qui ne visent pas le titre ont une raison de verser. **[Proposé]**
+- **Perte du titre** : à la fin du mois, ou après **14 jours sans connexion** (le titre passe au 2e contributeur du mois précédent). Les lieux ne sont jamais retirés.
+- **Classement des Maires** : nombre de mairies détenues, **pondéré par le nombre de rivaux** ayant versé au moins 100 pièces dans la commune ce mois-là (une mairie gagnée contre 10 joueurs vaut 10, contre personne vaut 0). Figé à chaque fin de saison (§ 5 bis).
+
+Garde-fous (Claude, 4 nov.) **[Proposé]** :
+- **seuil de 100 pièces** pour être élu, sinon « pas de Maire ce mois-ci » (commune fantôme) ;
+- un versement dans la **dernière heure du mois compte à 50 %** (snipe de 23 h 59) ;
+- les pièces **ne s'achètent jamais** en gemmes (§ 9) : c'est le verrou qui empêche le titre de devenir une enchère en euros ; l'avantage du payeur reste indirect (plus de lieux → plus de loyers) ;
+- l'alternance arrangée entre deux joueurs est tolérée (ils dépensent quand même, un troisième peut la casser) ;
+- si la simulation montre que la campagne concurrence trop la construction : +10 % de poids en caisse par Tour possédée dans la commune.
+
+## 5 bis. Les classements et les saisons **[Proposé, 4 nov.]**
+
+Périmètre V1 (décision de Gautier, 4 nov.) : **la collection, le classement des Maires et le classement de patrimoine.** Pas de combat, pas d'événements (V2, § 14).
+
+- **Patrimoine** d'un joueur = somme de ses lieux pondérés par rareté (Commun 1, Peu commun 2, Rare 4, Épique 8, Légendaire 12, monument 20) plus les constructions (Maison +1, Immeuble +3, Tour +6, Gratte-ciel +10, Palace +12, Prestige +15). Classement national et par commune.
+- **Saisons de 3 mois** : à la fin de chaque saison, les deux classements sont figés (podium, plaques gravées sur les fiches de commune : « Maire de la saison 1 »), puis le classement des Maires repart à zéro ; le patrimoine et les lieux restent. C'est la ligne d'arrivée qui revient, pour qu'un nouveau joueur ait sa chance à chaque saison et que personne ne « finisse » le jeu.
+
+## 5 ter. Les monuments : prestige, pas revenu **[Décidé par Gautier le 4 nov. ; chiffres Proposés]**
+
+Ligne de conduite : un monument donne **du prestige et de la valeur**, pas de puissance. S'il était une machine à pièces, son propriétaire gagnerait toutes les campagnes de mairie.
+
+- **Enchères en pièces seulement**, jamais en gemmes. Personne n'a payé en euros pour un monument : les règles de reprise ci-dessous sont donc de simples règles du jeu, écrites dans les CGU et rappelées sur la fiche d'enchère.
+- **Reprise** : si le propriétaire ne s'est pas connecté depuis **14 jours**, le monument lui est retiré et **revient aux enchères**. Notification à J-3 (« ton monument sera remis aux enchères dans 3 jours »). **Les adresses et autres lieux ne sont jamais repris** : un joueur a pu payer un pack pour les avoir.
+- **Loyer modeste** : le niveau Prestige rapporte environ le double d'une Tour, pas dix fois (le tableau du § 4 est à ramener à cette ligne lors de l'équilibrage).
+- **Entretien exponentiel** (demande de Gautier, remplace la limite de 3 monuments par joueur) : le n-ième monument d'un joueur coûte **300 × 2^(n−1) pièces par mois** (300, 600, 1 200, 2 400, 4 800…), prélevés automatiquement sur les loyers. Pas de plafond : accumuler reste possible, mais le 6e monument coûte 9 600 pièces par mois à lui seul. Si le solde ne couvre pas l'entretien, le monument le plus cher est remis aux enchères après un mois d'impayé (notification à J-7).
+- **Où il est fort** : classement de patrimoine (poids 20), fiche de commune, carte (maquette 3D), vitrine du profil. En V2 : un pouvoir unique par monument.
+- **Alerte administrateur** (demande de Gautier) : quand un monument redevient libre (reprise, impayé, enchère sans preneur), le jeu envoie à Gautier un e-mail et une notification de tableau de bord avec le nom du monument, la commune, la date de fin de l'enchère à venir et une phrase prête à poster sur les réseaux.
 
 ## 6. Les collections **[V2]**
 
@@ -163,11 +194,26 @@ Règles : jamais de nom de personne, jamais de lien adresse ↔ identité, le do
 - **Modération** : filtre automatique des pseudos ; un bouton **Signaler** sur chaque profil ; Gautier traite les signalements lui-même (bannissement manuel).
   - Mise en œuvre (2 nov. 2026) **[Proposé]** : pseudo de 3 à 16 caractères (lettres, chiffres, espace, tiret, point, tiret bas ; deux lettres au moins), unique sans tenir compte des majuscules ni des accents. Le filtre (`src/regles/pseudo.js`, listes `data/moderation.json`) bloque les racines interdites partout dans le pseudo (« putain », « salope »…) et les mots courts seulement quand ils forment un mot entier (« con » dans « GrosCon », pas dans « Conrad » ni « Calcul »), y compris déguisés (chiffres pour des lettres, points entre les lettres, lettres répétées) ; il réserve « admin », « modo », « Cadastra », « officiel », « support »… Signaler : une raison (pseudo inapproprié, triche ou plusieurs comptes, comportement, autre) et un détail facultatif ; un même joueur au plus une fois par jour ; le joueur signalé ne sait pas qui l'a signalé.
 
-## 9. Monétisation **[Décidé]**
+## 9. Monétisation : les gemmes **[Décidé par Gautier le 4 nov. 2026 après-midi]**
 
-- V1 : **packs** et **Pass mensuel**. Rien d'autre.
-- V2 : cosmétiques (styles de bâtiments, plaques), commerces réels partenaires sur la carte, cadeaux (« offre la rue de ton enfance »), partenariats immobilier.
-- Jamais : vente d'un lieu précis (le bon mensuel du Pass excepté : une adresse libre au choix, jusqu'à Épique ; § 3), de loyer, de construction, de ₳ ; jamais de revente de lieux ni de pièces contre de l'argent réel (risque de jeu d'argent, décision du 4 nov.).
+Deux monnaies, deux rôles :
+- **Les pièces** (gratuites : salaire, loyers) : construire, acheter des lieux aux joueurs, offres, échanges, enchères de monuments, caisse de travaux. **Elles ne s'achètent jamais.**
+- **Les gemmes** (nom provisoire, à choisir ; monnaie premium) : **euros → gemmes, à sens unique**. Jamais gemmes → euros, jamais gemmes → pièces (sinon on crée un cours de change et un marché noir). Les gemmes achètent :
+  1. des **packs** nationaux et des **packs régionaux** ;
+  2. le **Pass 15 jours** (§ 3) ;
+  3. des **offres sur les lieux d'autres joueurs** : le vendeur choisit s'il vend en pièces ou en gemmes, l'acheteur paie dans la monnaie demandée. Les gemmes passent d'un joueur à l'autre **sans commission en V1** (chaque gemme a déjà été payée une fois ; une commission de 10 % pourra venir plus tard si trop de gemmes dorment).
+- Revenu de Gautier = **uniquement l'achat de gemmes en euros** (Stripe en V1). Pas d'autre flux.
+- Prix de départ **[Proposé]**, 100 gemmes = 1 € pour rester lisible : gemmes **500 pour 4,99 €**, **1 200 pour 9,99 €**, **2 600 pour 19,99 €** ; pack national **200**, pack régional **300**, Pass 15 jours **300**. Un joueur qui enchaîne les Pass dépense ~6 €/mois. À ajuster avec les premiers chiffres.
+- Le **pack gratuit du jour** reste toujours gratuit (jamais en gemmes) : la voie 100 % gratuite doit rester réelle.
+- **CGU** : les gemmes n'ont aucune valeur monétaire, ne sont ni remboursables ni cessibles hors du jeu ; les lieux sont des licences d'usage ; échanges hors jeu (compte, lieu contre PayPal) interdits.
+- V2 : cosmétiques (styles de bâtiments, plaques), commerces réels partenaires sur la carte, cadeaux (« offre la rue de ton enfance »).
+- Jamais : vente d'un lieu libre précis (le bon du Pass excepté ; § 3), de loyer, de construction, de pièces ; jamais de revente de lieux, de pièces ni de gemmes contre de l'argent réel (risque de jeu d'argent, décision du 4 nov. ; la boutique « en euros » entre joueurs a été examinée et écartée : loot box monétisable, statut d'intermédiaire de paiement, bots).
+
+### Simulation de l'économie des gemmes (Claude, 4 nov. ; `tools/sim_gemmes.py`)
+365 jours, 15 inscrits/jour, 2 % de départs/jour (~740 actifs stables), 15 % de payeurs dont 3 % à 50 €/mois, pack 200, Pass 500 (ancien tarif), adresse revendue ~150 gemmes. Résultats : **~650-750 €/mois en régime stable, soit ~0,95 € par actif et par mois** ; seuls 3 à 11 joueurs gratuits sur 740 peuvent se payer un pack sans jamais avoir dépensé (le marché ne fabrique pas de rentiers de gemmes) ; 13-15 % des gemmes dépensées viennent de la revente (47 % si le marché est très actif) **sans faire baisser les euros** ; la commission de 10 % ne change rien au revenu ; un marché en pièces seulement est le scénario le **moins** rentable (−15 %). Le revenu dépend presque uniquement des inscriptions et de la rétention : passer de 2 % à 1 % de départs par jour double le revenu.
+
+### Lots réels (clés Steam, bons chez des commerçants) **[Proposé ; V1 à petite dose, V2 pour les partenariats]**
+Idée de Gautier (4 nov.) : des lots réels offerts aux joueurs d'une commune (« Carrefour Gennevilliers offre 10 % aux habitants »), ou une clé Steam au meilleur joueur d'un village. Utile pour **faire venir** des joueurs commune par commune, et à terme comme revenu B2B (le commerçant paie pour sponsoriser un événement). Règle absolue, pour ne pas être qualifié de loterie (hasard + sacrifice financier + lot ayant une valeur) : **aucun lot réel n'est jamais attribué selon un score que les pièces, les gemmes ou le nombre de lieux peuvent influencer.** Pas de « une chance par adresse », pas de « le plus gros contributeur », pas de « le plus de Prestige ». Formes acceptables : tirage **un ticket par joueur** ; tickets gagnés par l'assiduité (jours de connexion, votes) ; lot distribué à **tous** ; éligibilité par une **commune de cœur** déclarée librement (une par joueur, changeable chaque mois), pas par les lieux possédés. Règlement de jeu-concours publié pour chaque lot ; avis d'un avocat avant de monter en volume. Avertissement : Claude n'est pas juriste.
 
 ## 10. Équilibrage
 
@@ -180,9 +226,13 @@ Tout le game design d'abord (fonctions complètes, serveur simulé → vrai serv
 ## 12. Nom, monnaie, style, lancement **[Décidé le 2 nov.]**
 
 - **Monnaie : les « pièces »**. Son signe : une pièce d'or en forme de maison, frappée d'un C (demande de Gautier le 3 nov. : « un signe plus original » ; dessin proposé par Claude). **[Proposé]**
-- **Nom : Cadastra.** **[Décidé le 2 nov., à confirmer]** Vérifications du 2 nov. :
-  - Domaines : cadastra.fr pris (février 2026, site inactif), cadastra.com pris (agence brésilienne Cadastra), cadastra.app pris (avril 2026, site en erreur). Libre : cadastra-jeu.fr.
-  - Marques (base INPI, qui couvre aussi les marques européennes et internationales visant la France) : « CadastrA » **enregistrée en France** (2021, société DEPGA) en classes 6, 19, 35, 36 (immobilier), 37, 42 (logiciels / informatique), 45 ; « Cadastra » internationale (2024, Cadastra Marketing Digital) en classe 35. Aucune en classes 9 / 41 (jeux), mais la proximité immobilier + logiciel crée un risque d'opposition. Avis d'un professionnel conseillé avant dépôt.
+- **Nom : CityDeck.** **[Décidé par Gautier le 4 nov. 2026 : « ok validons citydeck »]** Vérifications du 4 nov. (Claude, dans le Chrome de Gautier) :
+  - Marques (base INPI, françaises + européennes + internationales) : **aucune marque « CityDeck »**, aucune société. 
+  - Domaines : **citydeck.fr libre** (Afnic), citydeck.io et citydeck.app libres ; citydeck.com a priori pris. À réserver par Gautier (OVH ou Gandi). Dépôt INPI (classes 9 + 41, ~230 €) quand le jeu aura des joueurs.
+  - Écartés le 4 nov. : City Hunter (manga), ImmoQuest (marque « IMMO Quest » déposée en 2024 en classe 41, divertissement), DropCity (marque européenne « DROP CITY », classes 41-42), CityPack / PackCity (marque « CITY PACK » de Réside Études, classes 36 et 41), CityDrop (marque libre mais citydrop.fr, .com et .app pris), Immo Hunter, ImmoChasse, RueQuest, CityLord (libres, non retenus).
+  - Dans le code, « Cadastra » reste (clés de stockage, noms internes) : ne pas renommer, les parties seraient perdues.
+  - Vocabulaire ouvert par le nom : le patrimoine = « mon deck », un lieu = « une carte », le pack du jour = « le booster ». **[Proposé]**
+  - Ancien nom de travail Cadastra (2 nov.) : cadastra.fr/.com/.app pris, marque « CadastrA » enregistrée en immobilier + logiciel : risque d'opposition, abandonné.
 - **Style visuel : cartoon** (ville 3D stylisée aux couleurs franches, pochette et cartes illustrées façon jeu mobile), **tout produit avec des outils d'IA**, Claude guide la chaîne d'outils (comme pour Arena : image → modèle 3D, textures, animations).
   - Précisé le 3 nov. au soir (choix de Gautier) : **« jeu mobile coloré »** (formes rondes, couleurs vives, gros reliefs, façon Clash Royale ou Brawl Stars) ; **les graphismes passent avant l'étape 8.2** ; on commence par **le pack et les cartes** ; **outils gratuits d'abord** (dessin en code). Les règles : `docs/BIBLE-GRAPHIQUE.md`. **[Décidé]**
 - **Lancement public direct**, sans date fixée ; pas de bêta amis.
@@ -195,3 +245,14 @@ Tout le game design d'abord (fonctions complètes, serveur simulé → vrai serv
 - Visuel de la carte d'un lieu : V1 = photo aérienne IGN du bâtiment avec sa parcelle + cadre de rareté ; V2 = rendu 3D stylisé. **[Proposé]**
 - Calendrier des monuments.
 - Capacité de gestion (§ 4) : à valider ou remplacer après simulation.
+- Nom de la monnaie premium (« gemmes » provisoire).
+- **Le joueur « village »** (souci de Gautier, 4 nov.) : un joueur qui se concentre sur son village réel (adresses Communes et Peu communes) doit pouvoir rivaliser avec les villes. La mairie par caisse de travaux y répond en partie (un village se gagne pour quelques centaines de pièces). Pistes proposées par Claude, non tranchées : pas de plafond de construction par rareté (la rareté = un point de départ, pas un plafond) ; **bonus de rue** (toutes les adresses d'une rue : +25 % de loyer) et **Seigneur du village** (plus de 50 % des adresses d'une commune) ; standing qui monte avec les constructions de la commune. **[Proposé, à trancher avant l'équilibrage]**
+
+## 14. Pistes examinées le 4 nov. 2026 (après-midi) — V2 ou écartées
+
+Toute l'après-midi a cherché « une règle simple qui garde les joueurs » : la collection seule donne une sensation de jeu fini (un monument obtenu = « j'ai fini »), et un titre fondé sur le stock se fige. Ce qui en reste :
+
+- **[V1]** Le Maire par caisse de travaux (§ 5), les saisons (§ 5 bis), les monuments « prestige, pas revenu » avec entretien exponentiel et reprise (§ 5 ter), les gemmes (§ 9).
+- **[V2 — retenu dans l'idée]** **Les événements de commune** : chaque commune a une **Attractivité** (0-100) qui multiplie ses loyers ; des événements tirés au sort (manifestation, festival, cambriolages, grand chantier, tempête…) donnent 24 h aux propriétaires pour **voter** entre 3 options (coût individuel, effet collectif) ; le passager clandestin et l'événement qui se déplace vers la commune voisine font l'impact entre joueurs. Format JSON, 5 événements écrits, règles d'ergonomie : `docs/EVENEMENTS-V2.md`. Avec lui, le **Prestige** (points gagnés par les votes gagnés, les constructions, les titres) pourrait devenir le score des saisons (Maire / Préfet / Président).
+- **[Écarté]** Le combat (village-deck en grille, troupes, sim de combat, raids par formule) : trop complexe à mettre en place, et les joueurs individualistes quittent à la première perte. Les élections à voix : trop compliquées, demandent une cohésion que les joueurs n'ont pas. Les titres Maire → Préfet → Gouverneur par stock de lieux : se figent. La friche (adresse reprise après 7 jours d'absence) : refusée pour les adresses (payées), gardée pour les monuments seulement.
+- **[Écarté]** La revente de lieux contre des euros (§ 9).

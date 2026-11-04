@@ -288,6 +288,8 @@
 - Fin de l'interview : volets 3 à 6 (lieux et packs, technique, graphismes, lancement).
 - Inscription des amis pendant les essais (8.2) : couper la confirmation par e-mail le temps des essais (le service d'e-mails de Supabase n'écrit qu'à l'équipe) ? Question posée, sans réponse.
 
+- 4 nov. 2026 (après-midi, PR #117, documents seulement) : **séance de game design** dans l'app Claude. GDD : § 5 le Maire par caisse de travaux (mois civil, 5 % des loyers des autres plafonnés, seuil, dernière heure à 50 %, pondération par rivaux, 14 jours d'absence), § 5 bis classements et saisons de 3 mois, § 5 ter monuments (enchères en pièces, reprise après 14 jours, loyer modeste, entretien 300 × 2^(n−1), alerte administrateur), § 3 et § 9 gemmes / packs régionaux / Pass 15 jours / lots réels à chances égales, § 12 nom CityDeck vérifié (INPI, Afnic), § 14 pistes écartées ou V2. Nouveaux fichiers : `docs/EVENEMENTS-V2.md` (format JSON des événements de commune, 5 exemples, ergonomie) et `tools/sim_gemmes.py` (simulation à agents de l'économie des gemmes, 5 scénarios ; `python3 tools/sim_gemmes.py`). Rien dans le code du jeu : à porter (HISTORIQUE « Ce qui reste à faire »).
+
 ## Bugs connus
 - Mode serveur : si la partie arrive du serveur avant que la carte ait fini de charger, un cadre rose « Erreur de style : The layer 'parcel-fill' does not exist… » peut s'afficher (la page cherche les parcelles avant que leurs calques soient posés) ; sans conséquence pour la partie. Vu le 3 nov. au soir, pas encore corrigé.
 - Les badges 💰 des joueurs simulés n'apparaissent qu'après ouverture de leur parcelle (limite du prototype local).
