@@ -20,6 +20,13 @@ test('une rareté introuvable devient une Commune (le pack garde ses cartes)', a
   const cartes = await creer(() => true).tirerPack('essai', { 2: 100 }, 3);   // aucune adresse au standing 2 dans ce faux monde
   assert.equal(cartes.length, 3); for (const c of cartes) assert.equal(R.rarete(c), 1);
 });
+test('le pack régional : toutes les cartes dans la région, jamais ailleurs', async () => {
+  const zone = (deps) => Tirage.creer({ geoJSON: geocodeur(), celebres: async () => [], france: FRANCE, deps: ['28', '37'], contours: { 28: FRANCE, 37: FRANCE }, standing: table, Celebres, Pack, rarete: R.rarete, estLibre: () => true });
+  const dans = await zone().tirerPack('essai', { 1: 100 }, 5, { deps: ['28'] });
+  assert.equal(dans.length, 5); for (const c of dans) assert.ok(c.citycode.startsWith('28'));
+  const ailleurs = await zone().tirerPack('essai', { 1: 100 }, 5, { deps: ['37'] });   // le faux géocodeur ne rend que l'Eure-et-Loir
+  assert.equal(ailleurs.length, 0);
+});
 test('même graine, mêmes raretés tirées', () => {
   const a = Pack.raretes(5, eco.pack.chances, Pack.alea(Pack.graine('x:1'))), b = Pack.raretes(5, eco.pack.chances, Pack.alea(Pack.graine('x:1')));
   assert.deepEqual(a, b);

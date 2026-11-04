@@ -1055,3 +1055,19 @@ body.promenade #sheet .svwrap{display:none}
 .card.entretien{border:2px solid var(--piece-clair)}
 .card.entretien.impaye{border-color:#E4573D;background:#FFF4F1}
 .alerte-impaye{color:#B23A22;font-weight:800}
+
+/* ===================== la boutique et les gemmes (4 nov. au soir, GDD § 3 et § 9) ===================== */
+.pills-droite{display:flex;gap:6px;align-items:center}
+.pill.gemmes{padding:6px 10px 6px 8px;gap:4px}
+.pill.gemmes .gem{font-style:normal;font-size:18px;line-height:1}
+.pill.gemmes b{font-family:var(--titre);font-weight:800;font-size:17px;color:#5B3FB0;line-height:1}
+.article{background:var(--ciel);border-radius:16px;padding:12px;margin:10px 0;display:flex;flex-direction:column;gap:8px}
+.article .m{margin:0}
+.article.pass{background:linear-gradient(135deg,#FFF6DA,#F7E7B8)}
+.pass-actif{font-weight:800;color:#6B4A00}
+.gemmes-offres{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.offre-gemmes{border:0;border-radius:14px;background:#fff;padding:10px 4px;display:flex;flex-direction:column;align-items:center;gap:2px;cursor:pointer;font:inherit;box-shadow:0 1px 0 rgba(13,27,62,.08)}
+.offre-gemmes b{font-family:var(--titre);font-size:16px;color:#5B3FB0}.offre-gemmes small{font-weight:800;color:var(--gris)}
+.probas{margin-top:6px}.proba{display:inline-flex;align-items:center;gap:4px;margin:0 10px 4px 0;white-space:nowrap}
+.proba .dot{width:10px;height:10px;border-radius:50%;display:inline-block;background:var(--rc,#ccc)}
+.proba.r1 .dot{background:#B9B9B9}.proba.r2 .dot{background:#2FB36D}.proba.r3 .dot{background:#3D8BFF}.proba.r4 .dot{background:#A35BFF}.proba.r5 .dot{background:#FF8A1E}

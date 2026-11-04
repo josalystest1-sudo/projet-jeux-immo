@@ -20,6 +20,14 @@
   //       deps (codes des départements), standing (table), Celebres, Pack, rarete(lieu), estLibre(lieu) → bool ou Promise<bool> }
   function creer(o) {
     const CODES_STANDING = { 2: Object.keys(o.standing).filter((c) => o.standing[c] === 2), 3: Object.keys(o.standing).filter((c) => o.standing[c] === 3) };
+    // une zone (pack régional) : { deps: [codes] } ; o.contours : département → ses anneaux (geo.js)
+    const depDuCode = (c) => (String(c).startsWith('97') ? String(c).slice(0, 3) : String(c).slice(0, 2));
+    function pointDansZone(rng, zone) {
+      const anneaux = zone.deps.flatMap((d) => (o.contours && o.contours[d]) || []); if (!anneaux.length) return pointAuHasard(rng);
+      let b = [180, 90, -180, -90]; for (const r of anneaux) for (const [x, y] of r) b = [Math.min(b[0], x), Math.min(b[1], y), Math.max(b[2], x), Math.max(b[3], y)];
+      for (let k = 0; k < 400; k++) { const p = [b[0] + rng() * (b[2] - b[0]), b[1] + rng() * (b[3] - b[1])]; if (anneaux.some((r) => dansAnneau(p, r))) return p; }
+      return [(b[0] + b[2]) / 2, (b[1] + b[3]) / 2];
+    }
     function pointAuHasard(rng) { for (let k = 0; k < 300; k++) { const p = [BOITE_FR[0] + rng() * (BOITE_FR[2] - BOITE_FR[0]), BOITE_FR[1] + rng() * (BOITE_FR[3] - BOITE_FR[1])]; if (o.france.some((r) => dansAnneau(p, r))) return p; } return PARIS; }
     async function adresseProche(lon, lat) { const j = await o.geoJSON(`reverse?lon=${lon}&lat=${lat}&limit=1&index=address&type=housenumber`); const x = (j.features || [])[0]; return x ? Object.assign(mkAddr(x, null), { type: 'adresse' }) : null; }
     async function adresseDansCommune(code, rng) {
@@ -61,35 +69,39 @@
       const e = o.Celebres.trouver(carte, await o.celebres(o.Celebres.departement(carte.citycode))); if (e) carte = Object.assign(o.Celebres.lieuDe(e), { city: carte.city });
       return carte;
     }
-    async function celebreAuHasard(rng) {
-      const dep = o.deps[Math.floor(rng() * o.deps.length)]; const l = await o.celebres(dep); if (!l.length) return null;
+    async function celebreAuHasard(rng, zone) {
+      const deps = zone ? zone.deps : o.deps, dep = deps[Math.floor(rng() * deps.length)]; const l = await o.celebres(dep); if (!l.length) return null;
       const e = l[Math.floor(rng() * l.length)]; const a = await adresseProche(e[3], e[4]);
       return Object.assign(o.Celebres.lieuDe(e), { city: a ? a.city : '' });
     }
-    async function lieuDeRarete(r, rng) {
-      if (r === 1) { const [lon, lat] = pointAuHasard(rng); return adresseProche(lon, lat); }
-      if (r === 3) { const [lon, lat] = pointAuHasard(rng); return lieuNommeProche(lon, lat, rng); }
-      if (r === 5) return celebreAuHasard(rng);
-      const codes = CODES_STANDING[r === 2 ? 2 : 3]; return adresseDansCommune(communeReelle(codes[Math.floor(rng() * codes.length)], rng), rng);
+    async function lieuDeRarete(r, rng, zone) {
+      const point = () => (zone ? pointDansZone(rng, zone) : pointAuHasard(rng));
+      if (r === 1) { const [lon, lat] = point(); return adresseProche(lon, lat); }
+      if (r === 3) { const [lon, lat] = point(); return lieuNommeProche(lon, lat, rng); }
+      if (r === 5) return celebreAuHasard(rng, zone);
+      const codes = CODES_STANDING[r === 2 ? 2 : 3].filter((c) => !zone || zone.deps.includes(depDuCode(c)));
+      if (!codes.length) return null;   // aucune commune de ce standing dans la région : une Commune à la place
+      return adresseDansCommune(communeReelle(codes[Math.floor(rng() * codes.length)], rng), rng);
     }
     // une carte de la rareté voulue (6 essais) ; si le réseau ou le hasard s'obstinent, une carte Commune
-    async function tirerCarte(r, base, dejaTires) {
+    async function tirerCarte(r, base, dejaTires, zone) {
       for (const rv of (r === 1 ? [1] : [r, 1])) for (let essai = 0; essai < 6; essai++) {
         const rng = o.Pack.alea(o.Pack.graine(base + ':' + rv + ':' + essai));
         try {
-          const c = await lieuDeRarete(rv, rng);
-          if (c && o.rarete(c) === rv && !dejaTires.some((d) => d.id === c.id) && await o.estLibre(c)) return c;
+          const c = await lieuDeRarete(rv, rng, zone);
+          if (c && o.rarete(c) === rv && !dejaTires.some((d) => d.id === c.id) && (!zone || zone.deps.includes(depDuCode(c.citycode))) && await o.estLibre(c)) return c;
         } catch (e) { /* réseau capricieux : on réessaie */ }
       }
       return null;
     }
-    // un pack entier : n cartes tirées en parallèle, doublons retirés, cartes manquantes complétées par des Communes
-    async function tirerPack(base, chances, n) {
+    // un pack entier : n cartes tirées en parallèle, doublons retirés, cartes manquantes complétées par des Communes ;
+    // zone (pack régional) : toutes les cartes dans ces départements
+    async function tirerPack(base, chances, n, zone) {
       const raretes = o.Pack.raretes(n, chances, o.Pack.alea(o.Pack.graine(base)));
-      const tirees = await Promise.all(raretes.map((r, i) => tirerCarte(r, base + ':' + i, [])));
+      const tirees = await Promise.all(raretes.map((r, i) => tirerCarte(r, base + ':' + i, [], zone)));
       const cartes = [];
       for (const c of tirees) if (c && !cartes.some((x) => x.id === c.id)) cartes.push(c);
-      for (let k = 0; cartes.length < n && k < 4; k++) { const c = await tirerCarte(1, base + ':plus:' + k, cartes); if (c) cartes.push(c); }
+      for (let k = 0; cartes.length < n && k < 6; k++) { const c = await tirerCarte(1, base + ':plus:' + k, cartes, zone); if (c) cartes.push(c); }
       return cartes;
     }
     return { tirerPack, tirerCarte, lieuDeRarete, lieuNommeProche, pointAuHasard, adresseProche };
