@@ -4340,6 +4340,69 @@
     return A.groupe;
   }
 
+  // les quatre châteaux de Lastours sur leur crête : Cabaret, la tour Régine, Surdespine, Quertinheux (les ruines d'après
+  // les murs de l'IGN)
+  function lastours(THREE) {
+    const A = atelier(THREE);
+    const pierre = A.matiere(0xD9CBB0), pierreFoncee = A.matiere(0xBCAA8A);
+    const P = (l) => l.map(([x, z]) => [x + 25, z + 28]);
+    const murs = [[[17, -5], [17, -10], [12, -10], [12, -14], [5, -18]], [[0, -19], [-2, -1], [-2, 5], [2, 5], [6, 5], [11, 5]], [[11, 5], [11, -4], [17, -5], [17, 3], [17, 7]],
+      [[-33, -69], [-22, -71], [-22, -75]], [[-22, -62], [-21, -61], [-35, -55], [-38, -64], [-33, -66], [-32, -79]],
+      [[-64, 101], [-66, 100], [-64, 91], [-63, 86]], [[-69, 102], [-72, 103], [-72, 115], [-65, 117]], [[-64, 91], [-61, 89], [-57, 90]], [[-57, 79], [-54, 82], [-52, 87]], [[-52, 96], [-58, 104], [-61, 102]],
+      [[-49, -170], [-45, -174], [-39, -174], [-37, -164], [-34, -153], [-32, -143], [-32, -137], [-33, -135]], [[-33, -131], [-31, -126], [-35, -121], [-39, -121], [-42, -125], [-50, -138], [-49, -162]], [[-34, -153], [-41, -151], [-40, -140]]].map(P);
+    A.remparts(murs, 9, 2.2, pierre); A.creneaux(murs, 9, 2.2, pierreFoncee);
+    for (const [x, z, lx, lz, h] of [[14, 1, 6, 11, 16], [-36.5, -131.5, 7, 7, 18]]) { const [px, pz] = P([[x, z]])[0]; A.boite(lx, h, lz, px, 0, pz, pierre); A.creneaux([A.tourDe(lx, lz, px, pz)], h, 0.8, pierreFoncee); }
+    for (const [x, z, r, h] of [[-24, -65, 4.2, 17], [-53, 91.5, 4, 15]]) { const [px, pz] = P([[x, z]])[0]; A.cylindre(r, r, h, 16, px, 0, pz, pierre); A.creneaux([anneau(px, pz, r, 16)], h, 0.8, pierreFoncee); }
+    return A.groupe;
+  }
+
+  // le château de Peyrepertuse : la citadelle cathare étirée sur sa crête, le château bas, le donjon de San Jordi au sommet
+  function peyrepertuse(THREE) {
+    const A = atelier(THREE);
+    const pierre = A.matiere(0xD9CBB0), pierreFoncee = A.matiere(0xBCAA8A);
+    const P = (l) => l.map(([x, z]) => [x - 30, z]);
+    const murs = [[[-90, 12], [-95, 7], [-97, 7]], [[-97, 18], [-95, 18], [-90, 12]], [[-63, -15], [-55, -13], [-47, -15], [-35, -20], [-31, -19], [-23, -25], [-18, -34], [-12, -36], [-9, -35], [1, -31], [15, -31], [24, -34], [30, -38], [35, -34], [38, -32], [47, -19], [55, -22]],
+      [[-95, 18], [-88, 20], [-80, 22], [-78, 14]], [[-58, 21], [-78, 14], [-78, 11], [-81, 11], [-83, 14], [-88, 12], [-90, 12]], [[-68, 18], [-71, 24], [-66, 26]],
+      [[38, 19], [40, 15], [45, 16], [43, 21], [38, 19]], [[56, 1], [57, -4], [56, -19], [55, -22]], [[59, 8], [56, 8], [56, 1]], [[69, 15], [65, 14], [60, 10], [59, 8], [75, 7], [76, 0], [60, -1], [56, 1]],
+      [[83, 14], [81, 12], [71, 14]], [[81, 12], [75, 7]], [[83, 21], [74, 21], [74, 18]],
+      [[55, -22], [76, -14], [93, -8], [98, -9], [128, 3], [135, 2], [135, 4], [144, 4], [158, 9]], [[101, 18], [95, 19], [87, 19]]].map(P);
+    A.remparts(murs, 8, 2.2, pierre); A.creneaux(murs, 8, 2.2, pierreFoncee);
+    const donjons = [[[-58, 21], [-57, 28], [-61, 29], [-60, 35], [-53, 34], [-48, 30], [-49, 27], [-52, 18], [-49, 15], [-50, 12], [-55, 12], [-57, 17], [-58, 21]],
+      [[0, -9], [-2, -13], [-3, -17], [-11, -17], [-16, -15], [-15, -6], [-11, -7], [-9, -2], [-8, -2], [0, -9]]].map(P);
+    A.remparts(donjons, 13, 2.6, pierre); A.creneaux(donjons, 13, 2.6, pierreFoncee);
+    const [x, z] = P([[106, 13]])[0]; A.boite(13, 15, 10, x, 0, z, pierre); A.creneaux([A.tourDe(13, 10, x, z)], 15, 0.8, pierreFoncee);
+    return A.groupe;
+  }
+
+  // le château de Clisson : les ruines de la forteresse au-dessus de la Sèvre, son donjon, sa grande enceinte
+  function clisson(THREE) {
+    const A = atelier(THREE);
+    const pierre = A.matiere(0xD9D2C2), pierreFoncee = A.matiere(0xB9B0A0);
+    const P = (l) => l.map(([x, z]) => [x + 35, z - 15]);
+    const enceinte = [[[-23, 46], [-36, 48], [-43, 49], [-43, 56], [-50, 61], [-56, 60], [-61, 57], [-63, 51], [-73, 51], [-85, 46], [-89, 44], [-94, 48], [-99, 44], [-99, 38], [-94, 35], [-94, 31], [-91, 31], [-91, 20], [-95, 20], [-98, 15], [-98, 11], [-95, 7], [-90, 5], [-84, 8], [-81, 13], [-68, 12], [-51, 4], [-40, 0], [-37, -1], [-24, -6]], [[-4, -29], [-1, -31], [2, -30], [2, -28]]].map(P);
+    A.remparts(enceinte, 7, 2.2, pierre); A.creneaux(enceinte, 7, 2.2, pierreFoncee);
+    const ruines = [[[-13, 7], [-23, 8], [-27, 7], [-26, 4], [-24, -4], [-24, -6]], [[-15, 0], [-6, 0]], [[-20, 8], [-19, 18]], [[-5, 9], [-6, 4], [-6, 0]], [[4, 10], [-1, 11], [-1, 9], [-5, 9]], [[-14, 22], [5, 19]],
+      [[4, 10], [15, 6], [17, -1], [16, -6], [13, -7], [7, -7]], [[4, 10], [3, 15], [5, 19], [8, 23], [12, 27], [12, 29]]].map(P);
+    A.remparts(ruines, 12, 2.4, pierre); A.creneaux(ruines, 12, 2.4, pierreFoncee);
+    const donjon = P([[-6, 0], [-5, -12], [1, -13], [1, -7], [7, -7], [8, 0], [2, -1], [3, 7], [4, 10], [-1, 11], [-1, 9], [-5, 9], [-6, 0]]);
+    A.remparts([donjon], 20, 3, pierre); A.creneaux([donjon], 20, 3, pierreFoncee);
+    return A.groupe;
+  }
+
+  // la basilique Saint-Pierre de Luxeuil : la nef gothique de grès rose, son chevet, sa grosse tour-porche
+  const luxeuil = (THREE) => cathedrale(THREE, { pierre: 0xE2B8A0, pierreFoncee: 0xC4957C, F: -24, E: 23, larg: 16, mur: 18, toitH: 7, xT: 0, cote: 12, facadeH: 20, rose: 3, arcs: false,
+    tours: [{ z: 0, h: 34 }] });
+
+  // l'abbaye Saint-Michel-de-Cuxa : l'abbatiale préromane, son chevet, le grand clocher roman crénelé
+  function cuxa(THREE) {
+    const A = atelier(THREE);
+    const pierre = A.matiere(0xD8C8A8), pierreFoncee = A.matiere(0xB8A684), tuile = A.matiere(0xC8704A);
+    A.boite(42, 12, 18, -4, 0, -1, pierre); A.toit(18.6, 5, 42, -4, 12, -1, tuile);
+    A.abside(7, 10, 17, 0, -1, pierre); A.demiCone(7.5, 3, 17, 10, -1, tuile);
+    A.boite(13, 34, 12, -2.6, 0, 18.5, pierre); A.creneaux([A.tourDe(13, 12, -2.6, 18.5)], 34, 0.8, pierreFoncee);
+    return A.groupe;
+  }
+
   // les maquettes connues : le monument (identifiant de data/monuments.json), où et comment la poser, et les
   // bâtiments de l'IGN qu'elle remplace (sinon les blocs gris de la BD TOPO resteraient dedans)
   const MODELES = {
@@ -5418,6 +5481,21 @@
     Q1516747: {   // le château de Commarque (les murs en ruine de l'IGN)
       construire: commarque, centre: [1.101748, 44.941836], orientation: 0, masquer: ['BATIMENT0000002292747217'],
     },
+    Q370664: {   // les châteaux de Lastours (les ruines d'après les murs de l'IGN)
+      construire: lastours, centre: [2.377991, 43.336653], orientation: 0, masquer: [],
+    },
+    Q944597: {   // le château de Peyrepertuse (les murs de l'IGN)
+      construire: peyrepertuse, centre: [2.555768, 42.8708], orientation: 0, masquer: ['BATIMENT0000000080185592', 'BATIMENT0000000080185593'],
+    },
+    Q1011390: {   // le château de Clisson (les ruines d'après les murs de l'IGN)
+      construire: clisson, centre: [-1.281262, 47.086564], orientation: 0, masquer: ['BATIMENT0000000309697037', 'BATIMENT0000000309697392', 'BATIMENT0000000029264994'],
+    },
+    Q1232116: {   // la basilique Saint-Pierre de Luxeuil (la tour-porche à l'ouest)
+      construire: luxeuil, centre: [6.381969, 47.81683], orientation: 7, masquer: ['BATIMENT0000002285723394'],
+    },
+    Q306121: {   // l'abbaye Saint-Michel-de-Cuxa
+      construire: cuxa, centre: [2.417317, 42.594827], orientation: 13, masquer: ['BATIMENT0000000341141967', 'BATIMENT0000000341141965'],
+    },
   };
   const MASQUES = Object.values(MODELES).flatMap((m) => m.masquer);
 
@@ -5513,6 +5591,7 @@
     museePicardie,  najac,  sainteCroixBordeaux,  ainayLeVieil,  saintPierreLeJeune,  azayLeFerron,  saintLeu,
     murol,  villesavin,  montpoupon,  puymartin,  laBrede,  cathedraleAntibes,  cathedraleViviers,  chaalis,
     fontfroide,  valmagne,  maguelone,  cathedraleLavaur,  epau,  montmajour,  saintPaulMausole,  pontVieuxAlbi,
-    chalus,  puivert,  canigou,  cadouin,  remiremont,  puilaurens,  aguilar,  termes,  beauport,  commarque };
+    chalus,  puivert,  canigou,  cadouin,  remiremont,  puilaurens,  aguilar,  termes,  beauport,  commarque,
+    lastours,  peyrepertuse,  clisson,  luxeuil,  cuxa };
   if (typeof module !== 'undefined' && module.exports) module.exports = api; else racine.Maquettes = api;
 })(typeof globalThis !== 'undefined' ? globalThis : this);

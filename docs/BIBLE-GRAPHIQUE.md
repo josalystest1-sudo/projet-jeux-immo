@@ -218,3 +218,6 @@ Où c'est dans le code : la pochette est dessinée par `makeArt()` (`index.html`
 - **Dix monuments régionaux de plus** (nuit du 4 nov.) : **Châlus-Chabrol** (le donjon rond), **Puivert** (le grand donjon carré et l'enceinte), **Saint-Martin-du-Canigou** (l'abbatiale et sa tour crénelée), **Cadouin** (le clocher de lauzes), **Remiremont** (le clocher à bulbe lorrain), les châteaux cathares en ruine de **Puilaurens**, **Aguilar** et **Termes**, **l'abbaye de Beauport**, **le château de Commarque** : les ruines sont tracées d'après les murs de l'IGN.
 
 ![Châlus-Chabrol, Puivert, Saint-Martin-du-Canigou, Remiremont, Aguilar et Commarque](bible/monuments-36.jpg)
+- **Cinq monuments régionaux de plus** (nuit du 4 nov.) : **les quatre châteaux de Lastours** sur leur crête, **Peyrepertuse** étirée sur la sienne (le château bas, le donjon de San Jordi), **les ruines de Clisson** (le donjon, la grande enceinte), tracés d'après les murs de l'IGN ; **la basilique de Luxeuil** (le grès rose, la tour-porche), **Saint-Michel-de-Cuxa** (le grand clocher roman).
+
+![Lastours, Peyrepertuse, Clisson, Luxeuil et Saint-Michel-de-Cuxa](bible/monuments-37.jpg)
