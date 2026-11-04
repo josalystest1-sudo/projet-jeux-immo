@@ -239,3 +239,6 @@ Où c'est dans le code : la pochette est dessinée par `makeArt()` (`index.html`
 - **Sept monuments régionaux de plus** (nuit du 4 nov.), au plan trop mêlé pour des boîtes, montés sur leur emprise de l'IGN avec corniche et comble (nouvel outil `pave`) : **les cathédrales d'Aire-sur-l'Adour** et **d'Apt** (son clocher), **les abbayes d'Hautecombe**, **de Cîteaux** et **de Solesmes** (le clocher, la haute tour), **l'hôtel Lambert**, **la bibliothèque de l'Arsenal**. Plus simples que les autres maquettes : le volume juste, sans le détail.
 
 ![Les cathédrales d'Aire et d'Apt, les abbayes d'Hautecombe et de Cîteaux, l'hôtel Lambert et l'abbaye de Solesmes](bible/monuments-43.jpg)
+- **Sept monuments régionaux de plus** (nuit du 4 nov.), surtout montés sur leur emprise de l'IGN (`pave`) : les abbayes de **Silvacane**, **Lérins** (le monastère et son clocher sur l'île Saint-Honorat) et **La Trappe**, **l'hôtel de Beauvais**, **le musée Jules-Chéret** à Nice, **Port-Royal-des-Champs** (le grand colombier rond, l'oratoire), **l'auberge Ravoux** d'Auvers-sur-Oise.
+
+![Silvacane, Lérins, le musée Chéret, La Trappe, le colombier de Port-Royal et l'auberge Ravoux](bible/monuments-44.jpg)

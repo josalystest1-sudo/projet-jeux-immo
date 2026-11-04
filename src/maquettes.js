@@ -4700,6 +4700,75 @@
     return A.groupe;
   }
 
+  // l'abbaye de Silvacane : l'abbatiale cistercienne et son petit clocher, les bâtiments autour du cloître (les emprises de
+  // l'IGN)
+  function silvacane(THREE) {
+    const A = atelier(THREE);
+    const pierre = A.matiere(0xE6D6B8), pierreFoncee = A.matiere(0xC9B48E), tuile = A.matiere(0xC8704A);
+    pave(A, [[8, -53], [33.5, -53], [34, -26], [8.5, -25.5]], 15, pierre, tuile, 5, pierreFoncee);
+    pave(A, [[8.5, -63], [33.5, -63.5], [44.5, -63.5], [45.5, -30], [49, -30], [49, -19.5], [52.5, -19.5], [52.5, -8.5], [49, -8.5], [49.5, 1.5], [35, 1.5], [34.5, -0.5], [33, -0.5], [33, -2], [11, -1.5], [11, -25.5], [34, -26], [33.5, -53], [8, -53]], 10, pierre, tuile, 3, pierreFoncee);
+    A.boite(5, 7, 5, 31, 15, -50, pierre); A.pyramide(3.6, 3, 4, 31, 22, -50, tuile);
+    return A.groupe;
+  }
+
+  // l'abbaye de Lérins (île Saint-Honorat) : l'abbatiale et les bâtiments du monastère autour du cloître (les emprises de
+  // l'IGN), le clocher
+  function lerins(THREE) {
+    const A = atelier(THREE);
+    const pierre = A.matiere(0xEDE3CC), pierreFoncee = A.matiere(0xD2C4A6), tuile = A.matiere(0xC8704A);
+    for (const [h, l] of [[8, [[-16.5, -45], [-16, -40], [-36.5, -39], [-35.5, 4.5], [-41.5, 5], [-41.5, 1.5], [-40.5, 1], [-41, -16], [-41.5, -16.5], [-41.5, -21], [-41, -21], [-41, -43.5]]],
+      [8, [[-35.5, 4.5], [-36, 5.5], [-34, 5.5], [-34, 13], [-35.5, 13], [-35, 14], [-40, 14.5], [-41, 14.5], [-41.5, 5]]], [12, [[-13.5, -1.5], [-13, 4], [-34, 5.5], [-34, 0]]],
+      [11, [[-13, 11.5], [-12.5, 14.5], [-18.5, 15], [-18.5, 17], [-33.5, 18], [-34, 13]]], [13, [[14, -1], [14, 2], [-8, 3.5], [-7.5, 11], [14.5, 9.5], [14.5, 12.5], [-12.5, 14.5], [-13, 1]]],
+      [12, [[13.5, -13.5], [14.5, -5], [10.5, -4.5], [10, -13.5]]],
+      [11, [[19.5, -22.5], [20.5, 0], [22, 0], [24, 1.5], [26, 4], [26, 5.5], [24, 8], [23, 9], [21, 9], [21.5, 14], [24, 16], [27.5, 16], [27.5, 18.5], [28.5, 18], [29, 26], [8, 27.5], [7, 19], [15.5, 19], [15.5, 12], [14.5, 12.5], [14.5, 9.5], [-7.5, 11], [-8, 3.5], [14, 2], [14, -1], [-13, 1], [-13.5, -2.5], [14.5, -5], [13.5, -13.5], [10, -13.5], [4.5, -13], [4, -21]]],
+      [8, [[6.5, 13], [7, 19], [8, 27.5], [7.5, 36], [-17.5, 34], [-18.5, 15]]], [9, [[-19.5, 34], [7.5, 36], [6, 45.5], [3, 45.5], [3, 48], [1.5, 48], [1, 50], [-5, 50], [-5, 51.5], [-6.5, 51.5], [-6.5, 50], [-14, 50], [-14, 44], [-21, 43]]]])
+      pave(A, l, h, pierre, tuile, 3, pierreFoncee);
+    A.boite(5, 14, 5, 12, 13, -9, pierre); A.pyramide(3.6, 4, 4, 12, 27, -9, tuile);
+    return A.groupe;
+  }
+
+  // l'hôtel de Beauvais (rue François-Miron) : l'hôtel du Grand Siècle et sa cour (l'emprise de l'IGN)
+  function hotelBeauvais(THREE) {
+    const A = atelier(THREE);
+    const pierre = A.matiere(0xF2EEE4), pierreFoncee = A.matiere(0xD6CFC0), ardoise = A.matiere(0x5A6378);
+    pave(A, [[-9, -26.5], [20, -26], [18.5, -15.5], [16, -10], [7.5, -9.5], [5, -8], [4, -7.5], [2.5, -8.5], [0.5, -9.5], [-4, -9.5], [-4, -2], [-16.5, -2], [-13.5, -7], [-12, -12], [-12, -13], [-11, -16]], 19, pierre, ardoise, 4, pierreFoncee);
+    return A.groupe;
+  }
+
+  // le musée des Beaux-Arts Jules-Chéret (Nice) : la villa à l'italienne dans son jardin, ses toits de tuiles (l'emprise de
+  // l'IGN)
+  function museeCheret(THREE) {
+    const A = atelier(THREE);
+    const enduit = A.matiere(0xF2E2C4), blanc = A.matiere(0xF6F1E6), tuile = A.matiere(0xC8704A);
+    pave(A, [[-20.5, -31], [-19.5, -31.5], [-18, -31.5], [-17, -31], [-15.5, -33], [-8, -27], [-7.5, -27.5], [6.5, -17], [6, -16.5], [14, -10.5], [-7, 16.5], [-28.5, 0], [-13.5, -19.5], [-21, -25.5], [-20, -27], [-20.5, -28.5], [-21, -29.5]], 17, enduit, tuile, 3, blanc);
+    return A.groupe;
+  }
+
+  // l'abbaye de La Trappe : l'abbatiale et le monastère des trappistes (l'emprise de l'IGN), ses toits d'ardoise
+  function laTrappe(THREE) {
+    const A = atelier(THREE);
+    const pierre = A.matiere(0xEDE6D6), pierreFoncee = A.matiere(0xD2C8B4), ardoise = A.matiere(0x4F5D8C);
+    pave(A, [[2, -58.5], [6, -58.5], [7.5, -60], [9, -61], [10, -61.5], [12, -60.5], [13.5, -58], [16.5, -58.5], [18, -57.5], [19, -54.5], [22.5, -53], [23.5, -51], [23, -50], [22, -47], [23.5, -45.5], [23.5, -44], [23, -42], [23.5, -41], [22.5, -40], [22.5, -35], [15, -34.5], [15.5, -21], [22.5, -21], [22.5, 5.5], [16, 5.5], [16, 6.5], [14, 6.5], [14, 7.5], [13, 6.5], [9.5, 6.5], [9, 8], [7.5, 6], [6.5, 7], [5.5, 6], [2.5, 6], [-1, 1], [-1, -23], [4.5, -23], [4.5, -33], [-2, -32.5], [-2, -40], [-3, -41], [-3, -42], [-2, -42.5], [-3, -44.5], [-3, -46], [-1.5, -48.5], [-3, -49.5], [-3, -51], [-2.5, -53], [0.5, -55], [1.5, -57.5]], 13, pierre, ardoise, 4, pierreFoncee);
+    return A.groupe;
+  }
+
+  // l'abbaye de Port-Royal-des-Champs : le grand colombier rond, l'oratoire bâti à la place de l'église
+  function portRoyal(THREE) {
+    const A = atelier(THREE);
+    const pierre = A.matiere(0xE8E0CC), tuile = A.matiere(0xB0603F), ardoise = A.matiere(0x4F5D8C);
+    A.cylindre(6, 6, 11, 20, -11, 0, 7.5, pierre); A.cones([[-11, 7.5, 6.6, 11, 7]], tuile, 20);
+    pave(A, [[71, 43.5], [80, 47.5], [81.5, 50.5], [81, 53], [78, 54], [69, 49.5]], 8, pierre, ardoise, 3);
+    return A.groupe;
+  }
+
+  // l'auberge Ravoux (Auvers-sur-Oise) : la petite auberge où Van Gogh vécut ses derniers jours (l'emprise de l'IGN)
+  function aubergeRavoux(THREE) {
+    const A = atelier(THREE);
+    const enduit = A.matiere(0xEFE4CC), zinc = A.matiere(0x8E9AB0);
+    pave(A, [[-1, -7], [6.5, -6.5], [5, 5], [-2.5, 5.5], [-1, -6.5]], 9, enduit, zinc, 2.5);
+    return A.groupe;
+  }
+
   // les maquettes connues : le monument (identifiant de data/monuments.json), où et comment la poser, et les
   // bâtiments de l'IGN qu'elle remplace (sinon les blocs gris de la BD TOPO resteraient dedans)
   const MODELES = {
@@ -5868,6 +5937,27 @@
     Q306131: {   // l'abbaye de Solesmes (les emprises de l'IGN)
       construire: solesmes, centre: [-0.3031, 47.8521], orientation: 29, masquer: ['BATIMENT0000000215055821', 'BATIMENT0000000215056337', 'BATIMENT0000000215056339', 'BATIMENT0000000215056338', 'BATIMENT0000000215056342', 'BATIMENT0000000215055839'],
     },
+    Q306146: {   // l'abbaye de Silvacane (les emprises de l'IGN)
+      construire: silvacane, centre: [5.3292, 43.7161], orientation: -5, masquer: ['BATIMENT0000000334491366', 'BATIMENT0000000334491367'],
+    },
+    Q334008: {   // l'abbaye de Lérins (les emprises de l'IGN)
+      construire: lerins, centre: [7.0472, 43.5066], orientation: 3, masquer: ['BATIMENT0000000327508226', 'BATIMENT0000000327508228', 'BATIMENT0000000327508227', 'BATIMENT0000000327508232', 'BATIMENT0000000327508230', 'BATIMENT0000000327508237', 'BATIMENT0000000327508231', 'BATIMENT0000000327508234', 'BATIMENT0000000327508238'],
+    },
+    Q1643105: {   // l'hôtel de Beauvais (l'emprise de l'IGN)
+      construire: hotelBeauvais, centre: [2.3583, 48.8552], orientation: -6, masquer: ['BATIMENT0000000245184775'],
+    },
+    Q3330218: {   // le musée Jules-Chéret (l'emprise de l'IGN)
+      construire: museeCheret, centre: [7.2489, 43.6945], orientation: -43, masquer: ['BATIMENT0000000327904118'],
+    },
+    Q779678: {   // l'abbaye de La Trappe (l'emprise de l'IGN)
+      construire: laTrappe, centre: [0.5733, 48.6372], orientation: -32, masquer: ['BATIMENT0000000350399218'],
+    },
+    Q652981: {   // Port-Royal-des-Champs : le colombier et l'oratoire
+      construire: portRoyal, centre: [2.0158, 48.7451], orientation: -2, masquer: ['BATIMENT0000000322383565', 'BATIMENT0000000005035664'],
+    },
+    Q4819026: {   // l'auberge Ravoux (l'emprise de l'IGN)
+      construire: aubergeRavoux, centre: [2.1715, 49.0707], orientation: 0, masquer: ['BATIMENT0000000323619385'],
+    },
   };
   const MASQUES = Object.values(MODELES).flatMap((m) => m.masquer);
 
@@ -5970,6 +6060,7 @@
     chapelleMedaille,  matignon,  maisonLaRoche,
     sedan,  brest,  luneville,
     rambouillet,  cathedraleDax,
-    cathedraleAire,  cathedraleApt,  hautecombe,  citeaux,  hotelLambert,  arsenal,  solesmes };
+    cathedraleAire,  cathedraleApt,  hautecombe,  citeaux,  hotelLambert,  arsenal,  solesmes,
+    silvacane,  lerins,  hotelBeauvais,  museeCheret,  laTrappe,  portRoyal,  aubergeRavoux };
   if (typeof module !== 'undefined' && module.exports) module.exports = api; else racine.Maquettes = api;
 })(typeof globalThis !== 'undefined' ? globalThis : this);
