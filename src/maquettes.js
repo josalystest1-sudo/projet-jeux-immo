@@ -3596,6 +3596,111 @@
   const cathedraleValence = (THREE) => cathedrale(THREE, { pierre: 0xEAD9B4, pierreFoncee: 0xCDB58A, toit: 0xB0603F, toitFonce: 0x9A4F34, F: -24, E: 39.5, larg: 12, mur: 18, toitH: 6,
     xT: 20, transept: 36, transeptL: 12, cote: 10, facadeH: 20, rose: 2, arcs: false, tours: [{ z: 0, h: 36, fleche: 10, r: 4.6, seg: 4 }] });
 
+  // le château de Quéribus : le donjon polygonal au sommet de son piton rocheux, les enceintes en contrebas
+  function queribus(THREE) {
+    const A = atelier(THREE);
+    const roche = A.matiere(0x9C8E7E), rocheClaire = A.matiere(0xB5A895), pierre = A.matiere(0xE3D6BC), ombre = A.matiere(0xC6B794);
+    A.piece((e) => new THREE.CylinderGeometry(15 + e, 26 + e, 20 + 2 * e, 9).translate(0, 10, 0), roche, A.V(9, 0, -14));
+    A.piece((e) => new THREE.CylinderGeometry(9 + e, 15 + e, 10 + 2 * e, 8).translate(0, 5, 0), rocheClaire, A.V(9, 20, -14));
+    A.remparts([anneau(9, -14, 16, 10)], 6, 1.8, ombre, 20); A.creneaux([anneau(9, -14, 16, 10)], 26, 0.6, pierre);
+    A.boite(12, 14, 20, 9.6, 30, -14, pierre); A.creneaux([A.tourDe(12.4, 20.4, 9.6, -14)], 44, 0.7, ombre);
+    return A.groupe;
+  }
+
+  // l'abbaye de Murbach : le chœur roman de grès rose et ses deux tours carrées au-dessus du transept
+  function murbach(THREE) {
+    const A = atelier(THREE);
+    const gres = A.matiere(0xC98F7B), gresFonce = A.matiere(0xA96F5C), tuile = A.matiere(0x9E4F3A);
+    A.boite(22, 17, 18, -13.6, 0, -4, gres); A.toit(18.6, 6, 22, -13.6, 17, -4, tuile, Math.PI / 2);
+    A.boite(9, 16, 10, -13, 0, -18, gres); A.toit(9.6, 5, 10, -13, 16, -18, tuile, Math.PI / 2);
+    A.boite(15, 14, 6, -13.6, 0, 7, gresFonce);
+    for (const x of [-21, -6]) { A.boite(6.5, 36, 6.5, x, 0, -4, gres); A.pyramide(4.8, 7, 4, x, 36, -4, tuile); }
+    return A.groupe;
+  }
+
+  // l'abbatiale de Pontigny : la très longue église cistercienne, son transept, son chevet et son déambulatoire, le porche
+  function pontigny(THREE) {
+    const g = cathedrale(THREE, { pierre: 0xF0EADA, pierreFoncee: 0xD8CDB2, toit: 0x8C5A44, toitFonce: 0x744A38, F: -65, E: 42, larg: 16, mur: 20, toitH: 9, xT: 8, transept: 52,
+      transeptL: 20, cote: 8, facadeH: 22, rose: 2, arcs: false, tours: [{ z: 0, h: 14, cote: 8 }] });
+    const A = atelier(THREE); A.abside(18, 11, 34, 0, 0, A.matiere(0xD8CDB2)); A.demiCone(18.5, 4, 34, 11, 0, A.matiere(0x744A38));
+    g.add(A.groupe); return g;
+  }
+
+  // l'abbatiale Saint-Pierre de Corbie : la façade et ses deux tours, la nef (le chœur a disparu)
+  const abbatialeCorbie = (THREE) => cathedrale(THREE, { F: -17, E: 28, chevetPlat: true, larg: 12, mur: 22, toitH: 8, xT: 10, cote: 10.7, facadeH: 28, rose: 3,
+    tours: [{ z: -13, h: 40, fleche: 6, r: 5, seg: 4 }, { z: 13, h: 40, fleche: 6, r: 5, seg: 4 }] });
+
+  // la cathédrale Sainte-Marie d'Oloron : la tour-porche et son portail roman, la nef, le chevet
+  const cathedraleOloron = (THREE) => cathedrale(THREE, { pierre: 0xE6DCC4, pierreFoncee: 0xC9BB98, toit: 0x6E645C, toitFonce: 0x5A524C, F: -14, E: 33, larg: 16, mur: 14, toitH: 6, xT: 18,
+    cote: 10, facadeH: 18, rose: 2, arcs: false, tours: [{ z: -4, h: 32, cote: 11, fleche: 8, r: 5.5, seg: 4 }] });
+
+  // le fort de Brégançon : le fort provençal sur son rocher au bord de la mer
+  function bregancon(THREE) {
+    const A = atelier(THREE);
+    const roche = A.matiere(0x9C8E7E), pierre = A.matiere(0xE6D8BC), ombre = A.matiere(0xC6B794), tuile = A.matiere(0xB0603F);
+    A.piece((e) => new THREE.CylinderGeometry(26 + e, 36 + e, 22 + 2 * e, 10).translate(0, 11, 0), roche, A.V(10, 0, -8));
+    const mur = [[-12, -26], [16, -30], [42, -6], [44, 12], [20, 10], [-12, 12], [-12, -26]];
+    A.remparts([mur], 7, 2, ombre, 22); A.creneaux([mur], 29, 0.6, pierre);
+    A.boites([[16, 8, 22, -2, 22, -8], [14, 7, 8, 32, 22, 6], [16, 9, 7, 10, 22, -24]], pierre);
+    A.toits([[8.6, 3, 16, -2, 30, -8, Math.PI / 2], [8.6, 3, 14, 32, 29, 6], [7.6, 3, 16, 10, 31, -24]], tuile);
+    return A.groupe;
+  }
+
+  // la tour Clovis : le clocher de l'ancienne abbaye Sainte-Geneviève (lycée Henri-IV), roman en bas, gothique en haut
+  function tourClovis(THREE) {
+    const A = atelier(THREE);
+    const pierre = A.matiere(0xEFE6D0), pierreFoncee = A.matiere(0xD6C8A8), plomb = A.matiere(0x6E7AA0);
+    A.boite(10.6, 30, 8.7, 0, 0, 0, pierre); A.boite(11.2, 1, 9.3, 0, 30, 0, pierreFoncee);
+    A.boite(9.6, 11, 8, 0, 31, 0, pierre); A.boite(10.2, 1, 8.6, 0, 42, 0, pierreFoncee);
+    A.cones([[1, 1], [1, -1], [-1, 1], [-1, -1]].map(([a, b]) => [a * 4.3, b * 3.5, 0.6, 43, 4]), pierreFoncee, 6); A.pyramide(4.4, 4, 4, 0, 43, 0, plomb);
+    return A.groupe;
+  }
+
+  // le château de Ferrières (les Rothschild) : le grand bloc carré, ses quatre tours d'angle et leurs lanternons, la verrière
+  function ferrieres(THREE) {
+    const A = atelier(THREE);
+    const pierre = A.matiere(0xEFE6D0), ardoise = A.matiere(0x4F5D8C), verre = A.matiere(0xA9C4D6, 0x2A4A60), or = A.matiere(0xFFC233, 0x7A4A00);
+    A.boite(46, 19, 50, 13, 0, -4.6, pierre); A.combles(46.6, 5, 50.6, 13, 19, -4.6, ardoise); A.boite(16, 4, 16, 13, 21, -4.6, verre);
+    for (const [x, z] of [[-10, -28], [36, -28], [-10, 19], [36, 19]]) { A.boite(9, 26, 9, x, 0, z, pierre); A.combles(9.6, 6, 9.6, x, 26, z, ardoise); A.cylindre(0.9, 0.9, 3, 8, x, 31.4, z, pierre); A.boule(0.5, x, 35, z, or); }
+    return A.groupe;
+  }
+
+  // l'abbaye du Thoronet : l'église cistercienne de pierre nue, son abside, son petit clocher de pierre
+  function thoronet(THREE) {
+    const A = atelier(THREE);
+    const pierre = A.matiere(0xE8D5B0), ombre = A.matiere(0xCDB58A), lauze = A.matiere(0xB8A68A);
+    A.boite(44, 8, 34, 6, 0, -1, ombre); A.toit(34.6, 3, 44, 6, 8, -1, lauze);
+    A.boite(44, 12, 13, 6, 0, -1, pierre); A.toit(13.6, 4, 44, 6, 12, -1, lauze);
+    A.abside(6.5, 10, 28, 0, -1, pierre); A.demiCone(7, 3, 28, 10, -1, lauze);
+    A.boite(4, 22, 4, 18, 0, -9, pierre); A.pyramide(3, 8, 4, 18, 22, -9, pierre);
+    return A.groupe;
+  }
+
+  // l'abbaye de Jumièges : les ruines de l'abbatiale Notre-Dame, ses deux tours (46 m), la nef à ciel ouvert, le grand mur de
+  // la tour-lanterne
+  function jumieges(THREE) {
+    const A = atelier(THREE);
+    const pierre = A.matiere(0xEFEAD8), ombre = A.matiere(0xD6CFB8), ardoise = A.matiere(0x4F5D8C);
+    for (const z of [-8, 8]) { A.boite(7, 36, 7, -40, 0, z, pierre); A.cylindre(3, 3, 6, 8, -40, 36, z, pierre); A.pyramide(3.4, 4, 8, -40, 42, z, ardoise); }
+    A.boite(6, 26, 9, -40, 0, 0, pierre);
+    A.boites([[60, 20, 1.6, -6, 0, -10], [60, 20, 1.6, -6, 0, 10], [60, 9, 1.4, -6, 0, -16], [60, 9, 1.4, -6, 0, 16]], ombre);
+    A.boite(2, 40, 18, 28, 0, 0, pierre); A.boites([[10, 30, 2, 33, 0, -9], [10, 30, 2, 33, 0, 9]], ombre);
+    A.remparts([anneau(46, 0, 10, 10).filter(([x]) => x >= 45)], 4, 1.2, ombre);
+    return A.groupe;
+  }
+
+  // le château de Montségur : la forteresse pentagonale au sommet du pog, son donjon
+  function montsegur(THREE) {
+    const A = atelier(THREE);
+    const roche = A.matiere(0x9C8E7E), rocheClaire = A.matiere(0xB5A895), pierre = A.matiere(0xE3D6BC), ombre = A.matiere(0xC6B794);
+    A.piece((e) => new THREE.CylinderGeometry(34 + e, 48 + e, 18 + 2 * e, 10).scale(1.2, 1, 0.75).translate(0, 9, 0), roche, A.V(0, 0, 0));
+    A.piece((e) => new THREE.CylinderGeometry(30 + e, 34 + e, 2 + 2 * e, 10).scale(1.2, 1, 0.75).translate(0, 1, 0), rocheClaire, A.V(0, 18, 0));
+    const mur = [[-28, -2], [-8, -12], [25, -6], [30, 6], [-10, 10], [-28, -2]];
+    A.remparts([mur], 12, 2.4, ombre, 20); A.creneaux([mur], 32, 0.6, pierre);
+    A.boite(10, 18, 12, -16, 20, 0, pierre); A.creneaux([A.tourDe(10.4, 12.4, -16, 0)], 38, 0.6, ombre);
+    return A.groupe;
+  }
+
   // les maquettes connues : le monument (identifiant de data/monuments.json), où et comment la poser, et les
   // bâtiments de l'IGN qu'elle remplace (sinon les blocs gris de la BD TOPO resteraient dedans)
   const MODELES = {
@@ -4464,6 +4569,39 @@
     Q2942311: {   // Saint-Apollinaire de Valence
       construire: cathedraleValence, centre: [4.889386, 44.931675], orientation: -22, masquer: ['BATIMENT0000002008478781', 'BATIMENT0000002008478780'],
     },
+    Q667763: {   // le château de Quéribus, sur son piton
+      construire: queribus, centre: [2.6217, 42.8367], orientation: 37, masquer: ['BATIMENT0000000080188663'],
+    },
+    Q519572: {   // l'abbaye de Murbach
+      construire: murbach, centre: [7.1581, 47.9233], orientation: 12, masquer: ['BATIMENT0000000229112856', 'BATIMENT0000000229112926'],
+    },
+    Q591296: {   // l'abbatiale de Pontigny
+      construire: pontigny, centre: [3.714547, 47.909504], orientation: -17, masquer: ['BATIMENT0000002215643647', 'BATIMENT0000002215643646', 'BATIMENT0000002215643605'],
+    },
+    Q333888: {   // l'abbatiale Saint-Pierre de Corbie
+      construire: abbatialeCorbie, centre: [2.510123, 49.908945], orientation: 15, masquer: ['BATIMENT0000002102019551', 'BATIMENT0000002102019550'],
+    },
+    Q2310816: {   // Sainte-Marie d'Oloron
+      construire: cathedraleOloron, centre: [-0.61611, 43.187817], orientation: 24, masquer: ['BATIMENT0000000333320025'],
+    },
+    Q2714663: {   // le fort de Brégançon, sur son rocher
+      construire: bregancon, centre: [6.3221, 43.0928], orientation: 0, masquer: ['BATIMENT0000000326912997', 'BATIMENT0000000326912999', 'BATIMENT0000000326912998', 'BATIMENT0000000075056626'],
+    },
+    Q1766069: {   // l'abbaye Sainte-Geneviève : la tour Clovis (le lycée Henri-IV reste celui de l'IGN)
+      construire: tourClovis, centre: [2.347943, 48.846172], orientation: -12, masquer: ['BATIMENT0000000241932697'],
+    },
+    Q1461848: {   // le château de Ferrières
+      construire: ferrieres, centre: [2.7119, 48.8197], orientation: -34, masquer: ['BATIMENT0000000336706041'],
+    },
+    Q306155: {   // l'abbaye du Thoronet (le cloître reste celui de l'IGN)
+      construire: thoronet, centre: [6.2639, 43.4603], orientation: 5, masquer: ['BATIMENT0000000327409698', 'BATIMENT0000000327409696', 'BATIMENT0000000327409697'],
+    },
+    Q333980: {   // l'abbaye de Jumièges (les ruines ne sont pas dans l'IGN)
+      construire: jumieges, centre: [0.8192, 49.4319], orientation: 0, masquer: [],
+    },
+    Q1013191: {   // le château de Montségur, sur son pog
+      construire: montsegur, centre: [1.8325, 42.8756], orientation: -10, masquer: [],
+    },
   };
   const MASQUES = Object.values(MODELES).flatMap((m) => m.masquer);
 
@@ -4551,6 +4689,7 @@
     orsay, memorialThiepval, grosHorloge, porteDesAllemands, tarascon, salses, josselin, hautefort, chateauAnnecy, fortLaLatte, cathedraleLaRochelle, cathedraleVienne,
     saintPaulStrasbourg, collegialeColmar, notreDameDijon, triniteVendome, cathedraleVerdun, saintNicolasDePort, bonaguil, montreuilBellay, maintenon, chateauSceaux, templeMarais, theatreLyon,
     chateauCaen, chateauDinan, anet, ecouen, moissac, cathedraleAjaccio, cathedraleSaintes, arcGermanicus, cathedraleBazas, sainteReparate, saintMichelCarcassonne,
-    cathedraleAix, chateauMaisons, plessisBourre, talcy, roquetaillade, abbadia, saintVictor, daurade, synagogueBordeaux, saintSeurin, cathedraleValence };
+    cathedraleAix, chateauMaisons, plessisBourre, talcy, roquetaillade, abbadia, saintVictor, daurade, synagogueBordeaux, saintSeurin, cathedraleValence,
+    queribus, murbach, pontigny, abbatialeCorbie, cathedraleOloron, bregancon, tourClovis, ferrieres, thoronet, jumieges, montsegur };
   if (typeof module !== 'undefined' && module.exports) module.exports = api; else racine.Maquettes = api;
 })(typeof globalThis !== 'undefined' ? globalThis : this);
