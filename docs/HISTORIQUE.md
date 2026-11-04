@@ -150,6 +150,7 @@ Rien d'important ne vit dans une conversation : tout est dans le dépôt ou sur 
 - **La collection aux nouvelles cartes** (PR #114). Gautier trouve l'ouverture « top ». La collection prend les mêmes cartes, en grille, et une carte touchée s'ouvre en grand, inclinable, maquette qui tourne.
 - **Le cadre des cartes** (PR #115). Gautier : « très bien pour le patrimoine », mais des cadres de couleur « rentrent et sortent de la carte, c'est moche ». Sur son téléphone, le filet intérieur était dessiné plus petit et décalé. Il est retiré : un seul filet au bord, à la couleur de la rareté.
 - **La maquette sur la carte des monuments** (PR #116). Gautier dit oui : la carte d'un monument montre sa maquette, celle de la carte du jeu (416 monuments), en porcelaine aux arêtes d'or comme les autres cartes, à la place du bloc blanc de l'IGN.
+- **La séance de game design du 4 nov. après-midi** (conversation de l'app Claude, PR #117, documents seulement). Gautier cherche « une règle simple qui maintient les joueurs » : la collection seule donne une sensation de jeu fini, un Maire fondé sur le stock de lieux « le restera jusqu'à la mort ». Examinés puis écartés : le combat (village-deck, troupes, raids), les élections, la friche des adresses. Retenus : le **Maire par caisse de travaux mensuelle**, des **saisons de 3 mois**, les **monuments « prestige, pas revenu »** (enchères en pièces, reprise après 14 jours d'absence, entretien exponentiel), la **monnaie premium (gemmes)** à sens unique pour les packs, les packs régionaux, le Pass 15 jours et les offres entre joueurs. Les **événements de commune** (Attractivité, votes) sont écrits pour la V2 (`docs/EVENEMENTS-V2.md`). Le nom **CityDeck** est vérifié (aucune marque, citydeck.fr libre) ; une simulation de l'économie des gemmes (`tools/sim_gemmes.py`) montre ~0,95 € par joueur actif et par mois.
 
 ## Toutes les PR
 
@@ -292,6 +293,7 @@ Puis une PR par étape, fusionnée en squash :
 | #114 | 04/11 12:11 | La collection (Patrimoine) aux nouvelles cartes ; une carte touchée s'ouvre en grand, inclinable |
 | #115 | 04/11 12:30 | Un seul filet au bord des cartes, à la couleur de la rareté (le filet intérieur débordait sur le téléphone de Gautier) |
 | #116 | 04/11 13:10 | Les cartes des monuments montrent leur maquette 3D (en porcelaine et or), comme sur la carte du jeu |
+| #117 | 04/11 14:30 | Game design du 4 nov. après-midi : Maire par caisse de travaux, saisons, monuments (entretien exponentiel, reprise), gemmes et Pass 15 jours, événements V2, nom vérifié, simulation des gemmes (documents seulement) |
 
 ## Les décisions de Gautier
 
@@ -323,15 +325,22 @@ Les décisions du 2 novembre (interview) sont dans `CLAUDE.md` § 4 et dans le G
 | 4 nov. | Design « moins dessin animé, plus classe, stylé, impressionnant » (d'abord la révélation ; le reste à décider) ; prêt à payer Meshy si c'est la solution |
 | 4 nov. | Une ouverture de pack « la plus proche de Pokémon Pocket » : un vrai sachet, des cartes qu'on tient, retourne et incline (l'expérience, pas l'apparence) |
 | 4 nov. | Les cartes et la révélation d'après son interview (bible § 11) ; un toucher passe à l'étape suivante ; une étape « région » ; pas de science-fiction : « ce n'est pas au jeu de s'adapter au pack » |
-| 4 nov. | **Le jeu s'appellera CityDeck** (au lieu de Cadastra) |
+| 4 nov. | **Le jeu s'appellera CityDeck** (au lieu de Cadastra) ; vérifié l'après-midi : aucune marque, citydeck.fr libre (à réserver) |
+| 4 nov. | **Périmètre V1 : la collection, le classement des Maires, le classement de patrimoine.** Combat et événements écartés ou remis à la V2 (« les combats sont trop complexes à mettre en place ») |
+| 4 nov. | **Le Maire = le plus gros contributeur du mois à la caisse de travaux de la commune** (remplace « le plus de lieux », qui se figeait) |
+| 4 nov. | **Monuments** : aux enchères seulement, repris et remis aux enchères si le propriétaire ne se connecte pas pendant 14 jours (jamais les adresses, qui ont pu être payées) ; **entretien exponentiel** plutôt qu'une limite de 3 monuments ; prévenir Gautier dès qu'un monument redevient libre, pour l'annoncer sur les réseaux |
+| 4 nov. | **Monnaie premium (gemmes)** : euros → gemmes à sens unique, sans commission ; elle achète les packs, les packs régionaux (un peu plus chers), le Pass 15 jours (8 cartes au lieu de 5 + une adresse cible hors Légendaire et monument) et des offres sur les lieux d'autres joueurs. Revente de lieux contre des euros : écartée |
+| 4 nov. | Lots réels (clés Steam, bons de commerçants) : idée gardée pour faire venir des joueurs, mais jamais attribués selon un score que l'argent ou le nombre de lieux influence (risque de loterie) |
 
-## Ce qui reste à faire (au 3 novembre au soir)
+## Ce qui reste à faire (au 4 novembre après-midi)
 
 - **Le serveur, suite** (phase 8) :
   - 8.2 : le mode serveur par défaut, la fin des joueurs simulés, l'inscription des amis. Question posée à Gautier, sans réponse : couper la confirmation par e-mail pendant les essais ?
   - 8.3 : l'anti-triche.
 - **Les graphismes** (phase 10, avant 8.2 : décision de Gautier) : la preuve, l'ouverture, les monuments nationaux et 358 monuments régionaux en 3D, plus la Grande Mosquée de Paris et quatre églises ajoutées le 4 nov. (416 maquettes ; les autres n'ont pas de bâtiment à dessiner ou portent une marque) ; ensuite l'habillage de la révélation, l'icône et le logo (`docs/BIBLE-GRAPHIQUE.md`).
-- **La boutique** (phase 9) : Stripe, packs et Pass mensuel (pack de 8 cartes, bon mensuel : GDD § 3), probabilités affichées, blocage Belgique et Pays-Bas, CGU, confidentialité, mentions légales.
+- **Le game design du 4 nov. à porter dans le jeu** (avant la boutique) : le Maire par caisse de travaux (GDD § 5), les saisons et le classement de patrimoine (§ 5 bis), l'entretien et la reprise des monuments, l'alerte à Gautier (§ 5 ter).
+- **La boutique** (phase 9) : Stripe → gemmes, packs nationaux et régionaux, Pass 15 jours (GDD § 3 et § 9), offres en gemmes au choix du vendeur, probabilités affichées, blocage Belgique et Pays-Bas, CGU (gemmes sans valeur, lieux = licences), confidentialité, mentions légales.
+- **Gautier** : réserver citydeck.fr (et .app) ; choisir le nom de la monnaie premium.
 - **Ensuite** : les graphismes (phase 10), l'équilibrage et le lancement (phase 11).
 - **Au lancement** :
   - remettre `jour_secondes` à 86400 et repartir de zéro ;
