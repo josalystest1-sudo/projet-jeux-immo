@@ -1223,7 +1223,7 @@ function makeNormal(){ // reliefs du foil : micro-plis + crantage des bords, gé
   for(let y=0;y<S;y++) for(let x=0;x<S;x++){ const h=n(x,y); const dx=n(x+1,y)-h, dy=n(x,y+1)-h; const i=(y*S+x)*4; d[i]=128+dx*90; d[i+1]=128+dy*90; d[i+2]=255; d[i+3]=255; }
   g.putImageData(img,0,0); const t=new THREE.CanvasTexture(c); t.wrapS=t.wrapT=THREE.RepeatWrapping; t.repeat.set(2,3); return t; }
 function makeRough(){ const S=256; const c=document.createElement('canvas'); c.width=S; c.height=S; const g=c.getContext('2d'); const img=g.createImageData(S,S); const d=img.data; for(let i=0;i<S*S;i++){ const v=150+Math.random()*60; d[i*4]=d[i*4+1]=d[i*4+2]=v; d[i*4+3]=255; } g.putImageData(img,0,0); const t=new THREE.CanvasTexture(c); t.wrapS=t.wrapT=THREE.RepeatWrapping; t.repeat.set(3,3); return t; }
-function initGL(){ const cv=document.getElementById('pkgl'); const r=new THREE.WebGLRenderer({canvas:cv, antialias:true, alpha:false}); r.setPixelRatio(Math.min(2,devicePixelRatio)); r.setSize(cv.clientWidth, cv.clientHeight, false);
+function initGL(){ const cv=document.getElementById('pkgl'); const r=new THREE.WebGLRenderer({canvas:cv, antialias:true, alpha:false}); r.setPixelRatio(Math.min(1.5,devicePixelRatio)); r.setSize(cv.clientWidth, cv.clientHeight, false);
   r.outputEncoding=THREE.sRGBEncoding; r.toneMapping=THREE.ACESFilmicToneMapping; r.toneMappingExposure=1.0; r.physicallyCorrectLights=true;
   const sc=new THREE.Scene(); sc.background=new THREE.Color(0x060b1c); const cam=new THREE.PerspectiveCamera(32, cv.clientWidth/cv.clientHeight, 0.1, 100); cam.position.set(0,0.1,10.2);
   // environnement de studio généré (reflets) : aucun fichier
@@ -1255,7 +1255,7 @@ function initGL(){ const cv=document.getElementById('pkgl'); const r=new THREE.W
   const N=260; const pg=new THREE.BufferGeometry(); const pos=new Float32Array(N*3); const vel=[]; for(let i=0;i<N;i++){ pos[i*3]=0; pos[i*3+1]=1.4; pos[i*3+2]=0; vel.push([ (Math.random()-.5)*4, Math.random()*4+1, (Math.random()-.5)*3 ]); }
   pg.setAttribute('position', new THREE.BufferAttribute(pos,3)); const parts=new THREE.Points(pg, new THREE.PointsMaterial({color:0xffe08a, size:0.08, transparent:true, opacity:0, blending:THREE.AdditiveBlending, depthWrite:false})); sc.add(parts);
   // bloom
-  const composer=new THREE.EffectComposer(r); composer.addPass(new THREE.RenderPass(sc,cam)); const bloom=new THREE.UnrealBloomPass(new THREE.Vector2(cv.clientWidth,cv.clientHeight), 0.35, 0.5, 0.92); composer.addPass(bloom);
+  const composer=new THREE.EffectComposer(r); composer.addPass(new THREE.RenderPass(sc,cam)); const bloom=new THREE.UnrealBloomPass(new THREE.Vector2(cv.clientWidth/2,cv.clientHeight/2), 0.35, 0.5, 0.92); composer.addPass(bloom);
   Object.assign(GL,{r,scene:sc,cam,pack,strip,pivot,spark,eclatsD,evie,parts,vel,key,composer,bloom,uni:{uReady:{value:0}},t0:performance.now(),torn:false,tilt:{x:0,y:0},target:{x:0,y:0},tornAt:0,
     dech:{ p:0, cible:0, sens:1, actif:false, pas:0 }, tPrec:performance.now()});
   cancelAnimationFrame(GL.raf); animGL(); }
@@ -1390,45 +1390,45 @@ function peindreEtape(cv, vue, couches, k, c, plan){ const g=cv.getContext('2d')
   const trace=(rings)=>{ g.beginPath(); for(const r of rings){ r.forEach(([lo,la],i)=>{ const [x,y]=px(lo,la); i?g.lineTo(x,y):g.moveTo(x,y); }); g.closePath(); } };
   for(const cc of couches){ trace(cc.rings);
     if(cc.style==='fond'){ g.fillStyle='rgba(233,199,123,.05)'; g.fill(); g.strokeStyle='rgba(233,199,123,.4)'; g.lineWidth=L(1.3); g.stroke(); }
-    else if(cc.style==='zone'){ g.fillStyle='rgba(233,199,123,.17)'; g.fill(); g.save(); g.shadowColor='rgba(255,200,110,.75)'; g.shadowBlur=12*k; g.strokeStyle='#F3D899'; g.lineWidth=L(2.6); g.stroke(); g.restore(); }
+    else if(cc.style==='zone'){ g.fillStyle='rgba(233,199,123,.17)'; g.fill(); g.strokeStyle='rgba(255,200,110,.22)'; g.lineWidth=L(9); g.stroke(); g.strokeStyle='#F3D899'; g.lineWidth=L(2.6); g.stroke(); }
     else if(cc.style==='cible'){ const gr=g.createLinearGradient(vue[0],vue[1],vue[0]+vue[2],vue[1]+vue[3]); gr.addColorStop(0,'rgba(251,231,169,.95)'); gr.addColorStop(1,'rgba(201,151,63,.92)'); g.fillStyle=gr; g.fill();
-      g.save(); g.shadowColor='rgba(255,210,120,.9)'; g.shadowBlur=16*k; g.strokeStyle='#FFF1C9'; g.lineWidth=L(2.8); g.stroke(); g.restore(); } }
+      g.strokeStyle='rgba(255,210,120,.3)'; g.lineWidth=L(10); g.stroke(); g.strokeStyle='#FFF1C9'; g.lineWidth=L(2.8); g.stroke(); } }
   if(plan){ const kx=111320*Math.cos(c.lat*Math.PI/180), ky=110574, pm=([x,y])=>px(c.lon+x/kx, c.lat+y/ky), u=Math.abs(px(c.lon,c.lat+1/ky)[1]-px(c.lon,c.lat)[1]);
     const chemin=(pts,ferme)=>{ g.beginPath(); pts.forEach((q,i)=>{ const [x,y]=pm(q); i?g.lineTo(x,y):g.moveTo(x,y); }); if(ferme) g.closePath(); };
     g.strokeStyle='rgba(233,199,123,.3)'; for(const rt of plan.routes){ chemin(rt.p,false); g.lineWidth=rt.larg*u; g.stroke(); }
     for(const b of plan.batiments){ if(b.cible) continue; chemin(b.r,true); g.fillStyle='rgba(233,199,123,.08)'; g.fill(); g.strokeStyle='rgba(233,199,123,.85)'; g.lineWidth=L(1.6); g.stroke(); }
     if(plan.parcelle){ chemin(plan.parcelle,true); g.fillStyle='rgba(233,199,123,.22)'; g.fill(); g.strokeStyle='#FFF1C9'; g.lineWidth=L(2.4); g.stroke(); }
-    for(const b of plan.batiments){ if(!b.cible) continue; chemin(b.r,true); g.save(); g.shadowColor='rgba(255,236,190,.95)'; g.shadowBlur=14*k; g.fillStyle='rgba(255,248,230,.85)'; g.fill(); g.strokeStyle='#fff'; g.lineWidth=L(2.2); g.stroke(); g.restore(); } }
+    for(const b of plan.batiments){ if(!b.cible) continue; chemin(b.r,true); g.strokeStyle='rgba(255,236,190,.35)'; g.lineWidth=L(10); g.stroke(); g.fillStyle='rgba(255,248,230,.88)'; g.fill(); g.strokeStyle='#fff'; g.lineWidth=L(2.2); g.stroke(); } }
   // le lieu : un point blanc et son halo
-  const [dx,dy]=px(c.lon,c.lat); g.save(); g.shadowColor='rgba(255,236,190,1)'; g.shadowBlur=14*k; g.fillStyle='#fff'; g.beginPath(); g.arc(dx,dy,L(4.5),0,Math.PI*2); g.fill(); g.restore();
+  const [dx,dy]=px(c.lon,c.lat); g.fillStyle='rgba(255,236,190,.35)'; g.beginPath(); g.arc(dx,dy,L(9),0,Math.PI*2); g.fill(); g.fillStyle='#fff'; g.beginPath(); g.arc(dx,dy,L(4.5),0,Math.PI*2); g.fill();
   g.strokeStyle='rgba(255,241,201,.85)'; g.lineWidth=L(1.6); g.beginPath(); g.arc(dx,dy,L(11),0,Math.PI*2); g.stroke(); }
 // un nom « claque » au centre de la carte (grand, avec un choc), puis se range en haut
-function claque(scene, nom){ const el=scene.querySelector('.rev-nom'), fil=scene.querySelector('.rev-fil'); el.textContent=nom; el.classList.remove('claque'); void el.offsetWidth; el.classList.add('claque');
+function claque(scene, nom){ const el=scene.querySelector('.rev-nom'), fil=scene.querySelector('.rev-fil'); el.firstChild.textContent=nom; el.classList.remove('claque'); void el.offsetWidth; el.classList.add('claque');
   clearTimeout(el._t); el._t=setTimeout(()=>{ fil.textContent=nom; fil.classList.remove('arrive'); void fil.offsetWidth; fil.classList.add('arrive'); }, 720); }
-async function revelationSurCarte(scene, c, r){ scene.innerHTML='<div class="rev-fil"></div><div class="rev-nom"></div><i class="rev-vignette"></i>'; scene.classList.remove('fin');
-  const W=scene.clientWidth, H=scene.clientHeight, ratio=W/H, k=Math.min(3, (devicePixelRatio||1)*(PK.grand||1.4)); const dep=depOf(c.citycode), reg=regionDe(dep);
-  const comP=fetchCommune(c), planP=window.CarteLieu ? CarteLieu.donnees(c).catch(()=>null) : Promise.resolve(null);
+// préparer les images de toutes les étapes (pendant l'annonce) ; jouer ensuite n'est plus que des transformations CSS
+async function preparerRevelation(scene, c){ scene.innerHTML='<div class="rev-fil"></div><div class="rev-nom"><span></span></div><i class="rev-sombre"></i><i class="rev-vignette"></i>'; scene.classList.remove('fin');
+  const W=scene.clientWidth||240, H=scene.clientHeight||350, ratio=W/H, k=Math.min(2.25, (devicePixelRatio||1)*(PK.grand||1.4)); const dep=depOf(c.citycode), reg=regionDe(dep);
   const autour=(bb,pad)=>{ const [x,y,w,h]=bb; return [x-w*pad, y-h*pad*1.6, w*(1+2*pad), h*(1+3.2*pad)]; };   // un peu plus de place en haut (le nom rangé)
-  const etapes=[ { nom:'France', vue:()=>autour(bboxOf(GEO.france,0),0.05), couches:()=>[{ rings:GEO.france, style:'zone' }] } ];
-  if(reg) etapes.push({ nom:reg.nom, vue:()=>autour(bboxOf(reg.rings,0),0.12), couches:()=>[{ rings:GEO.france, style:'fond' }, { rings:reg.rings, style:'zone' }] });
-  if(dep) etapes.push({ nom:dep.nom+' · '+dep.code, vue:()=>autour(bboxOf(dep.rings,0),0.14), couches:()=>[{ rings:reg?reg.rings:GEO.france, style:'fond' }, { rings:dep.rings, style:'zone' }] });
-  etapes.push({ nom:null, attendre:comP, vue:(com)=>autour(bboxOf(com.rings,0),0.18), couches:(com)=>[{ rings:dep?dep.rings:[], style:'fond' }, { rings:com.rings, style:'cible' }] });
-  etapes.push({ nom:null, rue:true, attendre:planP, vue:()=>{ const kx=111320*Math.cos(c.lat*Math.PI/180), ky=110574, d=95; const [x0,y0]=px(c.lon-d/kx,c.lat+d/ky), [x1,y1]=px(c.lon+d/kx,c.lat-d/ky); return [x0,y0,x1-x0,y1-y0]; } });
-  let prec=null, vuePrec=null, com=null;
-  for(let i=0;i<etapes.length;i++){ const e=etapes[i]; etapeR();
-    let donnee=null; if(e.attendre){ donnee=await e.attendre; if(!donnee || (e.rue && !(donnee.routes.length || donnee.batiments.length))) continue; }
-    if(!e.rue && donnee) com=donnee;
-    const nom = e.nom || (e.rue ? (estAdresse(c) ? (Regles.numeroEtVoie(c.label).voie||'') : '') : (com && com.nom));
-    const vue=cadreAspect(e.vue(donnee), ratio); const cv=document.createElement('canvas'); cv.className='rev-plan'; cv.width=Math.round(W*k); cv.height=Math.round(H*k);
-    peindreEtape(cv, vue, e.rue ? [{ rings:com?com.rings:[], style:'fond' }] : e.couches(donnee), k, c, e.rue ? donnee : null);
-    scene.insertBefore(cv, scene.querySelector('.rev-fil'));
+  const [com, plan] = await Promise.all([fetchCommune(c).catch(()=>null), window.CarteLieu ? CarteLieu.donnees(c).catch(()=>null) : null]);
+  const etapes=[ { nom:'France', vue:autour(bboxOf(GEO.france,0),0.05), couches:[{ rings:GEO.france, style:'zone' }] } ];
+  if(reg) etapes.push({ nom:reg.nom, vue:autour(bboxOf(reg.rings,0),0.12), couches:[{ rings:GEO.france, style:'fond' }, { rings:reg.rings, style:'zone' }] });
+  if(dep) etapes.push({ nom:dep.nom+' · '+dep.code, vue:autour(bboxOf(dep.rings,0),0.14), couches:[{ rings:reg?reg.rings:GEO.france, style:'fond' }, { rings:dep.rings, style:'zone' }] });
+  if(com) etapes.push({ nom:com.nom, vue:autour(bboxOf(com.rings,0),0.18), couches:[{ rings:dep?dep.rings:[], style:'fond' }, { rings:com.rings, style:'cible' }] });
+  if(plan && (plan.routes.length || plan.batiments.length)){ const kx=111320*Math.cos(c.lat*Math.PI/180), ky=110574, d=95; const [x0,y0]=px(c.lon-d/kx,c.lat+d/ky), [x1,y1]=px(c.lon+d/kx,c.lat-d/ky);
+    etapes.push({ nom: estAdresse(c) ? (Regles.numeroEtVoie(c.label).voie||'') : '', vue:[x0,y0,x1-x0,y1-y0], couches:[{ rings:com?com.rings:[], style:'fond' }], plan }); }
+  // une image par étape ; on laisse respirer la page entre deux (l'annonce continue de trembler pendant ce temps)
+  for(const e of etapes){ e.vue=cadreAspect(e.vue, ratio); const cv=document.createElement('canvas'); cv.className='rev-plan'; cv.width=Math.round(W*k); cv.height=Math.round(H*k);
+    peindreEtape(cv, e.vue, e.couches, k, c, e.plan||null); e.cv=cv; await new Promise(res=>setTimeout(res,16)); }
+  return { etapes, W, H }; }
+async function revelationSurCarte(scene, c, r, prep){ const { etapes, W, H } = prep || await preparerRevelation(scene, c); let prec=null, vuePrec=null;
+  for(let i=0;i<etapes.length;i++){ const e=etapes[i], cv=e.cv, vue=e.vue; etapeR(); scene.insertBefore(cv, scene.querySelector('.rev-fil'));
     if(prec){ const [x0,y0,w0,h0]=vuePrec, rx=(vue[0]-x0)/w0*W, ry=(vue[1]-y0)/h0*H, z=w0/vue[2], p=prec;
       // la nouvelle image part de l'endroit qu'elle occupe dans l'ancienne et s'agrandit ; l'ancienne s'agrandit au-delà et s'efface
       cv.style.transform=`translate(${rx}px,${ry}px) scale(${1/z})`; cv.style.opacity='0'; void cv.offsetWidth;
       cv.classList.add('entre'); p.classList.add('sort'); cv.style.transform='none'; cv.style.opacity='1';
       p.style.transform=`translate(${-rx*z}px,${-ry*z}px) scale(${z})`; p.style.opacity='0'; setTimeout(()=>p.remove(), 1200); }
     else { cv.classList.add('premiere'); }
-    prec=cv; vuePrec=vue; if(nom) claque(scene, nom); choc(r, i===0); coeur(1+i*0.5);
+    prec=cv; vuePrec=vue; if(e.nom) claque(scene, e.nom); choc(r, i===0); coeur(1+i*0.5);
     await pauseR(ETAPE_MS+(i===0?500:550)); }
   return true; }
 // l'alerte d'une carte Épique et au-delà : l'écran tremble, un double signal, le bandeau de la rareté au milieu, qui monte ensuite en haut
@@ -1443,7 +1443,7 @@ function choc(r, fort){ const rv=document.getElementById('reveal'); rv.classList
 // couleur de la rareté, un trait de lumière, des faisceaux, deux ondes, des grains ; Légendaire : une deuxième explosion.
 function explosion(r, x, y){ const rv=document.getElementById('reveal');
   const une=(bis)=>{ const ex=document.createElement('div'); ex.className='explo r'+r+(bis?' bis':''); if(x!=null){ ex.style.left=x+'px'; ex.style.top=y+'px'; } const n = r>=5 ? 24 : (r>=4 ? 18 : 12);
-    let h='<i class="eclat"></i><i class="rais"></i><i class="trait"></i><i class="onde"></i><i class="onde o2"></i>';
+    let h='<i class="eclat"></i><i class="trait"></i><i class="onde"></i><i class="onde o2"></i>';
     for(let k=0;k<n;k++) h+=`<b style="--a:${Math.round(k*360/n+(k%2)*8)}deg;--d:${120+(k*53)%110}px;--t:${(0.6+(k%3)*0.14).toFixed(2)}s"></b>`;
     ex.innerHTML=h; rv.appendChild(ex); setTimeout(()=>ex.remove(), 2200); };
   une(false); sonExplosion(r);
@@ -1497,11 +1497,11 @@ function sortirCartes(){ const wrap=document.getElementById('pkcards'); wrap.inn
     setTimeout(()=>{ wrap.style.transition='clip-path .55s ease-in'; wrap.style.clipPath='inset(0 0 0px 0)'; }, 670);
     setTimeout(()=>{ wrap.style.transition=''; wrap.style.clipPath=''; }, 1300); }
   packCards.forEach((c,i)=>{ const r=rarete(c); const el=document.createElement('div'); el.className='c3d r'+r+(sortie?' sortie':'');
-    el.innerHTML=`<i class="c3d-aura"></i><div class="c3d-corps">${[-2.5,-1.5,-0.5,0.5,1.5,2.5].map(z=>`<i class="c3d-tranche" style="--z:${z}px"></i>`).join('')}<div class="c3d-face c3d-dos"><i class="pc c3d-embleme"></i><span class="c3d-nom">Cadastra</span></div><div class="c3d-face c3d-avant">${faceCarte(c, r)}<div class="rev-scene"></div><i class="c3d-brillance"></i></div></div>`;
+    el.innerHTML=`<i class="c3d-aura"></i><div class="c3d-corps"><i class="c3d-bord haut"></i><i class="c3d-bord bas"></i><i class="c3d-bord gauche"></i><i class="c3d-bord droite"></i><div class="c3d-face c3d-dos"><i class="pc c3d-embleme"></i><span class="c3d-nom">Cadastra</span></div><div class="c3d-face c3d-avant">${faceCarte(c, r)}<div class="rev-scene"></div><i class="c3d-brillance"></i></div></div>`;
     wrap.appendChild(el); PK.cartes.push({ el, c, r });
     setTimeout(()=>{ el.classList.remove('sortie'); if(sortie) sonGlisse(i); }, sortie ? 90+i*70 : 60+i*90); });
   document.getElementById('pkhint').textContent='Touche la carte pour la révéler';
-  dispoPack(); }
+  dispoPack(); if(window.CarteLieu && CarteLieu.prechauffer) setTimeout(()=>CarteLieu.prechauffer(), 600); setTimeout(()=>preparerCarte(PK.cartes[0]), 900); }
 function dispoPack(){ const sc=document.getElementById('packscene'); if(!sc.classList.contains('on') || !PK.cartes.length) return;
   const W=sc.clientWidth, H=sc.clientHeight, n=PK.cartes.length;
   const pose=(el,x,y,r,s,z)=>{ el.style.setProperty('--x',x+'px'); el.style.setProperty('--y',y+'px'); el.style.setProperty('--r',r+'deg'); el.style.setProperty('--s',s); el.style.zIndex=z; };
@@ -1516,26 +1516,33 @@ window.addEventListener('resize', ()=>dispoPack());
 // les reflets suivent l'inclinaison (fx, fy : de 0 à 1 sur la carte)
 function reflets(el, fx, fy){ el.style.setProperty('--mx',(fx*100).toFixed(1)+'%'); el.style.setProperty('--my',(fy*100).toFixed(1)+'%');
   el.style.setProperty('--hx',(100-fx*100).toFixed(1)+'%'); el.style.setProperty('--hy',(100-fy*100).toFixed(1)+'%'); }
+// Préparer à l'avance la révélation d'une carte (les images des étapes, la maquette 3D) : sans cela, l'image se figeait un
+// instant à l'annonce et au moment où la carte se remplit (mesuré). Lancé pour la carte du dessus quand la pile apparaît,
+// puis pour la suivante pendant qu'on regarde la carte en main.
+function preparerCarte(k){ if(!k || k.prep) return; const el=k.el;
+  k.prep = new Promise(res=>setTimeout(res, 120)).then(()=>preparerRevelation(el.querySelector('.rev-scene'), k.c)).catch(()=>null);
+  k.pretCarte = k.prep.then(()=>CarteLieu.animer(el.querySelector('.cl'), k.c, k.r)).catch(()=>null); }
 async function revelerCarte(k){ if(revealing) return; revealing=true; PK.etat='revele'; const el=k.el, r=k.r, rv=document.getElementById('reveal'), sc=document.getElementById('packscene'), hint=document.getElementById('pkhint');
   hint.textContent=''; cancelAnimationFrame(PK.anim); REV.passer=false; rv.className='on surcarte r'+r; sc.classList.add('revele'); sc.dataset.r=r;
   // 1. l'annonce : la carte de dos vient au centre, s'illumine de la couleur de sa rareté et tremble (plus fort si c'est rare)
   etapeR(); el.classList.add('annonce'); dispoPack(); coeur(0.9); if(r>=4) alerteRarete(r); else vibrer([15]);
-  await pauseR(r>=4 ? 1900 : (r>=3 ? 1450 : 1100));
+  const scene=el.querySelector('.rev-scene'), t0=performance.now(); preparerCarte(k); const prep=await k.prep; const pretCarte=k.pretCarte;
+  await pauseR(Math.max(300, (r>=4 ? 1900 : (r>=3 ? 1450 : 1100)) - (performance.now()-t0)));
   // 2. elle se retourne en grandissant : la révélation se joue sur sa face
   etapeR(); el.classList.remove('annonce'); el.classList.add('grande','enscene'); dispoPack(); el.style.setProperty('--flip','0deg'); sonGlisse(1);
-  const scene=el.querySelector('.rev-scene'); await pauseR(450); etapeR();
-  try{ await revelationSurCarte(scene, k.c, r); }catch(e){ dsay && dsay('révélation : '+(e&&e.message||e)); }
+  await pauseR(450); etapeR();
+  try{ await revelationSurCarte(scene, k.c, r, prep); }catch(e){ dsay && dsay('révélation : '+(e&&e.message||e)); }
   // 3. le silence, puis le boum : la carte se remplit (le plan d'or, la maquette qui monte)
   etapeR(); coeur(0); el.classList.add('silence'); await pauseR(650); el.classList.remove('silence');
   boom(r); flash(r); { const b=el.getBoundingClientRect(), rb=rv.getBoundingClientRect(); if(r>=3) explosion(r, b.left+b.width/2-rb.left, b.top+b.height/2-rb.top); }
   document.getElementById('ralerte').classList.remove('on','haut');
   scene.classList.add('fin'); el.classList.add('vue','materialise'); el.classList.remove('enscene'); sonCarte(r); vibrer(r>=4?[20,30,60]:15);
-  CarteLieu.animer(el.querySelector('.cl'), k.c, r).then(s2=>{ k.scene=s2; if(s2){ s2.focus=true; s2.monter(); } });
+  pretCarte.then(s2=>{ k.scene=s2; if(s2){ s2.focus=true; s2.monter(); } });
   if(r>=3){ el.classList.remove('eclair'); void el.offsetWidth; el.classList.add('eclair'); }
   await pauseR(1500);
   rv.className=''; sc.classList.remove('revele'); el.classList.remove('grande'); revealing=false; PK.etat='main'; dispoPack(); setTimeout(()=>{ scene.innerHTML=''; }, 700);
   const der=PK.i>=PK.cartes.length-1; hint.textContent = der ? 'Incline la carte · glisse-la pour finir' : 'Incline la carte · glisse-la pour la suivante';
-  setTimeout(()=>{ if(PK.etat==='main' && PK.cartes[PK.i]===k) balancer(k.el); }, 950); }
+  setTimeout(()=>{ if(PK.etat==='main' && PK.cartes[PK.i]===k) balancer(k.el); }, 950); setTimeout(()=>preparerCarte(PK.cartes[PK.i+1]), 1600); }
 // la carte en main se balance doucement (ou suit le téléphone penché) : les reflets bougent
 function balancer(el){ cancelAnimationFrame(PK.anim); if(reduitMouvement()) return; el.classList.add('suit'); const t0=performance.now();
   const pas=()=>{ const k=PK.cartes[PK.etat==='fini' ? PK.zoom : PK.i]; if(!k || k.el!==el || !(PK.etat==='main' || PK.etat==='fini')){ el.classList.remove('suit'); return; }

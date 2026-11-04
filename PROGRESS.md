@@ -248,6 +248,12 @@
   - carte plus marquée et plus riche : cadre plus épais, équerres, plan gradué, rose des vents.
   - 49 tests.
 
+- 4 nov. 2026 (soir) : **la fluidité de l'ouverture**. Gautier : « ça lague trop ». Mesuré au téléphone simulé : la révélation passe de 2,5 à environ 40 images par seconde, la carte en main de 2,2 à environ 30.
+  - Les causes : les trente grandes couches de l'épaisseur, le dos animé, les mélanges de couleurs, les filtres et le flou d'ombre.
+  - Les remèdes : quatre bandes pour l'épaisseur, un dos fixe, des lueurs en double trait, des étapes et une maquette préparées à l'avance, la maquette au premier plan sans recopie, une pochette plus légère.
+  - Les noms qui claquent sont clairs sur un bandeau sombre (avant : sombres sur carte sombre).
+  - Bible § 11, « La fluidité, mesurée ». 49 tests.
+
 ## En cours
 - Lieux célèbres : les autres catégories (châteaux, mairies, gares, musées, ponts, phares, moulins…). Wikidata répond depuis le PC : `python tools/wikidata_celebres.py --categories chateau,mairie,…`, puis `gen_donnees.py celebres`. La fusion garde les catégories déjà reçues.
 - Phase 1.1 à 1.4 : la carte et le modèle des lieux reconstruits en modules (`src/`) à partir du prototype ; puis le marché (phase 4 : historique des ventes d'un lieu) et les communes et Maires (phase 6). Ensuite : Signaler envoyé au serveur dès qu'il y aura de vrais joueurs à l'écran ; Google ; un service d'envoi d'e-mails avant le lancement (le service de Supabase n'écrit qu'aux membres de l'équipe Supabase, deux e-mails par heure).

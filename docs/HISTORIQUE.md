@@ -144,6 +144,7 @@ Rien d'important ne vit dans une conversation : tout est dans le dépôt ou sur 
 - **La pochette et les cartes refaites** (PR #108). Gautier trouve le pack et les cartes « moches » : le pack n'est qu'un pavé, et une carte révélée semble remplacée par une autre. Il veut une ouverture « la plus proche de Pokémon Pocket » et propose de payer Meshy pour le pack. Claude fait le sachet en code, sans Meshy, pour pouvoir le déchirer et y mettre le décor : un sachet métallisé bombé, avec soudures d'or et décor « classe ». Chaque carte devient un seul objet qu'on retourne, qu'on incline et qu'on fait glisser, et ses reflets bougent avec elle.
 - **L'interview des cartes, puis les nouvelles cartes et la nouvelle révélation** (PR #109). Gautier trouve les cartes « trop basiques » et la révélation trop simple : elle « ne fait pas monter la pression ». Il veut qu'un toucher passe à l'étape suivante, avec une étape « région ». Comme il n'arrive pas à exprimer ses idées, il demande une interview « ultra poussée » : cinq séries de questions, une synthèse qu'il valide, une preuve. En route, il demande de ne pas tomber dans la science-fiction (« ce n'est pas au jeu de s'adapter au pack ») et signale la plaque qui touchait le cadre. Pour voir des cartes rares sans compter sur la chance, il obtient un pack d'essai.
 - **La révélation sur la carte** (PR #110). Gautier teste avec le pack d'essai. La comète est « super moche », la pression ne monte pas, la carte est « trop fine », rien n'est fluide (écran noir avant le plan) et la pile ne fait pas un paquet. Quelques questions à choix précisent ses envies : la carte doit avoir de l'épaisseur, des traits plus marqués et plus de richesse ; la révélation doit se jouer sur la carte qui se retourne, annoncée par la carte de dos qui s'illumine et tremble, avec des noms qui claquent.
+- **La fluidité** (PR #111). Gautier : l'ouverture « lag trop » pour qu'il puisse juger, et les noms sont peu visibles. Claude mesure au téléphone simulé et trouve les causes : couches 3D trop nombreuses, effets coûteux, calculs au mauvais moment. La révélation passe d'environ 2,5 à 40 images par seconde. Pendant ce travail, Gautier annonce le nouveau nom du jeu : **CityDeck**.
 
 ## Toutes les PR
 
@@ -280,6 +281,7 @@ Puis une PR par étape, fusionnée en squash :
 | #108 | 04/11 10:18 | La pochette devient un sachet métallisé ; chaque carte est un seul objet qu'on retourne, incline et fait glisser |
 | #109 | 04/11 11:00 | Les cartes et la révélation refaites d'après l'interview (plan d'or, maquette en porcelaine, comète, région, un toucher = étape suivante) ; le pack d'essai |
 | #110 | 04/11 11:20 | La révélation se joue sur la carte (annonce lumineuse, noms qui claquent), cartes épaisses en paquet, zooms fluides, carte plus riche |
+| #111 | 04/11 11:38 | Fluidité de l'ouverture (mesurée : révélation de 2,5 à environ 40 images/s) ; noms lisibles |
 
 ## Les décisions de Gautier
 
@@ -311,6 +313,7 @@ Les décisions du 2 novembre (interview) sont dans `CLAUDE.md` § 4 et dans le G
 | 4 nov. | Design « moins dessin animé, plus classe, stylé, impressionnant » (d'abord la révélation ; le reste à décider) ; prêt à payer Meshy si c'est la solution |
 | 4 nov. | Une ouverture de pack « la plus proche de Pokémon Pocket » : un vrai sachet, des cartes qu'on tient, retourne et incline (l'expérience, pas l'apparence) |
 | 4 nov. | Les cartes et la révélation d'après son interview (bible § 11) ; un toucher passe à l'étape suivante ; une étape « région » ; pas de science-fiction : « ce n'est pas au jeu de s'adapter au pack » |
+| 4 nov. | **Le jeu s'appellera CityDeck** (au lieu de Cadastra) |
 
 ## Ce qui reste à faire (au 3 novembre au soir)
 

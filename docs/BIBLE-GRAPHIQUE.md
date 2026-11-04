@@ -384,3 +384,33 @@ Les réponses :
 
 ![Le paquet, l'annonce, la France, la région, le département, la commune, la rue, la carte qui se remplit](bible/revelation-sur-carte.jpg)
 
+### La fluidité, mesurée (4 nov. au soir)
+
+Gautier : « l'ouverture lag trop, je ne peux pas faire de remarque constructive ». Les noms qui claquaient étaient aussi peu visibles, sombres sur carte sombre.
+
+**Mesure** : téléphone simulé (écran ×2,75, processeur ralenti), images par seconde, outil `mesure_pack.js` gardé hors du dépôt.
+
+| Moment | Avant | Après |
+|---|---|---|
+| Révélation | 2,5 images/s | environ 40 images/s |
+| Carte en main | 2,2 images/s | environ 30 images/s |
+
+**Les causes trouvées** :
+- l'épaisseur faite de six cartes empilées par carte : trente grandes images à composer ;
+- le dos des cartes animé en continu ;
+- les mélanges de couleurs (`mix-blend-mode`) ;
+- les filtres de lueur (`drop-shadow`) ;
+- le flou d'ombre des canevas.
+
+**Les remplacements** :
+- l'épaisseur passe par quatre fines bandes sur les bords ;
+- un dos fixe ;
+- des lueurs en double trait ;
+- les images des étapes et la maquette 3D préparées à l'avance (la carte du dessus quand la pile apparaît, la suivante pendant qu'on regarde la carte en main) ;
+- la maquette de la carte au premier plan dessinée directement dans le canevas du moteur 3D, posé sur la carte, sans recopie image par image ;
+- la pochette à 1,5 pixel par point et son halo à demi-résolution.
+
+**Les noms** : en lettres claires sur un bandeau sombre bordé d'or.
+
+**Ne pas réintroduire** : `mix-blend-mode`, filtres animés, animations continues de fond, empilements de grandes couches 3D, `shadowBlur` de canevas pendant l'ouverture.
+
