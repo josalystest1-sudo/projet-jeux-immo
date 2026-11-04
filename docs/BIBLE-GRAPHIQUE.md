@@ -257,3 +257,6 @@ Où c'est dans le code : la pochette est dessinée par `makeArt()` (`index.html`
 - **Le jardin des Tuileries** (nuit du 4 nov.) : ses deux pavillons côté Concorde, **l'Orangerie** (sa verrière, les Nymphéas) et **le Jeu de Paume**, sur leur emprise de l'IGN.
 
 ![L'Orangerie et le Jeu de Paume, au bout du jardin des Tuileries](bible/monuments-49.jpg)
+- **Le palais de justice de Paris** (nuit du 4 nov.) : le grand palais de l'île de la Cité, monté sur son emprise de l'IGN **avec ses cours ouvertes** (les outils `emprise` et `pave` savent maintenant garder les cours intérieures) : la Sainte-Chapelle reste visible au fond de la sienne. **400 maquettes.**
+
+![Le palais de justice de Paris autour de ses cours, la Sainte-Chapelle au milieu](bible/monuments-50.jpg)
