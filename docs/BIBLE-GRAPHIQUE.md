@@ -209,3 +209,6 @@ Où c'est dans le code : la pochette est dessinée par `makeArt()` (`index.html`
 - **Sept monuments régionaux de plus** (nuit du 4 nov.) : **le musée de Picardie** (ses pavillons d'angle, la verrière), **le château de Najac** (son enceinte et son grand donjon rond), **Sainte-Croix de Bordeaux** (la façade romane et son clocher), **le château d'Ainay-le-Vieil** (l'enceinte octogonale et ses tours), **Saint-Pierre-le-Jeune** protestant à Strasbourg (le grès rose), **le château d'Azay-le-Ferron**, **Saint-Leu-Saint-Gilles** (ses deux petites flèches sur la rue Saint-Denis).
 
 ![Le musée de Picardie, Najac, Sainte-Croix de Bordeaux, Ainay-le-Vieil, Saint-Pierre-le-Jeune et Saint-Leu-Saint-Gilles](bible/monuments-33.jpg)
+- **Huit monuments régionaux de plus** (nuit du 4 nov.) : **le château de Murol** (la forteresse de basalte sur sa butte), **Villesavin** (le logis bas et ses ailes, le colombier), **Montpoupon**, **Puymartin** (ses toits de lauzes), **La Brède** (au milieu de ses douves), **la cathédrale d'Antibes** (la façade ocre et la vieille tour de guet), **la cathédrale de Viviers** (le clocher-porche et son étage octogonal, le haut chœur), **l'abbaye de Chaalis** (le château des abbés et la chapelle).
+
+![Murol, Villesavin, Puymartin, La Brède, la cathédrale de Viviers et l'abbaye de Chaalis](bible/monuments-34.jpg)
