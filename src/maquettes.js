@@ -4869,6 +4869,26 @@
     return A.groupe;
   }
 
+  // le Jardin des plantes : la Grande Galerie de l'Évolution et sa verrière, les grandes serres (les emprises de l'IGN)
+  function jardinDesPlantes(THREE) {
+    const A = atelier(THREE);
+    const pierre = A.matiere(0xF2EAD8), pierreFoncee = A.matiere(0xD6CBB0), verre = A.matiere(0x9FD3E8, 0x1D4A5C);
+    pave(A, [[84.5, 130], [92.5, 150], [72, 157.5], [71, 153.5], [38, 166], [39.5, 170], [35.5, 171.5], [34, 168], [1.5, 180.5], [3, 184.5], [-17, 192], [-24.5, 172], [-4.5, 164.5], [-3, 168.5], [66, 141.5], [64.5, 137.5]], 20, pierre, verre, 3, pierreFoncee);
+    emprise(A, [[-118.5, 52.5], [-118, 54.5], [-114, 53.5], [-113, 54], [-109, 64.5], [-109, 67], [-113, 68], [-110.5, 74.5], [-162, 93.5], [-164.5, 86], [-170, 72]], 8, verre);
+    return A.groupe;
+  }
+
+  // la Rotonde du parc Monceau (la rotonde de Chartres, ancien pavillon d'octroi de Ledoux) : sa colonnade, sa coupole
+  function rotondeMonceau(THREE) {
+    const A = atelier(THREE);
+    const pierre = A.matiere(0xF2EAD8), pierreFoncee = A.matiere(0xD6CBB0), cuivre = A.matiere(0x6FB59A);
+    A.cylindre(5.8, 5.8, 9, 24, 0, 0, 0, pierre);
+    A.cylindres(Array.from({ length: 16 }, (_, k) => [Math.cos(k * Math.PI / 8) * 7, Math.sin(k * Math.PI / 8) * 7, 0.35, 6, 0.4]), pierre, 8);
+    A.cylindre(7.5, 7.5, 0.4, 24, 0, 0, 0, pierreFoncee); A.cylindre(7.6, 7.6, 1, 24, 0, 6.4, 0, pierreFoncee);
+    A.dome(5, 0.6, 0, 9, 0, cuivre); A.cylindre(0.8, 0.8, 1.5, 8, 0, 11.6, 0, pierre);
+    return A.groupe;
+  }
+
   // les maquettes connues : le monument (identifiant de data/monuments.json), où et comment la poser, et les
   // bâtiments de l'IGN qu'elle remplace (sinon les blocs gris de la BD TOPO resteraient dedans)
   const MODELES = {
@@ -6085,6 +6105,12 @@
     Q547789: {   // la maison de Balzac (l'emprise de l'IGN)
       construire: maisonBalzac, centre: [2.2808, 48.8553], orientation: 0, masquer: ['BATIMENT0000000245171243'],
     },
+    Q730948: {   // le Jardin des plantes : la Grande Galerie de l'Évolution et les grandes serres (les emprises de l'IGN)
+      construire: jardinDesPlantes, centre: [2.3597, 48.8439], orientation: 0, masquer: ['BATIMENT0000000241931151', 'BATIMENT0000000241932738', 'BATIMENT0000000241932737'],
+    },
+    Q1414059: {   // le parc Monceau : la Rotonde (le bâtiment « monument » de l'IGN)
+      construire: rotondeMonceau, centre: [2.30908, 48.880255], orientation: 0, masquer: ['BATIMENT0000000245173441'],
+    },
   };
   const MASQUES = Object.values(MODELES).flatMap((m) => m.masquer);
 
@@ -6191,6 +6217,7 @@
     silvacane,  lerins,  hotelBeauvais,  museeCheret,  laTrappe,  portRoyal,  aubergeRavoux,
     manufactureSevres,  citadelleBesancon,
     alyscamps,  templeDonon,  templeDiane,
-    royaumont,  maubuisson,  saintWandrille,  maisonBalzac };
+    royaumont,  maubuisson,  saintWandrille,  maisonBalzac,
+    jardinDesPlantes,  rotondeMonceau };
   if (typeof module !== 'undefined' && module.exports) module.exports = api; else racine.Maquettes = api;
 })(typeof globalThis !== 'undefined' ? globalThis : this);
