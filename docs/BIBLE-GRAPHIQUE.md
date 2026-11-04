@@ -221,3 +221,6 @@ Où c'est dans le code : la pochette est dessinée par `makeArt()` (`index.html`
 - **Cinq monuments régionaux de plus** (nuit du 4 nov.) : **les quatre châteaux de Lastours** sur leur crête, **Peyrepertuse** étirée sur la sienne (le château bas, le donjon de San Jordi), **les ruines de Clisson** (le donjon, la grande enceinte), tracés d'après les murs de l'IGN ; **la basilique de Luxeuil** (le grès rose, la tour-porche), **Saint-Michel-de-Cuxa** (le grand clocher roman).
 
 ![Lastours, Peyrepertuse, Clisson, Luxeuil et Saint-Michel-de-Cuxa](bible/monuments-37.jpg)
+- **Quatre monuments régionaux de plus** (nuit du 4 nov.) : **la Grande Chartreuse** (le très long grand cloître et les petites maisons des moines), **le palais de Compiègne** (le grand triangle, la cour d'honneur, les longs toits d'ardoise), **l'abbaye Saint-Remi** de Reims (les bâtiments du musée contre la basilique), **le fort Saint-Jean** à Marseille (la tour du Roi René).
+
+![La Grande Chartreuse, le palais de Compiègne, l'abbaye Saint-Remi et le fort Saint-Jean](bible/monuments-38.jpg)
