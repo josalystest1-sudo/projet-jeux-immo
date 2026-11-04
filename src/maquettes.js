@@ -4967,6 +4967,27 @@
     return A.groupe;
   }
 
+  // l'hôpital de Bicêtre : les longs bâtiments du XVIIe siècle autour de la grande cour (les emprises de l'IGN)
+  function bicetre(THREE) {
+    const A = atelier(THREE);
+    const pierre = A.matiere(0xEFE7D6), pierreFoncee = A.matiere(0xD2C6AC), ardoise = A.matiere(0x4F5D8C);
+    pave(A, [[-76, -61], [1, -53], [1.5, -53], [2, -55.5], [18.5, -54], [18, -53], [18, -51], [34.5, -49.5], [42, -49], [42, -38.5], [34.5, -39.5], [17, -41.5], [16.5, -41], [12, -41], [11, -33], [12.5, -32.5], [12.5, -30.5], [11, -30.5], [6.5, 14], [-4.5, 13], [0.5, -42.5], [-77, -50], [-85, 29.5], [-84, 29.5], [-85.5, 41.5], [-97, 40.5], [-97, 40], [-124, 37], [-124.5, 38], [-127, 37.5], [-130, 66], [-120, 67], [-120.5, 72.5], [-101, 74.5], [-101, 74], [-88.5, 75], [-90, 87], [-102, 85.5], [-102, 85], [-114.5, 83.5], [-115, 86], [-123, 85], [-123, 82.5], [-129, 82], [-129, 83], [-140.5, 81.5], [-139.5, 70], [-138, 70], [-135, 39.5], [-137.5, 39], [-137, 36.5], [-136, 36.5], [-135, 29.5], [-146, 28.5], [-145.5, 25], [-134.5, 26], [-134.5, 25], [-123, 26], [-123, 27], [-96, 29.5], [-93, -2], [-92, -13.5], [-91.5, -13.5], [-88, -51], [-93, -51.5], [-93.5, -52], [-104.5, -53], [-174.5, -60], [-174.5, -59.5], [-184.5, -60.5], [-184.5, -61], [-76, -61]], 16, pierre, ardoise, 5, pierreFoncee);
+    pave(A, [[-179.5, -92.5], [-176, -83.5], [-173.5, -83], [-175, -70.5], [-173, -70.5], [-173, -70], [-92, -62], [-92, -65], [-75.5, -63.5], [-76, -61], [1, -53], [1.5, -53], [2, -55.5], [18.5, -54], [18, -53], [18, -51], [42, -49], [42, -45.5], [-30, -45.5], [-77, -50], [-77.5, -45.5], [-88.5, -45.5], [-88, -51], [-93, -51.5], [-93.5, -52], [-104.5, -53], [-174.5, -60], [-174.5, -59.5], [-184.5, -60.5], [-183.5, -71.5], [-181.5, -71.5], [-179.5, -92.5]], 15.6, pierre, ardoise, 5, pierreFoncee);
+    pave(A, [[101.5, -55.5], [109, -54.5], [109, -53], [108, -42.5], [109.5, -42.5], [108.5, -31.5], [101.5, -32], [98, -32.5], [98, -33], [34.5, -39.5], [26.5, -40.5], [26.5, -50.5], [34.5, -49.5], [99, -43], [99, -43.5], [100, -43.5], [101, -53], [101.5, -55.5]], 15.2, pierre, ardoise, 5, pierreFoncee);
+    pave(A, [[100.5, -45.5], [101, -53], [101.5, -55.5], [109, -54.5], [109, -53], [108, -45.5], [100.5, -45.5]], 14.8, pierre, ardoise, 5, pierreFoncee);
+    return A.groupe;
+  }
+
+  // la chartreuse de Champmol (Dijon) : le pavillon hexagonal du Puits de Moïse, le portail de la chapelle (les emprises de
+  // l'IGN)
+  function champmol(THREE) {
+    const A = atelier(THREE);
+    const pierre = A.matiere(0xEFE7D6), pierreFoncee = A.matiere(0xD2C6AC), ardoise = A.matiere(0x4F5D8C), verre = A.matiere(0x9FD3E8, 0x1D4A5C);
+    A.cylindre(4.25, 4.25, 2.5, 6, -52, 0, 58.25, pierre); A.cylindre(4.05, 4.05, 4.5, 6, -52, 2.5, 58.25, verre); A.pyramide(4.65, 3, 6, -52, 7, 58.25, ardoise);
+    pave(A, [[21, -2.5], [21, 0], [23, 0.5], [24, -0.5], [24.5, 0], [24, 0.5], [25, 1.5], [25.5, 1], [26, 2], [25.5, 2], [25.5, 4], [26, 4], [25.5, 5], [25, 5], [24, 6], [24, 6.5], [23.5, 7], [23, 6.5], [21, 6.5], [21, 9], [12.5, 9], [12, 9.5], [12, 10.5], [11.5, 11], [11, 10.5], [8.5, 10], [8.5, 10.5], [7.5, 10.5], [8, 9.5], [7, 9.5], [6.5, 9], [3.5, 9], [-0.5, 9], [-0.5, 9.5], [-1, 10.5], [-1.5, 10.5], [-12.5, 10.5], [-12.5, 3], [-12, 2.5], [-11, 3], [-8.5, -0.5], [-8.5, -1.5], [-8, -2], [-7, -0.5], [-7, -2.5], [21, -2.5]], 11, pierre, ardoise, 5, pierreFoncee);
+    return A.groupe;
+  }
+
   // les maquettes connues : le monument (identifiant de data/monuments.json), où et comment la poser, et les
   // bâtiments de l'IGN qu'elle remplace (sinon les blocs gris de la BD TOPO resteraient dedans)
   const MODELES = {
@@ -6207,6 +6228,12 @@
     Q647070: {   // l'abbaye de Clairvaux (les emprises de l'IGN)
       construire: clairvaux, centre: [4.7889, 48.1472], orientation: 0, masquer: ['BATIMENT0000000297700432', 'BATIMENT0000000297700433', 'BATIMENT0000000297700434', 'BATIMENT0000000297700441', 'BATIMENT0000000297700442', 'BATIMENT0000000297700444'],
     },
+    Q15217751: {   // l'hôpital de Bicêtre : les bâtiments autour de la grande cour (les emprises de l'IGN)
+      construire: bicetre, centre: [2.3561, 48.81], orientation: 0, masquer: ['BATIMENT0000000241186898'],
+    },
+    Q922303: {   // la chartreuse de Champmol : le Puits de Moïse et le portail de la chapelle (les emprises de l'IGN)
+      construire: champmol, centre: [5.0174, 47.3217], orientation: 0, masquer: ['BATIMENT0000000217342747', 'BATIMENT0000000217344225'],
+    },
   };
   const MASQUES = Object.values(MODELES).flatMap((m) => m.masquer);
 
@@ -6318,6 +6345,7 @@
     tuileries,
     palaisJustice,
     hopitalSaintLouis,
-    lariboisiere, saintLouisEnLIle, clairvaux };
+    lariboisiere, saintLouisEnLIle, clairvaux,
+    bicetre, champmol };
   if (typeof module !== 'undefined' && module.exports) module.exports = api; else racine.Maquettes = api;
 })(typeof globalThis !== 'undefined' ? globalThis : this);
