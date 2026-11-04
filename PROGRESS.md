@@ -240,6 +240,14 @@
   - Corrigé en route, d'après Gautier : la plaque qui touchait le cadre, l'« hologramme » trop science-fiction (devenu porcelaine, sans reflet arc-en-ciel).
   - La collection garde les anciennes cartes pour l'instant. 49 tests.
 
+- 4 nov. 2026 (soir) : **la révélation se joue sur la carte**, d'après les essais de Gautier sur son téléphone (bible § 11) :
+  - les cartes ont une épaisseur (tranche dorée) et la pile fait un vrai paquet ;
+  - l'annonce : la carte de dos s'illumine de la couleur de sa rareté et tremble ; la comète est supprimée ;
+  - la carte se retourne en grandissant, et la France, la région, le département, la commune et la rue défilent sur sa face, chaque nom claquant au centre ;
+  - fluidité : chaque étape est peinte une fois et les zooms passent par des transformations CSS (fini les saccades et l'écran noir) ; plan de la carte en image ; les cartes hors du premier plan sont dessinées moins souvent ;
+  - carte plus marquée et plus riche : cadre plus épais, équerres, plan gradué, rose des vents.
+  - 49 tests.
+
 ## En cours
 - Lieux célèbres : les autres catégories (châteaux, mairies, gares, musées, ponts, phares, moulins…). Wikidata répond depuis le PC : `python tools/wikidata_celebres.py --categories chateau,mairie,…`, puis `gen_donnees.py celebres`. La fusion garde les catégories déjà reçues.
 - Phase 1.1 à 1.4 : la carte et le modèle des lieux reconstruits en modules (`src/`) à partir du prototype ; puis le marché (phase 4 : historique des ventes d'un lieu) et les communes et Maires (phase 6). Ensuite : Signaler envoyé au serveur dès qu'il y aura de vrais joueurs à l'écran ; Google ; un service d'envoi d'e-mails avant le lancement (le service de Supabase n'écrit qu'aux membres de l'équipe Supabase, deux e-mails par heure).

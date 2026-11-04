@@ -364,3 +364,23 @@ Où c'est dans le code :
 - `src/carte_lieu.js` : `donnees` (le plan d'un lieu par le WFS de l'IGN : parcelle, bâtiments et hauteurs, rues), `scene` (un seul moteur 3D partagé, recopié dans le canevas de chaque carte) et `html` (le badge).
 - `index.html` : `revealSequence` (les étapes, `REV` pour passer d'un toucher, `REV.pasAPas` pour les captures), `comete`, `alerteRarete`, `choc`, `coeur`, `dessinerRue`, `REGIONS`, `faceCarte`.
 - Le **pack d'essai** (`ouvrirPackEssai`, dans les Réglages ou par `?essai-pack`, `?essai-pack=4`, `?essai-pack=5`) : il permet de voir les raretés hautes sans compter sur la chance, et ne donne rien. À retirer au lancement.
+
+### Les retours de Gautier sur son téléphone (4 nov. au soir), et ce qui a changé
+
+Ses remarques :
+- la comète était « un trait et un cercle », sans raison d'être ;
+- la révélation ne donnait pas l'impression de pression ;
+- la carte était « trop fine » : trop plate, traits trop fins, pas assez riche ;
+- tout saccadait, avec un écran noir avant le plan cadastral ;
+- les cartes de dos ne faisaient pas un vrai paquet ;
+- toucher une carte de dos devait la retourner et lancer l'animation.
+
+Les réponses :
+- **Un vrai paquet** : chaque carte a une épaisseur (une tranche dorée, visible quand elle s'incline), et les cartes de la pile sont empilées et décalées.
+- **L'annonce** : la carte de dos vient au centre, s'illumine de la couleur de sa rareté et tremble, d'autant plus fort que la carte est rare. Pour Épique et au-delà, le bandeau de la rareté apparaît. La comète est supprimée.
+- **La révélation se joue sur la carte** : elle se retourne en grandissant vers le joueur. Sur sa face défilent la France, la région, le département, la commune et la rue. Chaque nom **claque** en grand au centre, puis se range en haut. Le fond prend la lumière de la rareté et ses bords s'assombrissent. Le cœur accélère, un silence, puis le boum, et la carte **se remplit** (le plan d'or, la maquette qui monte).
+- **La fluidité** : chaque étape est peinte une seule fois dans un canevas (`peindreEtape`). D'une étape à l'autre, l'image se zoome vers la suivante par des transformations CSS (`revelationSurCarte`), sans plus redessiner la carte de France à chaque image. Le plan de la carte est une image posée au sol, et non plus des lignes 3D. La carte au premier plan est dessinée à chaque image, les autres une image sur six.
+- **La carte plus marquée et plus riche** : un cadre plus épais avec de petites équerres d'or pour toutes les raretés, la fenêtre du plan graduée comme une carte ancienne, une rose des vents qui tourne avec la maquette, des chiffres plus grands.
+
+![Le paquet, l'annonce, la France, la région, le département, la commune, la rue, la carte qui se remplit](bible/revelation-sur-carte.jpg)
+
