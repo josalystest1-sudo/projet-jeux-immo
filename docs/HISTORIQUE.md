@@ -155,6 +155,7 @@ Rien d'important ne vit dans une conversation : tout est dans le dépôt ou sur 
 - **Le Maire par caisse de travaux, dans le jeu** (PR #119). Gautier : « allez, on commence » le game design du 4 nov. Première étape : dans la démo, chaque commune a sa caisse de travaux ; on y verse, le plus gros contributeur devient Maire pour 2 semaines et touche 5 % des loyers des autres. Le serveur suit à l'étape d'après.
 - **La caisse de travaux sur le serveur** (PR #120). Le vrai serveur a maintenant la caisse : on y verse pour de vrai, les Maires sont élus toutes les 2 semaines avec les mêmes règles que la démo, et les robots du serveur d'essai versent aussi, pour que Gautier ait des rivaux.
 - **La promenade au toucher** (PR #121). Gautier : en promenade, toucher un bâtiment sur la carte 3D doit emmener Street View devant lui. C'est fait (face à la façade, le bâtiment apparaît « en face » sous la carte) ; toucher une rue y emmène aussi.
+- **La maquette qui se montrait trop tôt** (PR #122). Gautier : en dévoilant une carte, on apercevait le modèle 3D de l'adresse avant la carte de France. Le voile de la révélation arrivait en fondu pendant que la carte se retournait ; il est désormais opaque dès le départ.
 
 ## Toutes les PR
 
@@ -302,6 +303,7 @@ Puis une PR par étape, fusionnée en squash :
 | #119 | 04/11 16:00 | Le Maire par caisse de travaux dans le jeu (démo) : verser, mandat de 2 semaines, élection, part des loyers, notifications |
 | #120 | 04/11 17:30 | Le Maire par caisse de travaux sur le serveur : verser, élection, absence, part des Maires à la récolte, fin de mandat annoncée, robots qui versent |
 | #121 | 04/11 18:00 | En promenade, toucher un bâtiment sur la carte emmène Street View devant lui ; toucher une rue y emmène |
+| #122 | 04/11 18:20 | Révélation : la maquette du lieu n'apparaît plus avant la carte de France |
 
 ## Les décisions de Gautier
 

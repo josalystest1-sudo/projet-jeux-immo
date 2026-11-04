@@ -1024,3 +1024,10 @@ body.promenade #sheet .svwrap{display:none}
 .caisse-total{display:flex;align-items:center;justify-content:space-between;padding:8px 10px;border-radius:12px;background:var(--ciel);font-weight:800}
 .caisse-total b{font-family:var(--titre);font-size:18px}
 .m.petit{font-size:12px;margin-top:8px;opacity:.8}
+
+/* ===================== la face cachée jusqu'à la révélation (4 nov. au soir) =====================
+   Gautier : « on aperçoit brièvement, avant la carte de France, le modèle 3D de l'adresse ». La maquette est préparée à
+   l'avance sur la face (fluidité) ; le voile de la révélation apparaissait en fondu (0,5 s) au retournement, et la maquette
+   transparaissait. Le voile est désormais opaque dès le départ ; il ne s'efface qu'à la fin de la révélation. */
+.c3d .rev-scene{opacity:1;transition:none}
+.c3d .rev-scene.fin{opacity:0;transition:opacity .9s ease .1s}
