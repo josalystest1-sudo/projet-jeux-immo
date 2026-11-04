@@ -140,3 +140,6 @@ Où c'est dans le code : la pochette est dessinée par `makeArt()` (`index.html`
 - **Les maquettes sont construites à la demande** : une maquette n'est construite que quand son monument approche de l'écran (la construction de toutes au démarrage prenait 0,3 s sur le PC à 71 maquettes, bien plus sur un téléphone, et toute leur mémoire).
 
 ![Angers, Bayeux, Chantilly, la villa Savoye, l'Odéon et l'arc d'Orange](bible/monuments-10.jpg)
+- **Dix monuments régionaux de plus** (nuit du 4 nov.) : **Saint-Remi de Reims**, **Saint-Germain-l'Auxerrois** (le porche flamboyant), **la tour Saint-Jacques**, **les arènes de Lutèce**, **le château de Saumur** (ses tours et leurs girouettes dorées ; posé au point de Wikidata), **la place des Victoires** (le cercle des façades, Louis XIV doré), **le Haut-Kœnigsbourg** (le grès rose sur son rocher, le bastion, le donjon, les toits de tuiles), **Saint-Étienne-du-Mont** (la façade aux trois pignons), **les arènes de Nîmes** (l'ellipse, ses deux étages d'arcades, les gradins), **la colonne de Juillet** (le Génie de la Liberté doré).
+
+![Les arènes de Nîmes, la colonne de Juillet, la place des Victoires, le Haut-Kœnigsbourg, Saumur et Saint-Remi](bible/monuments-11.jpg)
