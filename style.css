@@ -961,3 +961,26 @@ body.promenade #sheet .svwrap{display:none}
 .cl-rose path{fill:rgba(233,199,123,.55)}.cl-rose path.n{fill:#FFF1C9}.cl-rose circle{fill:#E9C77B}
 .cl-stats{border-top:1.5px solid rgba(233,199,123,.5)}
 .cl-stats b{font-size:21px}.cl-stats i{font-size:9.5px;color:rgba(243,227,188,.75)}
+
+/* ===================== fluidité de l'ouverture (4 nov. au soir : « l'ouverture lag trop ») =====================
+   Mesuré au téléphone simulé : les six cartes empilées par carte pour l'épaisseur (trente grandes images à composer), le dos
+   animé en continu, les mélanges de couleurs et les filtres de lueur faisaient tomber la révélation à 2-3 images par
+   seconde. Remplacés par des équivalents légers. */
+.c3d-tranche{display:none}
+.c3d-bord{position:absolute;background:linear-gradient(90deg,#6B4E1C,#E9C77B 50%,#6B4E1C);pointer-events:none}
+.c3d-bord.haut,.c3d-bord.bas{left:16px;right:16px;height:6px}.c3d-bord.haut{top:-3px;transform:rotateX(90deg)}.c3d-bord.bas{bottom:-3px;transform:rotateX(90deg)}
+.c3d-bord.gauche,.c3d-bord.droite{top:16px;bottom:16px;width:6px;background:linear-gradient(0deg,#6B4E1C,#E9C77B 50%,#6B4E1C)}.c3d-bord.gauche{left:-3px;transform:rotateY(90deg)}.c3d-bord.droite{right:-3px;transform:rotateY(90deg)}
+.c3d-dos::after{animation:none;mix-blend-mode:normal;opacity:.35}
+.c3d-brillance{mix-blend-mode:normal;background:radial-gradient(circle at var(--mx,50%) var(--my,30%),rgba(255,255,255,.22) 0%,rgba(255,255,255,.06) 30%,transparent 65%)}
+.c3d.vue .c3d-brillance{opacity:1}
+.cl-trait.vif{filter:none}.cl-trait.halo{stroke:var(--c2);stroke-width:7;opacity:.22}.cl.r1 .cl-trait.halo{opacity:0}
+.cl.r4 .cl-trait.vif:not(.epais){animation:none}
+.c3d.silence .rev-scene{filter:none}.rev-sombre{position:absolute;inset:0;z-index:2;background:#000;opacity:0;pointer-events:none;transition:opacity .5s}.c3d.silence .rev-sombre{opacity:.45}
+#ralerte.on{animation:none}
+.explo .eclat{left:-50vmax;top:-50vmax;width:100vmax;height:100vmax}
+.c3d-aura{will-change:transform,opacity}
+/* les noms qui claquent : clairs et lisibles sur la carte sombre (remarque de Gautier), sur un bandeau sombre */
+.rev-nom{filter:none;background:none;color:#FFF8E6;-webkit-text-fill-color:#FFF8E6;font-size:31px;text-shadow:0 0 18px rgba(255,214,140,.85),0 2px 0 rgba(0,0,0,.6)}
+.rev-nom span{display:inline-block;padding:8px 14px 6px;background:linear-gradient(90deg,transparent,rgba(5,11,30,.82) 15%,rgba(5,11,30,.82) 85%,transparent);border-top:1.5px solid rgba(255,214,140,.75);border-bottom:1.5px solid rgba(255,214,140,.75)}
+.rev-fil{color:#FFF1C9;font-size:13px;font-weight:700;text-shadow:0 1px 6px rgba(0,0,0,.9);background:linear-gradient(90deg,transparent,rgba(5,11,30,.75) 20%,rgba(5,11,30,.75) 80%,transparent);padding:3px 0}
+.cl-moteur{pointer-events:none}

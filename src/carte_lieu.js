@@ -58,11 +58,13 @@
   function dessinerTout(t) {
     boucle = 0; const vues = [...SCENES].filter((s) => s.cv.isConnected && visible(s.cv)); if (!vues.length) return; cadence++;
     // la carte au premier plan (en main, agrandie) à chaque image ; les autres une image sur six, à tour de rôle
-    vues.forEach((s, i) => { if (s.focus || vues.length === 1 || cadence % 6 === i % 6) s.dessiner(t / 1000); });
+    // la carte au premier plan à chaque image (dans le canevas du moteur, posé sur elle) ; les autres une fois par seconde
+    const focus = vues.find((s) => s.focus) || (vues.length === 1 ? vues[0] : null);
+    vues.forEach((s, i) => { if (s === focus || (cadence % 60) === (i * 7) % 60 || !s.vu) s.dessiner(t / 1000, s === focus); });
     boucle = requestAnimationFrame(dessinerTout);
   }
   function visible(el) { const b = el.getBoundingClientRect(); return b.width > 0 && b.bottom > 0 && b.right > 0 && b.top < innerHeight && b.left < innerWidth && getComputedStyle(el).visibility !== 'hidden'; }
-  function moteurPartage(THREE) { if (!moteur) { const cv = document.createElement('canvas'); moteur = new THREE.WebGLRenderer({ canvas: cv, antialias: true, alpha: true, preserveDrawingBuffer: true }); moteur.setClearColor(0x000000, 0); } return moteur; }
+  function moteurPartage(THREE) { if (!moteur) { const cv = document.createElement('canvas'); cv.className = 'cl-moteur'; moteur = new THREE.WebGLRenderer({ canvas: cv, antialias: true, alpha: true, preserveDrawingBuffer: true }); moteur.setClearColor(0x000000, 0); } return moteur; }
 
   function scene(cv, d, r) {
     const THREE = racine.THREE; const [clair, vif] = COULEURS[r] || COULEURS[1];
@@ -111,8 +113,8 @@
       grains = { pts: new THREE.Points(g, new THREE.PointsMaterial({ color: 0xFFE7B0, size: Math.max(0.45, taille / 70), transparent: true, opacity: 0.6, blending: THREE.AdditiveBlending, depthWrite: false })), dep, N };
       sc.add(grains.pts); }
     const s = {
-      cv, focus: false, rose: cv.parentElement && cv.parentElement.querySelector('.cl-rose'), dessiner(t) {
-        const W = cv.clientWidth, H = cv.clientHeight; if (!W || !H) return; const ren = moteurPartage(THREE); const k = Math.min(s.focus ? 2 : 1.25, devicePixelRatio || 1);
+      cv, focus: false, vu: false, rose: cv.parentElement && cv.parentElement.querySelector('.cl-rose'), dessiner(t, direct) {
+        const W = cv.clientWidth, H = cv.clientHeight; if (!W || !H) return; const ren = moteurPartage(THREE); const k = Math.min(direct ? 1.75 : 1.25, devicePixelRatio || 1); s.vu = true;
         if (cv.width !== Math.round(W * k) || cv.height !== Math.round(H * k)) { cv.width = Math.round(W * k); cv.height = Math.round(H * k); }
         if (ren.domElement.width !== cv.width || ren.domElement.height !== cv.height) ren.setSize(cv.width, cv.height, false);
         cam.aspect = W / H; cam.updateProjectionMatrix();
@@ -121,7 +123,9 @@
         if (s.depart != null) { if (s.depart < 0) s.depart = t; const m = Math.min(1, (t - s.depart) / 1.3), e = 1 - Math.pow(1 - m, 3); maquette.scale.y = Math.max(0.001, e); maquette.position.y = 0.6 * e; if (m >= 1) s.depart = null; }
         if (grains) { const p = grains.pts.geometry.attributes.position; for (let i = 0; i < grains.N; i++) { const [x, z, o] = grains.dep[i]; const y = ((t * 0.07 + o) % 1); p.setXYZ(i, x, y * hmax * 1.6, z); } p.needsUpdate = true; }
         ren.clear(); ren.render(sc, cam);
-        const c2 = cv.getContext('2d'); c2.clearRect(0, 0, cv.width, cv.height); c2.drawImage(ren.domElement, 0, 0);
+        // au premier plan, le canevas du moteur est posé sur la carte (aucune recopie) ; sinon, on recopie l'image dans celui de la carte
+        if (direct) { const m = ren.domElement; if (m.parentElement !== cv.parentElement) { cv.parentElement.insertBefore(m, cv.nextSibling); } m.style.cssText = `position:absolute;z-index:1;left:${cv.offsetLeft}px;top:${cv.offsetTop}px;width:${W}px;height:${H}px`; if (!s.direct) { cv.getContext('2d').clearRect(0, 0, cv.width, cv.height); s.direct = true; } }
+        else { s.direct = false; if (ren.domElement.parentElement === cv.parentElement) { ren.domElement.remove(); } const c2 = cv.getContext('2d'); c2.clearRect(0, 0, cv.width, cv.height); c2.drawImage(ren.domElement, 0, 0); }
       },
       depart: null, monter() { s.depart = -1; lancer(); },
       jeter() { SCENES.delete(s); sc.traverse((o) => { if (o.geometry) o.geometry.dispose(); if (o.material) o.material.dispose(); }); },
@@ -133,7 +137,7 @@
   // le cadre : un double filet aux coins coupés, plus travaillé avec la rareté (équerres aux coins, losanges, fleuron)
   function cadre(r) {
     const C = 16, W = 240, H = 350, poly = (i, c) => `M${c + i},${i} L${W - c - i},${i} L${W - i},${c + i} L${W - i},${H - c - i} L${W - c - i},${H - i} L${c + i},${H - i} L${i},${H - c - i} L${i},${c + i} Z`;
-    let s = `<path class="cl-trait or" d="${poly(1.5, C)}"/><path class="cl-trait vif" d="${poly(6.5, C - 3)}"/>`;
+    let s = `<path class="cl-trait halo" d="${poly(6.5, C - 3)}"/><path class="cl-trait or" d="${poly(1.5, C)}"/><path class="cl-trait vif" d="${poly(6.5, C - 3)}"/>`;
     // de petites équerres d'or aux coins, pour toutes les raretés
     for (const [x, y, sx, sy] of [[14, 14, 1, 1], [226, 14, -1, 1], [14, 336, 1, -1], [226, 336, -1, -1]]) s += `<path class="cl-trait or fin" d="M${x},${y + sy * 9} L${x},${y} L${x + sx * 9},${y}"/>`;
     // les encoches de chaque côté, à la hauteur des chiffres
@@ -141,7 +145,7 @@
     if (r >= 3) for (const [x, y, sx, sy] of [[11, 11, 1, 1], [229, 11, -1, 1], [11, 339, 1, -1], [229, 339, -1, -1]]) s += `<path class="cl-trait vif epais" d="M${x},${y + sy * 22} L${x},${y + sy * 8} L${x + sx * 8},${y} L${x + sx * 22},${y}"/>`;
     if (r >= 4) for (const y of [6.5, 343.5]) s += `<path class="cl-plein vif" d="M120,${y - 4} L124,${y} L120,${y + 4} L116,${y} Z"/>`;
     // le fleuron (Légendaire et au-delà) : une petite couronne qui pend du haut du cadre, et le cadre qui pulse
-    if (r >= 5) s += `<path class="cl-plein or" d="M102,1.5 L138,1.5 L133,7 L128,4 L120,11 L112,4 L107,7 Z"/><path class="cl-trait vif pouls" d="${poly(1.5, C)}"/>`;
+    if (r >= 5) s += `<path class="cl-plein or" d="M102,1.5 L138,1.5 L133,7 L128,4 L120,11 L112,4 L107,7 Z"/>`;
     return s;
   }
   function html(s) {
@@ -153,8 +157,15 @@
       `<div class="cl-stats"><div><b>${s.valeur}</b><i>Valeur</i></div><div><b>+${s.loyer}</b><i>Loyer / jour</i></div><div><b>${s.potentiel}</b><i>Potentiel</i></div><div><b class="etoiles">${'★'.repeat(s.standing)}<span>${'★'.repeat(Math.max(0, 3 - s.standing))}</span></b><i>Standing</i></div></div></div>`;
   }
   // brancher la scène 3D d'une carte posée dans la page
-  async function animer(el, lieu, r) { const cv = el.querySelector('.cl-vue'); if (!cv || !racine.THREE) return null; const d = await donnees(lieu); if (!cv.isConnected) return null; return scene(cv, d, r); }
+  async function animer(el, lieu, r) { const cv = el.querySelector('.cl-vue'); if (!cv || !racine.THREE) return null; if (cv._scene) return cv._scene; const d = await donnees(lieu); if (!cv.isConnected) return null; cv._scene = scene(cv, d, r); moteurPartage(racine.THREE); return cv._scene; }
 
-  const api = { donnees, scene, html, animer, COULEURS };
+  // préparer le moteur 3D (et ses programmes de dessin) avant le moment fort : la première scène se compile ici
+  let chaud = false;
+  function prechauffer() { if (chaud || !racine.THREE) return; chaud = true; const THREE = racine.THREE; const ren = moteurPartage(THREE); ren.setSize(64, 64, false);
+    const sc = new THREE.Scene(); sc.add(new THREE.HemisphereLight(0xffffff, 0x223355, 0.9)); const sol = new THREE.DirectionalLight(0xffffff, 1.4); sol.position.set(-1, 2, 1); sc.add(sol);
+    sc.add(new THREE.Mesh(new THREE.BoxGeometry(1, 1, 1), new THREE.MeshStandardMaterial({ color: 0xF6F0E4, roughness: 0.55, metalness: 0.05, transparent: true, opacity: 0.97 })));
+    sc.add(new THREE.Mesh(new THREE.PlaneGeometry(1, 1), new THREE.MeshBasicMaterial({ transparent: true, depthWrite: false })));
+    const cam = new THREE.PerspectiveCamera(30, 1, 0.1, 50); cam.position.set(2, 2, 2); cam.lookAt(0, 0, 0); ren.render(sc, cam); }
+  const api = { donnees, scene, html, animer, prechauffer, COULEURS };
   if (typeof module !== 'undefined' && module.exports) module.exports = api; else racine.CarteLieu = api;
 })(typeof globalThis !== 'undefined' ? globalThis : this);
