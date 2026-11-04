@@ -320,6 +320,7 @@ Puis une PR par étape, fusionnée en squash :
 | #128 | 04/11 23:00 | La boutique sur le serveur : gemmes, packs national et régional, Pass et bon d'adresse, gemmes d'essai ; le bon ne prend qu'une adresse |
 | #129 | 05/11 00:00 | Vendre et offrir en gemmes : le vendeur choisit pièces ou gemmes, l'offre suit sa monnaie (sinon celle de l'acheteur), démo et serveur |
 | #130 | 05/11 | Le paiement des gemmes par carte (Stripe Checkout, mode test) : accès immédiat demandé, gemmes créditées après vérification auprès de Stripe, pas de packs pour les cartes belges et néerlandaises |
+| #131 | 05/11 | Publication du serveur : la clé Stripe s'envoie sans demande de confirmation (le nouvel outil Supabase bloquait) |
 
 ## Les décisions de Gautier
 
