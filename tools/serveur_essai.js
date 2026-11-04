@@ -192,11 +192,21 @@ async function nouveauJoueur(publique, secrete) {
     verifier(rpc.statut >= 400, 'appeler une fonction du serveur directement : refusé', rpc.statut);
     const tous = await requete(`${URL}/rest/v1/lieux?select=id&limit=1`, { headers: { apikey: publique } });
     verifier(tous.statut === 200, 'les lieux de tous sont lisibles (la carte)', tous.statut);
-    // les communes : mon classement et mes mairies (lecture seule, par tous)
+    // les communes : la caisse de travaux du Maire (GDD § 5) : verser, refus, lecture par tous, jamais d'écriture directe
     const mesLieux = ((await jeu({ action: 'etat' })).corps.lieux || []);
     const communes = [...new Set(mesLieux.map((c) => require('../src/regles/lieu.js').nomCommune(c.citycode, c.city)))];
-    const maires = await requete(`${URL}/rest/v1/rpc/maires`, { method: 'POST', headers: { apikey: publique, 'Content-Type': 'application/json' }, body: JSON.stringify({ communes }) });
-    verifier(maires.statut === 200 && Array.isArray(maires.corps) && communes.every((c) => maires.corps.some((m) => m.commune === c)), 'chaque commune de mon pack a un Maire', maires);
+    if (communes.length) {
+      const v1 = await jeu({ action: 'verser', commune: communes[0], montant: 10 });
+      verifier(v1.corps && v1.corps.ok && v1.corps.montant === 10 && Number.isInteger(v1.corps.mandat), `verser 10 pièces à la caisse de ${communes[0]}`, v1);
+      const lu = await requete(`${URL}/rest/v1/rpc/caisse_communes`, { method: 'POST', headers: { apikey: publique, 'Content-Type': 'application/json' }, body: JSON.stringify({ communes: [communes[0]], m: v1.corps.mandat, absent_avant: new Date(Date.now() - 86400000).toISOString() }) });
+      verifier(lu.statut === 200 && Array.isArray(lu.corps) && lu.corps.some((r) => r.joueur === id && Number(r.mandat) === v1.corps.mandat && Number(r.points) >= 5), 'la caisse se lit par tous, avec mon versement', lu);
+      const bas = await jeu({ action: 'verser', commune: communes[0], montant: 5 });
+      verifier(bas.corps && bas.corps.ok === false && bas.corps.code === 'minimum', 'verser moins de 10 pièces : refusé', bas);
+      const ailleurs = await jeu({ action: 'verser', commune: 'Commune sans mes lieux', montant: 10 });
+      verifier(ailleurs.corps && ailleurs.corps.ok === false && ailleurs.corps.code === 'sans_lieu', 'verser dans une commune sans lieu à moi : refusé', ailleurs);
+      const caisseVol = await requete(`${URL}/rest/v1/caisses`, { method: 'POST', headers: { apikey: publique, Authorization: `Bearer ${acces}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ mandat: v1.corps.mandat, commune: communes[0], joueur: id, points: 999999 }) });
+      verifier(caisseVol.statut >= 400, 'écrire dans une caisse directement : refusé', caisseVol.statut);
+    }
     const robots = await requete(`${URL}/rest/v1/robots?select=id,nom`, { headers: { apikey: publique } });
     verifier(robots.statut === 200 && Array.isArray(robots.corps) && robots.corps.length >= 1, `les joueurs robots sont là (${Array.isArray(robots.corps) ? robots.corps.map((r) => r.nom).join(', ') : '?'})`, robots.statut);
     if (Array.isArray(robots.corps) && robots.corps.length) {   // pour information : ce que les robots ont fait

@@ -1,7 +1,8 @@
 // Essai des fonctions SQL du serveur (supabase/sql) dans un vrai Postgres, sur le PC, sans toucher au serveur :
 // PGlite (Postgres compilé pour Node) rejoue tous les fichiers SQL, puis essaie les échanges (070_echanges.sql) :
 // proposer, refuser, annuler, accepter, ce qui tombe ; les enchères (080_encheres.sql) : mise minimale, pièces
-// bloquées, surenchère, clôture (avec passage à la mise suivante) ; les refus attendus et les droits du jeu.
+// bloquées, surenchère, clôture (avec passage à la mise suivante) ; la caisse de travaux du Maire (090_mairie.sql) :
+// verser, part du Maire plafonnée, absence, fin de mandat annoncée une fois ; les refus attendus et les droits du jeu.
 // Prérequis (une fois, rien n'est ajouté au dépôt) : npm i --no-save --no-package-lock @electric-sql/pglite
 //   node tools/essai_sql.mjs            (000_comptes.sql, qui demande l'extension unaccent, est remplacé par un profil minimal)
 import { PGlite } from '@electric-sql/pglite';
@@ -139,6 +140,30 @@ await q('update public.joueurs set pieces = 5000 where id = $1', [B]); await mis
 const pB0 = await pieces(B), pris = (await q("select public.jeu_enchere_cloturer('10:0') as r"))[0].r;
 ok(pris.gagnant === null && (await pieces(B)) === pB0 && (await q("select proprietaire from public.lieux where id = 'mon:Q1'"))[0].proprietaire === A, 'un monument déjà à quelqu’un : le lot se clôt sans gagnant, personne ne paie', pris);
 
+// ---------------------------------------------------------------- la caisse de travaux (090_mairie.sql)
+for (const [id, qui] of [['mai1', A], ['mai2', B]]) await q("insert into public.lieux (id, proprietaire, type, label, lon, lat, commune) values ($1, $2, 'adresse', 'x', 0, 0, 'Bourg')", [id, qui]);
+await q('update public.joueurs set pieces = 2000 where id = $1', [A]);
+const verser = (j, m, c, montant, pts) => q('select public.jeu_verser($1, $2, $3, $4, $5) as p', [j, m, c, montant, pts]);
+ok(Number((await verser(A, 5, 'Bourg', 300, 300))[0].p) === 1700, 'A verse 300 pièces à la caisse de Bourg');
+await verser(A, 5, 'Bourg', 100, 50);
+const ligneA = (await q("select points, verse from public.caisses where mandat = 5 and commune = 'Bourg' and joueur = $1", [A]))[0];
+ok(Number(ligneA.points) === 350 && Number(ligneA.verse) === 400, 'deux versements s’ajoutent (le second, de la dernière heure, à moitié)', ligneA);
+ok((await refus('select public.jeu_verser($1, 5, $2, 100, 100)', [C, 'Bourg'])) === 'sans_lieu', 'sans lieu dans la commune, on ne verse pas');
+await q('update public.joueurs set pieces = 10 where id = $1', [B]);
+ok((await refus('select public.jeu_verser($1, 5, $2, 100, 100)', [B, 'Bourg'])) === 'fonds', 'sans les pièces, on ne verse pas');
+ok((await refus('select public.jeu_verser($1, 5, $2, 0, 0)', [A, 'Bourg'])) === 'prix', 'un versement nul est refusé');
+let lignes = await q("select * from public.caisse_communes(array['Bourg'], 6, now() - interval '7 days')");
+ok(lignes.length === 1 && Number(lignes[0].mandat) === 5 && lignes[0].absent === false, 'la caisse du mandat précédent se lit (A présent)', lignes);
+await q("update public.joueurs set vu_le = now() - interval '8 days' where id = $1", [A]);
+lignes = await q("select * from public.caisse_communes(array['Bourg'], 6, now() - interval '7 days')");
+ok(lignes[0].absent === true, 'A absent depuis 8 jours : marqué absent');
+await q('select public.jeu_vu($1)', [A]);
+ok((await q("select vu_le > now() - interval '1 minute' as ok from public.joueurs where id = $1", [A]))[0].ok, 'jeu_vu : A est de retour');
+const pMaire = await pieces(A), part = async (montant) => Number((await q('select public.jeu_part_maire(6, $1, $2, $3, 1000) as v', ['Bourg', A, montant]))[0].v);
+ok((await part(700)) === 700 && (await part(700)) === 300 && (await part(50)) === 0, 'la part du Maire s’arrête au plafond du mandat');
+ok((await pieces(A)) === pMaire + 1000, 'le Maire a reçu ses 1 000 pièces');
+ok((await q('select public.jeu_mandat_tenir(6) as r'))[0].r === true && (await q('select public.jeu_mandat_tenir(6) as r'))[0].r === false, 'une fin de mandat ne s’annonce qu’une fois');
+
 // les droits : le jeu lit ses échanges, n'écrit jamais, n'appelle aucune fonction jeu_*
 await db.exec(`set role authenticated; set essai.uid = '${A}';`);
 const vus = await q('select id from public.echanges');
@@ -154,7 +179,14 @@ ok(!!(await refus("insert into public.mises (lot, joueur, montant) values ('9:1'
 ok(!!(await refus("update public.encheres set gagnant = $1", [A])), 'le jeu ne peut pas se donner un lot');
 ok(!!(await refus('select public.jeu_miser($1, $2, $3, 0.05)', [A, '9:1', 1])), 'le jeu ne peut pas appeler jeu_miser');
 ok(!!(await refus("select public.jeu_enchere_cloturer('9:1')")), 'le jeu ne peut pas appeler jeu_enchere_cloturer');
+ok((await q('select count(*)::int as n from public.caisses'))[0].n > 0 && (await q('select count(*)::int as n from public.parts_maire'))[0].n > 0, 'le jeu lit les caisses et les parts des Maires');
+ok(!!(await refus("insert into public.caisses (mandat, commune, joueur, points) values (6, 'Bourg', $1, 99999)", [A])), 'le jeu ne peut pas écrire dans une caisse');
+ok(!!(await refus("update public.parts_maire set touche = 0")), 'le jeu ne peut pas changer une part de Maire');
+ok(!!(await refus('select public.jeu_verser($1, 6, $2, 10, 99999)', [A, 'Bourg'])), 'le jeu ne peut pas appeler jeu_verser');
+ok(!!(await refus('select public.jeu_part_maire(6, $1, $2, 1000, 1000)', ['Bourg', A])), 'le jeu ne peut pas appeler jeu_part_maire');
+ok(!!(await refus('select * from public.mandats_tenus')), 'le jeu ne lit pas les mandats annoncés');
 await db.exec('reset role; set role anon;');
+ok((await q("select count(*)::int as n from public.caisse_communes(array['Bourg'], 6, now() - interval '7 days')"))[0].n > 0, 'sans compte aussi, on lit les caisses');
 ok((await q('select count(*)::int as n from public.encheres'))[0].n > 0, 'sans compte aussi, on lit les lots');
 await db.exec('reset role;');
 console.log(echecs ? `${echecs} échec(s)` : 'Tout passe.');
