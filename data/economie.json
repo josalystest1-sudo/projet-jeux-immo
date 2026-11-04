@@ -32,7 +32,20 @@
     "quartier": { "rayon_m": 300, "par_point": 0.01, "isole": -0.05, "max": 0.2 },
     "tendance": { "part": 0.12, "min": 0.05, "max": 0.15 }
   },
-  "boutique": { "pack_1": 1.99, "pack_5": 7.99, "pack_12": 16.99, "pass_mensuel": 4.99 },
+  "boutique": {
+    "gemmes": [
+      { "id": "g500", "gemmes": 500, "euros": 4.99 },
+      { "id": "g1200", "gemmes": 1200, "euros": 9.99 },
+      { "id": "g2600", "gemmes": 2600, "euros": 19.99 }
+    ],
+    "prix": { "pack_national": 200, "pack_regional": 300, "pass": 300 },
+    "pack_cartes": 5,
+    "pass_jours": 15,
+    "pass_cartes": 8,
+    "bons_max": 3,
+    "bon_rarete_max": 4,
+    "gemmes_essai": 1000
+  },
   "solde_depart": 1500,
   "mairie": {
     "jours_mandat": 14,

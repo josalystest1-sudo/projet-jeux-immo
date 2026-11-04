@@ -160,6 +160,7 @@ Rien d'important ne vit dans une conversation : tout est dans le dépôt ou sur 
 - **Les saisons sur le serveur** (PR #124). Les classements portent maintenant sur les vrais joueurs du serveur ; à chaque fin de saison, le serveur fige les podiums, grave les plaques et prévient chacun de sa place.
 - **Les monuments, dans le jeu** (PR #125). Gautier : « enchaîne, je teste en même temps ». Troisième étape du game design du 4 nov. : l'entretien des monuments (300, 600, 1 200… par mois), la dette et la reprise du plus cher après un mois d'impayé, la reprise de tous ses monuments après 14 jours d'absence. Le serveur et l'alerte à Gautier suivent.
 - **Les monuments sur le serveur** (PR #126). Le vrai serveur prélève l'entretien, reprend les monuments des absents et des mauvais payeurs, les remet aux enchères dans un lot de reprise, et laisse une alerte à Gautier dans le tableau de bord Supabase (avec une phrase prête à poster). L'e-mail viendra avec un service d'envoi.
+- **La boutique, dans le jeu** (PR #127). Gautier choisit de continuer par la boutique et les gemmes (phase 9). Dans la démo : les gemmes en haut de l'écran, la boutique (pack national, pack régional, Pass 15 jours et son bon d'adresse, chances affichées), et des gemmes d'essai en attendant le paiement par carte. Le serveur suit.
 
 ## Toutes les PR
 
@@ -312,6 +313,7 @@ Puis une PR par étape, fusionnée en squash :
 | #124 | 04/11 19:40 | Les saisons et les classements sur le serveur : rareté des lieux, Maires de chaque mandat, classements lisibles, saison figée et annoncée |
 | #125 | 04/11 20:30 | Les monuments dans le jeu (démo) : entretien qui double à chaque monument, impayé, reprise après 14 jours d'absence |
 | #126 | 04/11 21:30 | Les monuments sur le serveur : entretien prélevé, reprise après absence ou impayé, lot de reprise aux enchères, alerte pour Gautier |
+| #127 | 04/11 22:30 | La boutique dans le jeu (démo) : gemmes, pack national et régional, Pass 15 jours et son bon, chances affichées, gemmes d'essai |
 
 ## Les décisions de Gautier
 
@@ -359,7 +361,7 @@ Les décisions du 2 novembre (interview) sont dans `CLAUDE.md` § 4 et dans le G
   - 8.3 : l'anti-triche.
 - **Les graphismes** (phase 10, avant 8.2 : décision de Gautier) : la preuve, l'ouverture, les monuments nationaux et 358 monuments régionaux en 3D, plus la Grande Mosquée de Paris et quatre églises ajoutées le 4 nov. (416 maquettes ; les autres n'ont pas de bâtiment à dessiner ou portent une marque) ; ensuite l'habillage de la révélation, l'icône et le logo (`docs/BIBLE-GRAPHIQUE.md`).
 - **Le game design du 4 nov. porté dans le jeu** (le Maire par caisse de travaux, PR #119 et #120 ; les saisons et classements, PR #123 et #124 ; les monuments, PR #125 et #126). Reste : l'e-mail d'alerte à Gautier (il faut un service d'envoi), le niveau visuel des communes (§ 5, proposé), l'équilibrage (loyer modeste des monuments, § 5 ter) : les saisons et le classement de patrimoine (§ 5 bis), l'entretien et la reprise des monuments, l'alerte à Gautier (§ 5 ter).
-- **La boutique** (phase 9) : Stripe → gemmes, packs nationaux et régionaux, Pass 15 jours (GDD § 3 et § 9), offres en gemmes au choix du vendeur, probabilités affichées, blocage Belgique et Pays-Bas, CGU (gemmes sans valeur, lieux = licences), confidentialité, mentions légales.
+- **La boutique** (phase 9 ; dans la démo depuis la PR #127 : gemmes, packs national et régional, Pass et bon, chances affichées ; restent le serveur, les offres en gemmes et le paiement) : Stripe → gemmes, packs nationaux et régionaux, Pass 15 jours (GDD § 3 et § 9), offres en gemmes au choix du vendeur, probabilités affichées, blocage Belgique et Pays-Bas, CGU (gemmes sans valeur, lieux = licences), confidentialité, mentions légales.
 - **Gautier** : réserver citydeck.fr (et .app).
 - **Ensuite** : les graphismes (phase 10), l'équilibrage et le lancement (phase 11).
 - **Au lancement** :
