@@ -13,18 +13,19 @@
     function entretiens(lieux) {
       return (lieux || []).filter((l) => l.type === 'monument')
         .sort((a, b) => (a.depuis || 0) - (b.depuis || 0) || (a.id < b.id ? -1 : (a.id > b.id ? 1 : 0)))
-        .map((l, i) => ({ id: l.id, label: l.label, parMois: M.entretien_base * Math.pow(2, i) }));
+        .map((l, i) => ({ id: l.id, label: l.label, depuis: l.depuis || 0, parMois: M.entretien_base * Math.pow(2, i) }));
     }
     const parMois = (lieux) => entretiens(lieux).reduce((s, e) => s + e.parMois, 0);
     const parJour = (lieux) => parMois(lieux) / M.entretien_jours;
     // ce que coûterait un monument de plus (par mois)
     const prochain = (lieux) => M.entretien_base * Math.pow(2, entretiens(lieux).length);
-    // l'entretien dû depuis le dernier paiement, en pièces entières, et le temps qu'elles couvrent (pour ne rien perdre
-    // des fractions : le compteur n'avance que de ce qui a été compté)
+    // l'entretien dû depuis le dernier paiement (`depuisMs`), chaque monument depuis son arrivée s'il est arrivé après,
+    // en pièces entières ; nouveauLe : le nouveau point de départ, qui garde la fraction non comptée (rien ne se perd)
     function du(lieux, depuisMs, maintenantMs, jourMs) {
-      const pj = parJour(lieux); if (!(pj > 0)) return { montant: 0, couvreMs: Math.max(0, maintenantMs - depuisMs) };
-      const montant = Math.floor(pj * Math.max(0, maintenantMs - depuisMs) / jourMs);
-      return { montant, couvreMs: montant * jourMs / pj };
+      const e = entretiens(lieux), pj = parJour(lieux); let brut = 0;
+      for (const x of e) brut += x.parMois / M.entretien_jours * Math.max(0, maintenantMs - Math.max(depuisMs, x.depuis)) / jourMs;
+      const montant = Math.floor(brut + 1e-9);
+      return { montant, nouveauLe: pj > 0 ? maintenantMs - Math.max(0, brut - montant) / pj * jourMs : maintenantMs };
     }
     // payer avec ses pièces ce qui est dû plus la dette ; ce qui manque reste en dette, et l'impayé court depuis le premier
     // manque (il s'arrête dès que tout est payé)

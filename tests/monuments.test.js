@@ -16,12 +16,14 @@ test('l\'entretien : 300, 600, 1 200… par mois, dans l\'ordre d\'arrivée ; le
   assert.strictEqual(M.entretiens([1, 2, 3, 4, 5, 6].map((i) => mon('m' + i, i)))[5].parMois, 9600);
 });
 
-test('ce qui est dû court sans plafond de temps, en pièces entières, sans perdre les fractions', () => {
-  const l = [mon('a', 1)];   // 10 pièces par jour
-  assert.deepStrictEqual(M.du(l, 0, 3 * J, J), { montant: 30, couvreMs: 3 * J });
+test('ce qui est dû court sans plafond de temps, chaque monument depuis son arrivée, sans perdre les fractions', () => {
+  const l = [mon('a', 0)];   // 10 pièces par jour
+  assert.deepStrictEqual(M.du(l, 0, 3 * J, J), { montant: 30, nouveauLe: 3 * J });
   assert.strictEqual(M.du(l, 0, 40 * J, J).montant, 400);       // 40 jours : tout est dû (pas de stock de 24 h)
-  const d = M.du(l, 0, 0.15 * J, J);                            // 1,5 pièce : 1 comptée, le compteur n'avance que d'un dixième de jour
-  assert.strictEqual(d.montant, 1); assert.ok(Math.abs(d.couvreMs - 0.1 * J) < 1);
+  const d = M.du(l, 0, 0.15 * J, J);                            // 1,5 pièce : 1 comptée, la demie reste à compter
+  assert.strictEqual(d.montant, 1); assert.ok(Math.abs(d.nouveauLe - 0.1 * J) < 1);
+  // un monument arrivé après le dernier paiement ne coûte que depuis son arrivée
+  assert.strictEqual(M.du([mon('a', 0), mon('b', 10 * J)], 0, 12 * J, J).montant, 120 + 40);
   assert.strictEqual(M.du([], 0, 10 * J, J).montant, 0);
 });
 
