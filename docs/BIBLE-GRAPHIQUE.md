@@ -245,3 +245,6 @@ Où c'est dans le code : la pochette est dessinée par `makeArt()` (`index.html`
 - **Deux monuments régionaux de plus** (nuit du 4 nov.) : **la manufacture nationale de Sèvres** (le long bâtiment, sur son emprise de l'IGN), **la citadelle de Besançon** (les fronts de Vauban d'après les murs de l'IGN, les casernes). Le musée des Beaux-Arts de Nancy n'a pas de maquette à lui : il occupe un pavillon de la place Stanislas, déjà dessiné.
 
 ![La manufacture de Sèvres et la citadelle de Besançon](bible/monuments-45.jpg)
+- **Trois monuments régionaux de plus** (nuit du 4 nov.) : **les Alyscamps** d'Arles (l'église Saint-Honorat et sa tour-lanterne octogonale), **le temple du Donon** au sommet du massif, **le temple de Diane** à Nîmes (les murs de la salle romaine).
+
+![L'église Saint-Honorat des Alyscamps, le temple du Donon et le temple de Diane](bible/monuments-46.jpg)

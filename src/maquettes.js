@@ -4796,6 +4796,41 @@
     return A.groupe;
   }
 
+  // les Alyscamps (Arles) : l'église Saint-Honorat (les emprises de l'IGN) et sa haute tour-lanterne octogonale à deux
+  // étages d'arcades
+  function alyscamps(THREE) {
+    const A = atelier(THREE);
+    const pierre = A.matiere(0xE6CDA0), pierreFoncee = A.matiere(0xC9AC78), tuile = A.matiere(0xC8704A), sombre = A.matiere(0x6E5A44);
+    pave(A, [[26, -3], [31.5, -1.5], [31.5, 3], [38.5, 4.5], [38.5, 5.5], [41.5, 6.5], [43, 8], [42.5, 10.5], [42, 10.5], [44, 12], [44, 15], [43.5, 18], [42, 19.5], [39, 20], [40.5, 21], [40, 23.5], [37.5, 24], [37.5, 25], [35, 24.5], [34.5, 26.5], [36, 26.5], [35.5, 28], [34.5, 27.5], [33.5, 31], [22, 28.5], [21, 26.5], [20, 26], [21, 22], [21, 21], [11.5, 19], [12.5, 13.5], [22, 15.5], [23.5, 8.5], [16, 7], [17, 2], [18.5, 2], [24.5, 3.5]], 10, pierre, tuile, 3, pierreFoncee);
+    pave(A, [[9.5, -6.5], [10.5, -5], [18, -3.5], [19.5, -4.5], [20, -3.5], [19, -2.5], [18, 0.5], [18.5, 1], [18.5, 2], [17, 2], [9, 0], [10, -4.5], [8.5, -6]], 9, pierre, tuile, 2.5);
+    pave(A, [[31.5, -1.5], [39.5, 0], [38.5, 4.5], [31.5, 3]], 9, pierre, tuile, 2.5);
+    A.cylindre(4.6, 4.6, 9, 8, 31, 12, 14, pierre); A.cylindre(5.1, 5.1, 0.8, 8, 31, 21, 14, pierreFoncee); A.cylindre(3.9, 3.9, 6, 8, 31, 21.8, 14, pierre); A.cylindre(4.3, 4.3, 0.8, 8, 31, 27.8, 14, pierreFoncee);
+    for (let k = 0; k < 8; k++) { const a = (k + 0.5) * Math.PI / 4; A.boite(0.4, 3.4, 1.6, 31 + Math.cos(a) * 4.6, 15.5, 14 - Math.sin(a) * 4.6, sombre, a); }
+    return A.groupe;
+  }
+
+  // le temple du Donon : le petit temple néo-classique au sommet du massif, ses colonnes, son fronton
+  function templeDonon(THREE) {
+    const A = atelier(THREE);
+    const gres = A.matiere(0xD9A88A), gresFonce = A.matiere(0xB98A6C);
+    A.boite(10, 1, 6.6, 0, 0, 0, gresFonce);
+    const col = []; for (let k = 0; k < 5; k++) for (const z of [-2.7, 2.7]) col.push([-4.2 + k * 2.1, z, 0.32, 4.4, 1]); for (const x of [-4.2, 4.2]) col.push([x, 0, 0.32, 4.4, 1]);
+    A.cylindres(col, gres, 10);
+    A.boite(9.8, 1, 6.4, 0, 5.4, 0, gresFonce); A.toit(6.6, 1.8, 10, 0, 6.4, 0, gres);
+    return A.groupe;
+  }
+
+  // le temple de Diane (Nîmes) : les murs ruinés de la salle romaine au pied du mont Cavalier, ses arcades
+  function templeDiane(THREE) {
+    const A = atelier(THREE);
+    const pierre = A.matiere(0xE6D6B8), pierreFoncee = A.matiere(0xC9B48E), sombre = A.matiere(0x6E5A44);
+    const murs = [[[-4, -6.5], [1, -2.5], [2.5, -3.5], [6.5, 1], [4.5, 6], [-2.5, -3.5], [-7, -2.5], [-4, -6.5]]];
+    A.remparts(murs, 11, 1.8, pierre);
+    for (const [x, z] of [[-1.5, -4.5], [4.5, -1.3]]) A.extrusion(A.formeArche(2.4, 5), 0.5, x, 1, z, sombre, Math.atan2(-4, 5), true);
+    A.boite(3, 1, 3, -4, 11, -4.5, pierreFoncee);
+    return A.groupe;
+  }
+
   // les maquettes connues : le monument (identifiant de data/monuments.json), où et comment la poser, et les
   // bâtiments de l'IGN qu'elle remplace (sinon les blocs gris de la BD TOPO resteraient dedans)
   const MODELES = {
@@ -5991,6 +6026,15 @@
     Q1329976: {   // la citadelle de Besançon (les murs et les casernes de l'IGN)
       construire: citadelleBesancon, centre: [6.0325, 47.2314], orientation: 0, masquer: ['BATIMENT0000000317675134', 'BATIMENT0000000014730256', 'BATIMENT0000000317675194'],
     },
+    Q450348: {   // les Alyscamps : l'église Saint-Honorat et sa tour-lanterne (les emprises de l'IGN)
+      construire: alyscamps, centre: [4.6369, 43.6714], orientation: 0, masquer: ['BATIMENT0000002333278048', 'BATIMENT0000002333278049', 'BATIMENT0000000267008293'],
+    },
+    Q1242068: {   // le temple du Donon, au sommet (le bâtiment « monument » de l'IGN)
+      construire: templeDonon, centre: [7.164434, 48.512558], orientation: -65, masquer: ['BATIMENT0000000333846647'],
+    },
+    Q1992203: {   // le temple de Diane (Nîmes)
+      construire: templeDiane, centre: [4.348476, 43.839543], orientation: 0, masquer: ['BATIMENT0000000314419510', 'BATIMENT0000000314419507'],
+    },
   };
   const MASQUES = Object.values(MODELES).flatMap((m) => m.masquer);
 
@@ -6095,6 +6139,7 @@
     rambouillet,  cathedraleDax,
     cathedraleAire,  cathedraleApt,  hautecombe,  citeaux,  hotelLambert,  arsenal,  solesmes,
     silvacane,  lerins,  hotelBeauvais,  museeCheret,  laTrappe,  portRoyal,  aubergeRavoux,
-    manufactureSevres,  citadelleBesancon };
+    manufactureSevres,  citadelleBesancon,
+    alyscamps,  templeDonon,  templeDiane };
   if (typeof module !== 'undefined' && module.exports) module.exports = api; else racine.Maquettes = api;
 })(typeof globalThis !== 'undefined' ? globalThis : this);
