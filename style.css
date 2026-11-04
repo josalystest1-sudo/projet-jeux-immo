@@ -1031,3 +1031,21 @@ body.promenade #sheet .svwrap{display:none}
    transparaissait. Le voile est désormais opaque dès le départ ; il ne s'efface qu'à la fin de la révélation. */
 .c3d .rev-scene{opacity:1;transition:none}
 .c3d .rev-scene.fin{opacity:0;transition:opacity .9s ease .1s}
+
+/* ===================== les saisons et les classements (4 nov. au soir, GDD § 5 bis) ===================== */
+.saison-carte{display:block;width:100%;text-align:left;border:none;cursor:pointer;font:inherit;color:inherit;background:linear-gradient(135deg,#fff 0%,var(--piece-clair) 100%)}
+.saison-tete{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.saison-rangs{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:10px 0 6px}
+.saison-rangs>div{background:#fff;border-radius:14px;padding:8px 10px;box-shadow:0 1px 0 rgba(13,27,62,.06)}
+.saison-rangs small{display:block;font-weight:800;font-size:12px;color:var(--gris)}
+.saison-rangs b{display:block;font-family:var(--titre);font-weight:800;font-size:26px;line-height:1.1;color:var(--plaque)}
+.saison-rangs i{display:block;font-style:normal;font-size:12px;color:var(--gris)}
+.saison-voir{display:block;text-align:right;font-weight:800;font-size:13px;color:var(--plaque)}
+.onglets-classement{margin-top:8px}
+.saison-passee{padding:10px 0;border-bottom:1.5px solid var(--ciel)}
+.podiums{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:6px}
+.podiums small{display:block;font-weight:800;font-size:12px;color:var(--gris);margin-bottom:2px}
+.pod{display:flex;gap:4px;align-items:baseline;font-size:13px}.pod span{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.plaques-saison{display:flex;flex-direction:column;gap:6px;margin-top:12px}
+.plaque-saison{display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:12px;background:linear-gradient(90deg,#F7E7B8,#FFF6DA);color:#6B4A00;font-weight:800;font-size:13px}
+.plaque-saison span{flex:1}
