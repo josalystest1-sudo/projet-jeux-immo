@@ -260,3 +260,6 @@ Où c'est dans le code : la pochette est dessinée par `makeArt()` (`index.html`
 - **Le palais de justice de Paris** (nuit du 4 nov.) : le grand palais de l'île de la Cité, monté sur son emprise de l'IGN **avec ses cours ouvertes** (les outils `emprise` et `pave` savent maintenant garder les cours intérieures) : la Sainte-Chapelle reste visible au fond de la sienne. **400 maquettes.**
 
 ![Le palais de justice de Paris autour de ses cours, la Sainte-Chapelle au milieu](bible/monuments-50.jpg)
+- **L'hôpital Saint-Louis** (nuit du 4 nov.) : le quadrilatère d'Henri IV autour de sa grande cour-jardin, brique et pierre, hauts toits d'ardoise (sur l'emprise de l'IGN).
+
+![Le quadrilatère de l'hôpital Saint-Louis autour de sa cour](bible/monuments-51.jpg)
