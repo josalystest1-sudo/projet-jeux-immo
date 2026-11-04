@@ -227,3 +227,6 @@ Où c'est dans le code : la pochette est dessinée par `makeArt()` (`index.html`
 - **Six monuments régionaux de plus** (nuit du 4 nov.) : **l'abbaye de Gellone** à Saint-Guilhem-le-Désert, **la tour Saint-Nicolas du Bec-Hellouin**, **la villa Ephrussi de Rothschild** (la villa rose), et trois mégalithes posés au point du monument (l'IGN n'a pas de bâtiment) : **la Roche-aux-Fées** (l'allée couverte), **le cairn de Barnenez** (le tertre à gradins et ses onze couloirs), **le grand menhir brisé d'Er Grah** (ses quatre morceaux couchés).
 
 ![Gellone, la tour du Bec-Hellouin, la villa Ephrussi, la Roche-aux-Fées, le cairn de Barnenez et le menhir d'Er Grah](bible/monuments-39.jpg)
+- **Trois monuments régionaux de plus** (nuit du 4 nov.) : **la chapelle de la Médaille miraculeuse** (rue du Bac), **l'hôtel de Matignon** (le corps de logis, les ailes, le portail), **la maison La Roche** de Le Corbusier (les volumes blancs, la galerie courbe sur pilotis).
+
+![La chapelle de la Médaille miraculeuse, l'hôtel de Matignon et la maison La Roche](bible/monuments-40.jpg)

@@ -118,6 +118,7 @@ Rien d'important ne vit dans une conversation : tout est dans le dépôt ou sur 
 - Trentième lot régional (PR #82) : Lastours, Peyrepertuse, Clisson, Luxeuil, Saint-Michel-de-Cuxa.
 - Trente et unième lot régional (PR #83) : la Grande Chartreuse, Compiègne, l'abbaye Saint-Remi, le fort Saint-Jean (des monuments laissés de côté plus tôt, repris avec des plans plus fins).
 - Trente-deuxième lot régional (PR #84) : Gellone, le Bec-Hellouin, la villa Ephrussi et trois mégalithes (la Roche-aux-Fées, Barnenez, Er Grah).
+- Trente-troisième lot régional (PR #85) : la chapelle de la Médaille miraculeuse, l'hôtel de Matignon, la maison La Roche.
 
 ## Toutes les PR
 
@@ -228,6 +229,7 @@ Puis une PR par étape, fusionnée en squash :
 | #82 | 04/11 04:49 | Graphismes : cinq monuments régionaux de plus (les châteaux de Lastours, Peyrepertuse, Clisson, la basilique de Luxeuil, Saint-Michel-de-Cuxa) |
 | #83 | 04/11 04:56 | Graphismes : quatre monuments régionaux de plus (la Grande Chartreuse, le palais de Compiègne, l'abbaye Saint-Remi, le fort Saint-Jean) |
 | #84 | 04/11 05:01 | Graphismes : six monuments régionaux de plus (Gellone, le Bec-Hellouin, la villa Ephrussi, la Roche-aux-Fées, le cairn de Barnenez, le menhir d'Er Grah) |
+| #85 | 04/11 05:06 | Graphismes : trois monuments régionaux de plus (la chapelle de la Médaille miraculeuse, l'hôtel de Matignon, la maison La Roche) |
 
 ## Les décisions de Gautier
 
@@ -258,7 +260,7 @@ Les décisions du 2 novembre (interview) sont dans `CLAUDE.md` § 4 et dans le G
 - **Le serveur, suite** (phase 8) :
   - 8.2 : le mode serveur par défaut, la fin des joueurs simulés, l'inscription des amis. Question posée à Gautier, sans réponse : couper la confirmation par e-mail pendant les essais ?
   - 8.3 : l'anti-triche.
-- **Les graphismes** (phase 10, avant 8.2 : décision de Gautier) : la preuve, l'ouverture, les monuments nationaux et 312 monuments régionaux en 3D (365 maquettes) ; ensuite les autres régionaux, l'habillage de la révélation, l'icône et le logo (`docs/BIBLE-GRAPHIQUE.md`).
+- **Les graphismes** (phase 10, avant 8.2 : décision de Gautier) : la preuve, l'ouverture, les monuments nationaux et 315 monuments régionaux en 3D (368 maquettes) ; ensuite les autres régionaux, l'habillage de la révélation, l'icône et le logo (`docs/BIBLE-GRAPHIQUE.md`).
 - **La boutique** (phase 9) : Stripe, packs et Pass mensuel (pack de 8 cartes, bon mensuel : GDD § 3), probabilités affichées, blocage Belgique et Pays-Bas, CGU, confidentialité, mentions légales.
 - **Ensuite** : les graphismes (phase 10), l'équilibrage et le lancement (phase 11).
 - **Au lancement** :
