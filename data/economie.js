@@ -176,5 +176,13 @@ const ECO = {
    15
   ],
   "mandats_par_saison": 6
+ },
+ "monuments": {
+  "entretien_base": 300,
+  "entretien_jours": 30,
+  "absence_jours": 14,
+  "absence_avertir_jours": 11,
+  "impaye_jours": 30,
+  "impaye_avertir_jours": 23
  }
 };
