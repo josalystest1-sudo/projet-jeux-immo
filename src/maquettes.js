@@ -3798,6 +3798,67 @@
     return A.groupe;
   }
 
+  // la cathédrale Saint-Jean de Besançon : la cathédrale aux deux absides (la rotonde du Saint-Suaire à l'ouest), la nef,
+  // le clocher et son toit à l'impériale
+  function cathedraleBesancon(THREE) {
+    const A = atelier(THREE);
+    const pierre = A.matiere(0xE8DCC0), pierreFoncee = A.matiere(0xCDBC98), tuile = A.matiere(0xB0603F), ardoise = A.matiere(0x56659A);
+    A.boite(70, 12, 40, -10, 0, -16, pierreFoncee); A.toit(40.6, 4, 70, -10, 12, -16, tuile);
+    A.boite(70, 18, 16, -10, 0, -16, pierre); A.toit(16.6, 6, 70, -10, 18, -16, tuile);
+    A.abside(8, 18, 25, 0, -16, pierre); A.demiCone(8.5, 5, 25, 18, -16, tuile);
+    A.cylindre(9, 9, 16, 20, -45, 0, -16, pierre); A.dome(9.3, 0.6, -45, 16, -16, ardoise);
+    A.boite(10, 30, 10, -30, 0, -38, pierre); A.domeCarre(10.6, 7, 10.6, -30, 30, -38, ardoise);
+    return A.groupe;
+  }
+
+  // l'observatoire de Meudon : le château-neuf et la grande coupole de la lunette
+  function meudon(THREE) {
+    const A = atelier(THREE);
+    const pierre = A.matiere(0xEFE6D0), ardoise = A.matiere(0x4F5D8C), metal = A.matiere(0x9AA4B6), sombre = A.matiere(0x3A3E48);
+    A.boite(22, 9, 82, -4, 0, -1, pierre); A.toit(22.6, 6, 82, -4, 9, -1, ardoise, Math.PI / 2);
+    A.boite(18, 12, 20, -4.7, 0, -3.9, pierre);
+    A.cylindre(11, 11, 6, 24, -4.7, 12, -3.9, pierre); A.dome(11.3, 1, -4.7, 18, -3.9, metal);
+    A.piece((e) => new THREE.BoxGeometry(2.2 + 2 * e, 11.6 + 2 * e, 0.6 + 2 * e).translate(0, 5.6, 0).rotateX(-0.55), sombre, A.V(-4.7, 18.6, -4.2), null, true);
+    return A.groupe;
+  }
+
+  // l'église Saint-Médard : la nef flamboyante, le chœur, le petit clocher sur la rue Mouffetard
+  const saintMedard = (THREE) => cathedrale(THREE, { F: -33, E: 22, larg: 12, mur: 15, toitH: 7, xT: 0, cote: 7, facadeH: 18, rose: 2, arcs: false,
+    tours: [{ z: -7, h: 24, fleche: 6, r: 3.6, seg: 4 }] });
+
+  // l'église Saint-Eugène-Sainte-Cécile : l'église néo-gothique à charpente de fer, son pignon, sa petite flèche
+  function saintEugene(THREE) {
+    const A = atelier(THREE);
+    const pierre = A.matiere(0xEFE6D0), ardoise = A.matiere(0x56659A);
+    A.boite(30, 15, 43, 4.7, 0, -2.5, pierre); A.toit(30.6, 9, 43, 4.7, 15, -2.5, ardoise, Math.PI / 2);
+    A.boite(14, 22, 2, 4.7, 0, 19, pierre); A.toit(14, 5, 2, 4.7, 22, 19, pierre, Math.PI / 2); A.pyramide(1.6, 8, 8, 4.7, 27, 19, ardoise);
+    return A.groupe;
+  }
+
+  // l'église Sainte-Élisabeth-de-Hongrie : la façade classique sur la rue du Temple, la nef, l'abside
+  const sainteElisabeth = (THREE) => cathedrale(THREE, { F: -22, E: 18.5, larg: 14, mur: 16, toitH: 6, xT: 0, cote: 7, facadeH: 20, rose: 2, arcs: false,
+    tours: [{ z: 0, h: 22, cote: 9 }] });
+
+  // le théâtre antique d'Arles : la cavea et ses gradins, la scène et ses deux colonnes restées debout (« les deux veuves »)
+  function theatreArles(THREE) {
+    const A = atelier(THREE);
+    const pierre = A.matiere(0xE6CDA0), pierreOmbre = A.matiere(0xC9AC78);
+    const demiAnneau = (ri, ro, h) => (e) => { const f = new THREE.Shape(); f.absarc(0, 0, ro + e, -Math.PI / 2, Math.PI / 2, false); f.absarc(0, 0, Math.max(0.1, ri - e), Math.PI / 2, -Math.PI / 2, true); f.closePath();
+      return new THREE.ExtrudeGeometry(f, { depth: h + 2 * e, bevelEnabled: false, curveSegments: 20 }).rotateX(-Math.PI / 2).translate(0, -e, 0); };
+    for (let k = 0; k < 4; k++) A.piece(demiAnneau(12 + 5 * k, 17 + 5 * k, 1.5 + 2 * k), k % 2 ? pierreOmbre : pierre, A.V(5, 0, -8.5));
+    A.boite(9, 1.4, 40, -1, 0, -8.5, pierreOmbre);
+    A.cylindres([[-3, -12, 0.65, 9, 1.4], [-3, -9, 0.65, 9, 1.4]], pierre, 12); A.boite(1.6, 1.2, 5, -3, 10.4, -10.5, pierre);
+    return A.groupe;
+  }
+
+  // la salle du Jeu de paume (Versailles) : la haute salle où fut prêté le serment, son grand toit d'ardoise
+  function jeuDePaume(THREE) {
+    const A = atelier(THREE);
+    const pierre = A.matiere(0xEFE6D0), ardoise = A.matiere(0x4F5D8C);
+    A.boite(12, 12, 38, -1, 0, -1.5, pierre); A.toit(12.6, 6, 38, -1, 12, -1.5, ardoise, Math.PI / 2);
+    return A.groupe;
+  }
+
   // les maquettes connues : le monument (identifiant de data/monuments.json), où et comment la poser, et les
   // bâtiments de l'IGN qu'elle remplace (sinon les blocs gris de la BD TOPO resteraient dedans)
   const MODELES = {
@@ -4729,6 +4790,27 @@
     Q576569: {   // le château de Beauregard
       construire: beauregard, centre: [1.3836, 47.5369], orientation: 36, masquer: ['BATIMENT0000000321834668'],
     },
+    Q1586486: {   // Saint-Jean de Besançon
+      construire: cathedraleBesancon, centre: [6.0306, 47.2336], orientation: 28, masquer: ['BATIMENT0000000317675546', 'BATIMENT0000000317675545'],
+    },
+    Q1626747: {   // le château de Meudon : l'observatoire et sa grande coupole
+      construire: meudon, centre: [2.2311, 48.805], orientation: -17, masquer: ['BATIMENT0000000245574214', 'BATIMENT0000000245574213'],
+    },
+    Q574970: {   // Saint-Médard
+      construire: saintMedard, centre: [2.350489, 48.839917], orientation: 23, masquer: ['BATIMENT0000000241932734', 'BATIMENT0000000241932732', 'BATIMENT0000000241931613', 'BATIMENT0000000241931616'],
+    },
+    Q1575733: {   // Saint-Eugène-Sainte-Cécile (la façade au sud)
+      construire: saintEugene, centre: [2.3471, 48.8733], orientation: -5, masquer: ['BATIMENT0000000245194955', 'BATIMENT0000000245194954'],
+    },
+    Q1629790: {   // Sainte-Élisabeth-de-Hongrie (la façade à l'est, sur la rue du Temple)
+      construire: sainteElisabeth, centre: [2.360519, 48.866124], orientation: 153, masquer: ['BATIMENT0000000245188420'],
+    },
+    Q972128: {   // le théâtre antique d'Arles
+      construire: theatreArles, centre: [4.6297, 43.6764], orientation: 5, masquer: ['BATIMENT0000000040390010', 'BATIMENT0000000267008385', 'BATIMENT0000000040390097'],
+    },
+    Q805255: {   // la salle du Jeu de paume
+      construire: jeuDePaume, centre: [2.1239, 48.801], orientation: -14, masquer: ['BATIMENT0000000322531754'],
+    },
   };
   const MASQUES = Object.values(MODELES).flatMap((m) => m.masquer);
 
@@ -4818,6 +4900,7 @@
     chateauCaen, chateauDinan, anet, ecouen, moissac, cathedraleAjaccio, cathedraleSaintes, arcGermanicus, cathedraleBazas, sainteReparate, saintMichelCarcassonne,
     cathedraleAix, chateauMaisons, plessisBourre, talcy, roquetaillade, abbadia, saintVictor, daurade, synagogueBordeaux, saintSeurin, cathedraleValence,
     queribus, murbach, pontigny, abbatialeCorbie, cathedraleOloron, bregancon, tourClovis, ferrieres, thoronet, jumieges, montsegur,
-    serrant, ancyLeFranc, fenelon, sache, cathedraleLescar, notreDameBonneNouvelle, fontaineMedicis, menars, rivau, beauregard };
+    serrant, ancyLeFranc, fenelon, sache, cathedraleLescar, notreDameBonneNouvelle, fontaineMedicis, menars, rivau, beauregard,
+    cathedraleBesancon, meudon, saintMedard, saintEugene, sainteElisabeth, theatreArles, jeuDePaume };
   if (typeof module !== 'undefined' && module.exports) module.exports = api; else racine.Maquettes = api;
 })(typeof globalThis !== 'undefined' ? globalThis : this);
