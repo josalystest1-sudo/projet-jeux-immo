@@ -339,3 +339,28 @@ Gautier : « le pack et les cartes sont moches ». Le pack n'était qu'un pavé 
 ![La pochette, la déchirure, la pile, la carte en main (deux inclinaisons), l'éventail](bible/pack-et-cartes.jpg)
 
 Où c'est dans le code : `initGL` (le sachet), `dessinPochette`, `sortirCartes`, `dispoPack`, `revelerCarte`, `balancer`, `carteSuivante` et les gestes (`index.html`, état `PK`). Les styles `.c3d` sont à la fin de `style.css`.
+
+## 11. Les cartes et la révélation, d'après l'interview de Gautier (4 nov. 2026)
+
+Gautier : « les cartes sont trop basiques », la révélation « est très simple et ne fait pas monter la pression ». Il ne savait pas exprimer ses idées : interview en cinq séries de questions à choix, puis une synthèse, validée (« Oui, fais la preuve »). Ses réponses :
+- **Références** : FIFA Ultimate Team (les indices un par un) et une bande-annonce de film.
+- **Image de la carte** : le plan cadastral doré et le vrai bâtiment en 3D au-dessus, qui tourne toujours.
+- **Ambiance** : « holographique », puis deux corrections : « il ne faut pas partir sur de la science-fiction totale qui dénoterait avec le reste du jeu, ce n'est pas au jeu de s'adapter au pack », et « l'hologramme fait encore légèrement science-fiction ». Le résultat : une lumière élégante, dans les couleurs du jeu ; le bâtiment est une **maquette d'architecte en porcelaine blanche** ; la couleur de la rareté n'est que dans la lumière. Pas de reflet arc-en-ciel ni de lueur qui balaie.
+- **Forme** : un badge aux coins coupés. Le cadre devient plus orné avec la rareté (équerres, losanges, couronne, cadre qui pulse), et des grains de lumière dorée montent pour Épique et au-delà.
+- **Informations** : valeur, loyer, potentiel, standing. Le nom sur la **plaque émaillée** (la signature du jeu) ; elle ne doit jamais toucher le cadre (remarque de Gautier), les noms longs se réduisent.
+- **Le dos** : noir et or, traversé de fines lignes de lumière irisées.
+- **La révélation** : longue (environ 10 s). Un **toucher passe à l'étape suivante** (« la France, je clique, on passe directement à la région »).
+  - La rareté d'abord : la couleur de la lumière, une comète qui tombe sur la France et explose. Pour Épique et au-delà, l'alerte : l'écran tremble, le bandeau de la rareté.
+  - Puis la France, la **région**, le département, la commune, et la rue avec ses bâtiments en or, sans interface chargée.
+  - Le son : le cœur qui bat de plus en plus vite, un silence, puis le boum.
+  - Enfin, la carte se dessine en lumière et la maquette monte du plan.
+- **La collection** : une grille de ces badges (à faire après validation).
+
+![Les cartes : Commune, Épique, Légendaire, à deux instants (la maquette tourne)](bible/preuve-cartes.jpg)
+
+![La révélation, étape par étape, puis la carte dans la main](bible/preuve-revelation.jpg)
+
+Où c'est dans le code :
+- `src/carte_lieu.js` : `donnees` (le plan d'un lieu par le WFS de l'IGN : parcelle, bâtiments et hauteurs, rues), `scene` (un seul moteur 3D partagé, recopié dans le canevas de chaque carte) et `html` (le badge).
+- `index.html` : `revealSequence` (les étapes, `REV` pour passer d'un toucher, `REV.pasAPas` pour les captures), `comete`, `alerteRarete`, `choc`, `coeur`, `dessinerRue`, `REGIONS`, `faceCarte`.
+- Le **pack d'essai** (`ouvrirPackEssai`, dans les Réglages ou par `?essai-pack`, `?essai-pack=4`, `?essai-pack=5`) : il permet de voir les raretés hautes sans compter sur la chance, et ne donne rien. À retirer au lancement.

@@ -800,3 +800,97 @@ body.promenade #sheet .svwrap{display:none}
 @media (prefers-reduced-motion:reduce){.c3d-corps{transition:none}.c3d.eclair::before{animation:none;opacity:0}}
 #packscene .hint{font-family:var(--panneau);font-weight:600;font-size:18px;letter-spacing:.04em;color:#F3E3BC;text-shadow:0 2px 10px rgba(0,0,0,.7)}
 #pkload{font-family:var(--panneau);letter-spacing:.12em;text-transform:uppercase;color:#E9C77B!important}
+
+/* ===================== la carte d'un lieu (refonte du 4 nov. 2026, interview de Gautier ; src/carte_lieu.js) =====================
+   Un badge aux coins coupés, bleu nuit et or comme la pochette ; le plan cadastral d'or et la maquette de verre éclairée ;
+   le nom sur la plaque émaillée ; la lumière de la couleur de la rareté (blanc et or pour une Commune). Pas de science-fiction. */
+.cl{position:relative;width:240px;height:350px;color:#F3E3BC;font-family:var(--panneau);--c1:#FFF1C9;--c2:#E9C77B;
+  clip-path:polygon(16px 0,calc(100% - 16px) 0,100% 16px,100% calc(100% - 16px),calc(100% - 16px) 100%,16px 100%,0 calc(100% - 16px),0 16px);
+  background:radial-gradient(ellipse 90% 55% at 50% 34%,color-mix(in srgb,var(--c2) 26%,transparent),transparent 70%),
+    repeating-radial-gradient(circle at 50% 36%,rgba(233,199,123,.06) 0 1px,transparent 1px 9px),linear-gradient(170deg,#17326F 0%,#0B1738 52%,#050B1E 100%)}
+.cl.r2{--c1:#C8F7DA;--c2:#2FB36D}.cl.r3{--c1:#CFE6FF;--c2:#3D8BFF}.cl.r4{--c1:#EBD6FF;--c2:#A35BFF}.cl.r5{--c1:#FFE6B8;--c2:#FF8A1E}.cl.r6{--c1:#FFDDF4;--c2:#FF4DC4}
+.cl-cadre{position:absolute;inset:0;width:100%;height:100%;z-index:3;pointer-events:none;overflow:visible}
+.cl-trait{fill:none;stroke-width:1.6;vector-effect:non-scaling-stroke}.cl-trait.epais{stroke-width:2.6}
+.cl-trait.or{stroke:#E9C77B}.cl-trait.vif{stroke:var(--c2);filter:drop-shadow(0 0 3px var(--c2))}.cl-plein.or{fill:#E9C77B}.cl-plein.vif{fill:var(--c2)}
+.cl.r1 .cl-trait.vif{stroke:rgba(233,199,123,.55);filter:none}
+.cl-trait.pouls{stroke-width:3;opacity:.2;animation:cl-pouls 2.6s ease-in-out infinite}
+.cl.r4 .cl-trait.vif:not(.epais){animation:cl-pouls-doux 2.6s ease-in-out infinite}
+@keyframes cl-pouls{0%,100%{opacity:.15}50%{opacity:.85}}
+@keyframes cl-pouls-doux{0%,100%{opacity:.55}50%{opacity:1}}
+.cl-rar{position:absolute;top:11px;left:0;right:0;z-index:4;text-align:center;font-weight:600;font-size:11px;letter-spacing:.34em;padding-left:.34em;text-transform:uppercase;color:var(--c1);text-shadow:0 0 8px color-mix(in srgb,var(--c2) 80%,transparent)}
+.cl-vue{position:absolute;left:10px;right:10px;top:26px;width:calc(100% - 20px);height:176px;z-index:1}
+.cl-nom{position:absolute;left:8px;right:8px;top:196px;z-index:4;display:flex;justify-content:center}
+.cl-nom .plaque{font-size:15px;max-width:100%;margin:0}
+.cl-stats{position:absolute;left:14px;right:14px;bottom:13px;z-index:4;display:grid;grid-template-columns:1fr 1fr;gap:6px 8px;padding-top:9px;border-top:1px solid rgba(233,199,123,.35)}
+.cl-stats > div{display:flex;flex-direction:column;align-items:center;gap:1px}
+.cl-stats b{font-weight:700;font-size:19px;line-height:1;letter-spacing:.02em;background:linear-gradient(180deg,#FFF4D2,#E9C77B 55%,#C9973F);-webkit-background-clip:text;background-clip:text;color:transparent}
+.cl-stats b .pc{width:15px;height:15px;vertical-align:-2px}
+.cl-stats b.etoiles{letter-spacing:.12em;background:none;color:#E9C77B;-webkit-text-fill-color:#E9C77B;text-shadow:0 0 6px rgba(233,199,123,.45)}.cl-stats b.etoiles span{color:rgba(233,199,123,.22);-webkit-text-fill-color:rgba(233,199,123,.22);text-shadow:none}
+.cl-rar{top:13px}
+.cl-stats i{font-style:normal;font-weight:600;font-size:9px;letter-spacing:.22em;text-transform:uppercase;color:rgba(243,227,188,.6)}
+@media (prefers-reduced-motion:reduce){.cl-trait.pouls,.cl.r4 .cl-trait.vif{animation:none}}
+
+/* la révélation, refaite d'après l'interview (4 nov.) : la lumière de la rareté (Commune : blanc et or), la comète, l'alerte,
+   le choc de chaque indice, la rue tracée en or, le silence avant le boum */
+#reveal.r1::before{background:radial-gradient(circle at 50% 42%,rgba(255,236,190,.22),transparent 58%)}
+#reveal.r2::before{background:radial-gradient(circle at 50% 42%,rgba(47,179,109,.3),transparent 58%)}
+#reveal.r2 #rrayons{background:repeating-conic-gradient(from 0deg,rgba(140,230,180,.13) 0deg 1.2deg,rgba(140,230,180,0) 1.2deg 10deg)}
+#reveal.choc::before{animation:choc .55s ease-out}
+@keyframes choc{0%{opacity:1;transform:scale(1.25)}100%{opacity:.6;transform:scale(1)}}
+#reveal.silence #rrayons{opacity:.25;transition:opacity .4s}
+#reveal .sil.reg{fill:url(#rgDep);stroke:#F3D899;stroke-width:1.6}
+#reveal .rue{fill:none;stroke:rgba(233,199,123,.32);stroke-linecap:round;stroke-linejoin:round}
+#reveal .parcelle{fill:rgba(233,199,123,.18);stroke:#FFF1C9;stroke-width:1.8;vector-effect:non-scaling-stroke}
+#reveal .bati{fill:rgba(233,199,123,.05);stroke:rgba(233,199,123,.75);stroke-width:1;vector-effect:non-scaling-stroke}
+#reveal .bati.cible{fill:rgba(255,241,201,.55);stroke:#fff;stroke-width:2;filter:drop-shadow(0 0 2px rgba(255,220,150,.9))}
+#reveal .rue.loin,#reveal .bati.loin,#reveal .parcelle.loin{opacity:.35}
+#reveal.rue .ring{animation-duration:.9s}
+.comete{position:absolute;left:0;top:0;width:0;height:0;z-index:4;pointer-events:none;--c:#FFF1C9;--c2:#E9C77B;--L:150px;--e:5px;
+  transform:translate(var(--x0),var(--y0)) rotate(var(--a));animation:comete var(--t) cubic-bezier(.55,0,.9,.6) forwards}
+.comete::before{content:'';position:absolute;right:0;top:calc(var(--e) * -1);width:var(--L);height:calc(var(--e) * 2);border-radius:var(--e);background:linear-gradient(90deg,transparent,var(--c2) 60%,#fff);filter:blur(1px);box-shadow:0 0 18px 3px var(--c2)}
+.comete::after{content:'';position:absolute;left:calc(var(--e) * -2.2);top:calc(var(--e) * -2.2);width:calc(var(--e) * 4.4);height:calc(var(--e) * 4.4);border-radius:50%;background:radial-gradient(circle,#fff 0,#fff 30%,var(--c) 55%,transparent 72%);box-shadow:0 0 26px 8px var(--c2)}
+.comete.r2{--c:#C8F7DA;--c2:#2FB36D}.comete.r3{--c:#CFE6FF;--c2:#3D8BFF;--L:190px;--e:6px}.comete.r4{--c:#EBD6FF;--c2:#A35BFF;--L:230px;--e:7px}.comete.r5{--c:#FFE6B8;--c2:#FF8A1E;--L:280px;--e:9px}.comete.r6{--c:#FFDDF4;--c2:#FF4DC4;--L:300px;--e:10px}
+@keyframes comete{0%{transform:translate(var(--x0),var(--y0)) rotate(var(--a));opacity:0}12%{opacity:1}100%{transform:translate(var(--x),var(--y)) rotate(var(--a));opacity:1}}
+#ralerte{position:absolute;left:0;right:0;top:calc(30% - 34px);z-index:6;height:68px;display:flex;align-items:center;justify-content:center;pointer-events:none;opacity:0;--c:#A35BFF;--c2:#EBD6FF;
+  background:linear-gradient(90deg,transparent,color-mix(in srgb,var(--c) 45%,transparent) 20%,color-mix(in srgb,var(--c) 60%,transparent) 50%,color-mix(in srgb,var(--c) 45%,transparent) 80%,transparent);
+  border-top:1px solid color-mix(in srgb,var(--c2) 70%,transparent);border-bottom:1px solid color-mix(in srgb,var(--c2) 70%,transparent);transform:scaleX(0);transition:transform .35s cubic-bezier(.2,1.4,.4,1),opacity .2s,top .6s ease,height .6s ease}
+#ralerte.r5{--c:#FF8A1E;--c2:#FFE6B8}#ralerte.r6{--c:#FF4DC4;--c2:#FFF0A0}
+#ralerte span{font-family:var(--panneau);font-weight:700;font-size:34px;letter-spacing:.42em;padding-left:.42em;text-transform:uppercase;color:#fff;text-shadow:0 0 16px var(--c),0 0 4px var(--c2);transition:font-size .6s ease,letter-spacing .6s ease}
+#ralerte.on{opacity:1;transform:scaleX(1);animation:alerte .5s ease-in-out 3}
+#ralerte.haut{top:calc(18px + env(safe-area-inset-top));height:30px;animation:none}
+#ralerte.haut span{font-size:15px;letter-spacing:.5em}
+@keyframes alerte{0%,100%{filter:brightness(1)}50%{filter:brightness(1.6)}}
+.explo{left:50%;top:42%}
+/* la carte en main se dessine en lumière : les filets du cadre se tracent, le contenu apparaît */
+.c3d.materialise .cl-trait{stroke-dasharray:1300;stroke-dashoffset:1300;animation:cl-trace 1.3s ease-out .35s forwards}
+.c3d.materialise .cl-nom,.c3d.materialise .cl-stats,.c3d.materialise .cl-rar{opacity:0;animation:cl-apparait .6s ease-out 1.2s forwards}
+@keyframes cl-trace{to{stroke-dashoffset:0}}
+@keyframes cl-apparait{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+.c3d .cl{width:100%;height:100%}
+.c3d-avant{background:transparent;border:0}
+@media (prefers-reduced-motion:reduce){.comete{display:none}#ralerte.on{animation:none}.c3d.materialise .cl-trait,.c3d.materialise .cl-nom,.c3d.materialise .cl-stats,.c3d.materialise .cl-rar{animation:none;opacity:1;stroke-dashoffset:0}}
+/* le dos et la face ont la même forme de badge (coins coupés) ; le dos noir et or est traversé de fines lignes de lumière
+   irisées qui glissent lentement (« or et hologramme mêlés », interview du 4 nov.) */
+.c3d-dos,.c3d-avant{border-radius:0;clip-path:polygon(16px 0,calc(100% - 16px) 0,100% 16px,100% calc(100% - 16px),calc(100% - 16px) 100%,16px 100%,0 calc(100% - 16px),0 16px)}
+.c3d-dos::after{content:'';position:absolute;inset:0;pointer-events:none;mix-blend-mode:screen;opacity:.55;
+  background:repeating-linear-gradient(118deg,transparent 0 22px,rgba(255,241,201,.16) 22px 23px,transparent 23px 46px),
+    linear-gradient(118deg,rgba(255,120,170,.10),rgba(255,225,120,.10),rgba(120,220,180,.10),rgba(120,180,255,.10),rgba(200,140,255,.10));
+  background-size:100% 100%,300% 300%;animation:dos-lignes 9s linear infinite}
+@keyframes dos-lignes{from{background-position:0 0,0% 50%}to{background-position:0 0,100% 50%}}
+.c3d.vue .c3d-avant{box-shadow:none}
+@media (prefers-reduced-motion:reduce){.c3d-dos::after{animation:none}}
+
+/* la plaque du nom ne touche jamais le cadre de la carte (remarque de Gautier) ; les noms longs se réduisent */
+.cl-nom{left:20px;right:20px}
+.cl-nom .plaque{max-width:100%;padding-left:20px;padding-right:20px}
+.cl-nom .plaque.long{font-size:13px}.cl-nom .plaque.tres-long{font-size:11.5px}
+/* plus de reflet irisé arc-en-ciel sur les cartes de lieu (trop « science-fiction ») : seule une lumière douce suit l'inclinaison */
+.c3d .cl ~ .c3d-holo{display:none}
+.c3d.vue .c3d-brillance{opacity:.55}
+#reveal .sil.com.loin{fill-opacity:.1}
+#reveal.rue::before{opacity:.5}
+
+/* le pack d'essai, dans les Réglages (à retirer au lancement) */
+.essais{margin-top:12px;padding:10px 12px;border-radius:14px;background:var(--ciel)}
+.essais b{font-family:var(--titre);font-size:15px}.essais small{display:block;color:var(--gris);font-size:12px;margin:2px 0 8px}
+.essais .liste-btn{display:flex;flex-wrap:wrap;gap:6px}.essais .btn{flex:1 1 auto;font-size:14px;padding:8px 10px 6px}
