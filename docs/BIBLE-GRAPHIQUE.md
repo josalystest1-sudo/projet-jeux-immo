@@ -233,3 +233,6 @@ Où c'est dans le code : la pochette est dessinée par `makeArt()` (`index.html`
 - **Trois grands châteaux de plus** (nuit du 4 nov.), montés sur l'emprise exacte de leurs bâtiments dans l'IGN (nouvel outil `emprise` de `src/maquettes.js`, pour les plans trop compliqués à refaire en boîtes) : **le château fort de Sedan** (crénelé), **le château de Brest** (ses remparts, son donjon, ses grosses tours), **le château de Lunéville** (ses toits d'ardoise).
 
 ![Le château fort de Sedan, le château de Brest et le château de Lunéville](bible/monuments-41.jpg)
+- **Deux monuments régionaux de plus** (nuit du 4 nov.) : **le château de Rambouillet** (le triangle de l'IGN, ses toits d'ardoise, ses tours rondes), **la cathédrale de Dax** (la nef et son fronton, le transept, le chœur).
+
+![Le château de Rambouillet et la cathédrale de Dax](bible/monuments-42.jpg)
