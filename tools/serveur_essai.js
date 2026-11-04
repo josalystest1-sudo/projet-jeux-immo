@@ -207,6 +207,18 @@ async function nouveauJoueur(publique, secrete) {
       const caisseVol = await requete(`${URL}/rest/v1/caisses`, { method: 'POST', headers: { apikey: publique, Authorization: `Bearer ${acces}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ mandat: v1.corps.mandat, commune: communes[0], joueur: id, points: 999999 }) });
       verifier(caisseVol.statut >= 400, 'écrire dans une caisse directement : refusé', caisseVol.statut);
     }
+    // les classements et les saisons (GDD § 5 bis) : la rareté de mes lieux posée, les classements lisibles par tous
+    const ECO_ = require('../data/economie.json'), poids = [1, 2, 3, 4, 5, 6].map((r) => ECO_.classements.poids_rarete[r]), bonus = ECO_.classements.bonus_niveau;
+    const rares = await requete(`${URL}/rest/v1/lieux?select=id,rarete&proprietaire=eq.${id}`, { headers: { apikey: publique } });
+    verifier(rares.statut === 200 && rares.corps.length > 0 && rares.corps.every((l) => l.rarete >= 1 && l.rarete <= 6), 'la rareté de mes lieux est posée par le serveur', rares);
+    const cp = await requete(`${URL}/rest/v1/rpc/rang_patrimoine`, { method: 'POST', headers: { apikey: publique, 'Content-Type': 'application/json' }, body: JSON.stringify({ poids, bonus, c: null, j: id }) });
+    verifier(cp.statut === 200 && Array.isArray(cp.corps) && cp.corps.length === 1 && Number(cp.corps[0].n) > 0 && Number(cp.corps[0].rang) >= 1, 'ma place au classement de patrimoine se lit', cp);
+    const cm = await requete(`${URL}/rest/v1/rpc/classement_maires`, { method: 'POST', headers: { apikey: publique, 'Content-Type': 'application/json' }, body: JSON.stringify({ m0: 0, m1: 1e12, lim: 5 }) });
+    verifier(cm.statut === 200 && Array.isArray(cm.corps), 'le classement des Maires se lit', cm);
+    const sa = await requete(`${URL}/rest/v1/saisons?select=saison,numero&limit=1`, { headers: { apikey: publique } });
+    verifier(sa.statut === 200 && Array.isArray(sa.corps), 'les saisons passées se lisent', sa);
+    const mairieVol = await requete(`${URL}/rest/v1/mairies`, { method: 'POST', headers: { apikey: publique, Authorization: `Bearer ${acces}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ mandat: 1, commune: 'x', maire: id, rivaux: 999 }) });
+    verifier(mairieVol.statut >= 400, 'me donner une mairie directement : refusé', mairieVol.statut);
     const robots = await requete(`${URL}/rest/v1/robots?select=id,nom`, { headers: { apikey: publique } });
     verifier(robots.statut === 200 && Array.isArray(robots.corps) && robots.corps.length >= 1, `les joueurs robots sont là (${Array.isArray(robots.corps) ? robots.corps.map((r) => r.nom).join(', ') : '?'})`, robots.statut);
     if (Array.isArray(robots.corps) && robots.corps.length) {   // pour information : ce que les robots ont fait

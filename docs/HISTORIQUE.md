@@ -157,6 +157,7 @@ Rien d'important ne vit dans une conversation : tout est dans le dépôt ou sur 
 - **La promenade au toucher** (PR #121). Gautier : en promenade, toucher un bâtiment sur la carte 3D doit emmener Street View devant lui. C'est fait (face à la façade, le bâtiment apparaît « en face » sous la carte) ; toucher une rue y emmène aussi.
 - **La maquette qui se montrait trop tôt** (PR #122). Gautier : en dévoilant une carte, on apercevait le modèle 3D de l'adresse avant la carte de France. Le voile de la révélation arrivait en fondu pendant que la carte se retournait ; il est désormais opaque dès le départ.
 - **Les saisons et les classements, dans le jeu** (PR #123). Gautier : « enchaîne ». Deuxième étape du game design du 4 nov. : une carte « Saison » en tête de l'écran Communes (mes places), les classements des Maires et de patrimoine, et à chaque fin de saison un podium et une plaque « Maire de la saison » sur la fiche des communes. Le serveur suit à l'étape d'après.
+- **Les saisons sur le serveur** (PR #124). Les classements portent maintenant sur les vrais joueurs du serveur ; à chaque fin de saison, le serveur fige les podiums, grave les plaques et prévient chacun de sa place.
 
 ## Toutes les PR
 
@@ -306,6 +307,7 @@ Puis une PR par étape, fusionnée en squash :
 | #121 | 04/11 18:00 | En promenade, toucher un bâtiment sur la carte emmène Street View devant lui ; toucher une rue y emmène |
 | #122 | 04/11 18:20 | Révélation : la maquette du lieu n'apparaît plus avant la carte de France |
 | #123 | 04/11 19:00 | Les saisons et les classements dans le jeu (démo) : classement des Maires et de patrimoine, fin de saison figée, Maire de la saison |
+| #124 | 04/11 19:40 | Les saisons et les classements sur le serveur : rareté des lieux, Maires de chaque mandat, classements lisibles, saison figée et annoncée |
 
 ## Les décisions de Gautier
 
@@ -352,7 +354,7 @@ Les décisions du 2 novembre (interview) sont dans `CLAUDE.md` § 4 et dans le G
   - 8.2 : le mode serveur par défaut, la fin des joueurs simulés, l'inscription des amis. Question posée à Gautier, sans réponse : couper la confirmation par e-mail pendant les essais ?
   - 8.3 : l'anti-triche.
 - **Les graphismes** (phase 10, avant 8.2 : décision de Gautier) : la preuve, l'ouverture, les monuments nationaux et 358 monuments régionaux en 3D, plus la Grande Mosquée de Paris et quatre églises ajoutées le 4 nov. (416 maquettes ; les autres n'ont pas de bâtiment à dessiner ou portent une marque) ; ensuite l'habillage de la révélation, l'icône et le logo (`docs/BIBLE-GRAPHIQUE.md`).
-- **Le game design du 4 nov. à porter dans le jeu** (avant la boutique ; le Maire par caisse de travaux est fait : PR #119 et #120 ; les saisons et classements dans la démo : PR #123, le serveur reste à faire) : les saisons et le classement de patrimoine (§ 5 bis), l'entretien et la reprise des monuments, l'alerte à Gautier (§ 5 ter).
+- **Le game design du 4 nov. à porter dans le jeu** (avant la boutique ; faits : le Maire par caisse de travaux, PR #119 et #120 ; les saisons et classements, PR #123 et #124 ; reste ce qui suit) : les saisons et le classement de patrimoine (§ 5 bis), l'entretien et la reprise des monuments, l'alerte à Gautier (§ 5 ter).
 - **La boutique** (phase 9) : Stripe → gemmes, packs nationaux et régionaux, Pass 15 jours (GDD § 3 et § 9), offres en gemmes au choix du vendeur, probabilités affichées, blocage Belgique et Pays-Bas, CGU (gemmes sans valeur, lieux = licences), confidentialité, mentions légales.
 - **Gautier** : réserver citydeck.fr (et .app).
 - **Ensuite** : les graphismes (phase 10), l'équilibrage et le lancement (phase 11).

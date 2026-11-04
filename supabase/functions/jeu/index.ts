@@ -3,11 +3,12 @@
 // que le jeu (src/regles, recopiées dans _genere/ par tools/serveur_prepare.js), puis écrit par les fonctions SQL
 // jeu_* (supabase/sql/010_jeu.sql), chacune atomique. Réponse : { ok: true, ... } ou { ok: false, code, message }.
 import { createClient } from '@supabase/supabase-js';
-import { Regles, Pack, Celebres, Tirage, Encheres, Mairie } from './_genere/regles.mjs';
+import { Regles, Pack, Celebres, Tirage, Encheres, Mairie, Classements } from './_genere/regles.mjs';
 import { ECO, STANDING, FRANCE, DEPARTEMENTS, CELEBRES, MONUMENTS } from './_genere/donnees.mjs';
 
 const R = Regles.creer(ECO, STANDING);
 const MAI = Mairie.creer(ECO);   // le Maire par caisse de travaux (src/regles/mairie.js, GDD § 5)
+const CLA = Classements.creer(ECO);   // les classements et les saisons (src/regles/classements.js, GDD § 5 bis)
 
 // la clé secrète du projet est donnée par Supabase à la fonction (jamais écrite dans le dépôt)
 function cleSecrete(): string {
@@ -436,14 +437,15 @@ async function mandatServeur() {
 }
 // les caisses de communes (mandats m - 1 et m), et pour chaque commune : ses Maires du mandat m, les versements
 async function caissesDe(communes: string[], m: number, jm: number) {
-  const out: Record<string, { avant: Ligne[]; cours: Ligne[]; maires: string[] }> = {};
-  for (const k of communes) out[k] = { avant: [], cours: [], maires: [] };
+  const out: Record<string, { avant: Ligne[]; cours: Ligne[]; maires: string[]; rivaux: number }> = {};
+  for (const k of communes) out[k] = { avant: [], cours: [], maires: [], rivaux: 0 };
   if (!communes.length) return out;
   const data = await rpc('caisse_communes', { communes, m, absent_avant: new Date(Date.now() - MAI.M.absence_jours * jm).toISOString() });
   for (const r of (data || []) as Ligne[]) { const o = out[r.commune]; if (o) (Number(r.mandat) === m ? o.cours : o.avant).push(r); }
   for (const o of Object.values(out)) {
     const absents = new Set(o.avant.filter((r) => r.absent).map((r) => r.joueur));
-    o.maires = MAI.elire(Object.fromEntries(o.avant.map((r) => [r.joueur, Number(r.points)])), (u: string) => absents.has(u)).maires;
+    const e = MAI.elire(Object.fromEntries(o.avant.map((r) => [r.joueur, Number(r.points)])), (u: string) => absents.has(u));
+    o.maires = e.maires; o.rivaux = e.rivaux;
   }
   return out;
 }
@@ -480,10 +482,13 @@ async function tenirMairies() {
   mairiesTenues = Date.now();
   const { m, jm } = await mandatServeur();
   if (!(await rpc('jeu_mandat_tenir', { m }))) return;
+  const origine = Number(await rpc('jeu_origine_saisons', { s: CLA.saison(m) }));
   const { data } = await admin.from('caisses').select('commune').in('mandat', [m - 1, m - 2]).limit(5000);
   const ks = [...new Set((data || []).map((r: Ligne) => r.commune as string))];
   for (let i = 0; i < ks.length; i += 200) {
     const lot = ks.slice(i, i + 200), elus = await caissesDe(lot, m, jm), avant = await caissesDe(lot, m - 1, jm);
+    const lignes = lot.flatMap((k) => elus[k].maires.map((u) => ({ commune: k, maire: u, rivaux: elus[k].rivaux })));
+    if (lignes.length) await rpc('jeu_mairies', { m, lignes });
     for (const k of lot) {
       const e = elus[k], a = avant[k], verses = e.avant;   // e.avant : la caisse du mandat qui vient de finir
       const ps = await pseudos([...e.maires, ...verses.map((r) => r.joueur)]), noms = e.maires.map((u) => ps[u] || 'un joueur').join(' et ');
@@ -493,6 +498,46 @@ async function tenirMairies() {
       for (const u of a.maires) if (!e.maires.includes(u)) await notifier(u, 'maire', `Ton mandat de Maire de ${k} est terminé.`, { commune: k });
     }
   }
+  // le premier mandat d'une saison : la saison d'avant se fige
+  if (CLA.saison(m) !== CLA.saison(m - 1)) await tenirSaison(CLA.saison(m) - 1, origine).catch((e) => console.error('saison', e));
+}
+// ---------------------------------------------------------------- les classements et les saisons (GDD § 5 bis)
+const POIDS = [1, 2, 3, 4, 5, 6].map((r) => (ECO as Ligne).classements.poids_rarete[String(r)]), BONUS = (ECO as Ligne).classements.bonus_niveau;
+const ordinal = (n: number) => (n === 1 ? '1er' : n + 'e');
+// figer une saison finie (une seule fois) : les deux classements, la place de chacun, le Maire de la saison de chaque
+// commune ; chaque joueur classé est prévenu
+async function tenirSaison(s: number, origine: number) {
+  const numero = CLA.numero(s, Math.min(origine, s));
+  if (!(await rpc('jeu_saison_tenir', { s, num: numero }))) return;
+  const m0 = CLA.premierMandat(s), m1 = CLA.premierMandat(s + 1) - 1;
+  const maires: Ligne[] = (await rpc('classement_maires', { m0, m1, lim: 5000 })) || [];
+  const patr: Ligne[] = (await rpc('classement_patrimoine', { poids: POIDS, bonus: BONUS, c: null, lim: 5000 })) || [];
+  const rM = CLA.classer(Object.fromEntries(maires.map((r) => [r.joueur, Number(r.n)])));
+  const rP = CLA.classer(Object.fromEntries(patr.map((r) => [r.joueur, Number(r.n)])));
+  const ps = await pseudos([...rM.slice(0, 10), ...rP.slice(0, 10)].map((r: Ligne) => r.qui));
+  const top = (rows: Ligne[]) => rows.slice(0, 10).map((r) => ({ joueur: r.qui, pseudo: ps[r.qui] || null, n: r.n, rang: r.rang }));
+  // le Maire de la saison : le plus de mandats, puis le plus récent (règles du jeu)
+  const { data: lignes } = await admin.from('mairies').select('mandat, commune, maire').gte('mandat', m0).lte('mandat', m1).limit(20000);
+  const parCommune: Record<string, Record<number, string[]>> = {};
+  for (const l of (lignes || []) as Ligne[]) { const c = (parCommune[l.commune] = parCommune[l.commune] || {}); (c[Number(l.mandat)] = c[Number(l.mandat)] || []).push(l.maire); }
+  const elus = Object.entries(parCommune).map(([k, pm]) => [k, CLA.maireDeSaison(CLA.mandatsDe(s).map((m: number) => pm[m] || []))] as [string, string | null]).filter(([, q]) => q);
+  const psP = await pseudos(elus.map(([, q]) => q as string));
+  const plaques = Object.fromEntries(elus.map(([k, q]) => [k, { joueur: q, pseudo: psP[q as string] || null }]));
+  const places: Record<string, Ligne> = {};
+  for (const r of rM) places[r.qui] = { joueur: r.qui, rm: r.rang, pm: r.n };
+  for (const r of rP) places[r.qui] = Object.assign(places[r.qui] || { joueur: r.qui }, { rp: r.rang, pp: r.n });
+  await rpc('jeu_saison_figer', { s, maires: top(rM), patrimoine: top(rP), plaques, joueurs: Object.values(places) });
+  for (const x of Object.values(places)) await notifier(x.joueur, 'saison', `🏆 Fin de la saison ${numero} : tu finis ${x.rm ? ordinal(x.rm) : 'hors classement'} des Maires et ${x.rp ? ordinal(x.rp) : '—'} en patrimoine. Une nouvelle saison commence !`, { saison: s });
+}
+// la rareté des lieux (pour le classement de patrimoine) : posée par les règles du jeu, au plus 300 lieux à la fois
+let raretesTenues = 0;
+async function tenirRaretes(force = false) {
+  if (!force && Date.now() - raretesTenues < 10000) return;
+  raretesTenues = Date.now();
+  const { data, error } = await admin.from('lieux').select('*').is('rarete', null).limit(300);
+  if (error) throw error;
+  if (!data || !data.length) return;
+  await rpc('jeu_raretes', { ids: data.map((l: Ligne) => l.id), rs: data.map((l: Ligne) => R.rarete(lieuDe(l))) });
 }
 
 // ouvrir le pack du jour : le serveur tire au hasard (graine secrète), une fois par jour
@@ -504,6 +549,8 @@ ACTIONS.pack = async (j) => {
   await recolter(j);   // les loyers d'avant sont encaissés : les nouveaux lieux comptent à partir de maintenant
   const lignes = cartes.map((c: Ligne) => ({ ...c, commune: Regles.nomCommune(c.citycode, c.city) }));
   const gagnes: string[] = await rpc('jeu_pack', { j, jour, cartes: lignes });
+  // la rareté des lieux gagnés, tout de suite (classement de patrimoine)
+  if (gagnes.length) await rpc('jeu_raretes', { ids: gagnes, rs: gagnes.map((id) => R.rarete(cartes.find((c: Ligne) => c.id === id))) }).catch((e) => console.error('raretés', e));
   const maintenant = Date.now();
   return {
     cartes: cartes.filter((c: Ligne) => gagnes.includes(c.id)).map((c: Ligne) => ({ ...c, niveau: 0, depuis: maintenant })),
@@ -643,6 +690,7 @@ Deno.serve(async (req: Request) => {
     // ma visite (un Maire absent depuis trop longtemps perd le titre) ; les fins de mandat de Maire à annoncer
     await rpc('jeu_vu', { j: data.user.id }).catch((e) => console.error('visite', e));
     await tenirMairies().catch((e) => console.error('mairies', e));
+    await tenirRaretes().catch((e) => console.error('raretés', e));
     const res = await action(data.user.id, corps);
     // les robots jouent un tour après la réponse (sans faire attendre le vrai joueur)
     const runtime = (globalThis as Ligne).EdgeRuntime; if (runtime && runtime.waitUntil) runtime.waitUntil(robotsTour().catch((e) => console.error('robots', e)));
