@@ -863,6 +863,149 @@
     return A.groupe;
   }
 
+  // ---------------------------------------------------------------- le château de Vaux-le-Vicomte (x : vers l'est ; la cour
+  // d'honneur au nord, en -z ; les jardins au sud, en +z) ; la BD TOPO ne le dessine pas : posé au point de Wikidata
+  // le corps de logis et ses hauts toits d'ardoise, les quatre pavillons, le grand salon ovale et son dôme côté jardin, la
+  // terrasse, les douves
+  function vaux(THREE) {
+    const A = atelier(THREE);
+    const pierre = A.matiere(0xF2EAD6), pierreFoncee = A.matiere(0xD8C9A8), ardoise = A.matiere(0x4F5D8C), or = A.matiere(0xFFC233, 0x7A4A00), eau = A.matiere(0x6DC4F0, 0x0E3A55);
+    A.plaques([[128, 0.3, 12, 0, 0.1, -43], [128, 0.3, 12, 0, 0.1, 43], [12, 0.3, 74, -58, 0.1, 0], [12, 0.3, 74, 58, 0.1, 0]], eau);
+    A.boite(104, 2, 74, 0, 0, 0, pierreFoncee);
+    A.boite(64, 16, 26, 0, 2, 0, pierre); A.toit(26.6, 12, 64, 0, 18, 0, ardoise);
+    for (const [sx, sz] of [[1, 1], [1, -1], [-1, 1], [-1, -1]]) { A.boite(16, 18, 18, sx * 32, 2, sz * 13, pierre); A.combles(16.6, 13, 18.6, sx * 32, 20, sz * 13, ardoise); }
+    A.boite(18, 20, 6, 0, 2, -14, pierre); A.toit(18, 5, 6, 0, 22, -14, pierre, Math.PI / 2);
+    A.piece((e) => new THREE.CylinderGeometry(11 + e, 11 + e, 18 + 2 * e, 32).translate(0, 9, 0).scale(1.3, 1, 1), pierre, A.V(0, 2, 13));
+    A.piece((e) => new THREE.SphereGeometry(11 + e, 32, 12, 0, Math.PI * 2, 0, Math.PI / 2).scale(1.3, 1.3, 1), ardoise, A.V(0, 20, 13));
+    A.cylindre(2.2, 2.2, 5, 12, 0, 33.5, 13, pierre); A.dome(2.2, 1.2, 0, 38.5, 13, ardoise); A.boule(0.8, 0, 41.6, 13, or);
+    return A.groupe;
+  }
+
+  // ---------------------------------------------------------------- le château de Vincennes (x : vers l'est ; la tour du
+  // Village au nord, en -z)
+  // l'enceinte crénelée et ses tours, la tour du Village, le donjon (50 m) et ses tourelles, son châtelet et ses douves,
+  // la Sainte-Chapelle, les pavillons du Roi et de la Reine
+  function vincennes(THREE) {
+    const A = atelier(THREE);
+    const pierre = A.matiere(0xE6DDC8), pierreFoncee = A.matiere(0xCABD9E), ardoise = A.matiere(0x4F5D8C), vitrail = A.matiere(0x3F6FE0, 0x1C3C9E), eau = A.matiere(0x6DC4F0, 0x0E3A55);
+    const tour = [[-105, -167], [112, -167], [112, 178], [-105, 178]], murs = [[[-105, -167], [112, -167], [112, 178], [-105, 178], [-105, -167]]];
+    A.remparts(murs, 15, 4, pierre); A.creneaux(murs, 15, 1, pierreFoncee);
+    const tours = tour.concat([[112, -50], [112, 65], [-105, -50], [-105, 65], [15, 178]]);
+    A.boites(tours.map(([x, z]) => [16, 18, 16, x, 0, z]), pierre); A.creneaux(tours.map(([x, z]) => A.tourDe(17, 17, x, z)), 18, 1, pierreFoncee);
+    A.boite(25, 42, 13, 15, 0, -163, pierre); A.creneaux([A.tourDe(26, 14, 15, -163)], 42, 1, pierreFoncee); A.cylindres([[3, -169, 2.2, 14, 32], [27, -169, 2.2, 14, 32], [3, -157, 2.2, 14, 32], [27, -157, 2.2, 14, 32]], pierre, 12);
+    A.cones([[3, -169, 2.6, 46, 5], [27, -169, 2.6, 46, 5], [3, -157, 2.6, 46, 5], [27, -157, 2.6, 46, 5]], ardoise, 12);
+    // le donjon et son châtelet
+    A.plaques([[71, 0.3, 8, -77.5, 0.1, -10], [71, 0.3, 8, -77.5, 0.1, 57], [8, 0.3, 75, -46, 0.1, 23.5]], eau);
+    const ch = [A.tourDe(55, 57, -77.5, 23.5)];
+    A.remparts(ch, 14, 3, pierre); A.creneaux(ch, 14, 0.9, pierreFoncee);
+    A.cylindres([[-105, -5, 4.5, 17], [-50, -5, 4.5, 17], [-105, 52, 4.5, 17], [-50, 52, 4.5, 17]], pierre, 16); A.cones([[-105, -5, 5, 17, 7], [-50, -5, 5, 17, 7], [-105, 52, 5, 17, 7], [-50, 52, 5, 17, 7]], ardoise, 16);
+    A.boite(12, 24, 14, -50, 0, 23.5, pierre); A.creneaux([A.tourDe(13, 15, -50, 23.5)], 24, 0.9, pierreFoncee);
+    A.boite(17, 50, 17, -75, 0, 23, pierre); A.boite(18.4, 2, 18.4, -75, 46, 23, pierreFoncee); A.creneaux([A.tourDe(18.4, 18.4, -75, 23)], 48, 1, pierreFoncee);
+    A.cylindres([[-84, 14, 2.6, 34, 20], [-66, 14, 2.6, 34, 20], [-84, 32, 2.6, 34, 20], [-66, 32, 2.6, 34, 20]], pierre, 14);
+    A.cones([[-84, 14, 2.9, 54, 6], [-66, 14, 2.9, 54, 6], [-84, 32, 2.9, 54, 6], [-66, 32, 2.9, 54, 6]], ardoise, 14);
+    // la Sainte-Chapelle
+    A.boite(36, 22, 15, 54, 0, 42, pierre); A.abside(7.5, 22, 72, 0, 42, pierre); A.toit(15.6, 13, 36, 54, 22, 42, ardoise); A.demiCone(8, 12, 72, 22, 42, ardoise);
+    A.boite(3, 30, 16, 34.5, 0, 42, pierre); A.toit(16, 8, 3, 34.5, 30, 42, pierre); A.piece((e) => new THREE.CylinderGeometry(4 + e, 4 + e, 0.8 + 2 * e, 28).rotateZ(Math.PI / 2), vitrail, A.V(32.8, 20, 42));
+    A.plaques([-6, 2, 10, 18].flatMap((dx) => [[4, 13, 0.4, 54 + dx, 5, 49.6], [4, 13, 0.4, 54 + dx, 5, 34.4]]), vitrail);
+    // les pavillons du Roi et de la Reine
+    for (const x of [-53.5, 103.5]) { A.boite(17, 20, 103, x, 0, 126.5, pierre); A.toit(17.6, 9, 103, x, 20, 126.5, ardoise, Math.PI / 2); }
+    return A.groupe;
+  }
+
+  // ---------------------------------------------------------------- le château de Blois (x : vers le nord-est ; la cour au
+  // milieu ; l'aile François Ier au nord-ouest, en -z)
+  // l'aile Gaston d'Orléans (pierre, dôme), l'aile François Ier (la façade des Loges, l'escalier à vis dans la cour),
+  // l'aile Louis XII (brique et pierre), la chapelle Saint-Calais
+  function blois(THREE) {
+    const A = atelier(THREE);
+    const pierre = A.matiere(0xF1E8D2), pierreFoncee = A.matiere(0xD8C8A6), brique = A.matiere(0xC4603F), ardoise = A.matiere(0x4F5D8C), loge = A.matiere(0x6E5E50), or = A.matiere(0xFFC233, 0x7A4A00);
+    A.boite(24, 20, 91, -38, 0, -12.5, pierre); A.toit(24.6, 9, 91, -38, 20, -12.5, ardoise, Math.PI / 2); A.domeCarre(16, 9, 18, -38, 26, -12.5, ardoise); A.boule(0.8, -38, 35.6, -12.5, or);
+    A.boite(84, 22, 18, 16, 0, -51, pierre); A.toit(18.6, 11, 84, 16, 22, -51, ardoise);
+    A.plaques([5, 11, 17].flatMap((y) => Array.from({ length: 12 }, (_, k) => [4.2, 4, 0.3, -21 + k * 6.6, y, -60.1])), loge);
+    A.boites([-20, 0, 25, 48].map((x) => [1.8, 9, 3, x, 26, -51]), pierreFoncee);
+    A.cylindre(5, 5, 22, 8, 10, 0, -40.5, pierre); A.pyramide(5.6, 6, 8, 10, 22, -40.5, ardoise);
+    A.plaques(Array.from({ length: 4 }, (_, k) => [3, 3.4, 0.3, 10, 3 + k * 4.5, -35.4]), loge);
+    A.boite(20, 18, 82, 49, 0, -20, brique, -0.22); A.toit(20.6, 9, 82, 49, 18, -20, ardoise, Math.PI / 2 - 0.22);
+    A.boite(28, 16, 18, 34, 0, 5.5, brique); A.toit(18.6, 8, 28, 34, 16, 5.5, ardoise);
+    A.boite(18, 12, 10, 9, 0, 9, pierre); A.toit(10.6, 7, 18, 9, 12, 9, ardoise); A.pyramide(1.6, 8, 8, 3, 18, 9, ardoise);
+    return A.groupe;
+  }
+
+  // ---------------------------------------------------------------- le château d'Amboise (x : le long de la Loire ; le logis
+  // du Roi au nord, la tour des Minimes à l'est, la chapelle Saint-Hubert au sud-ouest)
+  function amboise(THREE) {
+    const A = atelier(THREE);
+    const pierre = A.matiere(0xF2EBDA), pierreFoncee = A.matiere(0xD9CCB0), ardoise = A.matiere(0x4F5D8C);
+    A.boite(60, 23, 14, 2, 0, 5, pierre); A.toit(14.6, 12, 60, 2, 23, 5, ardoise);
+    const luc = Array.from({ length: 7 }, (_, k) => [2.4, 4.2, 2.2, -22 + k * 7.6, 22, -1.6]);
+    A.boites(luc, pierre); A.toits(luc.map(([, , , x, , z]) => [3.2, 2.6, 2.6, x, 26.2, z, Math.PI / 2]), ardoise);
+    A.boites([-20, 4, 26].map((x) => [1.8, 8, 3, x, 30, 5]), pierreFoncee);
+    A.cylindre(10.5, 10.5, 26, 32, 20, 0, -2, pierre); A.cylindre(11, 11, 1.4, 32, 20, 24.6, -2, pierreFoncee); A.pyramide(11, 5, 32, 20, 26, -2, ardoise);
+    A.boite(10, 20, 30, 11, 0, 27, pierre); A.toit(10.6, 7, 30, 11, 20, 27, ardoise, Math.PI / 2);
+    A.boite(12, 10, 6, -68.5, 0, 58.5, pierre); A.boite(6, 10, 12, -68.5, 0, 58.5, pierre); A.toit(6.6, 6, 12, -68.5, 10, 58.5, ardoise); A.toit(6.6, 6, 12, -68.5, 10, 58.5, ardoise, Math.PI / 2);
+    A.pyramide(1.6, 10, 8, -68.5, 14, 58.5, ardoise);
+    return A.groupe;
+  }
+
+  // ---------------------------------------------------------------- le château d'If (x : vers l'est ; sur son île)
+  // le donjon carré autour de sa cour, ses trois tours rondes (la plus grosse : Saint-Christophe), les créneaux
+  function chateauIf(THREE) {
+    const A = atelier(THREE);
+    const pierre = A.matiere(0xEFE6CF), pierreFoncee = A.matiere(0xD3C5A2);
+    A.boites([[32, 17, 8, 5, 0, -1], [32, 17, 8, 5, 0, 19], [8, 17, 12, -7, 0, 9], [8, 17, 12, 17, 0, 9]], pierre);
+    A.creneaux([A.tourDe(32, 28, 5, 9)], 17, 1, pierreFoncee);
+    const tours = [[-13, -1, 8, 22], [22, -6, 5.5, 19], [22, 22, 5.5, 19]];
+    A.cylindres(tours, pierre, 24);
+    A.creneaux(tours.map(([x, z, r, h]) => Array.from({ length: 13 }, (_, k) => [x + (r - 0.4) * Math.cos(k * Math.PI / 6), z + (r - 0.4) * Math.sin(k * Math.PI / 6)])), 19, 0.8, pierreFoncee);
+    A.creneaux([Array.from({ length: 13 }, (_, k) => [-13 + 7.6 * Math.cos(k * Math.PI / 6), -1 + 7.6 * Math.sin(k * Math.PI / 6)])], 22, 0.8, pierreFoncee);
+    return A.groupe;
+  }
+
+  // ---------------------------------------------------------------- Notre-Dame-de-la-Garde (x : l'axe, le clocher à
+  // l'ouest-nord-ouest en -x) : sur son fort (la carte est plate), la basilique aux pierres blanches et vertes, ses
+  // coupoles, le clocher et la Vierge dorée
+  function notreDameDeLaGarde(THREE) {
+    const A = atelier(THREE);
+    const pierre = A.matiere(0xF2EEE2), vert = A.matiere(0x5E8C6A), fort = A.matiere(0xCFC4AA), fortFonce = A.matiere(0xB5A988), or = A.matiere(0xFFC233, 0x7A4A00);
+    A.boite(62, 12, 52, -2.5, 0, 0, fort); A.creneaux([A.tourDe(62, 52, -2.5, 0)], 12, 1, fortFonce);
+    A.boite(36, 14, 14, -1, 12, 8, pierre); A.toit(14.6, 5, 36, -1, 26, 8, vert);
+    A.plaques([16, 19.5, 23].map((y) => [36.4, 1.2, 14.4, -1, y, 8]), vert);
+    A.abside(7, 14, 17, 12, 8, pierre); A.dome(7.2, 0.8, 17, 26, 8, vert);
+    A.boite(14, 14, 22, 6, 12, 8, pierre); A.cylindre(6, 6, 4, 20, 6, 26, 8, pierre); A.dome(6, 1, 6, 30, 8, vert); A.cylindre(1, 1, 2.5, 8, 6, 35.8, 8, pierre);
+    A.boite(10, 32, 10, -24, 12, 8, pierre); A.plaques([18, 24, 30, 36].map((y) => [10.4, 1.2, 10.4, -24, y, 8]), vert);
+    A.boite(11, 1.6, 11, -24, 44, 8, vert); A.cylindre(3.6, 4.2, 10, 12, -24, 45.6, 8, pierre);
+    A.cylindre(0.9, 1.7, 8, 12, -24, 55.6, 8, or); A.boule(1, -24, 64.4, 8, or); A.boite(0.8, 1.2, 0.8, -24, 63, 9.4, or);
+    return A.groupe;
+  }
+
+  // ---------------------------------------------------------------- le viaduc de Millau (x : vers l'est ; le long de l'A75,
+  // du nord au sud, 2 460 m) : la carte est plate, le tablier est posé à 100 m (au lieu des 270 m au-dessus du Tarn)
+  // le tablier blanc, ses sept piles fendues en deux en haut, les sept pylônes en Y renversé et leurs haubans
+  function viaducDeMillau(THREE) {
+    const A = atelier(THREE), V = A.V;
+    const beton = A.matiere(0xEDEDE8), tablier = A.matiere(0xF7F7F2), hauban = A.matiere(0xF2C94C, 0x4A3A00), route = A.matiere(0x9C9FA6);
+    const P0 = [-90, -1221], C = [21.5, 0], P1 = [183, 1221], H = 100;
+    const pt = (t) => [(1 - t) * (1 - t) * P0[0] + 2 * t * (1 - t) * C[0] + t * t * P1[0], (1 - t) * (1 - t) * P0[1] + 2 * t * (1 - t) * C[1] + t * t * P1[1]];
+    const tan = (t) => { const a = pt(Math.max(0, t - 0.001)), b = pt(Math.min(1, t + 0.001)), l = Math.hypot(b[0] - a[0], b[1] - a[1]); return [(b[0] - a[0]) / l, (b[1] - a[1]) / l]; };
+    const ligne = Array.from({ length: 41 }, (_, k) => pt(k / 40));
+    A.remparts([ligne], 4.2, 32, tablier, H);
+    A.piece(() => A.fusion(ligne.slice(1).map((b, i) => { const a = ligne[i]; return new THREE.BoxGeometry(Math.hypot(b[0] - a[0], b[1] - a[1]) + 0.6, 0.2, 22).rotateY(Math.atan2(-(b[1] - a[1]), b[0] - a[0])).translate((a[0] + b[0]) / 2, H + 4.3, (a[1] + b[1]) / 2); })), route, null, null, true);
+    const piles = [], pyl = [], cables = [];
+    for (let k = 0; k < 7; k++) {
+      const t = (204 + k * 342) / 2460, [x, z] = pt(t), [tx, tz] = tan(t), r = Math.atan2(-tz, tx);
+      piles.push([22, H - 40, 16, x, 0, z, r]);
+      for (const s of [1, -1]) piles.push([8, 40, 14, x + s * 6 * tx, H - 40, z + s * 6 * tz, r]);
+      for (const s of [1, -1]) A.poutre(V(x + s * 9 * tx, H + 4.2, z + s * 9 * tz), V(x, H + 34, z), 3, 2.2, beton);
+      pyl.push([x, z, 1.4, 53, H + 34, 1.8]);
+      for (let c = 1; c <= 11; c++) for (const s of [1, -1]) { const ya = H + 34 + c * 4.6, d = 12 + c * 13, b = [x + s * d * tx, H + 4.4, z + s * d * tz], a = [x, ya, z];
+        const v = new THREE.Vector3(b[0] - a[0], b[1] - a[1], b[2] - a[2]), L = v.length(); const g = new THREE.BoxGeometry(0.35, L, 0.35);
+        g.applyQuaternion(new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 1, 0), v.normalize())); g.translate((a[0] + b[0]) / 2, (a[1] + b[1]) / 2, (a[2] + b[2]) / 2); cables.push(g); }
+    }
+    A.boites(piles, beton); A.cylindres(pyl, beton, 8);
+    A.piece(() => A.fusion(cables), hauban, null, null, true);
+    return A.groupe;
+  }
+
   // les maquettes connues : le monument (identifiant de data/monuments.json), où et comment la poser, et les
   // bâtiments de l'IGN qu'elle remplace (sinon les blocs gris de la BD TOPO resteraient dedans)
   const MODELES = {
@@ -994,6 +1137,27 @@
     Q295844: {   // Saint-Sulpice : la façade à l'ouest, sur la place
       construire: saintSulpice, centre: [2.334821, 48.851001], orientation: 6, masquer: ['BATIMENT0000000241937855', 'BATIMENT0000000241937858', 'BATIMENT0000000241937859', 'BATIMENT0000000241937856', 'BATIMENT0000000253245361'],
     },
+    Q739976: {   // Vaux-le-Vicomte : la cour d'honneur au nord, les jardins au sud (la BD TOPO ne dessine pas le château)
+      construire: vaux, centre: [2.7142, 48.5658], orientation: 4, masquer: ['BATIMENT0000000338309764'],
+    },
+    Q663673: {   // Vincennes : la tour du Village au nord, le donjon à l'ouest, la Sainte-Chapelle à l'est
+      construire: vincennes, centre: [2.4358, 48.8428], orientation: -8, masquer: ['BATIMENT0000000241617748', 'BATIMENT0000000241617628', 'BATIMENT0000000241617629', 'BATIMENT0000000241617747', 'BATIMENT0000000241617746', 'BATIMENT0000000241616386', 'BATIMENT0000000241617583'],
+    },
+    Q4055: {   // Blois : la cour au milieu, l'aile François Ier au nord-ouest
+      construire: blois, centre: [1.331, 47.5855], orientation: 40, masquer: ['BATIMENT0000000321414953', 'BATIMENT0000000321414954', 'BATIMENT0000000321414955', 'BATIMENT0000000321415124'],
+    },
+    Q389908: {   // Amboise : le logis du Roi le long de la Loire, la tour des Minimes, la chapelle Saint-Hubert
+      construire: amboise, centre: [0.986, 47.4137], orientation: 36, masquer: ['BATIMENT0000000322879332', 'BATIMENT0000000322879331', 'BATIMENT0000000322879185'],
+    },
+    Q622500: {   // le château d'If : le donjon carré et ses trois tours
+      construire: chateauIf, centre: [5.3251, 43.2799], orientation: 7, masquer: ['BATIMENT0000000257154754'],
+    },
+    'manuel-notre-dame-de-la-garde': {   // Notre-Dame-de-la-Garde : le clocher et la Vierge dorée à l'ouest-nord-ouest
+      construire: notreDameDeLaGarde, centre: [5.3713, 43.284], orientation: -41, masquer: ['BATIMENT0000000273400964', 'BATIMENT0000000273400965', 'BATIMENT0000000273400985', 'BATIMENT0000000273400986', 'BATIMENT0000000273400987', 'BATIMENT0000000273400988', 'BATIMENT0000000273400280', 'BATIMENT0000000273400282', 'BATIMENT0000000273400288', 'BATIMENT0000000273400287', 'BATIMENT0000000273400286', 'BATIMENT0000000273400281', 'BATIMENT0000000273400278'],
+    },
+    'manuel-viaduc-de-millau': {   // le viaduc de Millau : le long de l'A75 (relevée sur la carte), du nord au sud
+      construire: viaducDeMillau, centre: [3.0225, 44.0775], orientation: 0, masquer: [],
+    },
   };
   const MASQUES = Object.values(MODELES).flatMap((m) => m.masquer);
 
@@ -1051,6 +1215,7 @@
   const api = { MODELES, MASQUES, couche, tourEiffel, cathedrale, notreDame, chartres, reims, saintDenis, arcDeTriomphe, sacreCoeur, pantheon, garnier, concorde, pontDuGard, versailles,
     elysee, sorbonne, sainteChapelle, invalides, luxembourg, fontainebleau, chambord, amiens, rouen, strasbourg,
     madeleine, palaisDesPapes, chenonceau, montSaintMichel, louvre, carcassonne, CARCA,
-    grandPalais, pontAlexandre, pontNeuf, conciergerie, palaisRoyal, placeDesVosges, saintSulpice };
+    grandPalais, pontAlexandre, pontNeuf, conciergerie, palaisRoyal, placeDesVosges, saintSulpice,
+    vaux, vincennes, blois, amboise, chateauIf, notreDameDeLaGarde, viaducDeMillau };
   if (typeof module !== 'undefined' && module.exports) module.exports = api; else racine.Maquettes = api;
 })(typeof globalThis !== 'undefined' ? globalThis : this);
