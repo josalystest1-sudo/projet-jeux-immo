@@ -1,6 +1,6 @@
 # Cadastra — Document de conception V1
 
-Nom du jeu : **Cadastra** (choisi par Gautier le 2 nov. 2026). Version du 2 novembre 2026, issue de l'interview de Gautier et du prototype `proto/`.
+Nom du jeu : **CityDeck** (décidé par Gautier le 4 nov. 2026 ; avant : Cadastra, le nom de travail du 2 nov.). Version du 2 novembre 2026, issue de l'interview de Gautier et du prototype `proto/`.
 
 Étiquettes : **[Décidé]** = tranché par Gautier · **[Proposé]** = choix de Claude, à valider · **[V2]** = pas en version 1.
 

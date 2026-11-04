@@ -1,4 +1,4 @@
-# Cadastra — référence pour Claude Code
+# CityDeck (anciennement Cadastra) — référence pour Claude Code
 
 Ce fichier dit **ce qu'est le jeu, comment on travaille, ce qui est décidé et les pièges**. `docs/GDD.md` donne les règles en détail (avec les étiquettes [Décidé] / [Proposé]), `docs/PLAN.md` l'ordre des étapes, `PROGRESS.md` où on en est, `docs/HISTORIQUE.md` le récit de tout ce qui a été fait (toutes les PR, les décisions de Gautier, ce qui reste à faire, où vit quoi). Pour reprendre le projet dans un autre outil : `docs/REPRENDRE-DANS-CLAUDE-CODE.md`.
 
@@ -53,7 +53,7 @@ Ce fichier dit **ce qu'est le jeu, comment on travaille, ce qui est décidé et 
 6. Maire = le plus de lieux dans la commune ; égalité = deux Maires ; titre valable tant que la condition tient.
 7. Pas de taxe, pas de délai de blocage, skins en V2. Gautier est réservé sur toute limite de propriété (capacité de gestion) : proposée, à valider après simulation.
 8. Standing (prix du m²) = plafond de construction ; lieux marquants (mairie, église…) = potentiel supérieur.
-9. **Nom du jeu : Cadastra.** Monnaie : les pièces.
+9. **Nom du jeu : CityDeck** (décision du 4 nov. ; avant : Cadastra, qui reste dans le code, les clés de stockage et les noms internes : ne pas les renommer, les parties seraient perdues). Monnaie : les pièces.
 10. Packs : toutes les raretés sauf monuments, chances décroissantes ; jamais de doublon (sinon le lieu libre de même rareté le plus proche). Pas de domicile. Pas de bonus de collection en V1. France seulement.
 12. Style cartoon, tout en IA guidée par Claude ; lancement public direct sans date ; toutes les soirées, devant Arena ; budget 20 €/semaine max ; monnaie = « pièces ».
 11. Inscription obligatoire (e-mail ou Google/Apple). PWA + Stripe en V1, stores en V2. Multi-comptes : risque accepté en V1. Push : V2. Modération : filtre de pseudos + bouton Signaler, Gautier traite à la main.

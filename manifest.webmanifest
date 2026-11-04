@@ -1,6 +1,6 @@
 {
-  "name": "Cadastra — Collectionne la France",
-  "short_name": "Cadastra",
+  "name": "CityDeck — Collectionne la France",
+  "short_name": "CityDeck",
   "description": "Collectionne les lieux de France, construis, deviens Maire.",
   "lang": "fr",
   "start_url": "./",

@@ -145,6 +145,7 @@ Rien d'important ne vit dans une conversation : tout est dans le dépôt ou sur 
 - **L'interview des cartes, puis les nouvelles cartes et la nouvelle révélation** (PR #109). Gautier trouve les cartes « trop basiques » et la révélation trop simple : elle « ne fait pas monter la pression ». Il veut qu'un toucher passe à l'étape suivante, avec une étape « région ». Comme il n'arrive pas à exprimer ses idées, il demande une interview « ultra poussée » : cinq séries de questions, une synthèse qu'il valide, une preuve. En route, il demande de ne pas tomber dans la science-fiction (« ce n'est pas au jeu de s'adapter au pack ») et signale la plaque qui touchait le cadre. Pour voir des cartes rares sans compter sur la chance, il obtient un pack d'essai.
 - **La révélation sur la carte** (PR #110). Gautier teste avec le pack d'essai. La comète est « super moche », la pression ne monte pas, la carte est « trop fine », rien n'est fluide (écran noir avant le plan) et la pile ne fait pas un paquet. Quelques questions à choix précisent ses envies : la carte doit avoir de l'épaisseur, des traits plus marqués et plus de richesse ; la révélation doit se jouer sur la carte qui se retourne, annoncée par la carte de dos qui s'illumine et tremble, avec des noms qui claquent.
 - **La fluidité** (PR #111). Gautier : l'ouverture « lag trop » pour qu'il puisse juger, et les noms sont peu visibles. Claude mesure au téléphone simulé et trouve les causes : couches 3D trop nombreuses, effets coûteux, calculs au mauvais moment. La révélation passe d'environ 2,5 à 40 images par seconde. Pendant ce travail, Gautier annonce le nouveau nom du jeu : **CityDeck**.
+- **Le nom : CityDeck** (PR #112). Le nom se voit dans le titre, sur la pochette, au dos des cartes, sur l'écran d'accueil et de connexion, et à l'installation sur le téléphone. Cadastra reste dans le code et les clés internes, pour ne perdre aucune partie.
 
 ## Toutes les PR
 
@@ -282,6 +283,7 @@ Puis une PR par étape, fusionnée en squash :
 | #109 | 04/11 11:00 | Les cartes et la révélation refaites d'après l'interview (plan d'or, maquette en porcelaine, comète, région, un toucher = étape suivante) ; le pack d'essai |
 | #110 | 04/11 11:20 | La révélation se joue sur la carte (annonce lumineuse, noms qui claquent), cartes épaisses en paquet, zooms fluides, carte plus riche |
 | #111 | 04/11 11:38 | Fluidité de l'ouverture (mesurée : révélation de 2,5 à environ 40 images/s) ; noms lisibles |
+| #112 | 04/11 11:45 | Le jeu s'appelle CityDeck (titre, pochette, dos des cartes, écran d'accueil, installation) |
 
 ## Les décisions de Gautier
 
@@ -328,7 +330,7 @@ Les décisions du 2 novembre (interview) sont dans `CLAUDE.md` § 4 et dans le G
   - supprimer les robots ;
   - retirer le pack d'essai (Réglages, `?essai-pack`) ;
   - brancher un service d'envoi d'e-mails (celui de Supabase n'écrit qu'à l'équipe Supabase) ;
-  - confirmer le nom (Cadastra reste le nom de travail).
+  - le nom est décidé : **CityDeck** (4 nov.) ; vérifier qu'il est libre (marque, nom de domaine, magasins d'applications) avant le lancement.
 - **Petites choses** :
   - les autres catégories de lieux célèbres (châteaux, mairies, gares…). Wikidata se joint depuis le PC. Les lieux de culte de toutes les religions y sont depuis la PR #104 ;
   - la collection (Patrimoine) dans le style des nouvelles cartes (grille de badges, décision de l'interview), après validation des cartes par Gautier ;
