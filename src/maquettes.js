@@ -1576,6 +1576,133 @@
     return A.groupe;
   }
 
+  // le château de Pierrefonds : l'enceinte crénelée autour de la cour, ses huit grosses tours et leurs toits pointus, le
+  // donjon (logis) au sud
+  function pierrefonds(THREE) {
+    const A = atelier(THREE);
+    const pierre = A.matiere(0xE9E1CC), pierreFoncee = A.matiere(0xCFC3A6), ardoise = A.matiere(0x4F5D8C);
+    const anneau = [[[-45, -38], [12, -40], [25, -2], [16, 40], [-42, 40], [-45, -38]]];
+    A.remparts(anneau, 26, 13, pierre); A.creneaux(anneau.map((l) => l.map(([x, z]) => [x, z])), 26, 1, pierreFoncee); A.remparts(anneau, 4, 9, ardoise, 26);
+    const tours = [[-50, -45], [-16, -52], [15, -48], [32, -6], [-53, 2], [-46, 46], [-8, 50], [19, 45]];
+    A.cylindres(tours.map(([x, z]) => [x, z, 8, 34, 0]), pierre, 20); A.cylindres(tours.map(([x, z]) => [x, z, 8.8, 2, 32]), pierreFoncee, 20);
+    A.cones(tours.map(([x, z]) => [x, z, 8.6, 34, 14]), ardoise, 20);
+    A.boite(30, 38, 26, 4, 0, 32, pierre); A.combles(30.6, 14, 26.6, 4, 38, 32, ardoise);
+    return A.groupe;
+  }
+
+  // la primatiale Saint-Jean de Lyon : la façade et ses deux tours carrées, la nef au toit bas de tuiles, le transept et ses
+  // tours, l'abside
+  const saintJeanLyon = (THREE) => cathedrale(THREE, { F: -38, E: 33, larg: 20, mur: 32, toitH: 6, xT: 18, transept: 40, transeptL: 12, cote: 10, facadeH: 42, rose: 5, toit: 0xB0644A, toitFonce: 0x8E4E3A,
+    tours: [{ z: -12, h: 44 }, { z: 12, h: 44 }],
+    plus: (A, m) => { for (const x of [12, 24]) { A.boite(9, 40, 9, x, 0, -20, m.pierre); A.boite(10, 1.4, 10, x, 38.6, -20, m.pierreFoncee); } } });
+
+  // la cathédrale de la Major à Marseille (x : l'axe, la façade au sud-ouest en -x) : les pierres blanches et vertes, les
+  // coupoles, le grand dôme de la croisée, les deux tours de la façade et leurs dômes
+  function laMajor(THREE) {
+    const A = atelier(THREE);
+    const blanc = A.matiere(0xF2EEE2), vert = A.matiere(0x5E8C6A), vertClair = A.matiere(0x86AE90);
+    const bandes = (lx, lz, x, z, h) => A.plaques([0.25, 0.45, 0.65, 0.85].map((f) => [lx + 0.4, 1, lz + 0.4, x, h * f, z]), vert);
+    A.boite(60, 26, 27, -36, 0, -1.5, blanc); bandes(60, 27, -36, -1.5, 26); A.toit(27.6, 5, 60, -36, 26, -1.5, vert);
+    A.boite(20, 26, 58, 6, 0, -3, blanc); bandes(20, 58, 6, -3, 26);
+    A.boite(22, 22, 24, 27, 0, -1.5, blanc); bandes(22, 24, 27, -1.5, 22); A.abside(12, 22, 38, 0, -1.5, blanc); A.dome(12, 0.9, 38, 22, -1.5, vertClair);
+    A.cylindre(11, 11, 8, 24, 6, 26, -2, blanc); A.cylindre(11.6, 11.6, 1, 24, 6, 30, -2, vert); A.dome(11, 1.15, 6, 34, -2, vertClair); A.cylindre(2, 2, 4, 12, 6, 46.5, -2, blanc); A.dome(2, 1.2, 6, 50.5, -2, vert);
+    for (const [x, z] of [[6, -26], [6, 20], [-20, -1.5], [-44, -1.5], [27, -1.5]]) A.dome(5, 0.9, x, 26, z, vertClair);
+    for (const z of [-16, 10]) { A.boite(9, 34, 9, -57, 0, z, blanc); A.plaques([0.2, 0.4, 0.6, 0.8].map((f) => [9.4, 1, 9.4, -57, 34 * f, z]), vert); A.cylindre(4, 4, 4, 16, -57, 34, z, blanc); A.dome(4, 1.1, -57, 38, z, vertClair); }
+    return A.groupe;
+  }
+
+  // la porte Saint-Denis : l'arc de triomphe, ses piles et leurs obélisques sculptés, l'attique
+  function porteSaintDenis(THREE) {
+    const A = atelier(THREE);
+    const pierre = A.matiere(0xEFE6D0), pierreFoncee = A.matiere(0xD6C8A8), relief = A.matiere(0xC9B48A);
+    for (const s of [1, -1]) A.boite(8.5, 24.6, 7, s * 8.75, 0, 0, pierre);
+    A.boite(9.2, 9, 7, 0, 15.6, 0, pierre); const v = new THREE.Shape(); v.moveTo(-4.5, 11); v.absarc(0, 11, 4.5, Math.PI, 0, true); v.lineTo(4.5, 15.7); v.lineTo(-4.5, 15.7); v.closePath(); A.extrusion(v, 6.98, 0, 0, 0, pierre, 0, true);
+    A.boite(27, 1.4, 8, 0, 23.2, 0, pierreFoncee);
+    for (const s of [1, -1]) for (const z of [3.55, -3.55]) { const f = new THREE.Shape(); f.moveTo(-2, 0); f.lineTo(2, 0); f.lineTo(0.6, 20); f.lineTo(-0.6, 20); f.closePath(); A.extrusion(f, 0.3, s * 8.75, 1, z, relief, 0, true); }
+    return A.groupe;
+  }
+
+  // la colonne Vendôme : le piédestal, la colonne de bronze et sa spirale, Napoléon au sommet
+  function colonneVendome(THREE) {
+    const A = atelier(THREE);
+    const bronze = A.matiere(0x6B5A44), bronzeClair = A.matiere(0x8C7658), pierre = A.matiere(0xEFE6D0);
+    A.boite(8, 1.5, 8, 0, 0, 0, pierre); A.boite(6, 6, 6, 0, 1.5, 0, bronze); A.boite(6.6, 1, 6.6, 0, 7.5, 0, bronzeClair);
+    A.cylindre(1.8, 2, 30, 20, 0, 8.5, 0, bronze); A.cylindres([12, 17, 22, 27, 32, 37].map((y) => [0, 0, 2.05, 0.8, y]), bronzeClair, 20);
+    A.boite(3.6, 1.6, 3.6, 0, 38.5, 0, bronzeClair); A.cylindre(1.2, 1.2, 2, 12, 0, 40.1, 0, bronze);
+    A.cylindre(0.5, 0.7, 3, 10, 0, 42.1, 0, bronze); A.boule(0.5, 0, 45.6, 0, bronze);
+    return A.groupe;
+  }
+
+  // le trophée des Alpes à La Turbie : le socle carré, le tambour et sa colonnade, l'attique ruiné
+  function tropheeAlpes(THREE) {
+    const A = atelier(THREE);
+    const pierre = A.matiere(0xF2EEE2), pierreFoncee = A.matiere(0xD8D0BC);
+    A.boite(32, 12, 32, 0, 0, 0, pierre); A.boite(33, 1.2, 33, 0, 12, 0, pierreFoncee);
+    A.cylindre(12, 12, 14, 28, 0, 13.2, 0, pierre); A.cylindres(Array.from({ length: 16 }, (_, k) => { const a = k * Math.PI / 8; return [Math.cos(a) * 13, Math.sin(a) * 13, 0.8, 12, 13.2]; }).filter((_, k) => k < 11), pierre, 10);
+    A.boite(14, 6, 10, -3, 27.2, -2, pierreFoncee); A.boite(8, 4, 6, 4, 27.2, 4, pierreFoncee);
+    return A.groupe;
+  }
+
+  // le Lion de Belfort (Bartholdi) : le lion de grès rouge couché au pied de la citadelle, la paroi de rocher
+  function lionBelfort(THREE) {
+    const A = atelier(THREE), V = A.V;
+    const gres = A.matiere(0xB5654A), gresFonce = A.matiere(0x96503A), rocher = A.matiere(0xA08A80);
+    A.boite(4, 20, 40, -4, 0, 9, rocher);
+    A.piece((e) => new THREE.SphereGeometry(1 + e / 5, 24, 14).scale(4.6, 3.6, 10.5), gres, V(-10, 3.6, 13));
+    A.piece((e) => new THREE.SphereGeometry(4.4 + e, 20, 14), gresFonce, V(-11, 8, 1.5));
+    A.piece((e) => new THREE.SphereGeometry(2.8 + e, 18, 12).scale(1.2, 1, 1), gres, V(-13.8, 8.2, 0.5));
+    A.boites([[6, 1.6, 2, -14, 0, -2, 0], [6, 1.6, 2, -14, 0, 3, 0]], gres);
+    A.piece((e) => new THREE.CylinderGeometry(0.6 + e, 0.9 + e, 9 + 2 * e, 8).rotateX(Math.PI / 2.3), gres, V(-9, 2, 25));
+    return A.groupe;
+  }
+
+  // le château d'Ussé (le château de la Belle au bois dormant) : les ailes autour de la cour ouverte au nord, les tours et
+  // tourelles et leurs toits pointus, les lucarnes
+  function usse(THREE) {
+    const A = atelier(THREE);
+    const tuffeau = A.matiere(0xF6F0E0), ardoise = A.matiere(0x4F5D8C);
+    const ailes = [[37, 15, 18, -5.5, -6], [58, 15, 9, 29, 11], [17, 15, 39, 46.5, -5.5]];
+    A.boites(ailes.map(([lx, h, lz, x, z]) => [lx, h, lz, x, 0, z]), tuffeau);
+    A.toits(ailes.map(([lx, h, lz, x, z]) => (lx > lz ? [lz + 0.6, 9, lx, x, h, z, 0] : [lx + 0.6, 9, lz, x, h, z, Math.PI / 2])), ardoise);
+    const tours = [[-12, 13, 4.5, 20], [-2, 14, 3.5, 18], [45, -24, 3.5, 18], [57, 15, 4, 20], [-22, -14, 3, 18], [-22, 4, 3, 18]];
+    A.cylindres(tours.map(([x, z, r, h]) => [x, z, r, h, 0]), tuffeau, 16); A.cones(tours.map(([x, z, r, h]) => [x, z, r + 0.4, h, r * 2.4]), ardoise, 16);
+    const tourelles = [[-14, -15], [4, -15], [20, 8], [36, 8], [40, -20], [52, -10]];
+    A.cylindres(tourelles.map(([x, z]) => [x, z, 1.4, 6, 14]), tuffeau, 10); A.cones(tourelles.map(([x, z]) => [x, z, 1.7, 20, 5]), ardoise, 10);
+    const luc = [[-12, -15.4], [0, -15.4], [12, 6.2], [26, 6.2], [40, 6.2]];
+    A.boites(luc.map(([x, z]) => [2, 3.4, 2, x, 14, z]), tuffeau); A.toits(luc.map(([x, z]) => [2.8, 2.2, 2.4, x, 17.4, z, Math.PI / 2]), ardoise);
+    return A.groupe;
+  }
+
+  // le pont Mirabeau (x : l'axe du pont) : les trois arches d'acier, les deux piles en forme de bateau et leurs quatre statues
+  // de bronze, le tablier
+  function pontMirabeau(THREE) {
+    const A = atelier(THREE);
+    const acier = A.matiere(0x6E8C84), pierre = A.matiere(0xE9DFC6), bronze = A.matiere(0x3F5B4E), route = A.matiere(0x9C9FA6);
+    const arche = (x0, x1, y0, y1) => { const c = (x0 + x1) / 2, demi = (x1 - x0) / 2, f = y1 - y0, R = (demi * demi + f * f) / (2 * f), cy = y1 - R, a = Math.asin(demi / R), s = new THREE.Shape();
+      s.moveTo(x0, y0); s.absarc(c, cy, R, Math.PI / 2 + a, Math.PI / 2 - a, true); s.lineTo(x1, 11.05); s.lineTo(x0, 11.05); s.closePath(); A.extrusion(s, 19.6, 0, 0, 0, acier, 0, true); };
+    arche(-79, -49.5, 3, 8); arche(-43.5, 43.5, 2, 9.5); arche(49.5, 79, 3, 8);
+    for (const s of [1, -1]) { A.boite(6, 11, 14, s * 46.5, 0, 0, pierre); A.cylindres([[s * 46.5, 7.5, 3, 11, 0], [s * 46.5, -7.5, 3, 11, 0]], pierre, 4);
+      for (const z of [11, -11]) { A.boite(2, 2, 2, s * 46.5, 11, z, pierre); A.cylindre(0.7, 0.9, 3.6, 10, s * 46.5, 13, z, bronze); A.boule(0.5, s * 46.5, 17, z, bronze); A.boite(3.6, 0.3, 0.8, s * 46.5, 15.6, z, bronze); } }
+    for (const s of [1, -1]) A.boite(8, 11, 20, s * 83, 0, 0, pierre);
+    A.boite(174, 1, 20, 0, 11, 0, acier); A.plaques([[174, 0.2, 14, 0, 12, 0]], route); for (const s of [1, -1]) A.boite(174, 1.1, 0.6, 0, 12, s * 9.7, acier);
+    return A.groupe;
+  }
+
+  // la basilique Notre-Dame de Fourvière : la nef blanche, ses quatre tours octogonales crénelées, le portique de la façade,
+  // l'abside, la chapelle et sa Vierge dorée
+  function fourviere(THREE) {
+    const A = atelier(THREE), Z = 1.5;
+    const blanc = A.matiere(0xF4F1EA), blancOmbre = A.matiere(0xDCD6C8), toit = A.matiere(0x8E9AB4), or = A.matiere(0xFFC233, 0x7A4A00);
+    A.boite(59, 30, 26, -8.5, 0, Z, blanc); A.toit(26.6, 6, 59, -8.5, 30, Z, toit);
+    const tours = [[-40, -12], [-40, 16], [17, -13], [17, 16]];
+    A.cylindres(tours.map(([x, z]) => [x, z, 4.6, 50, 0]), blanc, 8); A.cylindres(tours.map(([x, z]) => [x, z, 5.2, 1.4, 48]), blancOmbre, 8);
+    A.creneaux(tours.map(([x, z]) => Array.from({ length: 9 }, (_, k) => [x + 4.9 * Math.cos(k * Math.PI / 4), z + 4.9 * Math.sin(k * Math.PI / 4)])), 49.4, 0.7, blanc);
+    A.cylindres(Array.from({ length: 4 }, (_, k) => [-43.5, Z - 6 + k * 4, 0.7, 14, 0]), blanc, 10); A.toit(16, 4, 3, -43.5, 14, Z, blanc);
+    A.abside(10, 21, 21, 0, Z, blanc); A.dome(10.2, 0.6, 21, 21, Z, toit);
+    A.boite(7, 26, 7, -20, 0, -20, blancOmbre); A.cylindre(2, 2, 4, 10, -20, 26, -20, blancOmbre); A.cylindre(0.6, 1, 3.4, 10, -20, 30, -20, or); A.boule(0.5, -20, 33.8, -20, or);
+    return A.groupe;
+  }
+
   // les maquettes connues : le monument (identifiant de data/monuments.json), où et comment la poser, et les
   // bâtiments de l'IGN qu'elle remplace (sinon les blocs gris de la BD TOPO resteraient dedans)
   const MODELES = {
@@ -1865,6 +1992,36 @@
     Q269641: {   // la colonne de Juillet, place de la Bastille
       construire: colonneJuillet, centre: [2.3691, 48.8532], orientation: 0, masquer: [],
     },
+    Q376699: {   // Pierrefonds
+      construire: pierrefonds, centre: [2.9803, 49.3469], orientation: -35, masquer: ['BATIMENT0000000318102438', 'BATIMENT0000000318102437', 'BATIMENT0000000318101791', 'BATIMENT0000000318101792', 'BATIMENT0000000318101793', 'BATIMENT0000000318101794'],
+    },
+    Q1521: {   // la primatiale Saint-Jean de Lyon : la façade à l'ouest
+      construire: saintJeanLyon, centre: [4.827481, 45.760756], orientation: -23, masquer: ['BATIMENT0000000240873691', 'BATIMENT0000000240873668'],
+    },
+    Q1419757: {   // la Major : la façade au sud-ouest
+      construire: laMajor, centre: [5.3649, 43.2998], orientation: 78, masquer: ['BATIMENT0000000258938065', 'BATIMENT0000000258930470', 'BATIMENT0000000258930469', 'BATIMENT0000000258938064', 'BATIMENT0000000258930468', 'BATIMENT0000000258927550'],
+    },
+    Q684594: {   // la porte Saint-Denis
+      construire: porteSaintDenis, centre: [2.35269, 48.869794], orientation: -18, masquer: ['BATIMENT0000000000158427'],
+    },
+    Q1111051: {   // la colonne Vendôme
+      construire: colonneVendome, centre: [2.3294, 48.8675], orientation: 0, masquer: [],
+    },
+    Q747588: {   // le trophée des Alpes
+      construire: tropheeAlpes, centre: [7.4018, 43.7448], orientation: 0, masquer: [],
+    },
+    Q926536: {   // le Lion de Belfort, au pied de la citadelle
+      construire: lionBelfort, centre: [6.8647, 47.6367], orientation: -31, masquer: [],
+    },
+    Q185479: {   // Ussé : la cour ouverte au nord
+      construire: usse, centre: [0.2911, 47.2497], orientation: 13, masquer: ['BATIMENT0000000323142693'],
+    },
+    Q291093: {   // le pont Mirabeau (berges relevées sur la carte)
+      construire: pontMirabeau, centre: [2.27558, 48.846726], orientation: -28, masquer: [],
+    },
+    Q1516: {   // Fourvière : la façade à l'ouest
+      construire: fourviere, centre: [4.8226, 45.7623], orientation: -8, masquer: ['BATIMENT0000000240873667', 'BATIMENT0000000240873665', 'BATIMENT0000000240873666', 'BATIMENT0000000240873664', 'BATIMENT0000000240873547', 'BATIMENT0000000240873663'],
+    },
   };
   const MASQUES = Object.values(MODELES).flatMap((m) => m.masquer);
 
@@ -1935,6 +2092,7 @@
     montsoreau, saintGermainEnLaye, saintSavin, salineRoyale, saintEustache, chaillot, placeStanislas, laon,
     fontevraud, palaisTau, azayLeRideau, cordouan, villandry, observatoireNice, albi, ecoleMilitaire, theatreChampsElysees, closLuce,
     odeon, chantilly, angers, bayeux, arcOrange, villaSavoye,
-    saintRemi, saintGermainAuxerrois, tourSaintJacques, arenesLutece, saumur, placeVictoires, hautKoenigsbourg, saintEtienneDuMont, arenesNimes, colonneJuillet };
+    saintRemi, saintGermainAuxerrois, tourSaintJacques, arenesLutece, saumur, placeVictoires, hautKoenigsbourg, saintEtienneDuMont, arenesNimes, colonneJuillet,
+    pierrefonds, saintJeanLyon, laMajor, porteSaintDenis, colonneVendome, tropheeAlpes, lionBelfort, usse, pontMirabeau, fourviere };
   if (typeof module !== 'undefined' && module.exports) module.exports = api; else racine.Maquettes = api;
 })(typeof globalThis !== 'undefined' ? globalThis : this);
