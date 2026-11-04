@@ -59,26 +59,28 @@
     boucle = 0; const vues = [...SCENES].filter((s) => s.cv.isConnected && visible(s.cv)); if (!vues.length) return; cadence++;
     // la carte au premier plan (en main, agrandie) à chaque image ; les autres une image sur six, à tour de rôle
     // la carte au premier plan à chaque image (dans le canevas du moteur, posé sur elle) ; les autres une fois par seconde
-    const focus = vues.find((s) => s.focus) || (vues.length === 1 ? vues[0] : null);
-    vues.forEach((s, i) => { if (s === focus || (cadence % 60) === (i * 7) % 60 || !s.vu) s.dessiner(t / 1000, s === focus); });
+    const focus = vues.find((s) => s.focus);
+    if (focus) vues.forEach((s, i) => { if (s === focus || (cadence % 60) === (i * 7) % 60 || !s.vu) s.dessiner(t / 1000, s === focus); });
+    else { const tour = vues[cadence % vues.length]; vues.forEach((s) => { if (s === tour || !s.vu) s.dessiner(t / 1000, false); }); }
     boucle = requestAnimationFrame(dessinerTout);
   }
   function visible(el) { const b = el.getBoundingClientRect(); return b.width > 0 && b.bottom > 0 && b.right > 0 && b.top < innerHeight && b.left < innerWidth && getComputedStyle(el).visibility !== 'hidden'; }
   function moteurPartage(THREE) { if (!moteur) { const cv = document.createElement('canvas'); cv.className = 'cl-moteur'; moteur = new THREE.WebGLRenderer({ canvas: cv, antialias: true, alpha: true, preserveDrawingBuffer: true }); moteur.setClearColor(0x000000, 0); } return moteur; }
 
-  function scene(cv, d, r) {
+  function scene(cv, d, r, opts) {
+    opts = opts || {};
     const THREE = racine.THREE; const [clair, vif] = COULEURS[r] || COULEURS[1];
     const sc = new THREE.Scene(), cam = new THREE.PerspectiveCamera(30, 1, 1, 5000);
     const RAYON = 85;
     // le plan d'or (rues, bâtiments voisins, parcelle), peint une fois dans une image posée au sol : des traits épais et
     // nets (remarque de Gautier : « traits trop fins »), qui s'effacent doucement vers les bords
-    { const T = 1024, c2 = document.createElement('canvas'); c2.width = c2.height = T; const g = c2.getContext('2d'), m = T / (2 * RAYON), q = ([x, y]) => [T / 2 + x * m, T / 2 - y * m];
+    { const T = opts.leger ? 512 : 1024, c2 = document.createElement('canvas'); c2.width = c2.height = T; const g = c2.getContext('2d'), m = T / (2 * RAYON), q = ([x, y]) => [T / 2 + x * m, T / 2 - y * m];
       g.lineJoin = g.lineCap = 'round';
       const chemin = (pts, ferme) => { g.beginPath(); pts.forEach((pt, i) => { const [a, b] = q(pt); i ? g.lineTo(a, b) : g.moveTo(a, b); }); if (ferme) g.closePath(); };
       g.strokeStyle = 'rgba(233,199,123,.30)'; for (const rt of d.routes) { chemin(rt.p, false); g.lineWidth = rt.larg * m; g.stroke(); }
-      g.strokeStyle = 'rgba(233,199,123,.55)'; for (const rt of d.routes) { chemin(rt.p, false); g.lineWidth = 1.5; g.stroke(); }
-      for (const b of d.batiments) { if (b.cible) continue; chemin(b.r, true); g.fillStyle = 'rgba(233,199,123,.10)'; g.fill(); g.strokeStyle = 'rgba(240,210,140,.95)'; g.lineWidth = 4; g.stroke(); }
-      if (d.parcelle) { chemin(d.parcelle, true); g.fillStyle = 'rgba(233,199,123,.26)'; g.fill(); g.setLineDash([14, 8]); g.strokeStyle = '#FFF1C9'; g.lineWidth = 5; g.stroke(); g.setLineDash([]); }
+      const e1 = T / 1024; g.strokeStyle = 'rgba(233,199,123,.55)'; for (const rt of d.routes) { chemin(rt.p, false); g.lineWidth = 1.5 * e1; g.stroke(); }
+      for (const b of d.batiments) { if (b.cible) continue; chemin(b.r, true); g.fillStyle = 'rgba(233,199,123,.10)'; g.fill(); g.strokeStyle = 'rgba(240,210,140,.95)'; g.lineWidth = 4 * e1; g.stroke(); }
+      if (d.parcelle) { chemin(d.parcelle, true); g.fillStyle = 'rgba(233,199,123,.26)'; g.fill(); g.setLineDash([14 * e1, 8 * e1]); g.strokeStyle = '#FFF1C9'; g.lineWidth = 5 * e1; g.stroke(); g.setLineDash([]); }
       for (const b of d.batiments) { if (!b.cible) continue; chemin(b.r, true); g.fillStyle = 'rgba(255,248,230,.35)'; g.fill(); }
       // le fondu vers les bords
       g.globalCompositeOperation = 'destination-in'; const fondu = g.createRadialGradient(T / 2, T / 2, T * 0.18, T / 2, T / 2, T / 2); fondu.addColorStop(0, '#000'); fondu.addColorStop(1, 'rgba(0,0,0,0)'); g.fillStyle = fondu; g.fillRect(0, 0, T, T);
@@ -128,7 +130,8 @@
         else { s.direct = false; if (ren.domElement.parentElement === cv.parentElement) { ren.domElement.remove(); } const c2 = cv.getContext('2d'); c2.clearRect(0, 0, cv.width, cv.height); c2.drawImage(ren.domElement, 0, 0); }
       },
       depart: null, monter() { s.depart = -1; lancer(); },
-      jeter() { SCENES.delete(s); sc.traverse((o) => { if (o.geometry) o.geometry.dispose(); if (o.material) o.material.dispose(); }); },
+      jeter() { SCENES.delete(s); if (cv._scene === s) cv._scene = null; if (moteur && moteur.domElement.parentElement === cv.parentElement) moteur.domElement.remove();
+        sc.traverse((o) => { if (o.geometry) o.geometry.dispose(); if (o.material) { if (o.material.map) o.material.map.dispose(); o.material.dispose(); } }); },
     };
     SCENES.add(s); lancer(); return s;
   }
@@ -160,7 +163,7 @@
       `<div class="cl-stats"><div><b>${s.valeur}</b><i>Valeur</i></div><div><b>+${s.loyer}</b><i>Loyer / jour</i></div><div><b>${s.potentiel}</b><i>Potentiel</i></div><div><b class="etoiles">${'★'.repeat(s.standing)}<span>${'★'.repeat(Math.max(0, 3 - s.standing))}</span></b><i>Standing</i></div></div></div>`;
   }
   // brancher la scène 3D d'une carte posée dans la page
-  async function animer(el, lieu, r) { const cv = el.querySelector('.cl-vue'); if (!cv || !racine.THREE) return null; if (cv._scene) return cv._scene; const d = await donnees(lieu); if (!cv.isConnected) return null; cv._scene = scene(cv, d, r); moteurPartage(racine.THREE); return cv._scene; }
+  async function animer(el, lieu, r, opts) { const cv = el && el.querySelector('.cl-vue'); if (!cv || !racine.THREE) return null; if (cv._scene) return cv._scene; const d = await donnees(lieu); if (!cv.isConnected) return null; if (cv._scene) return cv._scene; cv._scene = scene(cv, d, r, opts); moteurPartage(racine.THREE); return cv._scene; }
 
   // préparer le moteur 3D (et ses programmes de dessin) avant le moment fort : la première scène se compile ici
   let chaud = false;

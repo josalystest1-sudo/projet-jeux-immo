@@ -262,6 +262,12 @@
   - Révélation : plus de point du lieu avant la rue. Une roulette sur les régions, puis sur les départements, s'arrête sur la bonne case, dont le nom claque.
   - Mesuré : la révélation reste à environ 38 images par seconde. 49 tests.
 
+- 4 nov. 2026 (soir) : **la collection aux nouvelles cartes**. La grille du Patrimoine montre les mêmes badges que le pack, à l'échelle de la colonne (`--k`), avec le niveau construit et le bandeau « En vente ».
+  - Les maquettes ne sont préparées que pour les cartes à l'écran (`IntersectionObserver`, `SCENES_COLL`), et libérées ensuite ; leur plan est plus léger. Les cartes visibles sont dessinées à tour de rôle.
+  - Une carte touchée s'ouvre en grand en haut de sa fiche : on l'incline au doigt, sa maquette tourne (`inclinable`, `CARTE_GRANDE`).
+  - Corrigé : l'échelle était calculée avant l'affichage de l'écran, donc une grille vide.
+  - Pour l'instant, un monument montre le bâtiment de l'IGN, pas sa maquette. 49 tests.
+
 ## En cours
 - Lieux célèbres : les autres catégories (châteaux, mairies, gares, musées, ponts, phares, moulins…). Wikidata répond depuis le PC : `python tools/wikidata_celebres.py --categories chateau,mairie,…`, puis `gen_donnees.py celebres`. La fusion garde les catégories déjà reçues.
 - Phase 1.1 à 1.4 : la carte et le modèle des lieux reconstruits en modules (`src/`) à partir du prototype ; puis le marché (phase 4 : historique des ventes d'un lieu) et les communes et Maires (phase 6). Ensuite : Signaler envoyé au serveur dès qu'il y aura de vrais joueurs à l'écran ; Google ; un service d'envoi d'e-mails avant le lancement (le service de Supabase n'écrit qu'aux membres de l'équipe Supabase, deux e-mails par heure).
