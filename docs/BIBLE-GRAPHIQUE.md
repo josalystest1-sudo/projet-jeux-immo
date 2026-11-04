@@ -212,3 +212,6 @@ Où c'est dans le code : la pochette est dessinée par `makeArt()` (`index.html`
 - **Huit monuments régionaux de plus** (nuit du 4 nov.) : **le château de Murol** (la forteresse de basalte sur sa butte), **Villesavin** (le logis bas et ses ailes, le colombier), **Montpoupon**, **Puymartin** (ses toits de lauzes), **La Brède** (au milieu de ses douves), **la cathédrale d'Antibes** (la façade ocre et la vieille tour de guet), **la cathédrale de Viviers** (le clocher-porche et son étage octogonal, le haut chœur), **l'abbaye de Chaalis** (le château des abbés et la chapelle).
 
 ![Murol, Villesavin, Puymartin, La Brède, la cathédrale de Viviers et l'abbaye de Chaalis](bible/monuments-34.jpg)
+- **Huit monuments régionaux de plus** (nuit du 4 nov.) : les abbayes de **Fontfroide**, **Valmagne** (la grande abbatiale et ses deux tours), **l'Épau** et **Montmajour** (l'abbatiale, la tour de Pons de l'Orme, la ruine du monastère mauriste), **la cathédrale de Maguelone** sur son île, **la cathédrale de Lavaur** (la brique du gothique méridional, le clocher octogonal), **Saint-Paul-de-Mausole**, **le Pont-Vieux d'Albi** (ses arches sur le Tarn).
+
+![Fontfroide, Valmagne, la cathédrale de Lavaur, l'Épau, Montmajour et le Pont-Vieux d'Albi](bible/monuments-35.jpg)

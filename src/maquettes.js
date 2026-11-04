@@ -4131,6 +4131,91 @@
     return A.groupe;
   }
 
+  // l'abbaye de Fontfroide : l'abbatiale cistercienne au nord, les bâtiments autour du cloître, les cours, les toits de tuiles
+  function fontfroide(THREE) {
+    const A = atelier(THREE);
+    const pierre = A.matiere(0xE8D9BC), pierreFoncee = A.matiere(0xCDB894), tuile = A.matiere(0xC8704A);
+    A.boite(45, 15, 13, 12.5, 0, -36, pierre); A.toit(13.6, 5, 45, 12.5, 15, -36, tuile); A.abside(6.5, 15, 35, 0, -36, pierre); A.demiCone(7, 4, 35, 15, -36, tuile);
+    A.boite(6, 22, 6, 25, 0, -27, pierre); A.pyramide(4.2, 3, 4, 25, 22, -27, tuile);
+    A.boites([[14, 10, 46, -32, 0, -23], [15, 10, 29, 32.5, 0, -14.5], [50, 10, 8, 0, 0, -4], [55, 10, 46, -11.5, 0, 23]], pierreFoncee);
+    A.toits([[14.6, 5, 46, -32, 10, -23, Math.PI / 2], [15.6, 5, 29, 32.5, 10, -14.5, Math.PI / 2], [8.6, 4, 50, 0, 10, -4], [46.6, 6, 55, -11.5, 10, 23]], tuile);
+    return A.groupe;
+  }
+
+  // l'abbaye de Valmagne : la grande abbatiale gothique et ses deux tours, le cloître et ses bâtiments au sud
+  const valmagne = (THREE) => cathedrale(THREE, { pierre: 0xE8D9BC, pierreFoncee: 0xCDB894, toit: 0xC8704A, toitFonce: 0xA85A3A, F: -35.5, E: 32, larg: 18, mur: 22, toitH: 8, xT: 0,
+    cote: 9, facadeH: 24, rose: 3.5, arcs: false, tours: [{ z: -12, h: 28 }, { z: 12, h: 28 }],
+    plus: (A, m) => { A.boites([[8, 10, 26.4, 6.5, 0, 30.2], [8, 10, 26.4, -25.5, 0, 30.2], [40, 10, 8, -9.5, 0, 47.4]], m.pierreFoncee);
+      A.toits([[8.6, 4, 26.4, 6.5, 10, 30.2, Math.PI / 2], [8.6, 4, 26.4, -25.5, 10, 30.2, Math.PI / 2], [8.6, 4, 40, -9.5, 10, 47.4]], m.toit); } });
+
+  // la cathédrale de Maguelone : la cathédrale fortifiée sur son île entre les étangs, sa nef massive, son chevet
+  function maguelone(THREE) {
+    const A = atelier(THREE);
+    const pierre = A.matiere(0xD9CBB0), tuile = A.matiere(0xC8704A);
+    A.boite(38.4, 18, 16.3, -3.4, 0, -0.45, pierre); A.toit(16.9, 4, 38.4, -3.4, 18, -0.45, tuile);
+    A.boite(20.8, 16, 28.8, 5.4, 0, 0, pierre); A.toit(29.4, 4, 20.8, 5.4, 16, 0, tuile, Math.PI / 2);
+    A.abside(8, 16, 15.8, 0, -0.45, pierre); A.demiCone(8.5, 4, 15.8, 16, -0.45, tuile);
+    return A.groupe;
+  }
+
+  // la cathédrale Saint-Alain de Lavaur : la grande nef de brique du gothique méridional, son chevet, le clocher-porche
+  // et son étage octogonal
+  function cathedraleLavaur(THREE) {
+    const A = atelier(THREE);
+    const brique = A.matiere(0xC8785A), briqueFoncee = A.matiere(0xA85E44), tuile = A.matiere(0xB0603F);
+    A.boite(46, 11, 32, 3, 0, 0, briqueFoncee);
+    A.boite(52, 20, 22, 3, 0, 0, brique); A.toit(22.6, 5, 52, 3, 20, 0, tuile);
+    A.abside(11, 20, 29, 0, 0, brique); A.demiCone(11.5, 5, 29, 20, 0, tuile);
+    A.boite(11, 34, 14, -28, 0, -1.5, brique); A.boite(12, 1.4, 15, -28, 32, -1.5, briqueFoncee);
+    A.cylindre(4.8, 5.4, 8, 8, -28, 34, -1.5, brique); A.creneaux([anneau(-28, -1.5, 4.8, 8)], 42, 0.7, briqueFoncee);
+    return A.groupe;
+  }
+
+  // l'abbaye de l'Épau (Le Mans) : l'abbatiale cistercienne, son transept, le bâtiment des moines, le bâtiment du sud
+  function epau(THREE) {
+    const A = atelier(THREE);
+    const pierre = A.matiere(0xEDE3CC), ardoise = A.matiere(0x4F5D8C), tuile = A.matiere(0xB0603F);
+    A.boite(51.3, 15, 20, 8.35, 0, -22, pierre); A.toit(20.6, 8, 51.3, 8.35, 15, -22, ardoise);
+    A.boite(21, 15, 51, 12.5, 0, -23.5, pierre); A.toit(21.6, 8, 51, 12.5, 15, -23.5, ardoise, Math.PI / 2);
+    A.boite(15, 11, 33, 9.5, 0, 18.5, pierre); A.toit(15.6, 6, 33, 9.5, 11, 18.5, tuile, Math.PI / 2);
+    A.boite(74, 10, 12, 0, 0, 38, pierre); A.toit(12.6, 5, 74, 0, 10, 38, tuile);
+    return A.groupe;
+  }
+
+  // l'abbaye de Montmajour : l'abbatiale romane, la tour de Pons de l'Orme, la grande ruine du monastère mauriste
+  function montmajour(THREE) {
+    const A = atelier(THREE);
+    const pierre = A.matiere(0xE6D6B8), pierreFoncee = A.matiere(0xC9B48E), tuile = A.matiere(0xC8704A);
+    A.boite(23, 16, 14, 31.5, 0, -10, pierre); A.toit(14.6, 5, 23, 31.5, 16, -10, tuile); A.abside(7, 16, 43, 0, -10, pierre); A.demiCone(7.5, 4, 43, 16, -10, tuile);
+    A.boite(12, 16, 30, 35, 0, -9, pierre); A.toit(12.6, 4, 30, 35, 16, -9, tuile, Math.PI / 2);
+    A.boite(15.8, 28, 10.3, 30.7, 0, 19, pierre); A.creneaux([A.tourDe(15.8, 10.3, 30.7, 19)], 28, 0.8, pierreFoncee);
+    A.boites([[50, 20, 16.5, -42.8, 0, 3.25], [23, 20, 11.7, -33.5, 0, -10.85]], pierreFoncee);
+    A.boites([[51, 1, 17.5, -42.8, 20, 3.25], [24, 1, 12.7, -33.5, 20, -10.85]], pierre);
+    return A.groupe;
+  }
+
+  // le monastère Saint-Paul-de-Mausole (Saint-Rémy-de-Provence) : la petite église romane et son clocher
+  function saintPaulMausole(THREE) {
+    const A = atelier(THREE);
+    const pierre = A.matiere(0xE6D6B8), tuile = A.matiere(0xC8704A);
+    A.boite(31, 10, 12, 0, 0, 0, pierre); A.toit(12.6, 4, 31, 0, 10, 0, tuile);
+    A.boite(5, 18, 5, 6, 0, -7, pierre); A.pyramide(3.6, 4, 4, 6, 18, -7, tuile);
+    return A.groupe;
+  }
+
+  // le Pont-Vieux d'Albi : le vieux pont de brique sur le Tarn, ses piles et ses arches (x : d'une rive à l'autre)
+  function pontVieuxAlbi(THREE) {
+    const A = atelier(THREE);
+    const brique = A.matiere(0xC8785A), briqueFoncee = A.matiere(0xA85E44);
+    const piles = Array.from({ length: 8 }, (_, k) => -73.5 + k * 21);
+    A.boites(piles.map((x) => [4, 15, 9, x, -2, 0]), brique);
+    const voute = (r, ys, ytop) => { const v = new THREE.Shape(); v.moveTo(-r, ys); v.absarc(0, ys, r, Math.PI, 0, true); v.lineTo(r, ytop); v.lineTo(-r, ytop); v.closePath(); return v; };
+    for (let k = 0; k < 7; k++) A.extrusion(voute(8.5, 4.5, 13), 9, piles[k] + 10.5, 0, 0, brique, 0, true);
+    A.boite(151, 1.2, 9.6, 0, 13, 0, briqueFoncee);
+    A.cylindres(piles.slice(1, -1).flatMap((x) => [[x, 4.6, 2, 9, -2], [x, -4.6, 2, 9, -2]]), brique, 10);
+    return A.groupe;
+  }
+
   // les maquettes connues : le monument (identifiant de data/monuments.json), où et comment la poser, et les
   // bâtiments de l'IGN qu'elle remplace (sinon les blocs gris de la BD TOPO resteraient dedans)
   const MODELES = {
@@ -5155,6 +5240,30 @@
     Q841839: {   // l'abbaye de Chaalis : le château des abbés et la chapelle
       construire: chaalis, centre: [2.686043, 49.14796], orientation: 16, masquer: ['BATIMENT0000000317998894', 'BATIMENT0000000039384418'],
     },
+    Q334263: {   // l'abbaye de Fontfroide (l'abbatiale au nord)
+      construire: fontfroide, centre: [2.898569, 43.12751], orientation: -24, masquer: ['BATIMENT0000000350847896', 'BATIMENT0000002491705440', 'BATIMENT0000000350847894'],
+    },
+    Q306139: {   // l'abbaye de Valmagne (la façade et ses tours au sud-ouest, le cloître au sud-est)
+      construire: valmagne, centre: [3.562157, 43.487198], orientation: 43, masquer: ['BATIMENT0000000207713956', 'BATIMENT0000000207713955', 'BATIMENT0000000241362170'],
+    },
+    Q1249452: {   // la cathédrale de Maguelone
+      construire: maguelone, centre: [3.883567, 43.512481], orientation: 11, masquer: ['BATIMENT0000000208648857'],
+    },
+    Q1349239: {   // Saint-Alain de Lavaur (le clocher-porche à l'ouest)
+      construire: cathedraleLavaur, centre: [1.821813, 43.69921], orientation: -17, masquer: ['BATIMENT0000000339455255', 'BATIMENT0000000339455253'],
+    },
+    Q672917: {   // l'abbaye de l'Épau
+      construire: epau, centre: [0.242278, 47.991304], orientation: 5, masquer: ['BATIMENT0000000214828630'],
+    },
+    Q334060: {   // l'abbaye de Montmajour
+      construire: montmajour, centre: [4.663783, 43.705546], orientation: 6, masquer: ['BATIMENT0000000267000796', 'BATIMENT0000000267000797', 'BATIMENT0000000267000798', 'BATIMENT0000000267000805'],
+    },
+    Q334199: {   // Saint-Paul-de-Mausole : l'église
+      construire: saintPaulMausole, centre: [4.835153, 43.776859], orientation: 9, masquer: ['BATIMENT0000000259269990'],
+    },
+    Q3396772: {   // le Pont-Vieux d'Albi (x : de la rive nord à la rive sud)
+      construire: pontVieuxAlbi, centre: [2.144556, 43.931205], orientation: -64, masquer: [],
+    },
   };
   const MASQUES = Object.values(MODELES).flatMap((m) => m.masquer);
 
@@ -5248,6 +5357,7 @@
     cathedraleBesancon, meudon, saintMedard, saintEugene, sainteElisabeth, theatreArles, jeuDePaume,
     porteDeMars,  cathedraleChalons,  notreDameEnVaux,  templeVienne,  suscinio,  fougeres,  palaisLongchamp,  transbordeur,  cathedraleSaintPol,
     museePicardie,  najac,  sainteCroixBordeaux,  ainayLeVieil,  saintPierreLeJeune,  azayLeFerron,  saintLeu,
-    murol,  villesavin,  montpoupon,  puymartin,  laBrede,  cathedraleAntibes,  cathedraleViviers,  chaalis };
+    murol,  villesavin,  montpoupon,  puymartin,  laBrede,  cathedraleAntibes,  cathedraleViviers,  chaalis,
+    fontfroide,  valmagne,  maguelone,  cathedraleLavaur,  epau,  montmajour,  saintPaulMausole,  pontVieuxAlbi };
   if (typeof module !== 'undefined' && module.exports) module.exports = api; else racine.Maquettes = api;
 })(typeof globalThis !== 'undefined' ? globalThis : this);
