@@ -29,7 +29,7 @@ test('les fonctions SQL du jeu sont réservées au serveur ; le jeu ne peut écr
     assert.match(sql, new RegExp(`grant execute on function public\\.${nom}\\([^)]*\\) to service_role`), `${nom} : donnée au serveur`);
     assert.doesNotMatch(sql, new RegExp(`grant execute on function public\\.${nom}\\([^)]*\\) to [^;]*(anon|authenticated)`), `${nom} : jamais au jeu`);
   }
-  for (const table of ['joueurs', 'lieux', 'offres', 'echanges', 'encheres', 'mises', 'caisses', 'parts_maire', 'mandats_tenus', 'mairies', 'saisons', 'saisons_joueurs', 'alertes', 'gemmes_journal']) {
+  for (const table of ['joueurs', 'lieux', 'offres', 'echanges', 'encheres', 'mises', 'caisses', 'parts_maire', 'mandats_tenus', 'mairies', 'saisons', 'saisons_joueurs', 'alertes', 'gemmes_journal', 'paiements']) {
     assert.match(sql, new RegExp(`alter table public\\.${table} enable row level security`));
     assert.doesNotMatch(sql, new RegExp(`grant [^;]*(insert|update|delete)[^;]* on public\\.${table} to`), `${table} : aucune écriture donnée au jeu`);
   }

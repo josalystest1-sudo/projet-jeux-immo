@@ -1724,7 +1724,7 @@ function appliquerEtat(e){ if(!e) return; state.wallet=e.pieces; if(e.gemmes!=nu
 async function agir(action, corps){ serveurOccupe=true; let r; try{ r=await appelServeur(action, corps); } finally { serveurOccupe=false; }
   if(!r || !r.ok){ toast((r && r.message) || 'Le serveur ne répond pas'); vibrer(30); return null; }
   if(r.etat) appliquerEtat(r.etat); return r; }
-async function synchroniser(){ const r=await appelServeur('etat'); if(r && r.ok){ appliquerEtat(r); apresAction(); chargerEncheres().catch(()=>{}); chargerCaisses(Object.keys(mesLieuxParCommune())).catch(()=>{}); chargerZoneBientot(); } return r; }
+async function synchroniser(){ const r=await appelServeur('etat'); if(r && r.ok){ appliquerEtat(r); apresAction(); verifierRetourPaiement().catch(()=>{}); chargerEncheres().catch(()=>{}); chargerCaisses(Object.keys(mesLieuxParCommune())).catch(()=>{}); chargerZoneBientot(); } return r; }
 // ---- le monde réel : les lieux des autres joueurs (table « lieux », lisible par tous), leurs pseudos, les Maires
 const COLS_LIEU = 'id,proprietaire,type,label,lon,lat,citycode,city,commune,idu,notoriete,cat,qid,niveau,prix_vente,devise_vente';
 const monUid = ()=> window.Compte && Compte.session ? Compte.session.user.id : null;
@@ -1826,7 +1826,7 @@ function ouvrirBoutique(){ const box=document.getElementById('modalbox'), t=now(
     <div class="article pass"><div class="t">⭐ Pass 15 jours</div><div class="m">Ton pack du jour a <b>${BOU.B.pass_cartes} cartes</b> au lieu de ${ECO.pack.cartes}, et un <b>bon</b> pour prendre l’adresse libre de ton choix (jusqu’à Épique) : « Prendre avec mon bon » sur sa fiche.</div>
       ${actif ? `<div class="m pass-actif">Actif encore ${dureeTexte(pass.fin-t)} · ${bons} bon${bons>1?'s':''} (${BOU.B.bons_max} au plus)</div>` : ''}${acheter('pass', actif ? 'Prolonger de 15 jours' : 'Prendre le Pass')}</div>
     <div class="article"><div class="t">💎 Gemmes</div><div class="gemmes-offres">${BOU.B.gemmes.map(o=>`<button class="offre-gemmes" data-gemmes="${o.id}"><b>💎 ${nb(o.gemmes)}</b><small>${o.euros.toFixed(2).replace('.',',')} €</small></button>`).join('')}</div>
-      <div class="m petit">Le paiement par carte arrive bientôt. Les gemmes ne se revendent pas et ne s’échangent pas contre des pièces.</div></div>
+      <div class="m petit">${MODE_SERVEUR ? 'Paiement sécurisé par carte (Stripe).' : 'Le paiement par carte se fait sur le vrai serveur (Réglages).'} Les gemmes ne se revendent pas et ne s’échangent pas contre des pièces.</div></div>
     <div class="probas"><div class="t">🎲 Chances par carte</div><div class="m">${proba}</div><div class="m petit">Les mêmes pour le pack du jour, le pack national et le pack régional. Les monuments ne sortent jamais des packs.</div></div>
     <button class="btn clair large" style="width:100%;margin-top:12px" onclick="closeModal()">Fermer</button>`;
   document.getElementById('modal').classList.add('on');
@@ -1834,8 +1834,37 @@ function ouvrirBoutique(){ const box=document.getElementById('modalbox'), t=now(
     if(!BOU.peutPayer(a, state.gemmes||0)) return toast(`Il te manque ${nb(BOU.prix(a)-(state.gemmes||0))} 💎`);
     if(a==='pass') return acheterPass();
     ouvrirPack({ payant:a, region: a==='pack_regional' ? box.querySelector('#bq-region').value : null }); });
-  box.querySelectorAll('[data-gemmes]').forEach(b=>b.onclick=()=>toast('💳 Le paiement par carte arrive bientôt'));
+  box.querySelectorAll('[data-gemmes]').forEach(b=>b.onclick=()=>acheterGemmes(b.dataset.gemmes));
   vibrer(8); }
+// acheter des gemmes par carte (Stripe Checkout, sur le vrai serveur) : le joueur demande l'accès immédiat (il renonce à la
+// rétractation de 14 jours, obligatoire pour un contenu numérique livré tout de suite), puis part sur la page de Stripe ; au
+// retour (?paiement=…), le serveur vérifie auprès de Stripe et crédite les gemmes
+const euros = x => x.toFixed(2).replace('.', ',')+' €';
+function acheterGemmes(id){ const o=BOU.B.gemmes.find(x=>x.id===id); if(!o) return;
+  if(!MODE_SERVEUR) return toast('💳 Le paiement par carte se fait sur le vrai serveur : Réglages, « Jouer sur le vrai serveur »');
+  const box=document.getElementById('modalbox');
+  box.innerHTML=`<h2>💎 ${nb(o.gemmes)} gemmes</h2><div class="sub">${euros(o.euros)}, payés par carte avec Stripe</div>
+    <label class="consentement"><input type="checkbox" id="pg-ok"><span>Je demande à recevoir mes gemmes tout de suite, et je renonce à mon droit de rétractation de 14 jours pour ce contenu numérique.</span></label>
+    <div class="m petit">Les gemmes n’ont pas de valeur monétaire : elles ne se revendent pas et ne s’échangent ni contre de l’argent ni contre des pièces.${enVraisJours() ? '' : ' Serveur d’essai : paie avec la carte de test 4242 4242 4242 4242 (n’importe quelle date future, n’importe quel code).'}</div>
+    <div class="liste-btn"><button class="btn large" id="pg-payer" disabled>Payer ${euros(o.euros)}</button><button class="btn clair large" id="pg-retour">Retour</button></div>`;
+  document.getElementById('modal').classList.add('on');
+  const ok=box.querySelector('#pg-ok'), payer=box.querySelector('#pg-payer');
+  ok.onchange=()=>{ payer.disabled=!ok.checked; };
+  box.querySelector('#pg-retour').onclick=()=>ouvrirBoutique();
+  payer.onclick=async()=>{ if(!ok.checked) return; payer.disabled=true; payer.textContent='Ouverture du paiement…';
+    const r=await agir('paiement_creer', { offre:id, renonce:true, retour:location.origin+location.pathname });
+    if(!r || !r.url){ payer.disabled=false; payer.textContent=`Payer ${euros(o.euros)}`; return; }
+    location.href=r.url; }; }
+// le retour de Stripe : ?paiement=cs_… (payé ou en cours) ou ?paiement=annule ; l'adresse est nettoyée tout de suite
+let PAIEMENT_RETOUR=null;
+{ const q=new URLSearchParams(location.search), p=q.get('paiement');
+  if(p){ q.delete('paiement'); history.replaceState(null, '', location.pathname+(q.toString()?'?'+q:'')+location.hash);
+    if(p==='annule') setTimeout(()=>toast('Paiement annulé : rien n’a été débité'), 2500); else PAIEMENT_RETOUR=p; } }
+async function verifierRetourPaiement(){ if(!PAIEMENT_RETOUR || !MODE_SERVEUR) return; const s=PAIEMENT_RETOUR; PAIEMENT_RETOUR=null;
+  const r=await agir('paiement_verifier', { session:s }); if(!r) return;
+  const g=(r.credites||[]).reduce((t,x)=>t+x.gemmes,0);
+  if(g>0){ refreshTop(); fete(18); toast(`💎 +${nb(g)} gemmes : merci pour ton achat !`); }
+  else toast('Paiement en cours de vérification : tes gemmes arrivent dès que Stripe le confirme'); }
 async function acheterPass(){ if(!BOU.peutPayer('pass', state.gemmes||0)) return;
   if(MODE_SERVEUR){ const r=await agir('acheter_pass'); if(!r) return; refreshTop(); fete(14); toast(`⭐ Pass actif pour 15 jours : ${BOU.B.pass_cartes} cartes au pack du jour, et un bon d’adresse`); return ouvrirBoutique(); }
   state.gemmes-=BOU.prix('pass'); state.pass=BOU.acheterPass(state.pass, now(), JOUR); save(); refreshTop(); fete(14);
@@ -2235,7 +2264,7 @@ function renderCommunes(){ const el=document.getElementById('s-communes'); const
 
 function setPref(k,v){ state.prefs[k]=v; save(); }
 // les notifications : une icône par sorte, l'heure relative, les actions ; les réglages sont à part
-function iconeNotif(n){ const t=n.text||''; if(n.type==='enchere') return /remporté/.test(t)?'🏆':(/surenchéri/.test(t)?'⚠️':'🔨'); if(n.type==='offre') return /accepté/.test(t)?'✅':(/refusé/.test(t)?'❌':'📨'); if(n.type==='vente') return '💰'; if(n.type==='maire') return /terminé/.test(t)?'🏛️':'👑'; if(n.type==='saison') return '🏆'; if(n.type==='monument') return /⚠️|⏳/.test(t)?'⏳':'🏛️'; if(n.type==='echange') return /accepté/.test(t)?'🤝':(/refusé|annulé/.test(t)?'❌':'🔁'); return '🔔'; }
+function iconeNotif(n){ const t=n.text||''; if(n.type==='enchere') return /remporté/.test(t)?'🏆':(/surenchéri/.test(t)?'⚠️':'🔨'); if(n.type==='offre') return /accepté/.test(t)?'✅':(/refusé/.test(t)?'❌':'📨'); if(n.type==='vente') return '💰'; if(n.type==='maire') return /terminé/.test(t)?'🏛️':'👑'; if(n.type==='saison') return '🏆'; if(n.type==='monument') return /⚠️|⏳/.test(t)?'⏳':'🏛️'; if(n.type==='boutique') return '💎'; if(n.type==='echange') return /accepté/.test(t)?'🤝':(/refusé|annulé/.test(t)?'❌':'🔁'); return '🔔'; }
 function ilYa(ts){ const s=Math.max(0,Math.floor((now()-ts)/1000)); if(s<60) return 'à l’instant'; const m=Math.floor(s/60); if(m<60) return `il y a ${m} min`; const h=Math.floor(m/60); if(h<24) return `il y a ${h} h`; return `il y a ${Math.floor(h/24)} j`; }
 function renderNotifs(){ const el=document.getElementById('s-notifs'); let h=`<h1>Notifications <button class="act rond" style="width:44px;height:44px;font-size:20px" onclick="ouvrirReglages()" aria-label="Réglages">⚙️</button></h1>`;
   if(!state.notifs.length) h+=`<div class="card vide"><div class="ico">🔔</div><div class="t">Rien de neuf</div><div class="m">Les offres reçues, les enchères et les ventes arrivent ici.</div></div>`;

@@ -257,6 +257,15 @@ async function nouveauJoueur(publique, secrete) {
     verifier(faux.corps && faux.corps.ok === false && faux.corps.code === 'lieu', 'un bon sur une adresse inventée : refusé', faux.corps);
     const gemVol = await requete(`${URL}/rest/v1/joueurs?id=eq.${id}`, { method: 'PATCH', headers: { apikey: publique, Authorization: `Bearer ${acces}`, 'Content-Type': 'application/json', Prefer: 'return=representation' }, body: JSON.stringify({ gemmes: 999999 }) });
     verifier(gemVol.statut >= 400 || (Array.isArray(gemVol.corps) && gemVol.corps.length === 0), 'me donner des gemmes directement : refusé', gemVol.statut);
+    // le paiement par carte (Stripe) : il faut cocher l'accès immédiat ; avec la clé de test, une vraie page de paiement
+    const sansCase = await jeu({ action: 'paiement_creer', offre: 'g500' });
+    verifier(sansCase.corps && sansCase.corps.ok === false && sansCase.corps.code === 'renonce', 'payer sans demander l’accès immédiat : refusé', sansCase.corps);
+    const pay = await jeu({ action: 'paiement_creer', offre: 'g500', renonce: true, retour: 'https://josalystest1-sudo.github.io/projet-jeux-immo/' });
+    if (pay.corps && pay.corps.ok) {
+      verifier(/^https:\/\/checkout\.stripe\.com\//.test(pay.corps.url) && pay.corps.test === true, 'une page de paiement Stripe (clé de test)', pay.corps);
+      const ver = await jeu({ action: 'paiement_verifier', session: pay.corps.session });
+      verifier(ver.corps && ver.corps.ok && ver.corps.credites.length === 0, 'pas payé : aucune gemme créditée', ver.corps);
+    } else verifier(pay.corps && pay.corps.code === 'paiement', 'pas encore de clé Stripe : le paiement est fermé', pay.corps);
     const mairieVol = await requete(`${URL}/rest/v1/mairies`, { method: 'POST', headers: { apikey: publique, Authorization: `Bearer ${acces}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ mandat: 1, commune: 'x', maire: id, rivaux: 999 }) });
     verifier(mairieVol.statut >= 400, 'me donner une mairie directement : refusé', mairieVol.statut);
     const robots = await requete(`${URL}/rest/v1/robots?select=id,nom`, { headers: { apikey: publique } });

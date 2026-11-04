@@ -5,7 +5,7 @@
 // verser, part du Maire plafonnée, absence, fin de mandat annoncée une fois ; les classements et les saisons
 // (100_classements.sql) : patrimoine, Maires, saison figée une fois ; les monuments (110_monuments.sql) : entretien,
 // reprise (lot de reprise, alerte, échanges qui tombent) ; la boutique (120_boutique.sql) : gemmes d'essai, pack acheté,
-// Pass, bon ; les ventes et offres en gemmes ; les refus attendus et les droits du jeu.
+// Pass, bon ; les ventes et offres en gemmes ; le paiement par carte (130_paiements.sql) ; les refus attendus et les droits du jeu.
 // Prérequis (une fois, rien n'est ajouté au dépôt) : npm i --no-save --no-package-lock @electric-sql/pglite
 //   node tools/essai_sql.mjs            (000_comptes.sql, qui demande l'extension unaccent, est remplacé par un profil minimal)
 import { PGlite } from '@electric-sql/pglite';
@@ -249,6 +249,17 @@ ok((await q("select count(*)::int as n from public.gemmes_journal where motif in
 const offreG = Number((await q("select public.jeu_offrir($1, 'bq1', 30, 'gemmes') as o", [A]))[0].o);
 ok((await q('select devise, prix from public.offres where id = $1', [offreG]))[0].devise === 'gemmes', 'une offre en gemmes');
 
+// ---------------------------------------------------------------- le paiement par carte (130_paiements.sql)
+await q("select public.jeu_paiement_noter('cs_1', $1, 'g500', 500, 499, true, true)", [B]);
+await q("select public.jeu_paiement_noter('cs_1', $1, 'g500', 500, 499, true, true)", [B]);
+ok((await q("select count(*)::int as n from public.paiements where session = 'cs_1'"))[0].n === 1, 'une session notée une fois');
+const gB0 = await gemmes(B);
+ok(Number((await q("select public.jeu_paiement_crediter('cs_1', 'FR') as g"))[0].g) === 500 && (await gemmes(B)) === gB0 + 500, 'une session payée : 500 gemmes');
+ok(Number((await q("select public.jeu_paiement_crediter('cs_1', 'FR') as g"))[0].g) === 0 && (await gemmes(B)) === gB0 + 500, 'vérifiée deux fois : créditée une seule fois');
+ok((await q("select motif from public.gemmes_journal where joueur = $1 and delta = 500 order by id desc limit 1", [B]))[0].motif === 'stripe_test', 'le journal dit « stripe_test » (clé de test)');
+await q("select public.jeu_paiement_noter('cs_2', $1, 'g1200', 1200, 999, true, false)", [B]); await q("select public.jeu_paiement_expirer('cs_2')");
+ok(Number((await q("select public.jeu_paiement_crediter('cs_2', 'FR') as g"))[0].g) === 0 && (await q("select statut from public.paiements where session = 'cs_2'"))[0].statut === 'expire', 'une session expirée ne crédite rien');
+
 // les droits : le jeu lit ses échanges, n'écrit jamais, n'appelle aucune fonction jeu_*
 await db.exec(`set role authenticated; set essai.uid = '${A}';`);
 const vus = await q('select id from public.echanges');
@@ -283,6 +294,8 @@ ok(!!(await refus("update public.joueurs set dette = 0")), 'le jeu ne peut pas e
 ok(!!(await refus("update public.joueurs set gemmes = 999999")), 'le jeu ne peut pas se donner des gemmes');
 ok(!!(await refus('select public.jeu_gemmes_essai($1, 1000)', [A])), 'le jeu ne peut pas appeler jeu_gemmes_essai');
 ok(!!(await refus("insert into public.gemmes_journal (joueur, delta, motif) values ($1, 1000, 'x')", [A])), 'le jeu ne peut pas écrire dans le journal des gemmes');
+ok(!!(await refus("select public.jeu_paiement_crediter('cs_1', 'FR')")), 'le jeu ne peut pas se créditer un paiement');
+ok(!!(await refus("insert into public.paiements (session, joueur, offre, gemmes, centimes) values ('cs_x', $1, 'g500', 999999, 1)", [A])), 'le jeu ne peut pas écrire un paiement');
 await db.exec('reset role; set role anon;');
 ok((await q("select count(*)::int as n from public.caisse_communes(array['Bourg'], 6, now() - interval '7 days')"))[0].n > 0, 'sans compte aussi, on lit les caisses');
 ok((await q('select count(*)::int as n from public.encheres'))[0].n > 0, 'sans compte aussi, on lit les lots');
