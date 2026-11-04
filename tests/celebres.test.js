@@ -20,6 +20,18 @@ test('les mots qui distinguent un lieu', () => {
   assert.strictEqual(C.categorieDuNom('Chapelle Sainte-Anne'), 'chapelle');
 });
 
+test('tous les lieux de culte sont de la même famille (décision du 4 nov. 2026)', () => {
+  for (const c of ['eglise', 'temple', 'mosquee', 'synagogue', 'eglise_orthodoxe', 'temple_bouddhiste', 'temple_hindou', 'gurdwara']) assert.strictEqual(C.famille(c), 'culte', c);
+  assert.strictEqual(C.categorieDuNom('Mosquée de Gentilly'), 'mosquee');
+  assert.strictEqual(C.categorieDuNom('Pagode de Vincennes'), 'temple_bouddhiste');
+  // un nom sans rien de propre n'est pas un « vrai nom », quelle que soit la religion
+  for (const n of ['Église', 'Temple protestant', 'Mosquée', 'Grande Mosquée', 'Synagogue']) assert.deepStrictEqual(C.significatifs(n), [], n);
+  assert.deepStrictEqual(C.significatifs('Grande Mosquée de Paris'), ['paris']);
+  // la mosquée de l'IGN est celle de Wikidata
+  const gmp = ['Q1', 'Grande Mosquée de Paris', 'mosquee', 2.3550, 48.8420, '75105'];
+  assert.ok(C.memeLieu({ label: 'Grande Mosquée de Paris', lon: 2.3553, lat: 48.8421, cat: 'mosquee' }, gmp));
+});
+
 test("l'église de l'IGN est celle de Wikidata (même nom, quelques mètres)", () => {
   const ign = { label: 'Église Saint-Martin', lon: MARTIN[3], lat: aNord(MARTIN, 40) };
   assert.ok(C.memeLieu(ign, MARTIN));

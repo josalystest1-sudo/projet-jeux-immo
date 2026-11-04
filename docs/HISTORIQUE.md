@@ -137,6 +137,7 @@ Rien d'important ne vit dans une conversation : tout est dans le dépôt ou sur 
 - Quarante-neuvième lot régional (PR #101) : les forts de Douaumont et de Vaux, la chapelle du Père-Lachaise.
 - **Les retours de Gautier au réveil** (PR #102). La colonne Vendôme ne s'ouvrait pas quand on la touchait : elle est sur la place, hors de toute parcelle. Les monuments s'ouvrent maintenant d'un toucher sur leur maquette. Gautier a aussi demandé que toucher Street View dans la fiche fasse passer à la balade, la carte suivant dessous pour qu'on puisse toucher les bâtiments vus en chemin : c'est fait. Il a remarqué que les lieux marquants sont presque tous des églises et demandé si tous les lieux de culte (mosquées, synagogues…) en sont, pour éviter les polémiques. La réponse est non : seules les églises ont été téléchargées le 2 novembre. La proposition de Claude : tous les lieux de culte à égalité, plus un bouton pour signaler un lieu. Elle attend sa réponse.
 - **Street View reste gratuit** (PR #103). Gautier a essayé : la photo de la fiche semblait figée, il fallait la toucher une fois avant de pouvoir tourner. Et la rotation de la promenade se faisait par à-coups, comme un diaporama. Ces à-coups viennent de la version gratuite de Street View, qui ne dit jamais au jeu où l'on regarde. Claude a proposé le Street View interactif de Google : fluide, avec la carte qui suit en direct, mais payant au-delà de 5 000 ouvertures par mois. Gautier a choisi de rester gratuit, sans balade automatique : la photo de la fiche se tourne de nouveau au doigt, et la promenade part de son bouton.
+- **Tous les lieux de culte** (PR #104). Gautier ne demande pas l'égalité des nombres : « si il y a plus d'églises c'est comme ça, mais les autres lieux de culte doivent aussi être présents ». Les lieux célèbres comptent maintenant 149 synagogues, 67 mosquées, 193 temples protestants, 25 temples bouddhistes et pagodes, 8 églises orthodoxes et un temple hindou (Bussy-Saint-Georges) ; aucune gurdwara n'a d'article. Dans les packs, la carte bleue « église » devient « lieu de culte », de toute religion : le plus proche du point tiré.
 
 ## Toutes les PR
 
@@ -266,6 +267,7 @@ Puis une PR par étape, fusionnée en squash :
 | #101 | 04/11 06:05 | Graphismes : les forts de Douaumont et de Vaux, la chapelle du Père-Lachaise |
 | #102 | 04/11 08:15 | Toucher un monument ouvre sa fiche (même sur la voie publique) ; toucher la photo Street View lance la promenade |
 | #103 | 04/11 08:34 | La photo Street View de la fiche se tourne de nouveau au doigt (Street View reste gratuit) |
+| #104 | 04/11 09:00 | Tous les lieux de culte : mosquées, synagogues, temples… dans les lieux célèbres et dans les packs |
 
 ## Les décisions de Gautier
 
@@ -291,6 +293,7 @@ Les décisions du 2 novembre (interview) sont dans `CLAUDE.md` § 4 et dans le G
 | 3 nov. | Les graphismes avant l'étape 8.2 ; style « jeu mobile coloré » ; d'abord le pack et les cartes ; outils gratuits d'abord |
 | 4 nov. | Le Pass mensuel : pack du jour de 8 cartes, un bon par mois pour une adresse libre au choix jusqu'à Épique (3 au plus) ; pas de revente de lieux contre de l'argent réel |
 | 4 nov. | Street View reste gratuit (pas de Street View interactif payant) ; la photo de la fiche se tourne au doigt, la promenade part de son bouton |
+| 4 nov. | Tous les lieux de culte présents (mosquées, synagogues, temples…), sans quota : « si il y a plus d'églises c'est comme ça » |
 
 ## Ce qui reste à faire (au 3 novembre au soir)
 
@@ -306,7 +309,7 @@ Les décisions du 2 novembre (interview) sont dans `CLAUDE.md` § 4 et dans le G
   - brancher un service d'envoi d'e-mails (celui de Supabase n'écrit qu'à l'équipe Supabase) ;
   - confirmer le nom (Cadastra reste le nom de travail).
 - **Petites choses** :
-  - les autres catégories de lieux célèbres (châteaux, mairies, gares…). Wikidata se joint depuis le PC. Question posée à Gautier le 4 nov. : tous les lieux de culte à égalité (mosquées, synagogues, temples, comme les églises), dans les lieux célèbres et dans les lieux bleus des packs ?
+  - les autres catégories de lieux célèbres (châteaux, mairies, gares…). Wikidata se joint depuis le PC. Les lieux de culte de toutes les religions y sont depuis la PR #104 ;
   - retirer le prototype du dépôt de l'Arena ;
   - relire les 60 monuments nationaux ;
   - valider les seuils du standing et la capacité de gestion.

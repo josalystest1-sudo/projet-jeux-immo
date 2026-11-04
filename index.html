@@ -169,7 +169,7 @@ const R = Regles.creer(ECO, STANDING); // moteur de règles (src/regles/lieu.js)
 const NIVEAUX = R.NIVEAUX; const SALAIRE = ECO.salaire_par_jour; const LOYER_BASE = ECO.loyer_terrain; const RARETES = ECO.raretes;
 // Les 458 monuments (data/monuments.json), tous Extraordinaires : 60 nationaux et 398 régionaux ; chaque semaine, 1 national et 2 régionaux aux enchères.
 const ENC = Encheres.creer(ECO); // règles des enchères (src/regles/encheres.js)
-function iconeMonument(n){ n=n.toLowerCase(); if(/tour eiffel/.test(n)) return '🗼'; if(/cathédrale|basilique|église|chapelle|abbaye|abbatiale|primatiale|collégiale|monastère|synagogue|temple|couvent|chartreuse/.test(n)) return '⛪'; if(/château|forteresse|citadelle|fort |cité de/.test(n)) return '🏰'; if(/pont|viaduc/.test(n)) return '🌉'; if(/grotte|abri|caune/.test(n)) return '🪨'; if(/théâtre|opéra|palais garnier/.test(n)) return '🎭'; if(/phare/.test(n)) return '🗼'; if(/jardin|parc/.test(n)) return '🌳'; return '🏛️'; }
+function iconeMonument(n){ n=n.toLowerCase(); if(/tour eiffel/.test(n)) return '🗼'; if(/mosquée/.test(n)) return '🕌'; if(/synagogue/.test(n)) return '🕍'; if(/cathédrale|basilique|église|chapelle|abbaye|abbatiale|primatiale|collégiale|monastère|synagogue|temple|couvent|chartreuse/.test(n)) return '⛪'; if(/château|forteresse|citadelle|fort |cité de/.test(n)) return '🏰'; if(/pont|viaduc/.test(n)) return '🌉'; if(/grotte|abri|caune/.test(n)) return '🪨'; if(/théâtre|opéra|palais garnier/.test(n)) return '🎭'; if(/phare/.test(n)) return '🗼'; if(/jardin|parc/.test(n)) return '🌳'; return '🏛️'; }
 const LISTE_MON = MONUMENTS.map(m=>({ ...m, icone: iconeMonument(m.nom), depart: ENC.miseDepart(m) }));
 const MON_NATIONAUX = LISTE_MON.filter(m=>m.palier==='national'); const MON_REGIONAUX = LISTE_MON.filter(m=>m.palier==='regional');
 let SEMAINE = 7*JOUR;
@@ -838,7 +838,7 @@ function ficheMonument(m){ const nat=m.palier==='national', r=6, enJeu=lotsDe(se
     ${enJeu?'<div class="actions"><button class="btn" onclick="showScreen(\'encheres\')">🔨 Voir l’enchère</button></div>':''}`;
   return row; }
 // ---- un lieu : icône, nom, rareté, chiffres, échelle de construction, actions (fiche de parcelle et détail d'une carte)
-const ICONES_CAT = { eglise:'⛪', chapelle:'⛪', cathedrale:'⛪', abbaye:'⛪', monastere:'⛪', prieure:'⛪', basilique:'⛪', temple:'⛪', synagogue:'🕍', mairie:'🏛️', gare:'🚉', musee:'🖼️', chateau:'🏰', chateau_fort:'🏰', fort:'🏯', manoir:'🏡', phare:'🗼', tour:'🗼', pont:'🌉', moulin_vent:'🌾', moulin_eau:'🌾', theatre:'🎭', fontaine:'⛲', stade:'🏟️', porte:'🚪' };
+const ICONES_CAT = { eglise:'⛪', chapelle:'⛪', cathedrale:'⛪', abbaye:'⛪', monastere:'⛪', prieure:'⛪', basilique:'⛪', temple:'⛪', synagogue:'🕍', mosquee:'🕌', eglise_orthodoxe:'⛪', temple_bouddhiste:'☸️', temple_hindou:'🛕', gurdwara:'🛕', mairie:'🏛️', gare:'🚉', musee:'🖼️', chateau:'🏰', chateau_fort:'🏰', fort:'🏯', manoir:'🏡', phare:'🗼', tour:'🗼', pont:'🌉', moulin_vent:'🌾', moulin_eau:'🌾', theatre:'🎭', fontaine:'⛲', stade:'🏟️', porte:'🚪' };
 function iconeLieu(a){ if(a.type==='monument') return iconeMonument(a.label||''); if(a.type==='lieu') return ICONES_CAT[a.cat] || (a.qid?'⭐':'📌'); const lv=a.niveau||levelOf(a)||0; return lv ? NIVEAUX[lv].icone : '📍'; }
 // Une adresse se montre comme dans la rue : la plaque émaillée de la voie (la commune en tête), vissée sur un pan de façade,
 // et la petite plaque bleue du numéro en dessous (demande de Gautier : plutôt qu'une épingle rouge).

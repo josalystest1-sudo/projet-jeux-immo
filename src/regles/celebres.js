@@ -4,7 +4,8 @@
 (function (racine) {
   // familles de catégories : deux lieux de la même famille peuvent être le même bâtiment
   const FAMILLES = {
-    culte: ['eglise', 'chapelle', 'cathedrale', 'abbaye', 'monastere', 'prieure', 'synagogue', 'basilique', 'temple'],
+    culte: ['eglise', 'chapelle', 'cathedrale', 'abbaye', 'monastere', 'prieure', 'synagogue', 'basilique', 'temple',
+      'mosquee', 'eglise_orthodoxe', 'temple_bouddhiste', 'temple_hindou', 'gurdwara'],
     chateau: ['chateau', 'chateau_fort', 'manoir', 'fort'],
     mairie: ['mairie'], gare: ['gare'], musee: ['musee'], phare: ['phare'], pont: ['pont'], tour: ['tour'],
     moulin: ['moulin_vent', 'moulin_eau'], theatre: ['theatre'], fontaine: ['fontaine'], stade: ['stade'], porte: ['porte'],
@@ -16,13 +17,15 @@
   const MOTS_CATEGORIE = {
     eglise: 'eglise', chapelle: 'chapelle', cathedrale: 'cathedrale', abbaye: 'abbaye', abbatiale: 'abbaye',
     monastere: 'monastere', prieure: 'prieure', basilique: 'basilique', temple: 'temple', synagogue: 'synagogue',
+    mosquee: 'mosquee', pagode: 'temple_bouddhiste', gurdwara: 'gurdwara',
     chateau: 'chateau', manoir: 'manoir', fort: 'fort', forteresse: 'fort', citadelle: 'fort', mairie: 'mairie',
     gare: 'gare', musee: 'musee', phare: 'phare', pont: 'pont', viaduc: 'pont', tour: 'tour', moulin: 'moulin_vent',
     theatre: 'theatre', opera: 'theatre', fontaine: 'fontaine', stade: 'stade', porte: 'porte',
   };
   const VIDES = new Set(['de', 'du', 'des', 'la', 'le', 'les', 'l', 'd', 'et', 'a', 'au', 'aux', 'en', 'sur', 'sous',
     'saint', 'sainte', 'saints', 'st', 'ste', 'hotel', 'ville', 'sncf', 'ancien', 'ancienne', 'paroissiale', 'collegiale',
-    'notre', 'municipal', 'municipale', 'communal', 'communale', 'vieux', 'vieille', 'grand', 'grande', 'petit', 'petite']);
+    'notre', 'municipal', 'municipale', 'communal', 'communale', 'vieux', 'vieille', 'grand', 'grande', 'petit', 'petite',
+    'protestant', 'protestante', 'reforme', 'reformee', 'evangelique', 'lutherien', 'lutherienne', 'orthodoxe']);
 
   const DISTANCE_MAX = 400;      // au-delà, jamais le même lieu (mètres)
   const DISTANCE_FAMILLE = 150;  // en deçà, même famille et noms compatibles : le même lieu
