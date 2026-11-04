@@ -130,6 +130,7 @@ Rien d'important ne vit dans une conversation : tout est dans le dépôt ou sur 
 - Quarante-deuxième lot régional (PR #94) : les Tuileries (l'Orangerie et le Jeu de Paume ; la PR #93 les croyait à tort déjà dessinés avec la Concorde).
 - Quarante-troisième lot régional (PR #95) : le palais de justice de Paris, cours ouvertes ; la 400e maquette.
 - Quarante-quatrième lot régional (PR #96) : l'hôpital Saint-Louis, sur le bon bâtiment cette fois (le quadrilatère autour du jardin).
+- Quarante-cinquième lot régional (PR #97) : Lariboisière, Saint-Louis-en-l'Île, Clairvaux.
 
 ## Toutes les PR
 
@@ -252,6 +253,7 @@ Puis une PR par étape, fusionnée en squash :
 | #94 | 04/11 05:42 | Graphismes : le jardin des Tuileries (l'Orangerie et le Jeu de Paume) |
 | #95 | 04/11 05:46 | Graphismes : le palais de justice de Paris (cours ouvertes), 400 maquettes |
 | #96 | 04/11 05:48 | Graphismes : l'hôpital Saint-Louis (le quadrilatère d'Henri IV) |
+| #97 | 04/11 05:52 | Graphismes : trois monuments régionaux de plus (l'hôpital Lariboisière, Saint-Louis-en-l'Île, l'abbaye de Clairvaux) |
 
 ## Les décisions de Gautier
 
@@ -282,7 +284,7 @@ Les décisions du 2 novembre (interview) sont dans `CLAUDE.md` § 4 et dans le G
 - **Le serveur, suite** (phase 8) :
   - 8.2 : le mode serveur par défaut, la fin des joueurs simulés, l'inscription des amis. Question posée à Gautier, sans réponse : couper la confirmation par e-mail pendant les essais ?
   - 8.3 : l'anti-triche.
-- **Les graphismes** (phase 10, avant 8.2 : décision de Gautier) : la preuve, l'ouverture, les monuments nationaux et 348 monuments régionaux en 3D (401 maquettes) ; ensuite les autres régionaux, l'habillage de la révélation, l'icône et le logo (`docs/BIBLE-GRAPHIQUE.md`).
+- **Les graphismes** (phase 10, avant 8.2 : décision de Gautier) : la preuve, l'ouverture, les monuments nationaux et 351 monuments régionaux en 3D (404 maquettes) ; ensuite les autres régionaux, l'habillage de la révélation, l'icône et le logo (`docs/BIBLE-GRAPHIQUE.md`).
 - **La boutique** (phase 9) : Stripe, packs et Pass mensuel (pack de 8 cartes, bon mensuel : GDD § 3), probabilités affichées, blocage Belgique et Pays-Bas, CGU, confidentialité, mentions légales.
 - **Ensuite** : les graphismes (phase 10), l'équilibrage et le lancement (phase 11).
 - **Au lancement** :
