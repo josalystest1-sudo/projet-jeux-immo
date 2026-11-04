@@ -316,3 +316,26 @@ Une carte Légendaire a une deuxième explosion, avec un trait vertical. Les car
 ![La révélation : la France, le département, la commune, le lieu](bible/revelation.jpg)
 
 Où c'est dans le code : `explosion(r)` et `sonExplosion` (`index.html`), `revealSequence` (les étapes, `versLeHaut` laisse la place aux textes), `#rrayons` et les dégradés `rgFrance`, `rgDep`, `rgCom` du SVG. Les styles sont à la fin de `style.css`. Pour montrer une preuve quand Gautier est sur son téléphone : `tools/capture_revelation.js` (Chrome sans fenêtre).
+
+## 10. La pochette et les cartes du pack (refonte du 4 nov. 2026)
+
+Gautier : « le pack et les cartes sont moches ». Le pack n'était qu'un pavé décoré. Les cartes n'étaient pas un seul objet : quand on dévoilait une carte, une autre carte venait se mettre devant celle de dos. Ce n'était pas une carte qui tourne et qu'on peut manipuler. Il veut une ouverture « la plus proche de Pokémon Pocket ». On en reprend **l'expérience** : un sachet qu'on déchire, des cartes qu'on tient, qu'on retourne et qu'on incline, des reflets qui bougent. On n'en reprend **pas l'apparence** : tout reste Cadastra. Meshy (3D par IA) n'a pas été nécessaire : le sachet est construit en code, ce qui permet de le déchirer et d'y mettre notre décor.
+
+**La pochette** est un sachet métallisé :
+- **Sa forme** : bombée au milieu, plate sur les côtés, soudée en haut et en bas par des bandes d'or brossé aux bords dentelés (`geoSachet`, `bombeSachet`, `SACHET`). Le recto et le verso sont deux surfaces, doublées à l'intérieur.
+- **Le décor** (`dessinPochette`) : un bleu nuit, un guilloché d'ondes dorées, la France tracée en or avec ses grandes villes, CADASTRA en capitales d'or entre deux filets, « PACK DU JOUR », « 5 LIEUX · TOUTE LA FRANCE ».
+- **La matière** : une seconde image dit où est le métal. L'or est brillant et lisse, le fond satiné. Le relief des stries des soudures et un léger froissé passent par `makeNormalSachet`.
+- **Le verso** : la pièce-maison en trait d'or.
+- **La déchirure** : la ligne de tirets épouse le bombé. Le haut s'arrache comme avant (la charnière, l'étincelle, les éclats).
+
+**Les cartes** sont chacune un seul objet (`.c3d`) :
+- **Le déroulé** : les cartes sortent du pack en pile, face cachée. On touche la carte du dessus : l'explosion de lumière (Rare et au-delà) et la révélation (§ 9). Puis **cette même carte se retourne** dans la main.
+- **La carte en main** : elle s'incline au doigt et suit le doigt ; au repos, elle se balance doucement ou suit le téléphone penché. Une lumière (`.c3d-brillance`) et un irisé (`.c3d-holo`, plus fort avec la rareté) bougent avec l'inclinaison.
+- **Passer à la suivante** : on fait glisser la carte sur le côté, ou on la touche. Elle s'envole et rejoint la rangée du bas. Une carte rare qui se retourne lance un éclair de sa couleur.
+- **À la fin**, les cinq cartes s'étalent en éventail. En toucher une l'agrandit, et on peut l'incliner.
+- **Le dos** est dans le style « classe » : nuit bleue, guilloché et double filet d'or, la pièce-maison, CADASTRA en capitales d'or espacées.
+- **La face** garde pour l'instant le dessin des cartes de la collection. La passer en style « classe » (avec la collection) est la prochaine question.
+
+![La pochette, la déchirure, la pile, la carte en main (deux inclinaisons), l'éventail](bible/pack-et-cartes.jpg)
+
+Où c'est dans le code : `initGL` (le sachet), `dessinPochette`, `sortirCartes`, `dispoPack`, `revelerCarte`, `balancer`, `carteSuivante` et les gestes (`index.html`, état `PK`). Les styles `.c3d` sont à la fin de `style.css`.

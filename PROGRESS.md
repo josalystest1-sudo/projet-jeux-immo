@@ -227,6 +227,12 @@
   - Nouvel outil `tools/capture_revelation.js` : captures au format téléphone par Chrome sans fenêtre, pour envoyer les preuves à Gautier sur son téléphone.
   - 49 tests.
 
+- 4 nov. 2026 (midi) : **la pochette et les cartes du pack refaites**. Gautier : « le pack et les cartes sont moches », il veut une ouverture « la plus proche de Pokémon Pocket ». On en reprend l'expérience, pas l'apparence.
+  - **La pochette** est un sachet métallisé bombé (`geoSachet`), avec des soudures d'or brossé dentelées en haut et en bas, et le recto et le verso doublés. Décor « classe » (`dessinPochette`) : bleu nuit, guilloché d'or, la France en trait d'or et ses villes, CADASTRA en capitales d'or. L'or est brillant, le fond satiné (image de métal).
+  - **Chaque carte est un seul objet** (`.c3d`). Pile face cachée, révélation, puis cette même carte se retourne dans la main. Elle s'incline au doigt (ou suit le téléphone), avec une lumière et un irisé qui suivent l'inclinaison. On la fait glisser pour passer à la suivante, et elle rejoint la rangée du bas. Éventail à la fin, carte agrandie au toucher.
+  - Le dos des cartes est dans le style « classe ». La face garde le dessin de la collection, en attendant la réponse de Gautier.
+  - `tools/visite_ecrans.js` suit les nouveaux gestes. 49 tests.
+
 ## En cours
 - Lieux célèbres : les autres catégories (châteaux, mairies, gares, musées, ponts, phares, moulins…). Wikidata répond depuis le PC : `python tools/wikidata_celebres.py --categories chateau,mairie,…`, puis `gen_donnees.py celebres`. La fusion garde les catégories déjà reçues.
 - Phase 1.1 à 1.4 : la carte et le modèle des lieux reconstruits en modules (`src/`) à partir du prototype ; puis le marché (phase 4 : historique des ventes d'un lieu) et les communes et Maires (phase 6). Ensuite : Signaler envoyé au serveur dès qu'il y aura de vrais joueurs à l'écran ; Google ; un service d'envoi d'e-mails avant le lancement (le service de Supabase n'écrit qu'aux membres de l'équipe Supabase, deux e-mails par heure).

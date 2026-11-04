@@ -141,6 +141,7 @@ Rien d'important ne vit dans une conversation : tout est dans le dépôt ou sur 
 - **La Grande Mosquée de Paris devient un monument** (PR #105), à la demande de Gautier, avec sa maquette 3D. Elle est nationale selon la règle commune (47 articles Wikipédia), et la cathédrale de Nantes passe en régional. Gautier a demandé de vérifier les autres lieux de culte. Quatre églises sont au-dessus du seuil, dans le même cas. Une vingtaine de lieux sont pile au seuil, dont deux synagogues (Marseille, Versailles) et la cathédrale grecque orthodoxe de Paris. Question posée à Gautier.
 - **Quatre églises de plus aux monuments** (PR #106). Gautier : « oui les 4 ». Saint-François-Xavier, Saint-Ambroise, la basilique Saint-Martin de Tours et Saint-Pierre-le-Vieux de Strasbourg ont chacune leur maquette 3D.
 - **Les graphismes reprennent : la révélation d'une carte** (PR #107). Gautier, sur son téléphone par Remote Control, demande qu'une ouverture de pack soit « un vrai événement ». Chaque carte Rare, Épique ou Légendaire explose dans la lumière de sa couleur, puis les informations arrivent une à une, façon FIFA. Il demande aussi un design « moins dessin animé, plus classe, stylé, impressionnant ». La révélation passe en style premium : nuit, or, lumière. Il se dit prêt à payer Meshy (3D par IA). Claude répond que ce n'est pas utile pour la révélation (tout est en code), et que la question se posera pour d'éventuels objets 3D. La question d'étendre ce style au reste du jeu lui est posée.
+- **La pochette et les cartes refaites** (PR #108). Gautier trouve le pack et les cartes « moches » : le pack n'est qu'un pavé, et une carte révélée semble remplacée par une autre. Il veut une ouverture « la plus proche de Pokémon Pocket » et propose de payer Meshy pour le pack. Claude fait le sachet en code, sans Meshy, pour pouvoir le déchirer et y mettre le décor : un sachet métallisé bombé, avec soudures d'or et décor « classe ». Chaque carte devient un seul objet qu'on retourne, qu'on incline et qu'on fait glisser, et ses reflets bougent avec elle.
 
 ## Toutes les PR
 
@@ -274,6 +275,7 @@ Puis une PR par étape, fusionnée en squash :
 | #105 | 04/11 09:20 | La Grande Mosquée de Paris devient un monument (nationale), avec sa maquette 3D |
 | #106 | 04/11 09:32 | Quatre églises de plus aux monuments (Saint-François-Xavier, Saint-Ambroise, Saint-Martin de Tours, Saint-Pierre-le-Vieux), avec leurs maquettes 3D |
 | #107 | 04/11 09:53 | La révélation d'une carte devient un événement : explosion de lumière par rareté, style premium (nuit, or, lumière) |
+| #108 | 04/11 10:18 | La pochette devient un sachet métallisé ; chaque carte est un seul objet qu'on retourne, incline et fait glisser |
 
 ## Les décisions de Gautier
 
@@ -303,6 +305,7 @@ Les décisions du 2 novembre (interview) sont dans `CLAUDE.md` § 4 et dans le G
 | 4 nov. | La Grande Mosquée de Paris et quatre églises au-dessus du seuil deviennent des monuments |
 | 4 nov. | Une ouverture de pack est « un vrai événement » : explosion de lumière de la couleur de la rareté (Rare et au-delà), puis la révélation façon FIFA |
 | 4 nov. | Design « moins dessin animé, plus classe, stylé, impressionnant » (d'abord la révélation ; le reste à décider) ; prêt à payer Meshy si c'est la solution |
+| 4 nov. | Une ouverture de pack « la plus proche de Pokémon Pocket » : un vrai sachet, des cartes qu'on tient, retourne et incline (l'expérience, pas l'apparence) |
 
 ## Ce qui reste à faire (au 3 novembre au soir)
 
@@ -319,7 +322,7 @@ Les décisions du 2 novembre (interview) sont dans `CLAUDE.md` § 4 et dans le G
   - confirmer le nom (Cadastra reste le nom de travail).
 - **Petites choses** :
   - les autres catégories de lieux célèbres (châteaux, mairies, gares…). Wikidata se joint depuis le PC. Les lieux de culte de toutes les religions y sont depuis la PR #104 ;
-  - question posée à Gautier (4 nov.) : étendre le style « classe » de la révélation au reste du jeu (cartes, pochette, écrans) ?
+  - la face des cartes et la collection dans le style « classe » (la pochette, le dos des cartes et la révélation le sont depuis le 4 nov.) : question posée à Gautier ;
   - retirer le prototype du dépôt de l'Arena ;
   - relire les 60 monuments nationaux ;
   - valider les seuils du standing et la capacité de gestion.
