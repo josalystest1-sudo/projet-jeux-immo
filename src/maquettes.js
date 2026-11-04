@@ -2276,6 +2276,142 @@
     return A.groupe;
   }
 
+  // l'église Saint-Julien-le-Pauvre : la petite église romane et gothique, sa nef, ses bas-côtés, ses trois absides
+  function saintJulienLePauvre(THREE) {
+    const A = atelier(THREE);
+    const pierre = A.matiere(0xE9DFC8), pierreFoncee = A.matiere(0xCFC0A0), ardoise = A.matiere(0x56659A), porte = A.matiere(0x6E5A44);
+    A.boite(26, 8, 18, -2, 0, 0, pierreFoncee); A.toit(18.6, 3, 26, -2, 8, 0, ardoise);
+    A.boite(26, 13, 8, -2, 0, 0, pierre); A.toit(8.6, 5, 26, -2, 13, 0, ardoise);
+    A.abside(4, 13, 11, 0, 0, pierre); A.demiCone(4.5, 4, 11, 13, 0, ardoise);
+    for (const s of [1, -1]) { A.abside(3, 8, 11, 0, s * 6, pierreFoncee); A.demiCone(3.4, 3, 11, 8, s * 6, ardoise); }
+    A.boite(1.4, 14, 9, -15, 0, 0, pierre); A.toit(9, 4, 1.4, -15, 14, 0, pierre); A.boite(0.8, 3, 1.6, -15, 18, 0, pierre);
+    A.extrusion(A.formeArche(2.6, 4.2), 0.6, -15.8, 0, 0, porte, Math.PI / 2);
+    return A.groupe;
+  }
+
+  // le baptistère Saint-Jean de Poitiers : la salle carrée et son toit de tuiles, le narthex polygonal, l'abside et ses absidioles
+  function baptistere(THREE) {
+    const A = atelier(THREE);
+    const pierre = A.matiere(0xE9DCC0), pierreFoncee = A.matiere(0xCDBB98), tuile = A.matiere(0xC8704A);
+    A.boite(9, 9, 10, 0.5, 0, 0, pierre); A.toit(10.6, 3.5, 9.6, 0.5, 9, 0, tuile);
+    A.piece((e) => new THREE.CylinderGeometry(5.5 + e, 5.5 + e, 6 + 2 * e, 8).rotateY(Math.PI / 8).translate(0, 3, 0), pierreFoncee, A.V(-7.5, 0, 0));
+    A.piece((e) => new THREE.ConeGeometry(6 + e, 2.5 + 2 * e, 8).rotateY(Math.PI / 8).translate(0, 1.25, 0), tuile, A.V(-7.5, 6, 0));
+    A.abside(3.5, 7, 5, 0, 0, pierre); A.demiCone(3.9, 2, 5, 7, 0, tuile);
+    A.cylindres([[1, -5, 2.5, 6, 0], [1, 5, 2.5, 6, 0]], pierreFoncee, 12); A.cones([[1, -5, 2.8, 6, 2], [1, 5, 2.8, 6, 2]], tuile, 12);
+    return A.groupe;
+  }
+
+  // le château de Beynac : le donjon carré et ses créneaux, le logis seigneurial et son toit de lauzes, au bord de la falaise
+  function beynac(THREE) {
+    const A = atelier(THREE);
+    const pierre = A.matiere(0xE6CFA0), pierreOmbre = A.matiere(0xC9B07E), lauze = A.matiere(0x857A70);
+    A.boite(30, 14, 12, 14, 0, 21, pierreOmbre);
+    A.boite(18, 30, 14, 8, 0, 4, pierre); A.creneaux([A.tourDe(18.4, 14.4, 8, 4)], 30, 0.9, pierreOmbre);
+    A.boite(13, 20, 26, 22.5, 0, 12, pierre); A.toit(13.6, 9, 26.6, 22.5, 20, 12, lauze, Math.PI / 2);
+    A.cylindre(3.5, 3.5, 18, 14, -4, 0, 30, pierre); A.pyramide(4, 6, 14, -4, 18, 30, lauze);
+    return A.groupe;
+  }
+
+  // le château de Pau : les ailes autour de la cour, leurs toits d'ardoise, le donjon de brique de Gaston Fébus,
+  // la tour carrée du nord, les tours rondes de l'ouest
+  function pau(THREE) {
+    const A = atelier(THREE);
+    const pierre = A.matiere(0xEDE4CF), brique = A.matiere(0xC8714E), ardoise = A.matiere(0x4F5D8C);
+    A.boite(66, 22, 12, -46, 0, -18.5, pierre, 0.26); A.toit(12.6, 8, 66, -46, 22, -18.5, ardoise, 0.26);
+    A.boite(12, 22, 36, -74, 0, 6, pierre); A.toit(12.6, 8, 36, -74, 22, 6, ardoise, Math.PI / 2);
+    A.boite(50, 22, 14, -55, 0, 17, pierre); A.toit(14.6, 8, 50, -55, 22, 17, ardoise);
+    A.boite(20, 22, 39, -20, 0, -7.5, pierre); A.combles(20.6, 9, 39.6, -20, 22, -7.5, ardoise);
+    A.boite(14, 41, 16, -16, 0, 8, brique); A.creneaux([A.tourDe(14.4, 16.4, -16, 8)], 41, 0.8, brique);
+    A.boite(8.5, 33, 8, -15.75, 0, -28, pierre); A.combles(9, 6, 8.5, -15.75, 33, -28, ardoise);
+    A.cylindres([[-80, -12, 5, 26, 0], [-80, 24, 5, 26, 0]], pierre, 16); A.cones([[-80, -12, 5.4, 26, 10], [-80, 24, 5.4, 26, 10]], ardoise, 16);
+    return A.groupe;
+  }
+
+  // l'église Saint-Nicolas-du-Chardonnet : la nef classique, le transept, le chevet arrondi, le clocher
+  const saintNicolasChardonnet = (THREE) => cathedrale(THREE, { F: -34, E: 28.5, larg: 11, mur: 21, toitH: 7, xT: -1.75, transept: 30, transeptL: 14.5, cote: 8, facadeH: 24, rose: 3,
+    arcs: false, tours: [{ z: -9.5, h: 32 }] });
+
+  // l'abbaye aux Hommes de Caen : l'abbatiale Saint-Étienne, ses deux flèches (80 m), la tour-lanterne, le chevet gothique
+  function abbayeAuxHommes(THREE) {
+    const g = cathedrale(THREE, { pierre: 0xEFE6CF, F: -47.5, E: 46, larg: 12, mur: 24, toitH: 9, xT: 16, transept: 44, transeptL: 14, cote: 9, facadeH: 30, rose: 2.5,
+      tours: [{ z: -10.5, h: 48, fleche: 34, r: 4.4, seg: 8 }, { z: 10.5, h: 48, fleche: 34, r: 4.4, seg: 8 }], flecheCroisee: { tour: 12, cote: 13, h: 14, r: 7, seg: 4 } });
+    const A = atelier(THREE); A.abside(16, 12, 42, 0, 0, A.matiere(0xD2BC8E)); A.demiCone(16.5, 4, 42, 12, 0, A.matiere(0x46567F));
+    g.add(A.groupe); return g;
+  }
+
+  // Saint-Michel d'Aiguilhe : la chapelle romane et son clocher, perchée sur une aiguille de lave de 80 m
+  function aiguilhe(THREE) {
+    const A = atelier(THREE);
+    const roche = A.matiere(0x7B6A5C), rocheClaire = A.matiere(0x96836F), pierre = A.matiere(0xE2D2B4), tuile = A.matiere(0xA9614A), lave = A.matiere(0x5C4E46);
+    A.piece((e) => new THREE.CylinderGeometry(10 + e, 21 + e, 72 + 2 * e, 9).translate(0, 36, 0), roche, A.V(0, 0, 0));
+    A.piece((e) => new THREE.CylinderGeometry(6 + e, 14 + e, 40 + 2 * e, 7).translate(0, 20, 0), rocheClaire, A.V(9, 0, 6));
+    A.boite(13, 6, 7, -1, 72, 0, pierre); A.toit(7.6, 2.5, 13, -1, 78, 0, tuile); A.abside(3.5, 6, 5.5, 72, 0, pierre); A.demiCone(3.8, 2, 5.5, 78, 0, tuile);
+    A.boite(1, 7.5, 7.6, -7.8, 72, 0, lave);
+    A.boite(4, 13, 4, 2, 72, -3, pierre); A.pyramide(3, 4, 4, 2, 85, -3, tuile);
+    return A.groupe;
+  }
+
+  // la cathédrale Sainte-Marie d'Auch : la façade Renaissance et ses deux tours, la nef, le chevet et ses chapelles
+  function auch(THREE) {
+    const g = cathedrale(THREE, { pierre: 0xEBDDBE, F: -36, E: 56, larg: 20, mur: 26, toitH: 9, xT: 20, cote: 8.5, facadeH: 34, rose: 3, tours: [{ z: -8.7, h: 45 }, { z: 8.7, h: 45 }] });
+    const A = atelier(THREE); A.abside(16, 13, 50, 0, 0, A.matiere(0xD2BC8E)); A.demiCone(16.5, 4, 50, 13, 0, A.matiere(0x46567F));
+    g.add(A.groupe); return g;
+  }
+
+  // la cathédrale Saint-Pierre de Rennes : la façade classique de granit et ses deux tours, la nef en basilique, le transept
+  function rennes(THREE) {
+    const A = atelier(THREE);
+    const granit = A.matiere(0xE3DCCB), granitFonce = A.matiere(0xC4BBA6), ardoise = A.matiere(0x56659A), porte = A.matiere(0x6E5A44);
+    A.boite(18, 30, 31, -39, 0, 0, granit); A.boite(19, 1.4, 32, -39, 30, 0, granitFonce);
+    for (const s of [1, -1]) { A.boite(10, 17, 10, -39, 31.4, s * 10.5, granit); A.boite(11, 1.2, 11, -39, 48.4, s * 10.5, granitFonce); A.pyramide(4, 3, 4, -39, 49.6, s * 10.5, granitFonce); }
+    A.cylindres([-9, -3, 3, 9].map((z) => [-48.8, z, 0.9, 14, 0]), granit, 12); A.boite(2, 1.2, 22, -48.8, 14, 0, granitFonce);
+    A.extrusion(A.formeArche(4, 8), 0.8, -48.3, 0, 0, porte, Math.PI / 2);
+    A.boite(54, 20, 30, -3, 0, 0, granit); A.toit(30.6, 7, 54, -3, 20, 0, ardoise);
+    A.boite(15.4, 20, 52, 3, 0, -2, granit); A.toit(15.4, 7, 52.6, 3, 20, -2, ardoise, Math.PI / 2);
+    A.abside(15, 20, 24, 0, 0, granit); A.demiCone(15.5, 7, 24, 20, 0, ardoise);
+    return A.groupe;
+  }
+
+  // la cathédrale Saint-Maurice d'Angers : la nef unique à voûtes angevines, le transept, l'abside, la façade et ses
+  // deux flèches (77 m), la tour Renaissance entre elles
+  function cathedraleAngers(THREE) {
+    const A = atelier(THREE);
+    const tuffeau = A.matiere(0xEFE8D6), tuffeauOmbre = A.matiere(0xD6CCB4), ardoise = A.matiere(0x4F5D8C), or = A.matiere(0xFFC233, 0x7A4A00), porte = A.matiere(0x6E5A44);
+    const zc = -3;
+    A.boite(76, 26, 22, 9, 0, zc, tuffeau); A.toit(22.6, 9, 76, 9, 26, zc, ardoise);
+    A.abside(11, 26, 46, 0, zc, tuffeau); A.demiCone(11.5, 8, 46, 26, zc, ardoise);
+    A.boite(25, 26, 50, 21.5, 0, -1, tuffeau); A.toit(25.6, 9, 50, 21.5, 26, -1, ardoise, Math.PI / 2);
+    A.boite(8, 34, 25, -35, 0, zc, tuffeau);
+    for (const z of [zc - 9, zc + 9]) { A.boite(8, 42, 8, -35, 0, z, tuffeau); A.boite(9, 1.4, 9, -35, 38, z, tuffeauOmbre); A.pyramide(4.4, 33, 8, -35, 42, z, ardoise); A.boule(0.9, -35, 75.6, z, or); }
+    A.boite(9, 50, 9, -35, 0, zc, tuffeau); A.cylindre(3.6, 3.6, 6, 8, -35, 50, zc, tuffeau); A.dome(3.8, 1.3, -35, 56, zc, ardoise); A.boule(0.7, -35, 61.4, zc, or);
+    A.extrusion(A.formeArche(4, 8), 0.8, -39.3, 0, zc, porte, Math.PI / 2);
+    return A.groupe;
+  }
+
+  // le pont Marie (x : l'axe du pont) : cinq arches de pierre en plein cintre, les piles et leurs avant-becs
+  function pontMarie(THREE) {
+    const A = atelier(THREE);
+    const pierre = A.matiere(0xE9DFC6), pierreFoncee = A.matiere(0xCFC2A2);
+    const larg = 22, p = 5, n = 5, x0 = -44, x1 = 44, s = (x1 - x0 - (n - 1) * p) / n, piles = [];
+    for (let i = 0; i < n; i++) { const xa = x0 + i * (s + p), xc = xa + s / 2, f = new THREE.Shape(); f.moveTo(xa, 0.5); f.absarc(xc, 0.5, s / 2, Math.PI, 0, true); f.lineTo(xa + s, 9.05); f.lineTo(xa, 9.05); f.closePath(); A.extrusion(f, larg - 0.04, 0, 0, 0, pierre, 0, true); if (i < n - 1) piles.push(xa + s + p / 2); }
+    A.boites(piles.map((x) => [p, 9, larg, x, 0, 0]), pierre); A.cylindres(piles.flatMap((x) => [[x, larg / 2, 2.9, 7, 0], [x, -larg / 2, 2.9, 7, 0]]), pierreFoncee, 4);
+    for (const sg of [1, -1]) A.boite(8, 9, larg, sg * 48, 0, 0, pierre);
+    A.boite(104, 1.2, larg + 1, 0, 9, 0, pierreFoncee); for (const sg of [1, -1]) A.boite(104, 1.2, 0.8, 0, 10.2, sg * larg / 2, pierre);
+    return A.groupe;
+  }
+
+  // le palais des ducs de Bourgogne (Dijon) : les ailes classiques autour de la cour d'honneur, le vieux palais ducal et
+  // la tour Philippe le Bon (46 m)
+  function palaisDucsBourgogne(THREE) {
+    const A = atelier(THREE);
+    const pierre = A.matiere(0xEFE4CC), pierreOmbre = A.matiere(0xD8C9A8), ardoise = A.matiere(0x56659A), ardoiseFoncee = A.matiere(0x46567F);
+    A.boites([[76, 15, 52, -50, 0, 20], [102, 15, 22, 39, 0, -4], [47, 15, 39, 66.5, 0, 26.5], [50, 16, 25, -2, 0, -27.5]], pierre);
+    A.combles(76.6, 6, 52.6, -50, 15, 20, ardoise); A.toit(22.6, 7, 102, 39, 15, -4, ardoise); A.combles(47.6, 7, 39.6, 66.5, 15, 26.5, ardoise); A.toit(25.6, 10, 50, -2, 16, -27.5, ardoiseFoncee);
+    A.boite(10, 46, 13.6, 9.4, 0, -6.8, pierre); A.creneaux([A.tourDe(10.4, 14, 9.4, -6.8)], 46, 0.8, pierreOmbre);
+    A.cylindre(2, 2, 6, 10, 13, 46, -12, pierre); A.pyramide(2.4, 4, 10, 13, 52, -12, ardoiseFoncee);
+    return A.groupe;
+  }
+
   // les maquettes connues : le monument (identifiant de data/monuments.json), où et comment la poser, et les
   // bâtiments de l'IGN qu'elle remplace (sinon les blocs gris de la BD TOPO resteraient dedans)
   const MODELES = {
@@ -2757,6 +2893,42 @@
     Q576534: {   // le château de Coucy
       construire: coucy, centre: [3.3186, 49.5217], orientation: 0, masquer: ['BATIMENT0000000063832064', 'BATIMENT0000000063832092', 'BATIMENT0000000063832049', 'BATIMENT0000000063832061'],
     },
+    Q1243760: {   // Saint-Julien-le-Pauvre
+      construire: saintJulienLePauvre, centre: [2.347122, 48.852044], orientation: -30, masquer: ['BATIMENT0000000241938896'],
+    },
+    Q993659: {   // le baptistère Saint-Jean de Poitiers
+      construire: baptistere, centre: [0.348591, 46.579481], orientation: -22, masquer: ['BATIMENT0000000273318642'],
+    },
+    Q1011026: {   // le château de Beynac (l'enceinte de l'IGN reste)
+      construire: beynac, centre: [1.1453, 44.8403], orientation: 13, masquer: ['BATIMENT0000000296741413'],
+    },
+    Q1480604: {   // le château de Pau
+      construire: pau, centre: [-0.375, 43.2947], orientation: -23, masquer: ['BATIMENT0000000332391537', 'BATIMENT0000000332406674', 'BATIMENT0000000332406675', 'BATIMENT0000000332406100', 'BATIMENT0000000332406676', 'BATIMENT0000000332406677'],
+    },
+    Q1577630: {   // Saint-Nicolas-du-Chardonnet (le chevet au nord-est)
+      construire: saintNicolasChardonnet, centre: [2.35036, 48.849179], orientation: 62, masquer: ['BATIMENT0000000241938931', 'BATIMENT0000000241938954', 'BATIMENT0000000241938932'],
+    },
+    Q376932: {   // l'abbaye aux Hommes : l'abbatiale Saint-Étienne (les bâtiments de l'abbaye restent ceux de l'IGN)
+      construire: abbayeAuxHommes, centre: [-0.3728, 49.181836], orientation: 0, masquer: ['BATIMENT0000000201384616'],
+    },
+    Q3129160: {   // Saint-Michel d'Aiguilhe, sur son rocher
+      construire: aiguilhe, centre: [3.882492, 45.050009], orientation: -31, masquer: ['BATIMENT0000000353221335'],
+    },
+    Q1049348: {   // Sainte-Marie d'Auch
+      construire: auch, centre: [0.585795, 43.646297], orientation: -2, masquer: ['BATIMENT0000000309973335', 'BATIMENT0000000309978729', 'BATIMENT0000000309973334', 'BATIMENT0000000309973333'],
+    },
+    Q1049728: {   // Saint-Pierre de Rennes
+      construire: rennes, centre: [-1.683318, 48.111583], orientation: -6, masquer: ['BATIMENT0000000297119600', 'BATIMENT0000000297119599'],
+    },
+    Q1191209: {   // Saint-Maurice d'Angers
+      construire: cathedraleAngers, centre: [-0.555, 47.4706], orientation: -44, masquer: ['BATIMENT0000000313198113', 'BATIMENT0000000313198110', 'BATIMENT0000000313198130', 'BATIMENT0000002500581187', 'BATIMENT0000000313197531', 'BATIMENT0000000313198111', 'BATIMENT0000000313197530'],
+    },
+    Q963509: {   // le pont Marie
+      construire: pontMarie, centre: [2.357432, 48.852872], orientation: 61.7, masquer: [],
+    },
+    Q2111621: {   // le palais des ducs de Bourgogne et la tour Philippe le Bon
+      construire: palaisDucsBourgogne, centre: [5.0414, 47.3219], orientation: -16, masquer: ['BATIMENT0000000217356101', 'BATIMENT0000000217356102', 'BATIMENT0000000217354958', 'BATIMENT0000000217354959'],
+    },
   };
   const MASQUES = Object.values(MODELES).flatMap((m) => m.masquer);
 
@@ -2833,6 +3005,7 @@
     institut, saintGervais, chaumont, valencay, orleans, sens, cathedraleTours, notreDameDesDoms, saintFront, sullySurLoire,
     limoges, sarlat, noyon, saintBenoit, foix, saintAugustin, capitole, senanque, alexandreNevsky, leMans,
     saintPierreMontmartre, brissac, pontRoyal, sainteTrinite, autun, chateauDucsBretagne, castelnaud, dijon, angouleme, saintTrophime, narbonne, arenesArles,
-    saintMerri, saintSeverin, quimper, troyes, saintEtienneToulouse, saintRoch, saintVincentDePaul, porteSaintMartin, salpetriere, synagogueBesancon, chinon, coucy };
+    saintMerri, saintSeverin, quimper, troyes, saintEtienneToulouse, saintRoch, saintVincentDePaul, porteSaintMartin, salpetriere, synagogueBesancon, chinon, coucy,
+    saintJulienLePauvre, baptistere, beynac, pau, saintNicolasChardonnet, abbayeAuxHommes, aiguilhe, auch, rennes, cathedraleAngers, pontMarie, palaisDucsBourgogne };
   if (typeof module !== 'undefined' && module.exports) module.exports = api; else racine.Maquettes = api;
 })(typeof globalThis !== 'undefined' ? globalThis : this);
