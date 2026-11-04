@@ -4831,6 +4831,44 @@
     return A.groupe;
   }
 
+  // l'abbaye de Royaumont : les bâtiments des moines autour du cloître, le palais abbatial, la tourelle restée debout de
+  // l'abbatiale (les emprises de l'IGN)
+  function royaumont(THREE) {
+    const A = atelier(THREE);
+    const pierre = A.matiere(0xF0E9D8), pierreFoncee = A.matiere(0xD6CDB6), ardoise = A.matiere(0x4F5D8C);
+    pave(A, [[-39, -47.5], [-20.5, -47], [29.5, -44.5], [29, -31], [43.5, -30.5], [42, 32], [73.5, 34], [72, 51], [43, 49], [40.5, 52], [38.5, 52], [38.5, 38], [26.5, 37], [27, 20], [13.5, 19.5], [12.5, 49], [-3, 48], [-0.5, 21], [-40, 20]], 13, pierre, ardoise, 4, pierreFoncee);
+    pave(A, [[-81.5, -14.5], [-76.5, -12], [-62.5, -4.5], [-72, 13.5], [-91, 4]], 15, pierre, ardoise, 4, pierreFoncee);
+    A.boite(6, 26, 6, 47, 0, -81.5, pierre); A.pyramide(4.2, 6, 4, 47, 26, -81.5, ardoise);
+    return A.groupe;
+  }
+
+  // l'abbaye de Maubuisson : le long bâtiment des religieuses et ses contreforts (l'emprise de l'IGN)
+  function maubuisson(THREE) {
+    const A = atelier(THREE);
+    const pierre = A.matiere(0xEDE4CE), pierreFoncee = A.matiere(0xD2C6AC), tuile = A.matiere(0xB0603F);
+    pave(A, [[18, -40], [42.5, -18], [39.5, -15], [37.5, -12.5], [18.5, -29.5], [3, -35.5], [11.5, -32.5]], 9, pierre, tuile, 4, pierreFoncee);
+    pave(A, [[3, -35.5], [18.5, -29.5], [-2, 1.5], [-15.5, 24.5], [-20, 27.5], [-26.5, 23], [-31, 22.5], [-25.5, 12.5]], 9, pierre, tuile, 4, pierreFoncee);
+    return A.groupe;
+  }
+
+  // l'abbaye de Saint-Wandrille : les bâtiments du monastère des bénédictins (les emprises de l'IGN)
+  function saintWandrille(THREE) {
+    const A = atelier(THREE);
+    const pierre = A.matiere(0xEFE7D6), pierreFoncee = A.matiere(0xD2C6AC), ardoise = A.matiere(0x4F5D8C);
+    pave(A, [[89.5, -50], [92, -37], [56, -29.5], [18.5, -12], [17.5, -15], [16.5, -14.5], [14, -19.5], [15.5, -20], [8.5, -36.5], [14, -38.5], [19.5, -38.5], [25, -26], [54, -38.5], [74, -43], [73, -46.5]], 10, pierre, ardoise, 4, pierreFoncee);
+    pave(A, [[20, 24.5], [30.5, 49], [25, 51], [14.5, 27]], 10, pierre, ardoise, 4, pierreFoncee);
+    pave(A, [[-6, -31], [1, -15.5], [-6.5, -16.5], [-13.5, -17], [-17.5, -25.5], [-18, -26]], 9, pierre, ardoise, 4, pierreFoncee);
+    return A.groupe;
+  }
+
+  // la maison de Balzac (Passy) : la maison basse sur son jardin en terrasse (l'emprise de l'IGN)
+  function maisonBalzac(THREE) {
+    const A = atelier(THREE);
+    const enduit = A.matiere(0xF2E8D2), blanc = A.matiere(0xF6F1E6), ardoise = A.matiere(0x5A6378);
+    pave(A, [[13, -5.5], [19.5, -1], [20.5, -2], [23, -1], [25.5, -4], [27, -3.5], [34.5, 1], [28.5, 8], [18.5, 0], [12.5, 8.5], [19.5, 15.5], [15, 19], [4, 7.5], [8.5, 2], [7.5, 0.5], [8.5, -0.5], [9.5, 0]], 6.5, enduit, ardoise, 2.5, blanc);
+    return A.groupe;
+  }
+
   // les maquettes connues : le monument (identifiant de data/monuments.json), où et comment la poser, et les
   // bâtiments de l'IGN qu'elle remplace (sinon les blocs gris de la BD TOPO resteraient dedans)
   const MODELES = {
@@ -6035,6 +6073,18 @@
     Q1992203: {   // le temple de Diane (Nîmes)
       construire: templeDiane, centre: [4.348476, 43.839543], orientation: 0, masquer: ['BATIMENT0000000314419510', 'BATIMENT0000000314419507'],
     },
+    Q377882: {   // l'abbaye de Royaumont (les emprises de l'IGN)
+      construire: royaumont, centre: [2.3819, 49.1475], orientation: 0, masquer: ['BATIMENT0000000323691473', 'BATIMENT0000000323691455', 'BATIMENT0000000323691476'],
+    },
+    Q915291: {   // l'abbaye de Maubuisson (l'emprise de l'IGN)
+      construire: maubuisson, centre: [2.1168, 49.0462], orientation: 0, masquer: ['BATIMENT0000000323964340'],
+    },
+    Q334243: {   // l'abbaye de Saint-Wandrille (les emprises de l'IGN)
+      construire: saintWandrille, centre: [0.7665, 49.5296], orientation: 0, masquer: ['BATIMENT0000000241773715', 'BATIMENT0000000241774155', 'BATIMENT0000000241773739'],
+    },
+    Q547789: {   // la maison de Balzac (l'emprise de l'IGN)
+      construire: maisonBalzac, centre: [2.2808, 48.8553], orientation: 0, masquer: ['BATIMENT0000000245171243'],
+    },
   };
   const MASQUES = Object.values(MODELES).flatMap((m) => m.masquer);
 
@@ -6140,6 +6190,7 @@
     cathedraleAire,  cathedraleApt,  hautecombe,  citeaux,  hotelLambert,  arsenal,  solesmes,
     silvacane,  lerins,  hotelBeauvais,  museeCheret,  laTrappe,  portRoyal,  aubergeRavoux,
     manufactureSevres,  citadelleBesancon,
-    alyscamps,  templeDonon,  templeDiane };
+    alyscamps,  templeDonon,  templeDiane,
+    royaumont,  maubuisson,  saintWandrille,  maisonBalzac };
   if (typeof module !== 'undefined' && module.exports) module.exports = api; else racine.Maquettes = api;
 })(typeof globalThis !== 'undefined' ? globalThis : this);

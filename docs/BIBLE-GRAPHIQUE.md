@@ -248,3 +248,6 @@ Où c'est dans le code : la pochette est dessinée par `makeArt()` (`index.html`
 - **Trois monuments régionaux de plus** (nuit du 4 nov.) : **les Alyscamps** d'Arles (l'église Saint-Honorat et sa tour-lanterne octogonale), **le temple du Donon** au sommet du massif, **le temple de Diane** à Nîmes (les murs de la salle romaine).
 
 ![L'église Saint-Honorat des Alyscamps, le temple du Donon et le temple de Diane](bible/monuments-46.jpg)
+- **Quatre monuments régionaux de plus** (nuit du 4 nov.), sur leur emprise de l'IGN : les abbayes de **Royaumont** (les bâtiments des moines, le palais abbatial, la tourelle restée debout de l'abbatiale), **Maubuisson** et **Saint-Wandrille**, **la maison de Balzac** à Passy.
+
+![Les abbayes de Royaumont, Maubuisson et Saint-Wandrille](bible/monuments-47.jpg)
