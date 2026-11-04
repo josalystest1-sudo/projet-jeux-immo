@@ -4769,6 +4769,33 @@
     return A.groupe;
   }
 
+  // la manufacture nationale de Sèvres : le long bâtiment de la manufacture au bord du parc, ses toits d'ardoise (l'emprise
+  // de l'IGN)
+  function manufactureSevres(THREE) {
+    const A = atelier(THREE);
+    const pierre = A.matiere(0xF2EEE4), pierreFoncee = A.matiere(0xD6CFC0), ardoise = A.matiere(0x5A6378);
+    pave(A, [[53.5, -4], [56.5, 4], [63, 20.5], [63.5, 20], [67.5, 31], [53.5, 36], [49.5, 25.5], [50, 25], [42, 4], [40.5, -0.5], [37, 0.5], [35.5, -4]], 16, pierre, ardoise, 4, pierreFoncee);
+    pave(A, [[34.5, -55.5], [39, -44.5], [38, -44.5], [56.5, 4], [59.5, 11.5], [45, 11.5], [42, 4], [40.5, -0.5], [37, 0.5], [36.5, -1], [32, -12.5], [35.5, -14], [25.5, -39.5], [25, -39.5], [21, -50]], 15.6, pierre, ardoise, 4, pierreFoncee);
+    return A.groupe;
+  }
+
+  // la citadelle de Besançon : les fronts de Vauban sur le mont Saint-Étienne (d'après les murs de l'IGN), les casernes
+  function citadelleBesancon(THREE) {
+    const A = atelier(THREE);
+    const pierre = A.matiere(0xE6DAC0), pierreFoncee = A.matiere(0xC8B894), tuile = A.matiere(0xB0603F);
+    const murs = [[[-92, -49], [-76, -50], [-63, -51]], [[-61, -23], [-67, -19], [-76, -17], [-107, -8], [-110, -12], [-111, -19], [-102, -23], [-103, -29], [-178, -22], [-189, -21]],
+      [[-23, -84], [-76, -120], [-77, -120], [-92, -82]], [[-60, -109], [-76, -120]], [[-77, -120], [-101, -61]], [[13, -42], [5, -41], [-32, -31]], [[-54, -53], [-36, -59], [-14, -69], [70, -114]],
+      [[36, -79], [-3, -59], [-2, -54], [12, -55], [14, -48], [13, -42]], [[24, 0], [13, -42]], [[73, -95], [42, -81]], [[-204, -39], [-76, -50]],
+      [[-189, -21], [-170, -7], [-174, 9], [-156, 10], [-133, 32], [-123, 34], [-114, 56], [-101, 67], [-76, 76], [-72, 78]]];
+    A.remparts(murs, 9, 4, pierre); A.boites(murs.flatMap((l) => l.slice(1).map((b, i) => { const a = l[i], L = Math.hypot(b[0] - a[0], b[1] - a[1]);
+      return [L + 4, 1, 4.6, (a[0] + b[0]) / 2, 9, (a[1] + b[1]) / 2, Math.atan2(-(b[1] - a[1]), b[0] - a[0])]; })), pierreFoncee);
+    pave(A, [[15, -32], [17.5, -23], [-76, 3.5], [-84, 5.5], [-84, -4], [-76, -6], [-57.5, -11.5], [-61, -24], [-33, -32], [-29.5, -19.5]], 11, pierre, tuile, 3, pierreFoncee);
+    pave(A, [[-68, -8.5], [-68, 1], [-76, 3.5], [-99, 10], [-101.5, 1], [-76, -6]], 10.6, pierre, tuile, 3, pierreFoncee);
+    pave(A, [[-62.5, -85], [-36.5, -71], [-35.5, -67], [-38.5, -66.5], [-60, -77], [-56.5, -61], [-60.5, -60], [-65.5, -75], [-78.5, -57], [-83.5, -57.5], [-76, -70.5], [-67.5, -84.5]], 11, pierre, tuile, 3, pierreFoncee);
+    pave(A, [[78, -71.5], [84.5, -59], [65, -48], [58, -60.5]], 10, pierre, tuile, 3, pierreFoncee);
+    return A.groupe;
+  }
+
   // les maquettes connues : le monument (identifiant de data/monuments.json), où et comment la poser, et les
   // bâtiments de l'IGN qu'elle remplace (sinon les blocs gris de la BD TOPO resteraient dedans)
   const MODELES = {
@@ -5958,6 +5985,12 @@
     Q4819026: {   // l'auberge Ravoux (l'emprise de l'IGN)
       construire: aubergeRavoux, centre: [2.1715, 49.0707], orientation: 0, masquer: ['BATIMENT0000000323619385'],
     },
+    Q653307: {   // la manufacture nationale de Sèvres (l'emprise de l'IGN)
+      construire: manufactureSevres, centre: [2.2225, 48.8286], orientation: 0, masquer: ['BATIMENT0000000240318014', 'BATIMENT0000000240318038'],
+    },
+    Q1329976: {   // la citadelle de Besançon (les murs et les casernes de l'IGN)
+      construire: citadelleBesancon, centre: [6.0325, 47.2314], orientation: 0, masquer: ['BATIMENT0000000317675134', 'BATIMENT0000000014730256', 'BATIMENT0000000317675194'],
+    },
   };
   const MASQUES = Object.values(MODELES).flatMap((m) => m.masquer);
 
@@ -6061,6 +6094,7 @@
     sedan,  brest,  luneville,
     rambouillet,  cathedraleDax,
     cathedraleAire,  cathedraleApt,  hautecombe,  citeaux,  hotelLambert,  arsenal,  solesmes,
-    silvacane,  lerins,  hotelBeauvais,  museeCheret,  laTrappe,  portRoyal,  aubergeRavoux };
+    silvacane,  lerins,  hotelBeauvais,  museeCheret,  laTrappe,  portRoyal,  aubergeRavoux,
+    manufactureSevres,  citadelleBesancon };
   if (typeof module !== 'undefined' && module.exports) module.exports = api; else racine.Maquettes = api;
 })(typeof globalThis !== 'undefined' ? globalThis : this);
