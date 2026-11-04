@@ -35,3 +35,11 @@ test('les probabilités affichées : celles du tirage, qui font 100 %', () => {
   const p = B.probabilites(); assert.deepStrictEqual(p.map((x) => x.r), [1, 2, 3, 4, 5]);
   assert.strictEqual(p.reduce((s, x) => s + x.pct, 0), 100);
 });
+
+test('vendre en pièces ou en gemmes : la monnaie du vendeur, sinon celle de l’acheteur', () => {
+  assert.strictEqual(B.devise('gemmes'), 'gemmes'); assert.strictEqual(B.devise('autre'), 'pieces'); assert.strictEqual(B.devise(undefined), 'pieces');
+  assert.strictEqual(B.deviseOffre('gemmes', 'pieces'), 'gemmes');   // en vente en gemmes : l'offre aussi
+  assert.strictEqual(B.deviseOffre(null, 'gemmes'), 'gemmes');       // pas en vente : au choix de l'acheteur
+  assert.strictEqual(B.deviseOffre(null, null), 'pieces');
+  assert.ok(B.assez(100, 'gemmes', 0, 100)); assert.ok(!B.assez(100, 'gemmes', 1e6, 99)); assert.ok(B.assez(100, 'pieces', 100, 0));
+});

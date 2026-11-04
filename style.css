@@ -1071,3 +1071,10 @@ body.promenade #sheet .svwrap{display:none}
 .probas{margin-top:6px}.proba{display:inline-flex;align-items:center;gap:4px;margin:0 10px 4px 0;white-space:nowrap}
 .proba .dot{width:10px;height:10px;border-radius:50%;display:inline-block;background:var(--rc,#ccc)}
 .proba.r1 .dot{background:#B9B9B9}.proba.r2 .dot{background:#2FB36D}.proba.r3 .dot{background:#3D8BFF}.proba.r4 .dot{background:#A35BFF}.proba.r5 .dot{background:#FF8A1E}
+
+/* ===================== vendre et offrir en pièces ou en gemmes (4 nov. au soir, GDD § 9) ===================== */
+.devises{display:flex;gap:6px;margin:8px 0}
+.devises button{flex:1;border:2px solid var(--ciel);background:#fff;border-radius:12px;padding:8px 6px;font:inherit;font-weight:800;cursor:pointer;color:var(--encre)}
+.devises button.on{border-color:var(--plaque);background:var(--plaque-clair);color:var(--plaque)}
+.devises.petit button{padding:6px 4px;font-size:13px}
+.gem-in{font-style:normal;margin-left:2px}

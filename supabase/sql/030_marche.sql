@@ -24,6 +24,10 @@ revoke all on public.offres from anon, authenticated;
 grant select on public.offres to authenticated;
 grant all on public.offres to service_role;
 
+-- la monnaie (GDD § 9, 4 nov. 2026) : le vendeur choisit d'être payé en pièces ou en gemmes ; une offre a la sienne
+alter table public.lieux add column if not exists devise_vente text not null default 'pieces' check (devise_vente in ('pieces', 'gemmes'));
+alter table public.offres add column if not exists devise text not null default 'pieces' check (devise in ('pieces', 'gemmes'));
+
 -- ---------------------------------------------------------------- les notifications (offres, ventes…)
 create table if not exists public.notifications (
   id        bigint generated always as identity primary key,
@@ -43,26 +47,30 @@ grant select on public.notifications to authenticated;
 grant all on public.notifications to service_role;
 
 -- ---------------------------------------------------------------- les écritures (serveur seulement)
--- mettre en vente à un prix (ou retirer de la vente : prix vide)
-create or replace function public.jeu_vendre(j uuid, l text, prix bigint) returns void
+-- mettre en vente à un prix, en pièces ou en gemmes (ou retirer de la vente : prix vide)
+drop function if exists public.jeu_vendre(uuid, text, bigint);
+create or replace function public.jeu_vendre(j uuid, l text, prix bigint, devise text) returns void
 language plpgsql security definer set search_path = '' as $$
 begin
-  update public.lieux set prix_vente = prix, maj = now() where id = l and proprietaire = j;
+  if devise not in ('pieces', 'gemmes') then raise exception 'prix'; end if;
+  update public.lieux set prix_vente = prix, devise_vente = devise, maj = now() where id = l and proprietaire = j;
   if not found then raise exception 'pas_a_toi'; end if;
 end $$;
 
 -- changer de propriétaire : voir jeu_transferer dans 060_valeur.sql (qui note aussi la vente)
 
--- faire une offre (ou changer le prix de son offre en attente) sur le lieu d'un autre joueur
-create or replace function public.jeu_offrir(j uuid, l text, prix bigint) returns bigint
+-- faire une offre (ou changer le prix et la monnaie de son offre en attente) sur le lieu d'un autre joueur
+drop function if exists public.jeu_offrir(uuid, text, bigint);
+create or replace function public.jeu_offrir(j uuid, l text, prix bigint, devise text) returns bigint
 language plpgsql security definer set search_path = '' as $$
 declare v uuid; o bigint;
 begin
   select proprietaire into v from public.lieux where id = l;
   if not found then raise exception 'libre'; end if;
   if v = j then raise exception 'soi_meme'; end if;
-  insert into public.offres (lieu, acheteur, vendeur, prix) values (l, j, v, prix)
-  on conflict (lieu, acheteur) where statut = 'attente' do update set prix = excluded.prix, vendeur = excluded.vendeur, maj = now()
+  if devise not in ('pieces', 'gemmes') then raise exception 'prix'; end if;
+  insert into public.offres (lieu, acheteur, vendeur, prix, devise) values (l, j, v, prix, devise)
+  on conflict (lieu, acheteur) where statut = 'attente' do update set prix = excluded.prix, devise = excluded.devise, vendeur = excluded.vendeur, maj = now()
   returning id into o;
   return o;
 end $$;
@@ -90,13 +98,13 @@ language sql security definer set search_path = '' as $$
   update public.notifications set lu = true where joueur = j and not lu;
 $$;
 
-revoke all on function public.jeu_vendre(uuid, text, bigint) from public, anon, authenticated;
-revoke all on function public.jeu_offrir(uuid, text, bigint) from public, anon, authenticated;
+revoke all on function public.jeu_vendre(uuid, text, bigint, text) from public, anon, authenticated;
+revoke all on function public.jeu_offrir(uuid, text, bigint, text) from public, anon, authenticated;
 revoke all on function public.jeu_offre_statut(bigint, uuid, text) from public, anon, authenticated;
 revoke all on function public.jeu_notifier(uuid, text, text, jsonb) from public, anon, authenticated;
 revoke all on function public.jeu_notifs_lues(uuid) from public, anon, authenticated;
-grant execute on function public.jeu_vendre(uuid, text, bigint) to service_role;
-grant execute on function public.jeu_offrir(uuid, text, bigint) to service_role;
+grant execute on function public.jeu_vendre(uuid, text, bigint, text) to service_role;
+grant execute on function public.jeu_offrir(uuid, text, bigint, text) to service_role;
 grant execute on function public.jeu_offre_statut(bigint, uuid, text) to service_role;
 grant execute on function public.jeu_notifier(uuid, text, text, jsonb) to service_role;
 grant execute on function public.jeu_notifs_lues(uuid) to service_role;
