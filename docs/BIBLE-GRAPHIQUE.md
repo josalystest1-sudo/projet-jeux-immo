@@ -269,3 +269,6 @@ Où c'est dans le code : la pochette est dessinée par `makeArt()` (`index.html`
 - **Deux monuments régionaux de plus** (nuit du 4 nov.), sur leur emprise de l'IGN : **l'hôpital de Bicêtre** (les longs bâtiments du XVIIe siècle autour de la grande cour), **la chartreuse de Champmol** à Dijon (le pavillon hexagonal du Puits de Moïse, le portail de la chapelle).
 
 ![L'hôpital de Bicêtre et la chartreuse de Champmol](bible/monuments-53.jpg)
+- **La place d'Alliance** à Nancy (nuit du 4 nov.) : la fontaine de Cyfflé au milieu de la place.
+
+![La fontaine de la place d'Alliance](bible/monuments-54.jpg)

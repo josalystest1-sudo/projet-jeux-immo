@@ -4988,6 +4988,17 @@
     return A.groupe;
   }
 
+  // la place d'Alliance (Nancy) : la fontaine de Cyfflé au milieu de la place, son bassin, son socle et son obélisque
+  function placeAlliance(THREE) {
+    const A = atelier(THREE);
+    const pierre = A.matiere(0xF2E6C8), pierreFoncee = A.matiere(0xD9C8A0), eau = A.matiere(0x6DC4F0, 0x0E3A55), or = A.matiere(0xFFC233, 0x7A4A00);
+    A.cylindre(5, 5, 0.8, 24, 0, 0, 0, pierreFoncee); A.cylindre(4.4, 4.4, 0.4, 24, 0, 0.5, 0, eau);
+    A.boite(2.6, 3.2, 2.6, 0, 0, 0, pierre); A.boite(3, 0.5, 3, 0, 3.2, 0, pierreFoncee);
+    A.piece((e) => new THREE.CylinderGeometry(0.35 + e, 0.8 + e, 8 + 2 * e, 4).rotateY(Math.PI / 4).translate(0, 4, 0), pierre, A.V(0, 3.7, 0));
+    A.boule(0.6, 0, 12.4, 0, or);
+    return A.groupe;
+  }
+
   // les maquettes connues : le monument (identifiant de data/monuments.json), où et comment la poser, et les
   // bâtiments de l'IGN qu'elle remplace (sinon les blocs gris de la BD TOPO resteraient dedans)
   const MODELES = {
@@ -6234,6 +6245,9 @@
     Q922303: {   // la chartreuse de Champmol : le Puits de Moïse et le portail de la chapelle (les emprises de l'IGN)
       construire: champmol, centre: [5.0174, 47.3217], orientation: 0, masquer: ['BATIMENT0000000217342747', 'BATIMENT0000000217344225'],
     },
+    Q2914748: {   // la place d'Alliance : la fontaine au milieu de la place
+      construire: placeAlliance, centre: [6.1863, 48.6938], orientation: 0, masquer: [],
+    },
   };
   const MASQUES = Object.values(MODELES).flatMap((m) => m.masquer);
 
@@ -6346,6 +6360,7 @@
     palaisJustice,
     hopitalSaintLouis,
     lariboisiere, saintLouisEnLIle, clairvaux,
-    bicetre, champmol };
+    bicetre, champmol,
+    placeAlliance };
   if (typeof module !== 'undefined' && module.exports) module.exports = api; else racine.Maquettes = api;
 })(typeof globalThis !== 'undefined' ? globalThis : this);
