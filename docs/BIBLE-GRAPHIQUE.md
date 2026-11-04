@@ -272,3 +272,6 @@ Où c'est dans le code : la pochette est dessinée par `makeArt()` (`index.html`
 - **La place d'Alliance** à Nancy (nuit du 4 nov.) : la fontaine de Cyfflé au milieu de la place.
 
 ![La fontaine de la place d'Alliance](bible/monuments-54.jpg)
+- **L'amphithéâtre des Trois Gaules** à Lyon (nuit du 4 nov.) : les gradins dégagés en demi-ellipse sur la pente de la Croix-Rousse et l'arène (l'emprise « arène » de l'IGN).
+
+![L'amphithéâtre des Trois Gaules](bible/monuments-55.jpg)

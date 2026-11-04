@@ -4999,6 +4999,17 @@
     return A.groupe;
   }
 
+  // l'amphithéâtre des Trois Gaules (Lyon) : les gradins dégagés en demi-ellipse sur la pente de la Croix-Rousse, l'arène
+  // (l'emprise de l'IGN)
+  function troisGaules(THREE) {
+    const A = atelier(THREE), V = A.V;
+    const pierre = A.matiere(0xE2D2B4), pierreFoncee = A.matiere(0xC4AE88), sable = A.matiere(0xEBD9A8);
+    const gradins = [[-6, -29], [-1, -28.5], [3.5, -27], [8, -25.5], [10.5, -23.5], [13.5, -21.5], [15.5, -18.5], [16.5, -16], [17.5, -15], [17, -0.5], [13, -5.5], [12, -7], [10, -9], [7.5, -11], [4, -13.5], [1, -15], [-5, -17.5], [-8, -18], [-11, -18], [-13.5, -18], [-16, -17.5], [-18, -16], [-19.5, -14], [-20.5, -12], [-22, -10], [-22.5, -7.5], [-23, -4.5], [-23, -2], [-23, 0.5], [-21.5, 7], [-20.5, 9.5], [-20, 12.5], [-18, 17], [-15, 22.5], [-30, 21.5], [-32, 15], [-33, 11], [-34, 6], [-34, 1.5], [-34, -2.5], [-33, -6.5], [-31.5, -9.5], [-30.5, -12.5], [-29.5, -15], [-25, -22], [-19, -27.5], [-16, -28.5], [-11, -29]];
+    pave(A, gradins, 2.5, pierre, pierreFoncee, 1.2, pierreFoncee);
+    A.piece((e) => new THREE.CylinderGeometry(1, 1, 0.3 + 2 * e, 32).scale(18 + e, 1, 15 + e), sable, V(-2, 0, 3), null, true);
+    return A.groupe;
+  }
+
   // les maquettes connues : le monument (identifiant de data/monuments.json), où et comment la poser, et les
   // bâtiments de l'IGN qu'elle remplace (sinon les blocs gris de la BD TOPO resteraient dedans)
   const MODELES = {
@@ -6248,6 +6259,9 @@
     Q2914748: {   // la place d'Alliance : la fontaine au milieu de la place
       construire: placeAlliance, centre: [6.1863, 48.6938], orientation: 0, masquer: [],
     },
+    Q3124: {   // l'amphithéâtre des Trois Gaules (l'emprise « arène » de l'IGN)
+      construire: troisGaules, centre: [4.8306, 45.7706], orientation: 0, masquer: ['BATIMENT0000000013370028'],
+    },
   };
   const MASQUES = Object.values(MODELES).flatMap((m) => m.masquer);
 
@@ -6361,6 +6375,7 @@
     hopitalSaintLouis,
     lariboisiere, saintLouisEnLIle, clairvaux,
     bicetre, champmol,
-    placeAlliance };
+    placeAlliance,
+    troisGaules };
   if (typeof module !== 'undefined' && module.exports) module.exports = api; else racine.Maquettes = api;
 })(typeof globalThis !== 'undefined' ? globalThis : this);
