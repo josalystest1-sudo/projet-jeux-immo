@@ -83,6 +83,7 @@ const REFUS_SQL: Record<string, string> = {
   gemmes: 'Pas assez de gemmes : la boutique en vend.', vide: 'Pack impossible à tirer pour l’instant : réessaie dans un instant.',
   essai: 'Les gemmes d’essai ne sont données que sur le serveur d’essai.', bon: 'Il te faut un bon : le Pass 15 jours en donne un.',
   pris: 'Cette adresse est déjà à quelqu’un : fais-lui une offre.',
+  paiement: 'Le paiement par carte n’est pas encore ouvert.',
 };
 async function rpc(nom: string, args: Ligne) {
   const { data, error } = await admin.rpc(nom, args);
@@ -638,6 +639,7 @@ async function tenirMonuments() {
 ACTIONS.acheter_pack = async (j, corps) => {
   const article = corps.article === 'pack_regional' ? 'pack_regional' : 'pack_national', jr = await joueur(j);
   if (!BOU.peutPayer(article, Number(jr.gemmes || 0))) throw new Refus('gemmes', REFUS_SQL.gemmes);
+  if (await paysSansPacks(j)) throw new Refus('pays', 'Les packs ne sont pas vendus en Belgique ni aux Pays-Bas : le Pass et les offres restent possibles.');
   let zone = null;
   if (article === 'pack_regional') { const deps = (Regions.REGIONS as Record<string, string[]>)[String(corps.region || '')]; if (!deps) throw new Refus('region', 'Choisis une région.'); zone = { deps }; }
   const cartes = await TIRAGE.tirerPack(crypto.randomUUID(), ECO.pack.chances, BOU.B.pack_cartes, zone);
@@ -666,6 +668,72 @@ ACTIONS.prendre_bon = async (j, corps) => {
   await rpc('jeu_bon', { j, lieu: { ...a, commune: Regles.nomCommune(a.citycode, a.city), rarete: r } });
   return { lieu: { ...a, niveau: 0, depuis: Date.now() } };
 };
+// ---------------------------------------------------------------- le paiement des gemmes par carte (Stripe Checkout, GDD § 9)
+// Le jeu demande une page de paiement (paiement_creer) ; Stripe y renvoie le joueur ensuite. Le serveur ne croit jamais le
+// jeu : il demande à Stripe si la session est payée (paiement_verifier, et à chaque passage du joueur tant qu'elle est
+// ouverte) et seulement alors crédite les gemmes, une seule fois. La clé secrète est un secret de la fonction
+// (STRIPE_SECRET_KEY, posé par la publication depuis le secret GitHub du même nom). Une clé de test (sk_test_) : de l'argent
+// fictif (carte 4242 4242 4242 4242).
+const cleStripe = () => Deno.env.get('STRIPE_SECRET_KEY') || '';
+async function stripe(chemin: string, params?: Record<string, string>) {
+  const cle = cleStripe(); if (!cle) throw new Refus('paiement', REFUS_SQL.paiement);
+  const r = await fetch('https://api.stripe.com/v1/' + chemin, { method: params ? 'POST' : 'GET', headers: { Authorization: `Bearer ${cle}`, ...(params ? { 'Content-Type': 'application/x-www-form-urlencoded' } : {}) }, body: params ? new URLSearchParams(params).toString() : undefined });
+  const j = await r.json().catch(() => ({}));
+  if (!r.ok) { console.error('stripe', r.status, j && j.error && j.error.message); throw new Refus('paiement', 'Le paiement par carte ne répond pas : réessaie dans un instant.'); }
+  return j;
+}
+// l'adresse où Stripe renvoie le joueur : le jeu publié (ou l'outil d'essai), jamais un autre site
+function adresseRetour(retour: unknown) {
+  const u = String(retour || '').split('?')[0].split('#')[0];
+  return ORIGINES.some((o) => u === o || u.startsWith(o + '/')) ? u : 'https://josalystest1-sudo.github.io/projet-jeux-immo/';
+}
+ACTIONS.paiement_creer = async (j, corps) => {
+  const o = (BOU.B.gemmes as Ligne[]).find((x) => x.id === String(corps.offre || ''));
+  if (!o) throw new Refus('offre', 'Cette offre de gemmes n’existe pas.');
+  if (corps.renonce !== true) throw new Refus('renonce', 'Coche la case : tu demandes à recevoir tes gemmes tout de suite.');
+  const centimes = Math.round(Number(o.euros) * 100), retour = adresseRetour(corps.retour), test = /^(sk|rk)_test_/.test(cleStripe());
+  const s = await stripe('checkout/sessions', {
+    mode: 'payment', locale: 'fr', client_reference_id: j,
+    'line_items[0][quantity]': '1', 'line_items[0][price_data][currency]': 'eur', 'line_items[0][price_data][unit_amount]': String(centimes),
+    'line_items[0][price_data][product_data][name]': `${nb(o.gemmes)} gemmes CityDeck`,
+    'line_items[0][price_data][product_data][description]': 'Monnaie du jeu CityDeck, sans valeur monétaire : elle ne se revend pas et ne s’échange ni contre de l’argent ni contre des pièces.',
+    'metadata[joueur]': j, 'metadata[offre]': o.id, 'payment_intent_data[metadata][joueur]': j,
+    success_url: `${retour}?paiement={CHECKOUT_SESSION_ID}`, cancel_url: `${retour}?paiement=annule`,
+  });
+  await rpc('jeu_paiement_noter', { s: s.id, j, offre: o.id, gemmes: o.gemmes, centimes, renonce: true, test });
+  return { url: s.url, session: s.id, test };
+};
+// vérifier auprès de Stripe les sessions ouvertes d'un joueur (des deux derniers jours) ; rend les gemmes créditées
+async function verifierPaiements(j: string, seule?: string) {
+  if (!cleStripe()) return [];
+  let q = admin.from('paiements').select('session').eq('joueur', j).eq('statut', 'ouvert').gte('cree_le', new Date(Date.now() - 2 * 86400000).toISOString());
+  if (seule) q = q.eq('session', seule);
+  const { data } = await q.limit(5); const credites: Ligne[] = [];
+  for (const p of (data || []) as Ligne[]) {
+    const s = await stripe('checkout/sessions/' + encodeURIComponent(p.session));
+    if ((s.metadata || {}).joueur !== j) continue;
+    if (s.payment_status === 'paid') {
+      const pays = (s.customer_details && s.customer_details.address && s.customer_details.address.country) || null;
+      const g = Number(await rpc('jeu_paiement_crediter', { s: p.session, pays }));
+      if (g > 0) { credites.push({ session: p.session, gemmes: g }); await notifier(j, 'boutique', `💎 +${nb(g)} gemmes : merci pour ton achat !`, {}); }
+    } else if (s.status === 'expired') await rpc('jeu_paiement_expirer', { s: p.session });
+  }
+  return credites;
+}
+// à chaque passage, au plus toutes les 2 minutes par joueur, s'il a une session ouverte
+const paiementsVus = new Map<string, number>();
+async function verifierPaiementsSiBesoin(j: string) {
+  if (!cleStripe() || Date.now() - (paiementsVus.get(j) || 0) < 120000) return;
+  paiementsVus.set(j, Date.now());
+  const { count } = await admin.from('paiements').select('session', { count: 'exact', head: true }).eq('joueur', j).eq('statut', 'ouvert');
+  if (count) await verifierPaiements(j);
+}
+ACTIONS.paiement_verifier = async (j, corps) => ({ credites: await verifierPaiements(j, corps.session ? String(corps.session) : undefined) });
+// les packs ne sont pas vendus en Belgique ni aux Pays-Bas (loot boxes) : d'après le pays de la carte des achats de gemmes
+async function paysSansPacks(j: string) {
+  const { count } = await admin.from('paiements').select('session', { count: 'exact', head: true }).eq('joueur', j).eq('statut', 'paye').in('pays', ['BE', 'NL']);
+  return !!count;
+}
 ACTIONS.gemmes_essai = async (j) => ({ gemmes: Number(await rpc('jeu_gemmes_essai', { j, n: BOU.B.gemmes_essai })) });
 
 // ouvrir le pack du jour : le serveur tire au hasard (graine secrète), une fois par jour
@@ -821,6 +889,7 @@ Deno.serve(async (req: Request) => {
     await tenirMairies().catch((e) => console.error('mairies', e));
     await tenirRaretes().catch((e) => console.error('raretés', e));
     await payerEntretien(data.user.id).catch((e) => console.error('entretien', e));
+    await verifierPaiementsSiBesoin(data.user.id).catch((e) => console.error('paiements', e));
     await tenirMonuments().catch((e) => console.error('monuments', e));
     const res = await action(data.user.id, corps);
     // les robots jouent un tour après la réponse (sans faire attendre le vrai joueur)

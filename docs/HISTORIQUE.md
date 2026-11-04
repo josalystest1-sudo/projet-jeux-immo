@@ -163,6 +163,7 @@ Rien d'important ne vit dans une conversation : tout est dans le dépôt ou sur 
 - **La boutique, dans le jeu** (PR #127). Gautier choisit de continuer par la boutique et les gemmes (phase 9). Dans la démo : les gemmes en haut de l'écran, la boutique (pack national, pack régional, Pass 15 jours et son bon d'adresse, chances affichées), et des gemmes d'essai en attendant le paiement par carte. Le serveur suit.
 - **La boutique sur le serveur** (PR #128). Le vrai serveur vend maintenant packs et Pass en gemmes (des gemmes d'essai en attendant le paiement par carte) ; le bon du Pass ne prend qu'une adresse, comme le dit le game design, et le serveur la vérifie auprès de la Base Adresse Nationale.
 - **Les ventes en gemmes** (PR #129). Gautier : « oui, vas-y ». Un joueur met en vente en pièces ou en gemmes ; les offres suivent la monnaie du vendeur (sinon celle de l'acheteur) ; les gemmes passent d'un joueur à l'autre sans commission. Dans la démo et sur le serveur.
+- **Le paiement par carte** (PR #130). Gautier : « on continue, guide-moi ». Il crée son compte Stripe en mode test et pose lui-même la clé secrète dans les secrets de GitHub (jamais dans la conversation). Le jeu ouvre la page de paiement de Stripe ; le serveur vérifie auprès de Stripe avant de créditer les gemmes.
 
 ## Toutes les PR
 
@@ -318,6 +319,7 @@ Puis une PR par étape, fusionnée en squash :
 | #127 | 04/11 22:30 | La boutique dans le jeu (démo) : gemmes, pack national et régional, Pass 15 jours et son bon, chances affichées, gemmes d'essai |
 | #128 | 04/11 23:00 | La boutique sur le serveur : gemmes, packs national et régional, Pass et bon d'adresse, gemmes d'essai ; le bon ne prend qu'une adresse |
 | #129 | 05/11 00:00 | Vendre et offrir en gemmes : le vendeur choisit pièces ou gemmes, l'offre suit sa monnaie (sinon celle de l'acheteur), démo et serveur |
+| #130 | 05/11 | Le paiement des gemmes par carte (Stripe Checkout, mode test) : accès immédiat demandé, gemmes créditées après vérification auprès de Stripe, pas de packs pour les cartes belges et néerlandaises |
 
 ## Les décisions de Gautier
 
@@ -365,7 +367,7 @@ Les décisions du 2 novembre (interview) sont dans `CLAUDE.md` § 4 et dans le G
   - 8.3 : l'anti-triche.
 - **Les graphismes** (phase 10, avant 8.2 : décision de Gautier) : la preuve, l'ouverture, les monuments nationaux et 358 monuments régionaux en 3D, plus la Grande Mosquée de Paris et quatre églises ajoutées le 4 nov. (416 maquettes ; les autres n'ont pas de bâtiment à dessiner ou portent une marque) ; ensuite l'habillage de la révélation, l'icône et le logo (`docs/BIBLE-GRAPHIQUE.md`).
 - **Le game design du 4 nov. porté dans le jeu** (le Maire par caisse de travaux, PR #119 et #120 ; les saisons et classements, PR #123 et #124 ; les monuments, PR #125 et #126). Reste : l'e-mail d'alerte à Gautier (il faut un service d'envoi), le niveau visuel des communes (§ 5, proposé), l'équilibrage (loyer modeste des monuments, § 5 ter) : les saisons et le classement de patrimoine (§ 5 bis), l'entretien et la reprise des monuments, l'alerte à Gautier (§ 5 ter).
-- **La boutique** (phase 9 ; dans la démo et sur le serveur depuis les PR #127, #128 et #129 : gemmes, packs national et régional, Pass et bon, chances affichées, ventes et offres en gemmes ; reste le paiement) : Stripe → gemmes, packs nationaux et régionaux, Pass 15 jours (GDD § 3 et § 9), offres en gemmes au choix du vendeur, probabilités affichées, blocage Belgique et Pays-Bas, CGU (gemmes sans valeur, lieux = licences), confidentialité, mentions légales.
+- **La boutique** (phase 9 ; faite en mode test, PR #127 à #130 : gemmes, packs, Pass et bon, chances affichées, ventes et offres en gemmes, paiement par carte Stripe ; restent, avant les vrais paiements : activer le compte Stripe (Gautier : identité, banque, statut), une clé restreinte de production, les pages légales) : Stripe → gemmes, packs nationaux et régionaux, Pass 15 jours (GDD § 3 et § 9), offres en gemmes au choix du vendeur, probabilités affichées, blocage Belgique et Pays-Bas, CGU (gemmes sans valeur, lieux = licences), confidentialité, mentions légales.
 - **Gautier** : réserver citydeck.fr (et .app).
 - **Ensuite** : les graphismes (phase 10), l'équilibrage et le lancement (phase 11).
 - **Au lancement** :

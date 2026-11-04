@@ -1078,3 +1078,7 @@ body.promenade #sheet .svwrap{display:none}
 .devises button.on{border-color:var(--plaque);background:var(--plaque-clair);color:var(--plaque)}
 .devises.petit button{padding:6px 4px;font-size:13px}
 .gem-in{font-style:normal;margin-left:2px}
+
+/* ===================== payer des gemmes par carte (Stripe, GDD § 9) ===================== */
+.consentement{display:flex;gap:10px;align-items:flex-start;background:var(--ciel);border-radius:14px;padding:12px;margin:12px 0;font-weight:700;font-size:14px;line-height:1.35;cursor:pointer}
+.consentement input{width:22px;height:22px;flex:none;margin:1px 0 0;accent-color:var(--plaque)}
