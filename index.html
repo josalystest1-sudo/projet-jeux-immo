@@ -1137,70 +1137,85 @@ void main(){
   if(uStrip>0.5 && vUv.y<0.09 && mod(vUv.x*24.0,1.0)<0.55) col=mix(col,vec3(1.0),0.85);
   col*=0.85+0.15*uReady;
   gl_FragColor=vec4(col,1.0); }`;
-function makeArt(){ // recto de la pochette, style « jeu mobile coloré » (docs/BIBLE-GRAPHIQUE.md, choix de Gautier du 3 nov.) :
-  // bleu vif et rayons, pièces-maisons qui flottent, la plaque « Cadastra », PACK DU JOUR en lettres d'or cernées d'encre,
-  // un ruban rouge, une ville de dessin animé avec la tour Eiffel. Tout est dessiné ici (aucun fichier d'image).
-  const W=1024, H=1400, ENCRE='#17233F'; const c=document.createElement('canvas'); c.width=W; c.height=H; const g=c.getContext('2d');
-  g.lineJoin='round'; g.lineCap='round';
-  const arr=(px,py,w,h,r)=>{ g.beginPath(); g.moveTo(px+r,py); g.arcTo(px+w,py,px+w,py+h,r); g.arcTo(px+w,py+h,px,py+h,r); g.arcTo(px,py+h,px,py,r); g.arcTo(px,py,px+w,py,r); g.closePath(); };
-  const degrade=(y0,y1,stops)=>{ const d=g.createLinearGradient(0,y0,0,y1); stops.forEach(([o,col])=>d.addColorStop(o,col)); return d; };
-  // le fond : bleu vif, des rayons qui partent du logo, les bords plus sombres
-  g.fillStyle=degrade(0,H,[[0,'#5AAAFF'],[0.45,'#2F66EA'],[1,'#1A2D92']]); g.fillRect(0,0,W,H);
-  g.save(); g.translate(512,470); g.fillStyle='rgba(255,255,255,.12)'; for(let k=0;k<24;k++){ const a=k*Math.PI/12; g.beginPath(); g.moveTo(0,0); g.arc(0,0,1600,a,a+Math.PI/26); g.closePath(); g.fill(); } g.restore();
-  const vig=g.createRadialGradient(512,620,320,512,700,1050); vig.addColorStop(0,'rgba(8,16,60,0)'); vig.addColorStop(1,'rgba(8,16,60,.6)'); g.fillStyle=vig; g.fillRect(0,0,W,H);
-  // la pièce-maison (icones/piece.svg) et l'étincelle, en dessin animé : contour encre, ombre pleine
-  const MAISON=new Path2D('M16 2.3 29.7 13.5V27.3Q29.7 29.7 27.3 29.7H4.7Q2.3 29.7 2.3 27.3V13.5Z'), LETTRE=new Path2D('M19.8 17.3A4.8 4.8 0 1 0 19.8 23.9'), REFLET=new Path2D('M5.2 12.6 15.2 4.5');
-  const piece=(x,y,s,rot)=>{ g.save(); g.translate(x,y); g.rotate(rot); g.scale(s/32,s/32); g.translate(-16,-16);
-    g.save(); g.translate(0,2.2); g.fillStyle='rgba(12,22,70,.55)'; g.fill(MAISON); g.restore();
-    const or=g.createLinearGradient(0,0,28,32); or.addColorStop(0,'#FFF4BF'); or.addColorStop(.42,'#FFC93D'); or.addColorStop(1,'#DE8A08');
-    g.lineWidth=4.4; g.strokeStyle=ENCRE; g.stroke(MAISON); g.fillStyle=or; g.fill(MAISON);
-    g.lineWidth=1.8; g.strokeStyle='rgba(255,255,255,.8)'; g.stroke(REFLET); g.lineWidth=3.2; g.strokeStyle='#9A5F00'; g.stroke(LETTRE); g.restore(); };
-  const etincelle=(x,y,s)=>{ g.save(); g.translate(x,y); g.scale(s,s); g.beginPath(); g.moveTo(0,-1); g.bezierCurveTo(.1,-.3,.3,-.1,1,0); g.bezierCurveTo(.3,.1,.1,.3,0,1); g.bezierCurveTo(-.1,.3,-.3,.1,-1,0); g.bezierCurveTo(-.3,-.1,-.1,-.3,0,-1); g.closePath();
-    g.shadowColor='rgba(255,255,255,.9)'; g.shadowBlur=18; g.fillStyle='#fff'; g.fill(); g.restore(); };
-  // la ville : la tour Eiffel derrière, des immeubles crème aux toits d'ardoise façon Paris, fenêtres allumées
-  const BASE=1336;
-  g.save(); const tour=new Path2D('M428 1336Q468 1262 462 1214L472 1214L492 1088L501 1088L508 958L512 905L516 958L523 1088L532 1088L552 1214L562 1214Q556 1262 596 1336L560 1336Q512 1258 464 1336Z');
-  g.fillStyle=degrade(905,1336,[[0,'#6F86D6'],[1,'#33479C']]); g.lineWidth=7; g.strokeStyle=ENCRE; g.stroke(tour); g.fill(tour);
-  g.strokeStyle='rgba(23,35,63,.45)'; g.lineWidth=3; [[472,1214,552,1150],[552,1214,472,1150],[492,1088,532,1040],[532,1088,492,1040]].forEach(([a,b,c2,d])=>{ g.beginPath(); g.moveTo(a,b); g.lineTo(c2,d); g.stroke(); });
-  [[446,1204,132,20],[484,1080,56,14]].forEach(([x,y,w,h])=>{ arr(x,y,w,h,6); g.fillStyle='#FFC233'; g.fill(); g.lineWidth=5; g.strokeStyle=ENCRE; g.stroke(); }); g.restore();
-  const IMM=[[-24,152,262],[124,124,338],[244,150,276],[390,72,152],[562,72,164],[630,152,306],[778,124,246],[898,150,326]];
-  const FACADES=['#FFE9C7','#FFD9A8','#FFF1DA','#F9CF95'], TOITS=['#5D74B8','#4C60A4'];
-  IMM.forEach(([x,w,h],i)=>{ const haut=BASE-h, toit=Math.min(54,h*0.22);
-    // le toit mansardé, une cheminée, une lucarne
-    g.beginPath(); g.moveTo(x-8,haut); g.lineTo(x+16,haut-toit); g.lineTo(x+w-16,haut-toit); g.lineTo(x+w+8,haut); g.closePath(); g.fillStyle=TOITS[i%2]; g.fill(); g.lineWidth=6; g.strokeStyle=ENCRE; g.stroke();
-    arr(x+w-46,haut-toit-30,22,32,4); g.fillStyle='#E07A5F'; g.fill(); g.stroke();
-    if(w>100){ arr(x+w/2-15,haut-toit+8,30,34,8); g.fillStyle='#FFD54A'; g.fill(); g.lineWidth=5; g.stroke(); }
-    // la façade et ses fenêtres (allumées ou non, toujours les mêmes)
-    g.fillStyle=FACADES[i%4]; g.fillRect(x,haut,w,h); g.lineWidth=6; g.strokeRect(x,haut,w,h);
-    const cols=Math.max(1,Math.floor((w-24)/44)), pas=(w-cols*26)/(cols+1);
-    for(let r=0, y=haut+28; y+40<BASE-14; r++, y+=64) for(let k=0;k<cols;k++){ const fx=x+pas+k*(26+pas); arr(fx,y,26,38,5); g.fillStyle=((i*7+r*3+k)%3) ? '#FFD54A' : '#8FA9E8'; g.fill(); g.lineWidth=4; g.stroke(); } });
-  g.fillStyle='#2A3B86'; g.fillRect(0,BASE,W,H-BASE); g.lineWidth=6; g.strokeStyle=ENCRE; g.beginPath(); g.moveTo(0,BASE+3); g.lineTo(W,BASE+3); g.stroke();
-  g.fillStyle='rgba(255,213,74,.55)'; for(let x=30;x<W;x+=120) g.fillRect(x,BASE+30,60,10);
-  // les pièces et les étincelles qui flottent
-  [[96,548,92,-.32],[904,556,88,.36],[92,912,68,.22],[934,884,78,-.26],[318,1010,52,.4],[716,1000,58,-.3]].forEach(p=>piece(...p));
-  [[236,520,24],[792,452,18],[700,930,16],[290,920,20],[880,720,14],[150,760,15]].forEach(p=>etincelle(...p));
-  // la plaque « Cadastra », cernée d'encre, avec son ombre pleine et ses deux vis
-  arr(148,232,728,292,56); g.fillStyle='rgba(12,22,70,.6)'; g.fill();
-  arr(144,212,736,292,56); g.fillStyle=ENCRE; g.fill();
-  arr(154,222,716,272,48); g.fillStyle=degrade(222,494,[[0,'#3FAE73'],[1,'#22744A']]); g.fill();
-  arr(170,238,684,240,38); g.fillStyle='#FFFFFF'; g.fill();
-  arr(184,252,656,212,30); g.fillStyle=degrade(252,464,[[0,'#3E73DA'],[1,'#1A3E8F']]); g.fill();
-  g.save(); arr(184,252,656,212,30); g.clip(); g.fillStyle='rgba(255,255,255,.12)'; g.fillRect(184,252,656,92); g.restore();
-  [[206,300],[818,300]].forEach(([x,y])=>{ g.beginPath(); g.arc(x,y,9,0,Math.PI*2); g.fillStyle='#D8E3FA'; g.fill(); g.lineWidth=4; g.strokeStyle=ENCRE; g.stroke(); });
-  g.textAlign='center'; g.fillStyle='#fff'; g.font='800 44px "Nunito", system-ui, sans-serif'; g.globalAlpha=.92; g.fillText('Collectionne la France',512,322); g.globalAlpha=1;
-  g.font='800 148px "Baloo 2", system-ui, sans-serif'; g.lineWidth=14; g.strokeStyle=ENCRE; g.strokeText('Cadastra',512,446); g.fillText('Cadastra',512,446);
-  // PACK DU JOUR : lettres d'or, relief (encre empilée), contour encre épais
-  let taille=160; g.font=`800 ${taille}px "Baloo 2", system-ui, sans-serif`; while(g.measureText('PACK DU JOUR').width>930 && taille>100){ taille-=4; g.font=`800 ${taille}px "Baloo 2", system-ui, sans-serif`; }
-  const yT=712; g.fillStyle=ENCRE; for(let d=20; d>0; d-=4) g.fillText('PACK DU JOUR',512,yT+d);
-  g.lineWidth=26; g.strokeStyle=ENCRE; g.strokeText('PACK DU JOUR',512,yT);
-  g.fillStyle=degrade(yT-taille*0.75,yT,[[0,'#FFF4B0'],[0.45,'#FFD23F'],[1,'#F29A0B']]); g.fillText('PACK DU JOUR',512,yT);
-  // le ruban rouge : « 5 lieux · toute la France »
-  const yR=776, hR=96;
-  [[236,110,150],[788,914,874]].forEach(([dedans,bout,encoche])=>{ g.beginPath(); g.moveTo(dedans,yR+18); g.lineTo(bout,yR+18); g.lineTo(encoche,yR+18+hR/2); g.lineTo(bout,yR+18+hR); g.lineTo(dedans,yR+18+hR); g.closePath();
-    g.fillStyle='#A8331F'; g.fill(); g.lineWidth=7; g.strokeStyle=ENCRE; g.stroke(); });
-  arr(176,yR,672,hR,18); g.fillStyle=degrade(yR,yR+hR,[[0,'#FF7A5C'],[0.5,'#E4573D'],[1,'#B83E27']]); g.fill(); g.lineWidth=7; g.strokeStyle=ENCRE; g.stroke();
-  g.font='800 52px "Baloo 2", system-ui, sans-serif'; g.lineWidth=11; g.strokeText('5 lieux · toute la France',512,yR+66); g.fillStyle='#fff'; g.fillText('5 lieux · toute la France',512,yR+66);
-  const t=new THREE.CanvasTexture(c); t.anisotropy=8; t.encoding=THREE.sRGBEncoding; return t; }
+// La pochette (refonte du 4 nov. 2026, direction « classe » de Gautier) : un sachet métallisé bleu nuit, la France tracée
+// en or avec ses grandes villes, CADASTRA en capitales d'or, des filets et un guilloché fins, des soudures dorées en haut
+// et en bas. Deux images : la couleur, et le « métal » (vert = rugosité, bleu = métal) qui rend l'or brillant et lisse
+// et le fond satiné. Tout est dessiné ici (aucun fichier d'image).
+const SACHET = { l:2.3, bas:-1.75, haut:1.67, dech:1.17, soudure:0.22, bombe:0.17 };
+const lisse=(a,b,x)=>{ const t=Math.max(0,Math.min(1,(x-a)/(b-a))); return t*t*(3-2*t); };
+// le bombé du sachet : nul sur les côtés et dans les soudures
+function bombeSachet(x,y){ const S=SACHET; const sx=Math.pow(Math.max(0,1-Math.pow(x/(S.l/2),2)),0.42);
+  return S.bombe*sx*lisse(S.bas+S.soudure,S.bas+S.soudure+0.38,y)*(1-lisse(S.haut-S.soudure-0.38,S.haut-S.soudure,y)); }
+// une tranche du sachet (de y0 à y1), recto ou verso ; les bords du bas et du haut sont dentelés
+function geoSachet(y0, y1, verso){ const S=SACHET; const nx=96, ny=Math.max(8, Math.round((y1-y0)*24));
+  const g=new THREE.PlaneGeometry(S.l, y1-y0, nx, ny); const p=g.attributes.position, uv=g.attributes.uv, ym=(y0+y1)/2;
+  for(let i=0;i<p.count;i++){ const x=p.getX(i); let y=p.getY(i)+ym; const tri=Math.abs(((x+S.l/2)/0.1)%1-0.5)*2;
+    if(Math.abs(y-S.bas)<1e-5) y=S.bas+0.045*tri; if(Math.abs(y-S.haut)<1e-5) y=S.haut-0.045*tri;
+    const z=bombeSachet(x,y)+0.004; p.setXYZ(i, x, y, verso?-z:z); const u=(x+S.l/2)/S.l; uv.setXY(i, verso?1-u:u, (y-S.bas)/(S.haut-S.bas)); }
+  if(verso){ const id=g.index.array; for(let k=0;k<id.length;k+=3){ const t=id[k+1]; id[k+1]=id[k+2]; id[k+2]=t; } }
+  g.computeVertexNormals(); return g; }
+// le relief : fines stries des soudures, et un léger froissé du métal
+function makeNormalSachet(){ const W=256, H=512, c=document.createElement('canvas'); c.width=W; c.height=H; const g=c.getContext('2d'); const img=g.createImageData(W,H), d=img.data;
+  const zone=SACHET.soudure/(SACHET.haut-SACHET.bas);
+  const n=(x,y)=>Math.sin(x*0.09+Math.cos(y*0.05)*2.2)*Math.cos(y*0.07+Math.sin(x*0.04)*2)*0.5+Math.sin(x*0.23+y*0.17)*0.15;
+  for(let y=0;y<H;y++) for(let x=0;x<W;x++){ const v=1-y/H; let nx=(n(x+1,y)-n(x,y))*40, ny=(n(x,y+1)-n(x,y))*40;
+    if(v<zone || v>1-zone) ny=Math.sin(y*1.6)*55;   // les stries des soudures
+    const i=(y*W+x)*4; d[i]=128+nx; d[i+1]=128+ny; d[i+2]=255; d[i+3]=255; }
+  g.putImageData(img,0,0); return new THREE.CanvasTexture(c); }
+function dessinPochette(verso){ const W=1024, H=1522, c=document.createElement('canvas'), m=document.createElement('canvas'); c.width=m.width=W; c.height=m.height=H;
+  const g=c.getContext('2d'), k=m.getContext('2d'); const BANDE=Math.round(H*SACHET.soudure/(SACHET.haut-SACHET.bas));
+  const OR=(y0,y1)=>{ const d=g.createLinearGradient(0,y0,0,y1); d.addColorStop(0,'#FFF4D2'); d.addColorStop(0.35,'#E9C77B'); d.addColorStop(0.62,'#B8862F'); d.addColorStop(1,'#F6DE9C'); return d; };
+  const METAL_OR='rgb(0,80,215)', METAL_FOND='rgb(0,110,185)';
+  // un texte en capitales espacées, centré, dessiné lettre par lettre (sur la couleur et sur le métal)
+  const texte=(t,y,taille,poids,espace,style,metal)=>{ g.font=k.font=`${poids} ${taille}px "Barlow Condensed", "Arial Narrow", sans-serif`; const ls=[...t], w=ls.map(ch=>g.measureText(ch).width);
+    let x=W/2-(w.reduce((a,b)=>a+b,0)+espace*(ls.length-1))/2; g.fillStyle=style; k.fillStyle=metal; g.textBaseline=k.textBaseline='alphabetic';
+    ls.forEach((ch,i)=>{ g.fillText(ch,x,y); k.fillText(ch,x,y); x+=w[i]+espace; }); };
+  const filet=(y,x0,x1,ep)=>{ const d=g.createLinearGradient(x0,0,x1,0); d.addColorStop(0,'rgba(233,199,123,0)'); d.addColorStop(0.5,'#E9C77B'); d.addColorStop(1,'rgba(233,199,123,0)');
+    g.fillStyle=d; g.fillRect(x0,y,x1-x0,ep); k.fillStyle=METAL_OR; k.fillRect(x0,y,x1-x0,ep); };
+  const dessiner=()=>{
+    // le fond : nuit bleue, un halo au centre ; le métal satiné
+    const f=g.createLinearGradient(0,0,0,H); f.addColorStop(0,'#162D63'); f.addColorStop(0.5,'#0B1838'); f.addColorStop(1,'#050B1E'); g.fillStyle=f; g.fillRect(0,0,W,H);
+    const h=g.createRadialGradient(W/2,H*0.5,40,W/2,H*0.5,W*0.75); h.addColorStop(0,'rgba(90,130,230,.38)'); h.addColorStop(1,'rgba(90,130,230,0)'); g.fillStyle=h; g.fillRect(0,0,W,H);
+    k.fillStyle=METAL_FOND; k.fillRect(0,0,W,H);
+    // le guilloché : de fines ondes dorées
+    for(let i=0;i<64;i++){ const y0=BANDE+10+i*22; g.beginPath(); k.beginPath();
+      for(let x=0;x<=W;x+=8){ const y=y0+12*Math.sin(x*0.011+i*0.55)+5*Math.sin(x*0.029+i); if(x){ g.lineTo(x,y); k.lineTo(x,y); } else { g.moveTo(x,y); k.moveTo(x,y); } }
+      g.strokeStyle='rgba(233,199,123,.075)'; g.lineWidth=1.4; g.stroke(); k.strokeStyle='rgb(0,70,235)'; k.lineWidth=1.4; k.stroke(); }
+    if(!verso){
+      // la France en trait d'or, et ses grandes villes
+      const lon0=2.35, lat0=46.4, kx=Math.cos(46.5*Math.PI/180), e=66, cx=W/2, cy=H*0.56; const P=([lo,la])=>[cx+(lo-lon0)*kx*e, cy-(la-lat0)*e];
+      g.save(); g.shadowColor='rgba(255,196,96,.7)'; g.shadowBlur=26; g.lineJoin=k.lineJoin='round';
+      for(const r of (GEO && GEO.france) || []){ g.beginPath(); k.beginPath(); r.forEach((q,i)=>{ const [x,y]=P(q); if(i){ g.lineTo(x,y); k.lineTo(x,y); } else { g.moveTo(x,y); k.moveTo(x,y); } }); g.closePath(); k.closePath();
+        g.fillStyle='rgba(233,199,123,.07)'; g.fill(); g.strokeStyle=OR(cy-330,cy+330); g.lineWidth=5; g.stroke(); k.strokeStyle=METAL_OR; k.lineWidth=7; k.stroke(); }
+      g.restore();
+      const villes=[[2.35,48.86,10],[4.84,45.76,6],[5.37,43.30,6],[-0.58,44.84,6],[3.06,50.63,6],[7.75,48.58,6],[-1.55,47.22,6],[1.44,43.60,6],[7.26,43.70,5],[-4.49,48.39,5],[3.88,43.61,5],[5.04,47.32,5],[3.08,45.78,5],[-1.68,48.11,5]];
+      for(const [lo,la,r] of villes){ const [x,y]=P([lo,la]); g.save(); g.shadowColor='rgba(255,220,150,.95)'; g.shadowBlur=18; g.fillStyle='#FFF1C9'; g.beginPath(); g.arc(x,y,r,0,Math.PI*2); g.fill(); g.restore();
+        k.fillStyle=METAL_OR; k.beginPath(); k.arc(x,y,r,0,Math.PI*2); k.fill(); }
+      const [px,py]=P([2.35,48.86]); g.strokeStyle='rgba(255,236,190,.8)'; g.lineWidth=2.5; g.beginPath(); g.arc(px,py,22,0,Math.PI*2); g.stroke();
+      // le nom, le titre, la promesse
+      filet(BANDE+58,180,844,3); texte('CADASTRA',BANDE+238,176,700,26,OR(BANDE+90,BANDE+240),METAL_OR); filet(BANDE+272,180,844,3);
+      texte('PACK DU JOUR',BANDE+352,62,600,20,'#F3E3BC','rgb(0,60,230)');
+      filet(H-BANDE-212,300,724,2); texte('5 LIEUX · TOUTE LA FRANCE',H-BANDE-150,46,600,12,OR(H-BANDE-190,H-BANDE-150),METAL_OR);
+      texte('COLLECTIONNE LA FRANCE',H-BANDE-92,30,600,14,'rgba(243,227,188,.7)','rgb(0,90,200)');
+    } else {
+      // le verso : la pièce-maison en or au centre, le nom, une ligne de texte
+      const MAISON=new Path2D('M16 2.3 29.7 13.5V27.3Q29.7 29.7 27.3 29.7H4.7Q2.3 29.7 2.3 27.3V13.5Z'), LETTRE=new Path2D('M19.8 17.3A4.8 4.8 0 1 0 19.8 23.9');
+      g.save(); g.translate(W/2-150,H*0.36); g.scale(300/32,300/32); g.shadowColor='rgba(255,196,96,.6)'; g.shadowBlur=4; g.lineJoin='round';
+      g.strokeStyle=OR(0,32); g.lineWidth=1.3; g.stroke(MAISON); g.lineWidth=2.2; g.lineCap='round'; g.stroke(LETTRE); g.restore();
+      k.save(); k.translate(W/2-150,H*0.36); k.scale(300/32,300/32); k.strokeStyle=METAL_OR; k.lineWidth=1.6; k.stroke(MAISON); k.lineWidth=2.5; k.stroke(LETTRE); k.restore();
+      texte('CADASTRA',H*0.36+400,92,700,18,OR(H*0.36+320,H*0.36+400),METAL_OR);
+      filet(H*0.36+436,330,694,2); texte('CINQ LIEUX DE FRANCE À COLLECTIONNER',H*0.36+500,32,600,8,'rgba(243,227,188,.75)','rgb(0,90,200)');
+    }
+    // les soudures : des bandes d'or brossé, en haut et en bas
+    for(const y0 of [0,H-BANDE]){ const d=g.createLinearGradient(0,y0,0,y0+BANDE); d.addColorStop(0,'#5A3F14'); d.addColorStop(0.5,'#B8913F'); d.addColorStop(1,'#5A3F14'); g.fillStyle=d; g.fillRect(0,y0,W,BANDE);
+      for(let y=y0;y<y0+BANDE;y+=6){ g.fillStyle='rgba(255,236,190,.08)'; g.fillRect(0,y,W,2); } k.fillStyle='rgb(0,125,225)'; k.fillRect(0,y0,W,BANDE); }
+  };
+  dessiner(); const tc=new THREE.CanvasTexture(c), tm=new THREE.CanvasTexture(m); tc.encoding=THREE.sRGBEncoding; tc.anisotropy=8; tm.anisotropy=4;
+  // la police des capitales n'est peut-être pas encore chargée : on redessine dès qu'elle l'est
+  if(document.fonts && !document.fonts.check('700 60px "Barlow Condensed"')) Promise.all([document.fonts.load('700 60px "Barlow Condensed"'), document.fonts.load('600 60px "Barlow Condensed"')]).then(()=>{ dessiner(); tc.needsUpdate=true; tm.needsUpdate=true; }).catch(()=>{});
+  return { couleur:tc, metal:tm }; }
+function makeArt(){ return dessinPochette(false); }
+function makeArtDos(){ return dessinPochette(true); }
 function makeNormal(){ // reliefs du foil : micro-plis + crantage des bords, générés
   const S=512; const c=document.createElement('canvas'); c.width=S; c.height=S; const g=c.getContext('2d'); const img=g.createImageData(S,S); const d=img.data;
   const n=(x,y)=>{ let v=0, a=1, f=1; for(let o=0;o<4;o++){ v+=a*Math.sin((x*f*0.07)+Math.cos(y*f*0.05)*2.0)*Math.cos((y*f*0.06)+Math.sin(x*f*0.04)*2.0); a*=0.5; f*=2.1; } return v; };
@@ -1209,30 +1224,32 @@ function makeNormal(){ // reliefs du foil : micro-plis + crantage des bords, gé
 function makeRough(){ const S=256; const c=document.createElement('canvas'); c.width=S; c.height=S; const g=c.getContext('2d'); const img=g.createImageData(S,S); const d=img.data; for(let i=0;i<S*S;i++){ const v=150+Math.random()*60; d[i*4]=d[i*4+1]=d[i*4+2]=v; d[i*4+3]=255; } g.putImageData(img,0,0); const t=new THREE.CanvasTexture(c); t.wrapS=t.wrapT=THREE.RepeatWrapping; t.repeat.set(3,3); return t; }
 function initGL(){ const cv=document.getElementById('pkgl'); const r=new THREE.WebGLRenderer({canvas:cv, antialias:true, alpha:false}); r.setPixelRatio(Math.min(2,devicePixelRatio)); r.setSize(cv.clientWidth, cv.clientHeight, false);
   r.outputEncoding=THREE.sRGBEncoding; r.toneMapping=THREE.ACESFilmicToneMapping; r.toneMappingExposure=1.0; r.physicallyCorrectLights=true;
-  const sc=new THREE.Scene(); sc.background=new THREE.Color(0x000000); const cam=new THREE.PerspectiveCamera(32, cv.clientWidth/cv.clientHeight, 0.1, 100); cam.position.set(0,0.1,11.5);
+  const sc=new THREE.Scene(); sc.background=new THREE.Color(0x060b1c); const cam=new THREE.PerspectiveCamera(32, cv.clientWidth/cv.clientHeight, 0.1, 100); cam.position.set(0,0.1,10.2);
   // environnement de studio généré (reflets) : aucun fichier
   const pm=new THREE.PMREMGenerator(r); sc.environment=pm.fromScene(new THREE.RoomEnvironment(), 0.04).texture;
   const key=new THREE.SpotLight(0xfff2dd, 380, 40, Math.PI/5, 0.5); key.position.set(4,6,8); sc.add(key);
   const rim=new THREE.PointLight(0x7fa6ff, 200, 30); rim.position.set(-5,2,-3); sc.add(rim);
   const warm=new THREE.PointLight(0xffd65a, 150, 30); warm.position.set(-3,-2,6); sc.add(warm);
-  const art=makeArt(), nrm=makeNormal(), rgh=makeRough();
-  const foil=new THREE.MeshPhysicalMaterial({ map:art, normalMap:nrm, normalScale:new THREE.Vector2(0.18,0.18), roughnessMap:rgh, roughness:0.22, metalness:0.55, clearcoat:1, clearcoatRoughness:0.06, iridescence:0.9, iridescenceIOR:1.6, iridescenceThicknessRange:[120,620], envMapIntensity:1.1 });
-  const side=new THREE.MeshPhysicalMaterial({ color:0x2a1f55, normalMap:nrm, normalScale:new THREE.Vector2(0.5,0.5), roughness:0.35, metalness:0.9, clearcoat:0.8, iridescence:0.6, iridescenceIOR:1.5, envMapIntensity:1.2 });
+  // la pochette : un sachet métallisé bombé (refonte du 4 nov. : avant, une boîte), soudé en bas et en haut par des bandes
+  // dentelées ; le haut, au-dessus de la ligne de déchirure, est une pièce à part qui s'arrache (pivot, poserCharniere)
+  const art=makeArt(), dos=makeArtDos(), nrm=makeNormalSachet();
+  const matiere=(t)=>new THREE.MeshPhysicalMaterial({ map:t.couleur, metalnessMap:t.metal, roughnessMap:t.metal, metalness:1, roughness:1, normalMap:nrm, normalScale:new THREE.Vector2(0.55,0.55),
+    clearcoat:0.45, clearcoatRoughness:0.12, iridescence:0.3, iridescenceIOR:1.45, iridescenceThicknessRange:[180,480], envMapIntensity:1.4 });
+  const recto=matiere(art), verso=matiere(dos), dedans=new THREE.MeshStandardMaterial({ color:0x0a1024, roughness:0.55, metalness:0.5, side:THREE.BackSide, polygonOffset:true, polygonOffsetFactor:2, polygonOffsetUnits:6 });
   const pack=new THREE.Group();
-  const body=new THREE.Mesh(new THREE.BoxGeometry(2.3,2.9,0.22, 1,1,1), [side,side,side,side,foil,side]); body.position.y=-0.3; pack.add(body);
-  // bande du haut : même foil, découpe de la texture sur sa hauteur
-  const topArt=art.clone(); topArt.needsUpdate=true; topArt.repeat.set(1,0.5/3.4); topArt.offset.set(0,1-0.5/3.4);
-  const foilTop=foil.clone(); foilTop.map=topArt;
-  const strip=new THREE.Mesh(new THREE.BoxGeometry(2.3,0.5,0.23), [side,side,side,side,foilTop,side]);
+  const morceau=(y0,y1)=>{ const g=new THREE.Group(), a=geoSachet(y0,y1,false), b=geoSachet(y0,y1,true); g.add(new THREE.Mesh(a,recto), new THREE.Mesh(b,verso), new THREE.Mesh(a,dedans), new THREE.Mesh(b,dedans)); return g; };
+  const body=morceau(SACHET.bas, SACHET.dech); pack.add(body);
+  const strip=morceau(SACHET.dech, SACHET.haut);
   // le haut se déchire depuis le côté où le doigt commence : il tourne autour d'une charnière à l'autre bout (poserCharniere)
-  const pivot=new THREE.Group(); pivot.position.set(1.15,1.17,0); strip.position.set(-1.15,0.25,0); pivot.add(strip); pack.add(pivot);
+  const pivot=new THREE.Group(); pivot.position.set(1.15,SACHET.dech,0); strip.position.set(-1.15,-SACHET.dech,0); pivot.add(strip); pack.add(pivot);
   // l'étincelle au point de déchirure, et de petits éclats qui en jaillissent
-  const spark=new THREE.Sprite(new THREE.SpriteMaterial({ map:texEtincelle(), color:0xfff2b0, transparent:true, opacity:0, blending:THREE.AdditiveBlending, depthWrite:false })); spark.scale.set(0.8,0.8,1); spark.position.set(-1.15,1.17,0.2); pack.add(spark);
+  const spark=new THREE.Sprite(new THREE.SpriteMaterial({ map:texEtincelle(), color:0xfff2b0, transparent:true, opacity:0, blending:THREE.AdditiveBlending, depthWrite:false })); spark.scale.set(0.8,0.8,1); spark.position.set(-1.15,1.17,0.24); pack.add(spark);
   const M=60, eg=new THREE.BufferGeometry(), epos=new Float32Array(M*3), evie=[]; for(let i=0;i<M;i++){ epos[i*3+1]=-99; evie.push({ age:9, x:0, y:0, vx:0, vy:0 }); } eg.setAttribute('position', new THREE.BufferAttribute(epos,3));
   const eclatsD=new THREE.Points(eg, new THREE.PointsMaterial({ color:0xffe08a, size:0.11, transparent:true, opacity:0.95, blending:THREE.AdditiveBlending, depthWrite:false })); pack.add(eclatsD);
-  // ligne de déchirure pointillée
-  const dash=new THREE.Mesh(new THREE.PlaneGeometry(2.3,0.03), new THREE.MeshBasicMaterial({color:0xffffff, transparent:true, opacity:0.9})); dash.position.set(0,1.17,0.125); pack.add(dash);
-  const artBody=art.clone(); artBody.needsUpdate=true; artBody.repeat.set(1,2.9/3.4); artBody.offset.set(0,0); foil.map=artBody;
+  // la ligne de déchirure : des tirets qui épousent le bombé
+  { const N=46, pos=[], idx=[]; for(let i=0;i<=N;i++){ const x=-1.15+2.3*i/N, z=bombeSachet(x,SACHET.dech)+0.004; pos.push(x,SACHET.dech-0.011,z, x,SACHET.dech+0.011,z); if(i<N && i%2===0){ const a=i*2; idx.push(a,a+2,a+1, a+1,a+2,a+3); } }
+    const dg=new THREE.BufferGeometry(); dg.setAttribute('position', new THREE.Float32BufferAttribute(pos,3)); dg.setIndex(idx);
+    pack.add(new THREE.Mesh(dg, new THREE.MeshBasicMaterial({ color:0xfff1c9, transparent:true, opacity:0.85, side:THREE.DoubleSide }))); }
   sc.add(pack);
   const N=260; const pg=new THREE.BufferGeometry(); const pos=new Float32Array(N*3); const vel=[]; for(let i=0;i<N;i++){ pos[i*3]=0; pos[i*3+1]=1.4; pos[i*3+2]=0; vel.push([ (Math.random()-.5)*4, Math.random()*4+1, (Math.random()-.5)*3 ]); }
   pg.setAttribute('position', new THREE.BufferAttribute(pos,3)); const parts=new THREE.Points(pg, new THREE.PointsMaterial({color:0xffe08a, size:0.08, transparent:true, opacity:0, blending:THREE.AdditiveBlending, depthWrite:false})); sc.add(parts);
@@ -1399,53 +1416,86 @@ let packOuverture=null;   // la ligne d'ouverture du pack à l'écran (les carte
 function openScene(){ const sc=document.getElementById('packscene'); packTorn=false; packCards=null; packOuverture=null; document.getElementById('pkgl').style.display='block';
   document.getElementById('pkcards').innerHTML=''; document.getElementById('packdone').style.display='none'; document.getElementById('pkhint').textContent='Incline ton téléphone…'; document.getElementById('pkload').textContent='Le pack arrive…';
   sc.classList.add('on'); requestAnimationFrame(()=>{ sc.classList.add('show'); initGL(); }); }
-function finPack(){ const sc=document.getElementById('packscene'); sc.classList.remove('show','fini'); setTimeout(()=>{ sc.classList.remove('on'); disposeGL(); }, 500); renderPatrimoine(); refreshTop(); if(!state.prefs.guideVu) setTimeout(()=>guide(0), 900); }
+function finPack(){ const sc=document.getElementById('packscene'); cancelAnimationFrame(PK.anim); sc.classList.remove('show','fini'); setTimeout(()=>{ sc.classList.remove('on'); disposeGL(); }, 500); renderPatrimoine(); refreshTop(); if(!state.prefs.guideVu) setTimeout(()=>guide(0), 900); }
 function dechirer(){ if(GL.torn) return; packTorn=true; packOuverture=null;
   if(GL.r && GL.pack){ const cv=document.getElementById('pkgl'), r=cv.getBoundingClientRect(), w=GL.pack.localToWorld(new THREE.Vector3(0,1.17,0.12)).project(GL.cam); packOuverture=r.top+(1-w.y)/2*r.height; }
   if(GL.dech){ GL.dech.actif=false; GL.dech.cible=1; } sonDechirureFin(); GL.torn=true; GL.tornAt=performance.now(); sonDechirure(); sonOuverture(); document.getElementById('pkhint').textContent='';
   const scene=GL.r; setTimeout(()=>{ sortirCartes(); }, 280); setTimeout(()=>{ if(GL.r!==scene) return; document.getElementById('pkgl').style.display='none'; disposeGL(); }, 2000); }
-function sortirCartes(){ const wrap=document.getElementById('pkcards'); const sc=document.getElementById('packscene'); const n=packCards.length; let revealed=0;
+// =================== les cartes du pack : une carte = un seul objet (refonte du 4 nov. 2026) ===================
+// Demande de Gautier : une ouverture « la plus proche de Pokémon Pocket » : des cartes qu'on tient, qu'on retourne, qu'on
+// incline, dont les reflets bougent. On reprend l'expérience, pas l'apparence : tout reste Cadastra. Avant, la carte
+// révélée glissait dans un éventail et la suivante prenait sa place : on croyait voir une autre carte.
+// Les cartes sortent du pack en pile, face cachée. Toucher la carte du dessus : l'explosion de lumière (Rare et au-delà) et
+// la révélation (France, département, commune, lieu), puis cette même carte se retourne dans la main. On l'incline au doigt
+// (ou en penchant le téléphone) ; on la fait glisser sur le côté, ou on la touche, pour passer à la suivante. À la fin, les
+// cartes en éventail ; en toucher une l'agrandit (et on peut encore l'incliner).
+const PK={ cartes:[], i:0, etat:'pile', zoom:-1, anim:0 };   // etat : pile, revele, main, fini
+function reduitMouvement(){ return !!(window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches); }
+function sortirCartes(){ const wrap=document.getElementById('pkcards'); wrap.innerHTML=''; cancelAnimationFrame(PK.anim); Object.assign(PK,{ cartes:[], i:0, etat:'pile', zoom:-1 });
   // les cartes sortent de l'ouverture du pack : tout ce qui est sous l'ouverture reste caché le temps qu'elles montent
-  const sortie = packOuverture!=null && !(window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches);
+  const sortie = packOuverture!=null && !reduitMouvement();
   // (le pack commence à tomber 0,95 s après la déchirure, soit 0,67 s après ce moment : la ligne descend avec lui)
   if(sortie){ const b=wrap.getBoundingClientRect(); wrap.style.transition='none'; wrap.style.clipPath=`inset(0 0 ${Math.max(0, Math.round(b.bottom-packOuverture))}px 0)`;
     setTimeout(()=>{ wrap.style.transition='clip-path .55s ease-in'; wrap.style.clipPath='inset(0 0 0px 0)'; }, 670);
     setTimeout(()=>{ wrap.style.transition=''; wrap.style.clipPath=''; }, 1300); }
-  packCards.forEach((c,i)=>{ const el=document.createElement('div'); const r=rarete(c); el.className='rcard r'+r+(sortie?' sortie':'');
-    el.innerHTML=`<div class="face back"><i class="pc dos-piece"></i><span class="dos-nom">Cadastra</span></div><div class="face front"><span class="rar">${RARETES[r]}</span>${carteArt(c, `<span class="valeur">${pcs(valeur(c))}</span><span class="plafond">Jusqu’à ${NIVEAUX[plafond(c)].icone} ${NIVEAUX[plafond(c)].nom}</span>`)}</div>`;
-    el.style.setProperty('--x','0px'); el.style.setProperty('--y','0px'); el.style.setProperty('--r','0deg'); el.style.setProperty('--s','1');
-    wrap.appendChild(el);
-    setTimeout(()=>{ el.classList.remove('sortie'); el.classList.add('in','pos'); if(sortie) sonGlisse(i); }, sortie ? 90+i*70 : 120+i*140);
-    el.onclick=async()=>{
-      // une fois tout révélé : toucher une carte l'agrandit, la toucher encore la range
-      if(el.classList.contains('flip')){ if(sc.classList.contains('fini')){ const z=!el.classList.contains('zoom'); wrap.querySelectorAll('.zoom').forEach(x=>x.classList.remove('zoom')); el.classList.toggle('zoom', z); vibrer(8); } return; }
-      if(revealing) return; revealing=true; document.getElementById('pkhint').textContent=''; try{ await revealSequence(c); }catch(e){} revealing=false; el.classList.remove('pos'); el.classList.add('flip'); revealed++; sonCarte(r);
-      const tout = revealed===n;
-      document.getElementById('pkhint').textContent = tout ? '' : 'Touche la carte suivante';
-      // la carte révélée rejoint l'éventail ; à la fin, l'éventail se centre au-dessus du bouton
-      setTimeout(()=>{ if(tout){ sc.classList.add('fini'); document.getElementById('packdone').style.display='block'; document.getElementById('pkhint').textContent='5 nouveaux lieux dans ton patrimoine · touche une carte pour la voir'; } dispoPack(); }, 1700); };
-  });
-  // la carte du dessus est cliquable ; les autres en dessous (z-index inversé)
-  [...wrap.children].forEach((el,i)=>{ el.style.zIndex=n-i; });
-  dispoPack();
-  document.getElementById('pkhint').textContent='Touche la carte pour la retourner'; }
-// Où poser les cartes : la pile en haut, l'éventail des cartes révélées en dessous, et rien sous le texte ni sous le bouton
-// (sur un petit téléphone, l'éventail tombait sur le bouton « Super ! » et le cachait).
-function dispoPack(){ const sc=document.getElementById('packscene'), wrap=document.getElementById('pkcards'); if(!sc.classList.contains('on')) return;
-  const H=sc.clientHeight, W=sc.clientWidth, haut=18; const cartes=[...wrap.children]; const n=cartes.length; if(!n) return;
-  const rev=cartes.filter(c=>c.classList.contains('flip')), pile=cartes.filter(c=>!c.classList.contains('flip')); const fini=!pile.length;
-  const hint=document.getElementById('pkhint'), bouton=document.getElementById('packdone'); const top0=sc.getBoundingClientRect().top;
-  let bas = (fini && bouton.offsetParent ? bouton.getBoundingClientRect().top : hint.getBoundingClientRect().top) - top0 - (fini ? 16 : 0);
-  if(hint.textContent) bas = Math.min(bas, hint.getBoundingClientRect().top - top0) - 12;
-  const pose=(el,x,y,r,sc2)=>{ el.style.setProperty('--x',x+'px'); el.style.setProperty('--y',y+'px'); el.style.setProperty('--r',r+'deg'); el.style.setProperty('--s',sc2); };
-  const sz=Math.min(1, (bas-haut-16)/320, (W-32)/220); wrap.style.setProperty('--yz', ((haut+bas)/2 - H/2)+'px'); wrap.style.setProperty('--sz', sz);
-  if(fini){ const s=Math.max(.4, Math.min(.68, (bas-haut-40)/320, (W-56)/(220*2.1))); const cw=220*s; const dx=Math.min(cw*.62, (W-56-cw)/Math.max(1,n-1)); const yc=(haut+bas)/2 - H/2;
-    rev.forEach((el,k)=>{ const d=k-(n-1)/2; pose(el, d*dx, yc+Math.abs(d)*7, d*5, s); el.style.zIndex=k; }); return; }
-  const sf=Math.min(.5, (W-56)/(220*2.2)), fh=320*sf, cw=220*sf; const dx=Math.min(64, (W-56-cw)/Math.max(1,n-1)); const yFan=bas-fh/2-14-H/2;
-  rev.forEach((el,k)=>{ const d=k-(n-1)/2; pose(el, d*dx, yFan, d*7, sf); el.style.zIndex=k; });
-  const hautFan=H/2+yFan-fh/2-16; const ss=Math.max(.5, Math.min(1, (hautFan-haut)/320)); const ys=(haut+hautFan)/2-H/2;
-  pile.forEach(el=>pose(el, 0, ys, 0, ss)); }
+  packCards.forEach((c,i)=>{ const r=rarete(c); const el=document.createElement('div'); el.className='c3d r'+r+(sortie?' sortie':'');
+    el.innerHTML=`<div class="c3d-corps"><div class="c3d-face c3d-dos"><i class="pc c3d-embleme"></i><span class="c3d-nom">Cadastra</span></div><div class="c3d-face c3d-avant"><span class="rar">${RARETES[r]}</span>${carteArt(c, `<span class="valeur">${pcs(valeur(c))}</span><span class="plafond">Jusqu’à ${NIVEAUX[plafond(c)].icone} ${NIVEAUX[plafond(c)].nom}</span>`)}<i class="c3d-holo"></i><i class="c3d-brillance"></i></div></div>`;
+    wrap.appendChild(el); PK.cartes.push({ el, c, r });
+    setTimeout(()=>{ el.classList.remove('sortie'); if(sortie) sonGlisse(i); }, sortie ? 90+i*70 : 60+i*90); });
+  document.getElementById('pkhint').textContent='Touche la carte pour la révéler';
+  dispoPack(); }
+function dispoPack(){ const sc=document.getElementById('packscene'); if(!sc.classList.contains('on') || !PK.cartes.length) return;
+  const W=sc.clientWidth, H=sc.clientHeight, n=PK.cartes.length;
+  const pose=(el,x,y,r,s,z)=>{ el.style.setProperty('--x',x+'px'); el.style.setProperty('--y',y+'px'); el.style.setProperty('--r',r+'deg'); el.style.setProperty('--s',s); el.style.zIndex=z; };
+  const s0=Math.min(1.05, (H-260)/350, (W-48)/240);
+  if(PK.etat==='fini'){ const s=Math.max(.34, Math.min(.58, (W-36)/(240*(1+(n-1)*0.6)))), dx=240*s*0.6;
+    PK.cartes.forEach((k,j)=>{ const d=j-(n-1)/2; if(j===PK.zoom) pose(k.el,0,-30,0,s0,60); else pose(k.el,d*dx,-40+Math.abs(d)*12,d*6,s,j); }); return; }
+  const pas=Math.min(46, (W-70)/Math.max(1,n));
+  PK.cartes.forEach((k,j)=>{ if(j<PK.i) pose(k.el,(j-(n-1)/2)*pas,H/2-150,(j-(n-1)/2)*4,.22,j);   // déjà vues : rangées en bas
+    else { const p=j-PK.i; pose(k.el,p*1.5,-30-p*5,p===0?0:(p%2?2.5:-2),s0*(1-p*0.025),100-p); } }); }
 window.addEventListener('resize', ()=>dispoPack());
+// les reflets suivent l'inclinaison (fx, fy : de 0 à 1 sur la carte)
+function reflets(el, fx, fy){ el.style.setProperty('--mx',(fx*100).toFixed(1)+'%'); el.style.setProperty('--my',(fy*100).toFixed(1)+'%');
+  el.style.setProperty('--hx',(100-fx*100).toFixed(1)+'%'); el.style.setProperty('--hy',(100-fy*100).toFixed(1)+'%'); }
+async function revelerCarte(k){ if(revealing) return; revealing=true; PK.etat='revele'; document.getElementById('pkhint').textContent='';
+  try{ await revealSequence(k.c); }catch(e){}
+  revealing=false; const el=k.el; el.classList.add('vue'); el.style.setProperty('--flip','0deg'); sonCarte(k.r); vibrer(k.r>=4?[20,30,60]:15);
+  if(k.r>=3){ el.classList.remove('eclair'); void el.offsetWidth; el.classList.add('eclair'); }
+  PK.etat='main'; const der=PK.i>=PK.cartes.length-1;
+  document.getElementById('pkhint').textContent = der ? 'Incline la carte · glisse-la pour finir' : 'Incline la carte · glisse-la pour la suivante';
+  setTimeout(()=>{ if(PK.etat==='main' && PK.cartes[PK.i]===k) balancer(k.el); }, 950); }
+// la carte en main se balance doucement (ou suit le téléphone penché) : les reflets bougent
+function balancer(el){ cancelAnimationFrame(PK.anim); if(reduitMouvement()) return; el.classList.add('suit'); const t0=performance.now();
+  const pas=()=>{ const k=PK.cartes[PK.etat==='fini' ? PK.zoom : PK.i]; if(!k || k.el!==el || !(PK.etat==='main' || PK.etat==='fini')){ el.classList.remove('suit'); return; }
+    PK.anim=requestAnimationFrame(pas); if(el.classList.contains('libre')) return; const t=(performance.now()-t0)/1000;
+    const gx = gyroOn ? GL.target.x : Math.sin(t*0.9)*0.4, gy = gyroOn ? GL.target.y : Math.cos(t*0.7)*0.3;
+    el.style.setProperty('--ry',(gx*16).toFixed(2)+'deg'); el.style.setProperty('--rx',(-gy*12).toFixed(2)+'deg'); reflets(el, 0.5+gx*0.45, 0.45+gy*0.45); };
+  PK.anim=requestAnimationFrame(pas); }
+function carteSuivante(k, sens){ const el=k.el; cancelAnimationFrame(PK.anim); el.classList.remove('suit','eclair'); vibrer(10); sonGlisse(PK.i);
+  el.style.setProperty('--x',(sens*innerWidth*0.95)+'px'); el.style.setProperty('--r',(sens*26)+'deg'); el.style.setProperty('--rx','0deg'); el.style.setProperty('--ry','0deg');
+  PK.i++; const fini=PK.i>=PK.cartes.length;
+  setTimeout(()=>{ const sc=document.getElementById('packscene');
+    if(fini){ PK.etat='fini'; sc.classList.add('fini'); document.getElementById('packdone').style.display='block'; document.getElementById('pkhint').textContent=`${PK.cartes.length} nouveaux lieux dans ton patrimoine · touche une carte pour la voir`; }
+    else { PK.etat='pile'; document.getElementById('pkhint').textContent='Touche la carte pour la révéler'; }
+    dispoPack(); }, 280); }
+// les gestes : la carte du dessus (ou la carte agrandie, à la fin) suit le doigt, s'incline vers lui, et revient
+(function(){ const wrap=document.getElementById('pkcards'); let g=null;
+  wrap.addEventListener('pointerdown', e=>{ const el=e.target.closest('.c3d'); if(!el || revealing) return; const j=PK.cartes.findIndex(k=>k.el===el); if(j<0) return;
+    if(PK.etat==='fini'){ if(j!==PK.zoom){ PK.zoom=j; vibrer(8); dispoPack(); setTimeout(()=>balancer(el), 600); return; } }
+    else if(j!==PK.i || PK.etat==='revele') return;
+    g={ k:PK.cartes[j], x0:e.clientX, y0:e.clientY, dx:0, dy:0, bouge:false, bx:parseFloat(el.style.getPropertyValue('--x'))||0, by:parseFloat(el.style.getPropertyValue('--y'))||0 };
+    el.classList.add('libre'); try{ el.setPointerCapture(e.pointerId); }catch(_){} });
+  wrap.addEventListener('pointermove', e=>{ if(!g) return; g.dx=e.clientX-g.x0; g.dy=e.clientY-g.y0; if(Math.abs(g.dx)>8 || Math.abs(g.dy)>8) g.bouge=true;
+    const el=g.k.el, b=el.getBoundingClientRect();
+    el.style.setProperty('--rx',Math.max(-32,Math.min(32,-g.dy*0.28)).toFixed(1)+'deg'); el.style.setProperty('--ry',Math.max(-38,Math.min(38,g.dx*0.25)).toFixed(1)+'deg');
+    el.style.setProperty('--x',(g.bx+g.dx*0.6)+'px'); el.style.setProperty('--y',(g.by+g.dy*0.35)+'px');
+    reflets(el, Math.max(0,Math.min(1,(e.clientX-b.left)/b.width)), Math.max(0,Math.min(1,(e.clientY-b.top)/b.height))); });
+  const fin=()=>{ if(!g) return; const {k,dx,dy,bouge}=g, el=k.el; g=null; el.classList.remove('libre'); el.style.setProperty('--rx','0deg'); el.style.setProperty('--ry','0deg');
+    if(PK.etat==='pile'){ dispoPack(); if(!bouge) revelerCarte(k); return; }
+    if(PK.etat==='main'){ if(!bouge || Math.abs(dx)>80 || dy<-110){ carteSuivante(k, dx<0?-1:1); return; } dispoPack(); return; }
+    if(PK.etat==='fini'){ if(!bouge){ PK.zoom=-1; cancelAnimationFrame(PK.anim); el.classList.remove('suit'); } dispoPack(); } };
+  wrap.addEventListener('pointerup', fin); wrap.addEventListener('pointercancel', fin); })();
+
 // =================== le serveur (mode serveur) : toute action passe par la fonction « jeu » ===================
 // Réponse : { ok:true, ..., etat } (ma partie à jour, sur laquelle le jeu se recale) ou { ok:false, code, message }.
 let serveurOccupe=false;
