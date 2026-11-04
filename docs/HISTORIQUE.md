@@ -106,6 +106,7 @@ Rien d'important ne vit dans une conversation : tout est dans le dépôt ou sur 
 - Dix-huitième lot régional (PR #70) : le musée d'Orsay, Thiepval, le Gros-Horloge, la porte des Allemands, Tarascon, Salses, Josselin, Hautefort, Annecy, le fort la Latte, La Rochelle, Vienne.
 - Dix-neuvième lot régional (PR #71) : Saint-Paul de Strasbourg, Colmar, Notre-Dame de Dijon, Vendôme, Verdun, Saint-Nicolas-de-Port, Bonaguil, Montreuil-Bellay, Maintenon, Sceaux, le temple du Marais, le théâtre antique de Lyon.
 - Vingtième lot régional (PR #72) : les châteaux de Caen, Dinan, Anet et Écouen, Moissac, les cathédrales d'Ajaccio, Saintes, Bazas et Nice, l'arc de Germanicus, Saint-Michel de Carcassonne.
+- Vingt et unième lot régional (PR #73) : Aix, Maisons, le Plessis-Bourré, Talcy, Roquetaillade, Abbadia, Saint-Victor, la Daurade, la synagogue et Saint-Seurin de Bordeaux, Valence.
 
 ## Toutes les PR
 
@@ -204,6 +205,7 @@ Puis une PR par étape, fusionnée en squash :
 | #70 | 04/11 03:23 | Graphismes : douze monuments régionaux de plus (le musée d'Orsay, le mémorial de Thiepval, le Gros-Horloge, la porte des Allemands, Tarascon, Salses, Josselin, Hautefort, le château d'Annecy, le fort la Latte, les cathédrales de La Rochelle et de Vienne) |
 | #71 | 04/11 03:29 | Graphismes : douze monuments régionaux de plus (Saint-Paul de Strasbourg, la collégiale de Colmar, Notre-Dame de Dijon, la Trinité de Vendôme, Verdun, Saint-Nicolas-de-Port, Bonaguil, Montreuil-Bellay, Maintenon, Sceaux, le temple du Marais, le théâtre antique de Lyon) |
 | #72 | 04/11 03:35 | Graphismes : onze monuments régionaux de plus (les châteaux de Caen, Dinan, Anet et Écouen, l'abbaye de Moissac, les cathédrales d'Ajaccio, Saintes, Bazas et Nice, l'arc de Germanicus, Saint-Michel de Carcassonne) |
+| #73 | 04/11 03:41 | Graphismes : onze monuments régionaux de plus (la cathédrale d'Aix, les châteaux de Maisons, du Plessis-Bourré, de Talcy, de Roquetaillade et d'Abbadia, Saint-Victor de Marseille, la Daurade, la grande synagogue et Saint-Seurin de Bordeaux, la cathédrale de Valence) |
 
 ## Les décisions de Gautier
 
@@ -234,7 +236,7 @@ Les décisions du 2 novembre (interview) sont dans `CLAUDE.md` § 4 et dans le G
 - **Le serveur, suite** (phase 8) :
   - 8.2 : le mode serveur par défaut, la fin des joueurs simulés, l'inscription des amis. Question posée à Gautier, sans réponse : couper la confirmation par e-mail pendant les essais ?
   - 8.3 : l'anti-triche.
-- **Les graphismes** (phase 10, avant 8.2 : décision de Gautier) : la preuve, l'ouverture, les monuments nationaux et 216 monuments régionaux en 3D (269 maquettes) ; ensuite les autres régionaux, l'habillage de la révélation, l'icône et le logo (`docs/BIBLE-GRAPHIQUE.md`).
+- **Les graphismes** (phase 10, avant 8.2 : décision de Gautier) : la preuve, l'ouverture, les monuments nationaux et 227 monuments régionaux en 3D (280 maquettes) ; ensuite les autres régionaux, l'habillage de la révélation, l'icône et le logo (`docs/BIBLE-GRAPHIQUE.md`).
 - **La boutique** (phase 9) : Stripe, packs et Pass mensuel (pack de 8 cartes, bon mensuel : GDD § 3), probabilités affichées, blocage Belgique et Pays-Bas, CGU, confidentialité, mentions légales.
 - **Ensuite** : les graphismes (phase 10), l'équilibrage et le lancement (phase 11).
 - **Au lancement** :
