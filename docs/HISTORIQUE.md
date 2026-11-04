@@ -126,6 +126,7 @@ Rien d'important ne vit dans une conversation : tout est dans le dépôt ou sur 
 - Trente-huitième lot régional (PR #90) : la manufacture de Sèvres, la citadelle de Besançon.
 - Trente-neuvième lot régional (PR #91) : les Alyscamps, le temple du Donon, le temple de Diane.
 - Quarantième lot régional (PR #92) : Royaumont, Maubuisson, Saint-Wandrille, la maison de Balzac.
+- Quarante et unième lot régional (PR #93) : le Jardin des plantes, la Rotonde du parc Monceau.
 
 ## Toutes les PR
 
@@ -244,6 +245,7 @@ Puis une PR par étape, fusionnée en squash :
 | #90 | 04/11 05:27 | Graphismes : deux monuments régionaux de plus (la manufacture de Sèvres, la citadelle de Besançon) |
 | #91 | 04/11 05:31 | Graphismes : trois monuments régionaux de plus (les Alyscamps, le temple du Donon, le temple de Diane) |
 | #92 | 04/11 05:35 | Graphismes : quatre monuments régionaux de plus (Royaumont, Maubuisson, Saint-Wandrille, la maison de Balzac) |
+| #93 | 04/11 05:39 | Graphismes : deux monuments régionaux de plus (le Jardin des plantes, la Rotonde du parc Monceau) |
 
 ## Les décisions de Gautier
 
@@ -274,7 +276,7 @@ Les décisions du 2 novembre (interview) sont dans `CLAUDE.md` § 4 et dans le G
 - **Le serveur, suite** (phase 8) :
   - 8.2 : le mode serveur par défaut, la fin des joueurs simulés, l'inscription des amis. Question posée à Gautier, sans réponse : couper la confirmation par e-mail pendant les essais ?
   - 8.3 : l'anti-triche.
-- **Les graphismes** (phase 10, avant 8.2 : décision de Gautier) : la preuve, l'ouverture, les monuments nationaux et 343 monuments régionaux en 3D (396 maquettes) ; ensuite les autres régionaux, l'habillage de la révélation, l'icône et le logo (`docs/BIBLE-GRAPHIQUE.md`).
+- **Les graphismes** (phase 10, avant 8.2 : décision de Gautier) : la preuve, l'ouverture, les monuments nationaux et 345 monuments régionaux en 3D (398 maquettes) ; ensuite les autres régionaux, l'habillage de la révélation, l'icône et le logo (`docs/BIBLE-GRAPHIQUE.md`).
 - **La boutique** (phase 9) : Stripe, packs et Pass mensuel (pack de 8 cartes, bon mensuel : GDD § 3), probabilités affichées, blocage Belgique et Pays-Bas, CGU, confidentialité, mentions légales.
 - **Ensuite** : les graphismes (phase 10), l'équilibrage et le lancement (phase 11).
 - **Au lancement** :

@@ -251,3 +251,6 @@ Où c'est dans le code : la pochette est dessinée par `makeArt()` (`index.html`
 - **Quatre monuments régionaux de plus** (nuit du 4 nov.), sur leur emprise de l'IGN : les abbayes de **Royaumont** (les bâtiments des moines, le palais abbatial, la tourelle restée debout de l'abbatiale), **Maubuisson** et **Saint-Wandrille**, **la maison de Balzac** à Passy.
 
 ![Les abbayes de Royaumont, Maubuisson et Saint-Wandrille](bible/monuments-47.jpg)
+- **Deux monuments régionaux de plus** (nuit du 4 nov.), deux « jardins » qui ont un bâtiment célèbre : **le Jardin des plantes** (la Grande Galerie de l'Évolution et sa verrière, les grandes serres), **le parc Monceau** (la Rotonde de Ledoux, sa colonnade et sa coupole).
+
+![Le Jardin des plantes et la Rotonde du parc Monceau](bible/monuments-48.jpg)
