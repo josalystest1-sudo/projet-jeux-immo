@@ -106,12 +106,14 @@
 
 - 4 nov. 2026 (nuit) : **six monuments de plus en 3D** : le Louvre (la pyramide, les ailes et leurs pavillons, la cour Carrée, la Grande Galerie), le Mont-Saint-Michel (sur son rocher), Carcassonne (ses deux enceintes et ses tours, tracées d'après les murs et les tours de la BD TOPO), Chenonceau (la galerie sur le Cher), le palais des Papes, la Madeleine. L'atelier des maquettes réunit les pièces répétées en une seule forme (colonnades, tours, murs, créneaux) : la carte graphique les dessine d'un coup. 28 maquettes. Vérifié en images de loin et de près ; plus aucun bâtiment de l'IGN ne perce les maquettes. 48 tests.
 
+- 4 nov. 2026 (nuit) : **sept monuments de Paris de plus en 3D** : le Grand Palais (verrière, dôme, quadriges), le pont Alexandre-III (arche d'acier, Pégase dorés), le Pont-Neuf (arches, demi-lunes, Henri IV), la Conciergerie (ses tours, la tour de l'Horloge), le Palais-Royal (colonnes de Buren, jardin), la place des Vosges (36 pavillons de brique), Saint-Sulpice. 35 maquettes. Vérifié en images de loin et de près ; la vérification du volume sait maintenant regarder sous les pièces réunies. 48 tests.
+
 ## En cours
 - Lieux célèbres : les autres catégories (châteaux, mairies, gares, musées, ponts, phares, moulins…) dès que Wikidata répond (`python3 tools/wikidata_celebres.py`, puis `--fusion` et `gen_donnees.py celebres`).
 - Phase 1.1 à 1.4 : la carte et le modèle des lieux reconstruits en modules (`src/`) à partir du prototype ; puis le marché (phase 4 : historique des ventes d'un lieu) et les communes et Maires (phase 6). Ensuite : Signaler envoyé au serveur dès qu'il y aura de vrais joueurs à l'écran ; Google ; un service d'envoi d'e-mails avant le lancement (le service de Supabase n'écrit qu'aux membres de l'équipe Supabase, deux e-mails par heure).
 
 ## À faire
-- Les graphismes (phase 10, avant 8.2 : décision de Gautier) : la preuve, l'ouverture et 28 monuments en 3D faits ; ensuite les autres monuments nationaux (le Grand Palais, les ponts de Paris, Vaux-le-Vicomte, Notre-Dame-de-la-Garde, le viaduc de Millau…), l'habillage de la révélation, l'icône et le logo (`docs/BIBLE-GRAPHIQUE.md` § 5).
+- Les graphismes (phase 10, avant 8.2 : décision de Gautier) : la preuve, l'ouverture et 35 monuments en 3D faits ; ensuite les autres monuments nationaux (Vaux-le-Vicomte, Vincennes, les châteaux de la Loire, Notre-Dame-de-la-Garde, le viaduc de Millau…), l'habillage de la révélation, l'icône et le logo (`docs/BIBLE-GRAPHIQUE.md` § 5).
 - La suite du serveur : 8.2 (le mode serveur par défaut, la fin des joueurs simulés, l'inscription des amis), 8.3 (anti-triche) ; puis la boutique (phase 9). Liste complète, avec ce qu'il faudra faire au lancement : `docs/HISTORIQUE.md` § « Ce qui reste à faire » ; l'ordre : `docs/PLAN.md` (phases 1 à 11).
 
 ## Questions ouvertes
