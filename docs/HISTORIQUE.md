@@ -85,6 +85,7 @@ Rien d'important ne vit dans une conversation : tout est dans le dépôt ou sur 
 - **La nuit des monuments** : Gautier va se coucher et demande d'en faire le maximum sans attendre sa validation. Premier lot (PR #49) : le Louvre, le Mont-Saint-Michel, Carcassonne, Chenonceau, le palais des Papes, la Madeleine.
 - Deuxième lot de la nuit (PR #50) : le Grand Palais, les ponts Alexandre-III et Neuf, la Conciergerie, le Palais-Royal, la place des Vosges, Saint-Sulpice.
 - Troisième lot de la nuit (PR #51) : Vaux-le-Vicomte, Vincennes, Blois, Amboise, le château d'If, Notre-Dame-de-la-Garde, le viaduc de Millau.
+- Quatrième lot de la nuit (PR #52) : les onze derniers monuments nationaux. Tous ont leur maquette, sauf les grottes, les cimetières et les jardins (halo doré) et le Ritz (une marque, question pour Gautier).
 
 ## Toutes les PR
 
@@ -162,6 +163,7 @@ Puis une PR par étape, fusionnée en squash :
 | #49 | 04/11 00:56 | Graphismes : le Louvre, le Mont-Saint-Michel, Carcassonne, Chenonceau, le palais des Papes et la Madeleine en 3D |
 | #50 | 04/11 01:07 | Graphismes : le Grand Palais, les ponts Alexandre-III et Neuf, la Conciergerie, le Palais-Royal, la place des Vosges et Saint-Sulpice en 3D |
 | #51 | 04/11 01:14 | Graphismes : Vaux-le-Vicomte, Vincennes, Blois, Amboise, le château d'If, Notre-Dame-de-la-Garde et le viaduc de Millau en 3D |
+| #52 | 04/11 01:23 | Graphismes : les onze derniers monuments nationaux en 3D (Bourges, Beauvais, Nantes, Vézelay, Cluny, Fontenay, Ronchamp, la Maison carrée, Orange, le pont d'Avignon, Carnac) |
 
 ## Les décisions de Gautier
 
@@ -192,7 +194,7 @@ Les décisions du 2 novembre (interview) sont dans `CLAUDE.md` § 4 et dans le G
 - **Le serveur, suite** (phase 8) :
   - 8.2 : le mode serveur par défaut, la fin des joueurs simulés, l'inscription des amis. Question posée à Gautier, sans réponse : couper la confirmation par e-mail pendant les essais ?
   - 8.3 : l'anti-triche.
-- **Les graphismes** (phase 10, avant 8.2 : décision de Gautier) : la preuve, l'ouverture et 42 monuments en 3D faits ; ensuite les derniers monuments nationaux (Bourges, Beauvais, Nantes, Vézelay, Cluny, Fontenay, Ronchamp, la Maison carrée, Orange, le pont d'Avignon, Carnac), puis les régionaux, l'habillage de la révélation, l'icône et le logo (`docs/BIBLE-GRAPHIQUE.md`).
+- **Les graphismes** (phase 10, avant 8.2 : décision de Gautier) : la preuve, l'ouverture et les 53 monuments nationaux en 3D faits (sauf grottes, cimetières, jardins et le Ritz) ; ensuite les monuments régionaux, l'habillage de la révélation, l'icône et le logo (`docs/BIBLE-GRAPHIQUE.md`).
 - **La boutique** (phase 9) : Stripe, packs et Pass mensuel (pack de 8 cartes, bon mensuel : GDD § 3), probabilités affichées, blocage Belgique et Pays-Bas, CGU, confidentialité, mentions légales.
 - **Ensuite** : les graphismes (phase 10), l'équilibrage et le lancement (phase 11).
 - **Au lancement** :

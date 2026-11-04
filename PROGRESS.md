@@ -110,15 +110,18 @@
 
 - 4 nov. 2026 (nuit) : **sept monuments de plus en 3D** : Vaux-le-Vicomte, Vincennes (enceinte, donjon, Sainte-Chapelle), Blois, Amboise, le château d'If, Notre-Dame-de-la-Garde (sa Vierge dorée), le viaduc de Millau (2,5 km, pylônes et haubans). 42 maquettes. Vérifié en images de loin et de près ; aucun bâtiment de l'IGN ne perce les maquettes. 48 tests.
 
+- 4 nov. 2026 (nuit) : **les onze derniers monuments nationaux en 3D** : Bourges, Beauvais, Nantes, Vézelay, Cluny, Fontenay, Ronchamp, la Maison carrée, le théâtre d'Orange, le pont d'Avignon, Carnac. 53 maquettes : tous les monuments nationaux ont la leur, sauf ceux qui gardent leur halo (les grottes de Lascaux et Chauvet, les cimetières du Père-Lachaise et de Montmartre, les jardins des Tuileries et le parc Monceau) et le Ritz (une marque : à décider par Gautier). 48 tests.
+
 ## En cours
 - Lieux célèbres : les autres catégories (châteaux, mairies, gares, musées, ponts, phares, moulins…) dès que Wikidata répond (`python3 tools/wikidata_celebres.py`, puis `--fusion` et `gen_donnees.py celebres`).
 - Phase 1.1 à 1.4 : la carte et le modèle des lieux reconstruits en modules (`src/`) à partir du prototype ; puis le marché (phase 4 : historique des ventes d'un lieu) et les communes et Maires (phase 6). Ensuite : Signaler envoyé au serveur dès qu'il y aura de vrais joueurs à l'écran ; Google ; un service d'envoi d'e-mails avant le lancement (le service de Supabase n'écrit qu'aux membres de l'équipe Supabase, deux e-mails par heure).
 
 ## À faire
-- Les graphismes (phase 10, avant 8.2 : décision de Gautier) : la preuve, l'ouverture et 42 monuments en 3D faits ; ensuite les derniers monuments nationaux (Bourges, Beauvais, Nantes, Vézelay, Cluny, Fontenay, Ronchamp, la Maison carrée, Orange, le pont d'Avignon, Carnac), puis les régionaux, l'habillage de la révélation, l'icône et le logo (`docs/BIBLE-GRAPHIQUE.md` § 5).
+- Les graphismes (phase 10, avant 8.2 : décision de Gautier) : la preuve, l'ouverture et les 53 monuments nationaux en 3D faits (sauf grottes, cimetières, jardins et le Ritz) ; ensuite les monuments régionaux, l'habillage de la révélation, l'icône et le logo (`docs/BIBLE-GRAPHIQUE.md` § 5).
 - La suite du serveur : 8.2 (le mode serveur par défaut, la fin des joueurs simulés, l'inscription des amis), 8.3 (anti-triche) ; puis la boutique (phase 9). Liste complète, avec ce qu'il faudra faire au lancement : `docs/HISTORIQUE.md` § « Ce qui reste à faire » ; l'ordre : `docs/PLAN.md` (phases 1 à 11).
 
 ## Questions ouvertes
+- Le « Ritz Paris » est dans la liste des 60 monuments nationaux (enchères) : c'est une marque, alors que Gautier a décidé « pas de marque sur un lieu » (3 nov.). Le retirer de la liste ? (pas de maquette en attendant)
 - Relire la liste des 60 monuments nationaux (`data/monuments.json`, `palier: national`).
 - Seuils du standing (4 500 et 2 500 €/m²) : à valider.
 - Nom : « Cadastra » a des domaines pris (.fr, .com, .app) et une marque française « CadastrA » en immobilier/logiciel (voir GDD § 12) : garder ou changer, à décider par Gautier.
