@@ -3972,6 +3972,75 @@
   const cathedraleSaintPol = (THREE) => cathedrale(THREE, { pierre: 0xD9D4C7, pierreFoncee: 0xB8B0A0, F: -38.6, E: 37.6, larg: 10, mur: 16, toitH: 7, xT: 3, transept: 42, transeptL: 16,
     cote: 7.5, facadeH: 20, rose: 2.5, arcs: false, tours: [{ z: -7, h: 28, fleche: 27, r: 3.3, seg: 8, couleur: 0xBDB6A8 }, { z: 7, h: 28, fleche: 27, r: 3.3, seg: 8, couleur: 0xBDB6A8 }] });
 
+  // le musée de Picardie (Amiens) : le palais du Second Empire, ses pavillons d'angle, la verrière du grand salon, l'annexe
+  function museePicardie(THREE) {
+    const A = atelier(THREE);
+    const pierre = A.matiere(0xF0E8D4), pierreFoncee = A.matiere(0xD6C8A8), ardoise = A.matiere(0x4F5D8C), verre = A.matiere(0x9FD3E8, 0x1D4A5C);
+    A.boite(53, 15, 56.5, 0, 0, 0, pierre); A.boite(54, 1, 57.5, 0, 15, 0, pierreFoncee); A.combles(52, 5, 55.5, 0, 16, 0, ardoise);
+    for (const [x, z] of [[-20, -21.75], [20, -21.75], [-20, 21.75], [20, 21.75]]) { A.boite(13, 17, 13, x, 0, z, pierre); A.domeCarre(13.6, 6, 13.6, x, 17, z, ardoise); }
+    A.boite(16, 3, 18, 0, 19, 0, verre);
+    A.boite(22, 10, 18, -37.5, 0, -0.25, pierre); A.toit(18.6, 5, 22, -37.5, 10, -0.25, ardoise);
+    return A.groupe;
+  }
+
+  // le château de Najac : la forteresse sur son éperon, son enceinte, ses tours et son grand donjon rond
+  function najac(THREE) {
+    const A = atelier(THREE);
+    const pierre = A.matiere(0xD9CBB0), pierreFoncee = A.matiere(0xBCAA8A);
+    const tour = [[-24.5, -15], [24.5, -15], [24.5, 15], [-24.5, 15], [-24.5, -15]];
+    A.remparts([tour], 11, 3, pierre); A.creneaux([tour], 11, 3, pierreFoncee);
+    A.boite(38, 13, 8, -3, 0, -10.5, pierre); A.creneaux([A.tourDe(38, 8, -3, -10.5)], 13, 0.8, pierreFoncee);
+    const tours = [[-22.5, -12, 3.4, 15], [-4.5, -14.5, 3, 15], [17, -14, 3.6, 16], [-24, 15, 3, 14], [20, 11, 5.8, 28]];
+    A.cylindres(tours.map(([x, z, r, h]) => [x, z, r, h, 0]), pierre, 16);
+    for (const [x, z, r, h] of tours) A.creneaux([anneau(x, z, r, 16)], h, 0.8, pierreFoncee);
+    return A.groupe;
+  }
+
+  // l'église Sainte-Croix de Bordeaux : l'abbatiale romane, sa façade sculptée, son clocher au nord, son chevet
+  const sainteCroixBordeaux = (THREE) => cathedrale(THREE, { pierre: 0xE6DCC4, pierreFoncee: 0xC9BB98, toit: 0xB0603F, toitFonce: 0x9A4F34, F: -30, E: 22, larg: 20, mur: 15, toitH: 6, xT: 14,
+    transept: 38, transeptL: 10, cote: 9, facadeH: 18, rose: 3, arcs: false, tours: [{ x: -28, z: -19, h: 30, fleche: 10, r: 4.5, seg: 4, couleur: 0xD8CCAE }] });
+
+  // le château d'Ainay-le-Vieil : « le petit Carcassonne du Berry », son enceinte octogonale, ses tours, son logis Renaissance
+  function ainayLeVieil(THREE) {
+    const A = atelier(THREE);
+    const pierre = A.matiere(0xE6DCC4), pierreFoncee = A.matiere(0xC9BB98), ardoise = A.matiere(0x4F5D8C);
+    const p = ([x, z]) => [x - 6, z], ang = (a, b) => Math.atan2(-(b[1] - a[1]), b[0] - a[0]);
+    const [a, b, c, d, e, f, g, h, i] = [[-28.5, -13.5], [-2, -30], [24, -41], [36.5, -18], [42, 7.5], [37, 18], [13.5, 36.5], [-12.5, 37.5], [-27.5, 13.5]].map(p);
+    for (const [u, v] of [[b, c], [c, d], [d, e]]) { const L = Math.hypot(v[0] - u[0], v[1] - u[1]), mx = (u[0] + v[0]) / 2, mz = (u[1] + v[1]) / 2, r = ang(u, v);
+      A.boite(L, 13, 10, mx, 0, mz, pierre, r); A.toit(10.6, 7, L, mx, 13, mz, ardoise, r); }
+    const murs = [[e, f, g, h, i, a, b]]; A.remparts(murs, 11, 3, pierre); A.creneaux(murs, 11, 3, pierreFoncee);
+    const tours = [[a, 3.6], [b, 3.6], [c, 4.2], [d, 5.2], [e, 3.6], [f, 3.6], [g, 3.8], [h, 3.8], [i, 3.6]];
+    A.cylindres(tours.map(([q, r]) => [q[0], q[1], r, 16, 0]), pierre, 16);
+    A.cones(tours.map(([q, r]) => [q[0], q[1], r + 0.5, 16, r * 2.2]), ardoise, 16);
+    return A.groupe;
+  }
+
+  // l'église protestante Saint-Pierre-le-Jeune (Strasbourg) : la nef gothique, le chœur, le clocher, les chapelles au sud
+  function saintPierreLeJeune(THREE) {
+    const A = atelier(THREE);
+    const gres = A.matiere(0xE8C9B8), gresFonce = A.matiere(0xC9A28E), tuile = A.matiere(0xB0603F), tuileFoncee = A.matiere(0x9A4F34);
+    A.boite(40, 18, 14, -14, 0, -3, gres); A.toit(14.6, 7, 40, -14, 18, -3, tuile);
+    A.boite(40, 11, 12, -14, 0, 10, gresFonce); A.toit(12.6, 4, 40, -14, 11, 10, tuile);
+    A.boite(23, 18, 10, 17.5, 0, 0, gres); A.toit(10.6, 6, 23, 17.5, 18, 0, tuile); A.abside(5, 18, 29, 0, 0, gres); A.demiCone(5.5, 5, 29, 18, 0, tuile);
+    A.boite(7, 30, 7, 6, 0, 8, gres); A.boite(8, 1.6, 8, 6, 26, 8, gresFonce); A.pyramide(4.6, 11, 4, 6, 30, 8, tuileFoncee);
+    return A.groupe;
+  }
+
+  // le château d'Azay-le-Ferron : la tour Frotier et son toit pointu, le logis, le pavillon classique
+  function azayLeFerron(THREE) {
+    const A = atelier(THREE);
+    const tuffeau = A.matiere(0xF4EEDC), ardoise = A.matiere(0x4F5D8C);
+    A.boite(48, 12, 16, 1, 0, 0, tuffeau); A.toit(16.6, 7, 48, 1, 12, 0, ardoise);
+    A.cylindre(7, 7, 17, 20, -25.5, 0, 1, tuffeau);
+    A.cones([[-25.5, 1, 7.5, 17, 12]], ardoise, 20);
+    A.boite(12, 14, 20, 21, 0, 0, tuffeau); A.combles(12.6, 7, 20.6, 21, 14, 0, ardoise);
+    return A.groupe;
+  }
+
+  // l'église Saint-Leu-Saint-Gilles : la façade sur la rue Saint-Denis et ses deux petites flèches, la nef, le chœur
+  const saintLeu = (THREE) => cathedrale(THREE, { F: -21, E: 18, larg: 10, mur: 17, toitH: 6, xT: 0, cote: 5, facadeH: 18, rose: 2, arcs: false,
+    tours: [{ z: -4.5, h: 22, fleche: 9, r: 2.4, seg: 8 }, { z: 4.5, h: 22, fleche: 9, r: 2.4, seg: 8 }] });
+
   // les maquettes connues : le monument (identifiant de data/monuments.json), où et comment la poser, et les
   // bâtiments de l'IGN qu'elle remplace (sinon les blocs gris de la BD TOPO resteraient dedans)
   const MODELES = {
@@ -4951,6 +5020,27 @@
     Q739028: {   // Saint-Paul-Aurélien de Saint-Pol-de-Léon
       construire: cathedraleSaintPol, centre: [-3.986165, 48.68497], orientation: 4, masquer: ['BATIMENT0000000316030794'],
     },
+    Q3107709: {   // le musée de Picardie (Amiens)
+      construire: museePicardie, centre: [2.295239, 49.890603], orientation: -23, masquer: ['BATIMENT0000000224083398'],
+    },
+    Q1013196: {   // le château de Najac
+      construire: najac, centre: [1.973315, 44.218526], orientation: -5, masquer: ['BATIMENT0000000060652762'],
+    },
+    Q1064995: {   // Sainte-Croix de Bordeaux (la façade à l'ouest)
+      construire: sainteCroixBordeaux, centre: [-0.560959, 44.831058], orientation: 2, masquer: ['BATIMENT0000000257640248'],
+    },
+    Q1318314: {   // le château d'Ainay-le-Vieil
+      construire: ainayLeVieil, centre: [2.549776, 46.668187], orientation: -14, masquer: ['BATIMENT0000000320423032'],
+    },
+    Q1534869: {   // Saint-Pierre-le-Jeune protestant (Strasbourg)
+      construire: saintPierreLeJeune, centre: [7.746539, 48.585638], orientation: 17, masquer: ['BATIMENT0000002223270398', 'BATIMENT0000002223270397'],
+    },
+    Q1548414: {   // le château d'Azay-le-Ferron
+      construire: azayLeFerron, centre: [1.070169, 46.850963], orientation: -16, masquer: ['BATIMENT0000000323916607'],
+    },
+    Q1629670: {   // Saint-Leu-Saint-Gilles (la façade sur la rue Saint-Denis, à l'ouest)
+      construire: saintLeu, centre: [2.350087, 48.862903], orientation: -17, masquer: ['BATIMENT0000000000161011'],
+    },
   };
   const MASQUES = Object.values(MODELES).flatMap((m) => m.masquer);
 
@@ -5042,6 +5132,7 @@
     queribus, murbach, pontigny, abbatialeCorbie, cathedraleOloron, bregancon, tourClovis, ferrieres, thoronet, jumieges, montsegur,
     serrant, ancyLeFranc, fenelon, sache, cathedraleLescar, notreDameBonneNouvelle, fontaineMedicis, menars, rivau, beauregard,
     cathedraleBesancon, meudon, saintMedard, saintEugene, sainteElisabeth, theatreArles, jeuDePaume,
-    porteDeMars,  cathedraleChalons,  notreDameEnVaux,  templeVienne,  suscinio,  fougeres,  palaisLongchamp,  transbordeur,  cathedraleSaintPol };
+    porteDeMars,  cathedraleChalons,  notreDameEnVaux,  templeVienne,  suscinio,  fougeres,  palaisLongchamp,  transbordeur,  cathedraleSaintPol,
+    museePicardie,  najac,  sainteCroixBordeaux,  ainayLeVieil,  saintPierreLeJeune,  azayLeFerron,  saintLeu };
   if (typeof module !== 'undefined' && module.exports) module.exports = api; else racine.Maquettes = api;
 })(typeof globalThis !== 'undefined' ? globalThis : this);
