@@ -3038,6 +3038,87 @@
   const cathedraleLangres = (THREE) => cathedrale(THREE, { F: -52, E: 28, larg: 16, mur: 24, toitH: 8, xT: 4, transept: 52, transeptL: 18, cote: 9, facadeH: 30, rose: 2, arcs: false,
     tours: [{ z: -10, h: 40 }, { z: 10, h: 40 }] });
 
+  // la basilique de Saint-Quentin : la tour-porche, la très haute nef, ses deux transepts, le chevet et ses chapelles
+  function basiliqueSaintQuentin(THREE) {
+    const g = cathedrale(THREE, { F: -48, E: 58, larg: 16, mur: 34, toitH: 12, xT: 6, transept: 50, transeptL: 14, cote: 12, facadeH: 40, rose: 5,
+      tours: [{ z: 0, x: -46, h: 44, cote: 14 }], flecheCroisee: { tour: 4, cote: 9, h: 14, r: 4, seg: 8 } });
+    const A = atelier(THREE), pierre = A.matiere(0xF0E3C4), pierreFoncee = A.matiere(0xD2BC8E), ardoise = A.matiere(0x5E70A3), ardoiseFoncee = A.matiere(0x46567F);
+    A.boite(14, 34, 46, 32, 0, 0, pierre); A.toit(14.6, 12, 46, 32, 34, 0, ardoise, Math.PI / 2);
+    A.abside(20, 18, 50, 0, 0, pierreFoncee); A.demiCone(20.5, 5, 50, 18, 0, ardoiseFoncee);
+    g.add(A.groupe); return g;
+  }
+
+  // la cathédrale Notre-Dame-de-l'Annonciation de Nancy : la façade classique et ses deux tours à lanternes, la coupole de la
+  // croisée, la nef
+  function cathedraleNancy(THREE) {
+    const g = cathedrale(THREE, { F: -33, E: 24.8, larg: 26, mur: 27, toitH: 9, xT: 8, transept: 48, transeptL: 14, cote: 10, facadeH: 36, rose: 2, arcs: false,
+      tours: [{ z: -15, h: 50, octogone: { h: 12, r: 4.4 } }, { z: 15, h: 50, octogone: { h: 12, r: 4.4 } }] });
+    const A = atelier(THREE), pierre = A.matiere(0xF0E3C4), ardoise = A.matiere(0x46567F), or = A.matiere(0xFFC233, 0x7A4A00);
+    A.cylindre(8, 8, 6, 16, 8, 33, 0, pierre); A.dome(8.4, 1, 8, 39, 0, ardoise); A.cylindre(1.4, 1.4, 3, 8, 8, 47.2, 0, pierre); A.boule(0.7, 8, 51, 0, or);
+    for (const s of [1, -1]) A.dome(4.4, 1.3, -33, 62, s * 15, ardoise);
+    g.add(A.groupe); return g;
+  }
+
+  // la cathédrale Saint-Pierre de Lisieux : la façade et ses deux tours (la flèche au nord), la nef, le transept et sa
+  // tour-lanterne, le chevet
+  const cathedraleLisieux = (THREE) => cathedrale(THREE, { F: -44, E: 54, larg: 12, mur: 20, toitH: 8, xT: 9.35, transept: 43, transeptL: 18.7, cote: 9, facadeH: 26, rose: 3,
+    tours: [{ z: -8.7, h: 34, fleche: 22, r: 4, seg: 8 }, { z: 8.7, h: 34 }], flecheCroisee: { tour: 8, cote: 11, h: 6, r: 5.5, seg: 4 } });
+
+  // la cathédrale Notre-Dame-de-l'Assomption de Montauban : l'église classique blanche, ses deux tours carrées, son chevet plat
+  const cathedraleMontauban = (THREE) => cathedrale(THREE, { pierre: 0xF2EEE4, pierreFoncee: 0xDCD6C8, F: -30, E: 46.7, chevetPlat: true, larg: 16, mur: 26, toitH: 8, xT: 7,
+    transept: 40, transeptL: 15.4, cote: 9, facadeH: 30, rose: 2, arcs: false, tours: [{ z: -12, h: 36 }, { z: 12, h: 36 }] });
+
+  // la cathédrale Saint-Caprais d'Agen : le chœur roman et ses absidioles, la nef, le clocher de la façade
+  function cathedraleAgen(THREE) {
+    const g = cathedrale(THREE, { pierre: 0xEAD9B4, pierreFoncee: 0xCDB58A, toit: 0xB0603F, toitFonce: 0x9A4F34, F: -20, E: 32, larg: 12, mur: 18, toitH: 6, xT: 14, transept: 34,
+      transeptL: 14, cote: 8, facadeH: 22, rose: 3, arcs: false, tours: [{ z: 0, h: 30, fleche: 8, r: 4, seg: 4 }] });
+    const A = atelier(THREE), pierre = A.matiere(0xEAD9B4), tuile = A.matiere(0xB0603F);
+    for (const z of [-11, 11]) { A.abside(4, 12, 21, 0, z, pierre); A.demiCone(4.4, 3, 21, 12, z, tuile); }
+    g.add(A.groupe); return g;
+  }
+
+  // la cathédrale Notre-Dame-de-Grâce de Cambrai : l'église classique, son transept, son chevet, sa haute tour au nord
+  const cathedraleCambrai = (THREE) => cathedrale(THREE, { F: -36, E: 34.7, larg: 16, mur: 24, toitH: 8, xT: -5, transept: 44, transeptL: 14, cote: 9, facadeH: 26, rose: 2, arcs: false,
+    tours: [{ z: -14, x: -7, h: 44, cote: 12, octogone: { h: 8, r: 4 } }] });
+
+  // la cathédrale Saint-Étienne de Saint-Brieuc : la cathédrale-forteresse, ses deux tours massives de la façade
+  const cathedraleSaintBrieuc = (THREE) => cathedrale(THREE, { pierre: 0xD9D2C2, pierreFoncee: 0xBDB4A2, F: -6, E: 55, larg: 14, mur: 16, toitH: 7, xT: 25, transept: 46,
+    transeptL: 14, cote: 10, facadeH: 22, rose: 3, arcs: false, tours: [{ z: -9, h: 23 }, { z: 9, h: 23 }] });
+
+  // la cathédrale Notre-Dame de Sées : la façade et ses deux flèches (70 m), la nef, le transept, le chœur lumineux
+  const cathedraleSees = (THREE) => cathedrale(THREE, { F: -29, E: 52, larg: 14, mur: 24, toitH: 9, xT: 32, transept: 44, transeptL: 16, cote: 9, facadeH: 30, rose: 4,
+    tours: [{ z: -9, h: 39, fleche: 31, r: 4.2, seg: 8 }, { z: 9, h: 39, fleche: 31, r: 4.2, seg: 8 }] });
+
+  // la cathédrale Saint-Vincent de Saint-Malo : le granit, la nef, le transept, la haute flèche de la croisée
+  const cathedraleSaintMalo = (THREE) => cathedrale(THREE, { pierre: 0xD9D2C2, pierreFoncee: 0xBDB4A2, F: -25, E: 32, larg: 12, mur: 17, toitH: 7, xT: 5, transept: 36,
+    transeptL: 10, cote: 8, facadeH: 22, rose: 3, arcs: false, tours: [{ z: 0, h: 22, cote: 8 }], flecheCroisee: { tour: 18, cote: 9, h: 30, r: 3.4, seg: 8 } });
+
+  // la cathédrale Saint-Étienne d'Agde : la forteresse de basalte noir, ses créneaux, son donjon-clocher
+  function cathedraleAgde(THREE) {
+    const A = atelier(THREE);
+    const basalte = A.matiere(0x5A5552), basalteClair = A.matiere(0x77716C);
+    A.boite(40, 18, 30, 8, 0, -16, basalte); A.creneaux([A.tourDe(40.4, 30.4, 8, -16)], 18, 1, basalteClair);
+    A.boite(10, 35, 10, -10, 0, -28, basalte); A.creneaux([A.tourDe(10.4, 10.4, -10, -28)], 35, 1, basalteClair);
+    return A.groupe;
+  }
+
+  // l'abbatiale Saint-Philibert de Tournus : le narthex et ses deux tours, la nef romane, le clocher de la croisée, le chevet
+  // et ses chapelles
+  function tournus(THREE) {
+    const g = cathedrale(THREE, { pierre: 0xE6CFB0, pierreFoncee: 0xCDB28E, toit: 0xB0603F, toitFonce: 0x9A4F34, F: -31, E: 37, larg: 12, mur: 18, toitH: 6, xT: 4, transept: 32,
+      transeptL: 14, cote: 9, facadeH: 20, rose: 2, arcs: false, tours: [{ z: -6, h: 30, fleche: 12, r: 4.4, seg: 4 }, { z: 6, h: 22 }], flecheCroisee: { tour: 14, cote: 9, h: 9, r: 5.5, seg: 4 } });
+    const A = atelier(THREE); A.abside(13, 9, 30, 0, 0, A.matiere(0xCDB28E)); A.demiCone(13.5, 3, 30, 9, 0, A.matiere(0x9A4F34));
+    g.add(A.groupe); return g;
+  }
+
+  // l'église Saint-Pierre de Caen : son clocher et sa flèche (75 m), la nef, le chevet Renaissance
+  function saintPierreCaen(THREE) {
+    const g = cathedrale(THREE, { pierre: 0xEFE6CF, F: -26, E: 23.5, larg: 12, mur: 18, toitH: 7, xT: 0, cote: 9, facadeH: 22, rose: 3,
+      tours: [{ z: 10, h: 40, fleche: 35, r: 4, seg: 8 }] });
+    const A = atelier(THREE); A.abside(13, 12, 16.5, 0, 0, A.matiere(0xD2BC8E)); A.demiCone(13.5, 4, 16.5, 12, 0, A.matiere(0x46567F));
+    g.add(A.groupe); return g;
+  }
+
   // les maquettes connues : le monument (identifiant de data/monuments.json), où et comment la poser, et les
   // bâtiments de l'IGN qu'elle remplace (sinon les blocs gris de la BD TOPO resteraient dedans)
   const MODELES = {
@@ -3732,6 +3813,42 @@
     Q1165266: {   // Saint-Mammès de Langres
       construire: cathedraleLangres, centre: [5.335293, 47.864245], orientation: 6, masquer: ['BATIMENT0000000225066986', 'BATIMENT0000000225066983', 'BATIMENT0000000225066985', 'BATIMENT0000000225066984'],
     },
+    Q1339429: {   // la basilique de Saint-Quentin
+      construire: basiliqueSaintQuentin, centre: [3.29, 49.8478], orientation: 17, masquer: ['BATIMENT0000000312102659', 'BATIMENT0000000312102658', 'BATIMENT0000000312099286'],
+    },
+    Q1136951: {   // Notre-Dame-de-l'Annonciation de Nancy (la façade au nord)
+      construire: cathedraleNancy, centre: [6.186066, 48.691235], orientation: -65, masquer: ['BATIMENT0000000334795176', 'BATIMENT0000000334795175', 'BATIMENT0000000334795174'],
+    },
+    Q584590: {   // Saint-Pierre de Lisieux
+      construire: cathedraleLisieux, centre: [0.226887, 49.146535], orientation: 14, masquer: ['BATIMENT0000000201313260', 'BATIMENT0000000201313259'],
+    },
+    Q2942243: {   // Notre-Dame-de-l'Assomption de Montauban
+      construire: cathedraleMontauban, centre: [1.355351, 44.015414], orientation: -18, masquer: ['BATIMENT0000000294527422', 'BATIMENT0000000294527419', 'BATIMENT0000000294527420', 'BATIMENT0000000294527421'],
+    },
+    Q2942319: {   // Saint-Caprais d'Agen
+      construire: cathedraleAgen, centre: [0.619204, 44.20679], orientation: -2, masquer: ['BATIMENT0000000329934676'],
+    },
+    Q1344947: {   // Notre-Dame-de-Grâce de Cambrai
+      construire: cathedraleCambrai, centre: [3.233306, 50.172146], orientation: 4, masquer: ['BATIMENT0000000289166167', 'BATIMENT0000000289166162', 'BATIMENT0000000289165642'],
+    },
+    Q787927: {   // Saint-Étienne de Saint-Brieuc
+      construire: cathedraleSaintBrieuc, centre: [-2.764192, 48.514236], orientation: -9, masquer: ['BATIMENT0000000289295262', 'BATIMENT0000000289295263'],
+    },
+    Q907505: {   // Notre-Dame de Sées
+      construire: cathedraleSees, centre: [0.172606, 48.605318], orientation: -12, masquer: ['BATIMENT0000000349870205', 'BATIMENT0000000349870188'],
+    },
+    Q2385003: {   // Saint-Vincent de Saint-Malo
+      construire: cathedraleSaintMalo, centre: [-2.025588, 48.649515], orientation: -4, masquer: ['BATIMENT0000000298031438', 'BATIMENT0000000298031768', 'BATIMENT0000000298031437', 'BATIMENT0000000298031769', 'BATIMENT0000000298031441', 'BATIMENT0000000298031440'],
+    },
+    Q2561189: {   // Saint-Étienne d'Agde
+      construire: cathedraleAgde, centre: [3.4692, 43.3139], orientation: 40, masquer: ['BATIMENT0000000207683895', 'BATIMENT0000000207683897', 'BATIMENT0000000207683898', 'BATIMENT0000000207683896', 'BATIMENT0000000207683900'],
+    },
+    Q456181: {   // Saint-Philibert de Tournus
+      construire: tournus, centre: [4.908968, 46.565826], orientation: 22, masquer: ['BATIMENT0000000348952521', 'BATIMENT0000000348952520'],
+    },
+    Q2080602: {   // Saint-Pierre de Caen (la façade au nord-ouest)
+      construire: saintPierreCaen, centre: [-0.360768, 49.184015], orientation: -50, masquer: ['BATIMENT0000000204700689'],
+    },
   };
   const MASQUES = Object.values(MODELES).flatMap((m) => m.masquer);
 
@@ -3814,6 +3931,7 @@
     saintPaulSaintLouis, notreDameDeLorette, saintJeanMontmartre, cathedraleSenlis, cathedraleMeaux, conques, abbayeAuxDames, chateaudun, hotelDeSens, hotelDeSully, saintUrbain, chapelleExpiatoire,
     cathedraleCoutances, cathedraleAuxerre, saintOuen, cathedraleBayonne, cathedraleBeziers, cathedraleNevers, cathedraleToul, hospicesBeaune, gien, falaise, ossuaireDouaumont, saintThomasStrasbourg,
     pontValentre, saintJosephHavre, memorialVimy, notreDameLaGrande, cathedralePuy, saintMaclou, jacobins, cathedraleCahors, pharArMen, vitre, basiliqueLisieux,
-    palaisLegionHonneur, grandTheatreBordeaux, cathedraleRusseNice, palaisRohan, hotelDeVilleLyon, saintNicolasDesChamps, laTourette, cathedraleArras, cathedraleEvreux, cathedralePerpignan, cathedraleMoulins, cathedraleLangres };
+    palaisLegionHonneur, grandTheatreBordeaux, cathedraleRusseNice, palaisRohan, hotelDeVilleLyon, saintNicolasDesChamps, laTourette, cathedraleArras, cathedraleEvreux, cathedralePerpignan, cathedraleMoulins, cathedraleLangres,
+    basiliqueSaintQuentin, cathedraleNancy, cathedraleLisieux, cathedraleMontauban, cathedraleAgen, cathedraleCambrai, cathedraleSaintBrieuc, cathedraleSees, cathedraleSaintMalo, cathedraleAgde, tournus, saintPierreCaen };
   if (typeof module !== 'undefined' && module.exports) module.exports = api; else racine.Maquettes = api;
 })(typeof globalThis !== 'undefined' ? globalThis : this);
