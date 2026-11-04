@@ -149,6 +149,7 @@ Rien d'important ne vit dans une conversation : tout est dans le dépôt ou sur 
 - **Les coins, le dos, la tension** (PR #113). Gautier trouve l'ensemble « pas mal » et demande des réglages : les coins coupés font « rognés », le dos est « pas premium », et on voit le lieu avant le zoom. Réponses : coins arrondis et angles ouvragés, un dos premium (médaillon, rosace, filigrane), plus de point avant la fin, et une roulette des régions puis des départements.
 - **La collection aux nouvelles cartes** (PR #114). Gautier trouve l'ouverture « top ». La collection prend les mêmes cartes, en grille, et une carte touchée s'ouvre en grand, inclinable, maquette qui tourne.
 - **Le cadre des cartes** (PR #115). Gautier : « très bien pour le patrimoine », mais des cadres de couleur « rentrent et sortent de la carte, c'est moche ». Sur son téléphone, le filet intérieur était dessiné plus petit et décalé. Il est retiré : un seul filet au bord, à la couleur de la rareté.
+- **La maquette sur la carte des monuments** (PR #116). Gautier dit oui : la carte d'un monument montre sa maquette, celle de la carte du jeu (416 monuments), en porcelaine aux arêtes d'or comme les autres cartes, à la place du bloc blanc de l'IGN.
 
 ## Toutes les PR
 
@@ -290,6 +291,7 @@ Puis une PR par étape, fusionnée en squash :
 | #113 | 04/11 12:00 | Coins arrondis, dos de carte premium, roulette des régions et départements (le lieu n'apparaît qu'à la fin) |
 | #114 | 04/11 12:11 | La collection (Patrimoine) aux nouvelles cartes ; une carte touchée s'ouvre en grand, inclinable |
 | #115 | 04/11 12:30 | Un seul filet au bord des cartes, à la couleur de la rareté (le filet intérieur débordait sur le téléphone de Gautier) |
+| #116 | 04/11 13:10 | Les cartes des monuments montrent leur maquette 3D (en porcelaine et or), comme sur la carte du jeu |
 
 ## Les décisions de Gautier
 
@@ -339,7 +341,6 @@ Les décisions du 2 novembre (interview) sont dans `CLAUDE.md` § 4 et dans le G
   - le nom est décidé : **CityDeck** (4 nov.) ; vérifier qu'il est libre (marque, nom de domaine, magasins d'applications) avant le lancement.
 - **Petites choses** :
   - les autres catégories de lieux célèbres (châteaux, mairies, gares…). Wikidata se joint depuis le PC. Les lieux de culte de toutes les religions y sont depuis la PR #104 ;
-  - sur les cartes des monuments, montrer leur maquette 3D (aujourd'hui, le bâtiment de l'IGN) ;
   - retirer le prototype du dépôt de l'Arena ;
   - relire les 60 monuments nationaux ;
   - valider les seuils du standing et la capacité de gestion.
