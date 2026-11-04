@@ -242,3 +242,6 @@ Où c'est dans le code : la pochette est dessinée par `makeArt()` (`index.html`
 - **Sept monuments régionaux de plus** (nuit du 4 nov.), surtout montés sur leur emprise de l'IGN (`pave`) : les abbayes de **Silvacane**, **Lérins** (le monastère et son clocher sur l'île Saint-Honorat) et **La Trappe**, **l'hôtel de Beauvais**, **le musée Jules-Chéret** à Nice, **Port-Royal-des-Champs** (le grand colombier rond, l'oratoire), **l'auberge Ravoux** d'Auvers-sur-Oise.
 
 ![Silvacane, Lérins, le musée Chéret, La Trappe, le colombier de Port-Royal et l'auberge Ravoux](bible/monuments-44.jpg)
+- **Deux monuments régionaux de plus** (nuit du 4 nov.) : **la manufacture nationale de Sèvres** (le long bâtiment, sur son emprise de l'IGN), **la citadelle de Besançon** (les fronts de Vauban d'après les murs de l'IGN, les casernes). Le musée des Beaux-Arts de Nancy n'a pas de maquette à lui : il occupe un pavillon de la place Stanislas, déjà dessiné.
+
+![La manufacture de Sèvres et la citadelle de Besançon](bible/monuments-45.jpg)
