@@ -4509,6 +4509,38 @@
     return A.groupe;
   }
 
+  // la chapelle Notre-Dame-de-la-Médaille-miraculeuse (rue du Bac) : la chapelle au fond de la cour du couvent
+  function chapelleMedaille(THREE) {
+    const A = atelier(THREE);
+    const pierre = A.matiere(0xF2EEE4), ardoise = A.matiere(0x4F5D8C);
+    A.boite(11.5, 12, 30, 0, 0, 0, pierre); A.toit(12.1, 5, 30, 0, 12, 0, ardoise, Math.PI / 2);
+    A.boite(1.4, 3, 1.4, 0, 16.4, -13, pierre); A.pyramide(1.2, 3, 4, 0, 19.4, -13, ardoise);
+    return A.groupe;
+  }
+
+  // l'hôtel de Matignon : le corps de logis entre la cour d'honneur et le grand jardin, ses ailes, le portail de la rue de
+  // Varenne
+  function matignon(THREE) {
+    const A = atelier(THREE);
+    const pierre = A.matiere(0xF2EEE4), ardoise = A.matiere(0x4F5D8C), sombre = A.matiere(0x5A5650);
+    A.boite(55, 15, 22, -0.5, 0, 24, pierre); A.combles(55.6, 6, 22.6, -0.5, 15, 24, ardoise);
+    for (const x of [-13, 20]) { A.boite(10, 12, 47, x, 0, -10.5, pierre); A.toit(10.6, 5, 47, x, 12, -10.5, ardoise, Math.PI / 2); }
+    A.boite(23, 8, 4, 3.5, 0, -35, pierre); A.extrusion(A.formeArche(5, 6.5), 0.6, 3.5, 0, -37.1, sombre, 0, true);
+    return A.groupe;
+  }
+
+  // la maison La Roche (Le Corbusier) : les volumes blancs, la galerie courbe posée sur ses pilotis, les fenêtres en bandeau
+  function maisonLaRoche(THREE) {
+    const A = atelier(THREE), V = A.V;
+    const blanc = A.matiere(0xF5F3EE), vitre = A.matiere(0x3E5C58);
+    A.boite(9, 11, 12, -2.5, 0, -9, blanc); A.boite(10, 8, 18, -3, 0, 6, blanc);
+    A.boite(7, 5, 14.5, 5.5, 3, 4.25, blanc);
+    A.piece((e) => new THREE.CylinderGeometry(3.5 + e, 3.5 + e, 5 + 2 * e, 18, 1, false, -Math.PI / 2, Math.PI).translate(0, 2.5, 0), blanc, V(5.5, 3, 11.5));
+    A.cylindres([[4, 0, 0.2, 3, 0], [7, 0, 0.2, 3, 0], [4, 8, 0.2, 3, 0], [7, 8, 0.2, 3, 0], [5.5, 13.5, 0.2, 3, 0]], blanc, 8);
+    A.plaques([[0.3, 1, 13, 9.05, 5.2, 4.25], [9.2, 1, 0.3, -2.5, 8, -15.1], [0.3, 1, 16, -8.1, 5, 6]], vitre);
+    return A.groupe;
+  }
+
   // les maquettes connues : le monument (identifiant de data/monuments.json), où et comment la poser, et les
   // bâtiments de l'IGN qu'elle remplace (sinon les blocs gris de la BD TOPO resteraient dedans)
   const MODELES = {
@@ -5632,6 +5664,15 @@
     Q508651: {   // le menhir brisé d'Er Grah (placé au point du monument)
       construire: erGrah, centre: [-2.9502, 47.5713], orientation: 20, masquer: [],
     },
+    Q769842: {   // la chapelle de la Médaille miraculeuse
+      construire: chapelleMedaille, centre: [2.322976, 48.850785], orientation: 14, masquer: ['BATIMENT0000000241935030'],
+    },
+    Q912192: {   // l'hôtel de Matignon (le portail au nord, sur la rue de Varenne)
+      construire: matignon, centre: [2.320704, 48.854387], orientation: -22, masquer: ['BATIMENT0000000241934026'],
+    },
+    Q3278824: {   // la maison La Roche
+      construire: maisonLaRoche, centre: [2.265309, 48.851893], orientation: 39, masquer: ['BATIMENT0000000245161622', 'BATIMENT0000000245161606', 'BATIMENT0000000245161604'],
+    },
   };
   const MASQUES = Object.values(MODELES).flatMap((m) => m.masquer);
 
@@ -5730,6 +5771,7 @@
     chalus,  puivert,  canigou,  cadouin,  remiremont,  puilaurens,  aguilar,  termes,  beauport,  commarque,
     lastours,  peyrepertuse,  clisson,  luxeuil,  cuxa,
     grandeChartreuse,  compiegne,  abbayeSaintRemi,  fortSaintJean,
-    gellone,  becHellouin,  villaEphrussi,  rocheAuxFees,  barnenez,  erGrah };
+    gellone,  becHellouin,  villaEphrussi,  rocheAuxFees,  barnenez,  erGrah,
+    chapelleMedaille,  matignon,  maisonLaRoche };
   if (typeof module !== 'undefined' && module.exports) module.exports = api; else racine.Maquettes = api;
 })(typeof globalThis !== 'undefined' ? globalThis : this);
