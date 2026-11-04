@@ -6,6 +6,8 @@ Pourquoi : sans clé, Street View prend la photo la plus proche d'un point, parf
 - il tourne la vue exactement vers le lieu ;
 - il affiche la vue avec l'intégration officielle (Maps Embed API, gratuite et sans limite).
 
+**Décision de Gautier (4 nov. 2026) : on reste gratuit.** Le Street View interactif (Maps JavaScript API, `StreetViewPanorama`) dirait au jeu, en direct, où l'on est et où l'on regarde. La promenade tournerait de façon fluide et la carte suivrait. Mais il est payant : une ouverture facturée par création du panorama, les 5 000 premières par mois gratuites, puis 14 $ les 1 000. On ne l'utilise pas sans son accord.
+
 La clé va dans `data/google.json` (`cle`). Elle est visible dans le jeu, c'est normal ; elle est restreinte au site.
 
 ## Créer la clé (Gautier, 3 nov. 2026)
