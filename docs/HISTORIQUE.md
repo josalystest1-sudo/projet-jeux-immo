@@ -152,6 +152,7 @@ Rien d'important ne vit dans une conversation : tout est dans le dépôt ou sur 
 - **La maquette sur la carte des monuments** (PR #116). Gautier dit oui : la carte d'un monument montre sa maquette, celle de la carte du jeu (416 monuments), en porcelaine aux arêtes d'or comme les autres cartes, à la place du bloc blanc de l'IGN.
 - **La séance de game design du 4 nov. après-midi** (conversation de l'app Claude, PR #117, documents seulement). Gautier cherche « une règle simple qui maintient les joueurs » : la collection seule donne une sensation de jeu fini, un Maire fondé sur le stock de lieux « le restera jusqu'à la mort ». Examinés puis écartés : le combat (village-deck, troupes, raids), les élections, la friche des adresses. Retenus : le **Maire par caisse de travaux mensuelle**, des **saisons de 3 mois**, les **monuments « prestige, pas revenu »** (enchères en pièces, reprise après 14 jours d'absence, entretien exponentiel), la **monnaie premium (gemmes)** à sens unique pour les packs, les packs régionaux, le Pass 15 jours et les offres entre joueurs. Les **événements de commune** (Attractivité, votes) sont écrits pour la V2 (`docs/EVENEMENTS-V2.md`). Le nom **CityDeck** est vérifié (aucune marque, citydeck.fr libre) ; une simulation de l'économie des gemmes (`tools/sim_gemmes.py`) montre ~0,95 € par joueur actif et par mois.
 - **Le pack au toucher rapide, deux décisions** (PR #118). Gautier : « quand on spamme le clic pour aller plus vite, une carte sur deux ne se dévoile pas ». Le toucher arrivait pendant que la carte précédente s'envolait : la carte suivante partait sans être retournée. C'est corrigé. Gautier tranche aussi : la monnaie premium, ce sont **les gemmes**, et **le Maire change toutes les 2 semaines**, pas tous les mois.
+- **Le Maire par caisse de travaux, dans le jeu** (PR #119). Gautier : « allez, on commence » le game design du 4 nov. Première étape : dans la démo, chaque commune a sa caisse de travaux ; on y verse, le plus gros contributeur devient Maire pour 2 semaines et touche 5 % des loyers des autres. Le serveur suit à l'étape d'après.
 
 ## Toutes les PR
 
@@ -296,6 +297,7 @@ Puis une PR par étape, fusionnée en squash :
 | #116 | 04/11 13:10 | Les cartes des monuments montrent leur maquette 3D (en porcelaine et or), comme sur la carte du jeu |
 | #117 | 04/11 14:30 | Game design du 4 nov. après-midi : Maire par caisse de travaux, saisons, monuments (entretien exponentiel, reprise), gemmes et Pass 15 jours, événements V2, nom vérifié, simulation des gemmes (documents seulement) |
 | #118 | 04/11 15:00 | Pack : en touchant vite, une carte sur deux partait sans être révélée (corrigé) ; le Maire change toutes les 2 semaines, la monnaie premium s'appelle les gemmes |
+| #119 | 04/11 16:00 | Le Maire par caisse de travaux dans le jeu (démo) : verser, mandat de 2 semaines, élection, part des loyers, notifications |
 
 ## Les décisions de Gautier
 
@@ -342,7 +344,7 @@ Les décisions du 2 novembre (interview) sont dans `CLAUDE.md` § 4 et dans le G
   - 8.2 : le mode serveur par défaut, la fin des joueurs simulés, l'inscription des amis. Question posée à Gautier, sans réponse : couper la confirmation par e-mail pendant les essais ?
   - 8.3 : l'anti-triche.
 - **Les graphismes** (phase 10, avant 8.2 : décision de Gautier) : la preuve, l'ouverture, les monuments nationaux et 358 monuments régionaux en 3D, plus la Grande Mosquée de Paris et quatre églises ajoutées le 4 nov. (416 maquettes ; les autres n'ont pas de bâtiment à dessiner ou portent une marque) ; ensuite l'habillage de la révélation, l'icône et le logo (`docs/BIBLE-GRAPHIQUE.md`).
-- **Le game design du 4 nov. à porter dans le jeu** (avant la boutique) : le Maire par caisse de travaux (GDD § 5), les saisons et le classement de patrimoine (§ 5 bis), l'entretien et la reprise des monuments, l'alerte à Gautier (§ 5 ter).
+- **Le game design du 4 nov. à porter dans le jeu** (avant la boutique) : le Maire par caisse de travaux sur le serveur (la démo l'a depuis la PR #119 ; GDD § 5), les saisons et le classement de patrimoine (§ 5 bis), l'entretien et la reprise des monuments, l'alerte à Gautier (§ 5 ter).
 - **La boutique** (phase 9) : Stripe → gemmes, packs nationaux et régionaux, Pass 15 jours (GDD § 3 et § 9), offres en gemmes au choix du vendeur, probabilités affichées, blocage Belgique et Pays-Bas, CGU (gemmes sans valeur, lieux = licences), confidentialité, mentions légales.
 - **Gautier** : réserver citydeck.fr (et .app).
 - **Ensuite** : les graphismes (phase 10), l'équilibrage et le lancement (phase 11).

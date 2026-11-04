@@ -40,6 +40,7 @@ const VERSION='__VERSION__';
 <script src="data/monuments.js"></script>
 <script src="src/regles/lieu.js"></script>
 <script src="src/regles/celebres.js"></script>
+<script src="src/regles/mairie.js"></script>
 <script src="src/regles/encheres.js"></script>
 <script src="src/regles/pack.js"></script>
 <script src="src/tirage.js"></script>
@@ -174,6 +175,7 @@ const R = Regles.creer(ECO, STANDING); // moteur de règles (src/regles/lieu.js)
 const NIVEAUX = R.NIVEAUX; const SALAIRE = ECO.salaire_par_jour; const LOYER_BASE = ECO.loyer_terrain; const RARETES = ECO.raretes;
 // Les 463 monuments (data/monuments.json), tous Extraordinaires : 60 nationaux et 403 régionaux ; chaque semaine, 1 national et 2 régionaux aux enchères.
 const ENC = Encheres.creer(ECO); // règles des enchères (src/regles/encheres.js)
+const MAI = Mairie.creer(ECO);    // le Maire par caisse de travaux (src/regles/mairie.js, GDD § 5)
 function iconeMonument(n){ n=n.toLowerCase(); if(/tour eiffel/.test(n)) return '🗼'; if(/mosquée/.test(n)) return '🕌'; if(/synagogue/.test(n)) return '🕍'; if(/cathédrale|basilique|église|chapelle|abbaye|abbatiale|primatiale|collégiale|monastère|synagogue|temple|couvent|chartreuse/.test(n)) return '⛪'; if(/château|forteresse|citadelle|fort |cité de/.test(n)) return '🏰'; if(/pont|viaduc/.test(n)) return '🌉'; if(/grotte|abri|caune/.test(n)) return '🪨'; if(/théâtre|opéra|palais garnier/.test(n)) return '🎭'; if(/phare/.test(n)) return '🗼'; if(/jardin|parc/.test(n)) return '🌳'; return '🏛️'; }
 const LISTE_MON = MONUMENTS.map(m=>({ ...m, icone: iconeMonument(m.nom), depart: ENC.miseDepart(m) }));
 const MON_NATIONAUX = LISTE_MON.filter(m=>m.palier==='national'); const MON_REGIONAUX = LISTE_MON.filter(m=>m.palier==='regional');
@@ -190,7 +192,9 @@ try { const s = localStorage.getItem(CLE_ETAT); if (s) state = Object.assign(sta
 if(!state.encheres) state.encheres = { mises:{}, clos:{}, depasse:{} }; delete state.auction;
 if(MODE_SERVEUR && state.jourMs){ JOUR=state.jourMs; SEMAINE=7*JOUR; }   // la vitesse du serveur, retenue depuis la dernière fois
 if(!state.echangesOut) state.echangesOut=[]; if(!state.cedes) state.cedes={};   // échanges proposés ; lieux cédés par échange (id → joueur)
-if(!state.echangesIn) state.echangesIn=[];   // échanges reçus d'autres joueurs (mode serveur)
+if(!state.echangesIn) state.echangesIn=[];
+// la caisse de travaux (démo) : mes versements du mandat en cours et du précédent, ma part de Maire touchée, mes mairies
+if(!state.caisse) state.caisse={ m:null, verse:{}, avant:{ m:null, verse:{} }, touche:{}, elus:{} };   // échanges reçus d'autres joueurs (mode serveur)
 // 3 nov. 2026 : le Gratte-ciel s'insère avant le Prestige ; un monument déjà au Prestige (ancien niveau 4) passe au niveau 5
 if(!state.niveaux6){ for(const a of Object.values(state.owned)) if(a.type==='monument' && (a.niveau||0)>=4) a.niveau=(a.niveau||0)+1; state.niveaux6=true; }
 // puis le Palace s'insère avant le Prestige (un bâtiment par rareté) : un monument au Prestige (niveau 5) passe au niveau 6
@@ -257,8 +261,8 @@ function tendancesDeLaSemaine(){ const sem=semaineDuJeu(), t=Object.keys(GEO.dep
 const pct = x => `${x>0?'+':'−'}${Math.abs(Math.round(x*100))} %`;
 function loyer(a){ return R.loyerParJour(a); }
 function loyerTotal(){ return Object.values(state.owned).reduce((s,a)=>s+loyer(a),0); }
-function pendingRent(){ return R.aEncaisser(Object.values(state.owned), state.encaisse, now(), JOUR); }
-function encaisser(silent){ if(MODE_SERVEUR) return; const p=pendingRent(); if(p>=1){ state.wallet += Math.floor(p); state.encaisse = now(); save(); if(!silent) toast(`+${Math.floor(p)} ₳ encaissés (salaire + loyers)`); } else if(!silent) toast('Rien à encaisser pour l’instant'); refreshTop(); }
+function pendingRent(){ return R.aEncaisser(Object.values(state.owned), state.encaisse, now(), JOUR) + partMaireEnAttente().total; }
+function encaisser(silent){ if(MODE_SERVEUR) return; const p=pendingRent(); if(p>=1){ const pm=partMaireEnAttente(); for(const [k,v] of Object.entries(pm.parCommune)) state.caisse.touche[k]=(state.caisse.touche[k]||0)+v; state.wallet += Math.floor(p); state.encaisse = now(); save(); if(!silent) toast(`+${Math.floor(p)} ₳ encaissés (salaire + loyers)`); } else if(!silent) toast('Rien à encaisser pour l’instant'); refreshTop(); }
 function dispo(){ return state.wallet - bloqueEncheres(); }
 function notify(type, text, extra){ state.notifs.unshift({ts:now(), type, text, read:false, ...(extra||{})}); if(state.notifs.length>60) state.notifs.length=60; save(); refreshTop(); }
 // propriétaires simulés (par adresse)
@@ -1859,24 +1863,98 @@ function renderEncheres(){ const el=document.getElementById('s-encheres');
   h+=`<h2 class="section">Les semaines suivantes</h2><div class="card">`; for(let k=1;k<=2;k++) for(const l of lotsDe(idx+k)) h+=`<div class="rank"><span class="pos">${k===1?'S+1':'S+2'}</span><span class="who">${l.m.icone} ${echapper(l.m.nom)}</span><b style="font-size:14px">${nb(ENC.miseDepart(l.m))}<i class="pc"></i></b></div>`; h+=`</div>`;
   el.innerHTML=h; el.querySelectorAll('details').forEach((d,i)=>{ if(ouverts[i]) d.open=true; }); }
 
-// Communes et Maires : le Maire possède le plus de lieux de la commune ; à égalité, deux Maires ; le titre dure tant qu'on reste en tête
-// Le classement d'une commune (joueurs simulés en attendant le serveur ; même règle pour l'écran Communes, la recherche et le profil)
+// =================== le Maire par caisse de travaux (GDD § 5, décisions de Gautier du 4 nov. 2026) ===================
+// Chaque commune a une caisse de travaux. Pendant un mandat (2 semaines du jeu ; démo : 14 minutes), ses propriétaires y
+// versent des pièces ; à la fin, le plus gros contributeur (au moins le seuil) devient Maire pour le mandat suivant et touche
+// 5 % des loyers des lieux des autres joueurs de la commune (plafonné par mandat). Égalité : co-Maires.
+// Démo : les autres joueurs versent tout seuls (simulés : toujours les mêmes montants pour une commune et un mandat).
+// Mode serveur : en attendant la caisse sur le serveur, l'ancienne règle (le plus de lieux) reste affichée.
+function mandatCourant(){ return MAI.mandat(Regles.jourDuJeu(now(), JOUR)); }
+const debutMandat = n => Regles.debutJour(MAI.premierJour(n), JOUR), finMandat = n => Regles.debutJour(MAI.premierJour(n+1), JOUR);
+function lieuxSimules(k, f){ return (hash(k+f)%9) + (hash(k)%3===0?6:0); }
+function versementsSimules(k, m){ const o={}, d=debutMandat(m), fin=finMandat(m), prog=Math.max(0, Math.min(1, (now()-d)/(fin-d)));
+  for(const f of FAKE){ if(!lieuxSimules(k,f)) continue; const h=hash(k+':'+f+':'+m); if(h%100>=40) continue;   // 4 sur 10 font campagne
+    const cible=40+(h>>4)%660, v=Math.floor(cible*Math.pow(prog, 0.5+((h>>7)%10)/10)/10)*10; if(v>0) o[f]=v; }   // certains restent sous le seuil
+  return o; }
+// les versements d'un mandat dans une commune, en points (un versement de la dernière heure compte à moitié)
+function caisseDe(k, m){ const c=versementsSimules(k, m), e=state.caisse;
+  const moi = e.m===m ? e.verse[k] : (e.avant.m===m ? e.avant.verse[k] : 0); if(moi) c[ME]=moi; return c; }
+const nomsMaires = l => l.length ? l.map(q=>q===ME?'toi':q).join(' et ') : 'personne';
+// tout ce que l'écran Communes montre d'une commune : ses Maires (élus au mandat précédent), sa caisse du mandat en cours
+function infoCommune(k, mine){ mine=mine||mesLieuxParCommune(); const lieux=mine[k]||0;
+  if(MODE_SERVEUR){ const c=classementCommune(k, mine); return { k, lieux, maires:c.maires.map(r=>r.who), jeSuisMaire:c.jeSuisMaire, ancien:c }; }
+  const m=mandatCourant(), elu=MAI.elire(caisseDe(k, m-1)), cv=caisseDe(k, m), caisse=MAI.elire(cv);
+  return { k, lieux, maires:elu.maires, jeSuisMaire:elu.maires.includes(ME), caisse, total:Object.values(cv).reduce((s,x)=>s+x,0), moi:cv[ME]||0,
+    rang:caisse.rangs.findIndex(r=>r.qui===ME), manque:MAI.manque(cv, ME), fin:finMandat(m), touche:state.caisse.touche[k]||0, plafond:MAI.plafondPart(elu.maires.length) }; }
+// la fin d'un mandat (démo) : la caisse repart à zéro, les élus prennent la mairie ; je suis prévenu de ce qui me concerne
+function tickMairie(){ const e=state.caisse, m=mandatCourant(); if(e.m===m) return; const premier=e.m==null, avant=e.elus||{};
+  e.avant = e.m===m-1 ? { m:e.m, verse:e.verse } : { m:null, verse:{} }; e.m=m; e.verse={}; e.touche={};
+  const ks=new Set([...Object.keys(mesLieuxParCommune()), ...Object.keys(e.avant.verse)]), elus={};
+  for(const k of ks){ const el=MAI.elire(caisseDe(k, m-1)); if(el.maires.includes(ME)) elus[k]=true;
+    if(premier) continue;
+    if(elus[k]) notify('maire', `👑 Tu es ${avant[k]?'réélu':'élu'} Maire de ${k} pour 2 semaines : tu touches 5 % des loyers des autres joueurs de la commune.`);
+    else if(e.avant.verse[k]) notify('maire', el.maires.length ? `${nomsMaires(el.maires)} ${el.maires.length>1?'deviennent':'devient'} Maire${el.maires.length>1?'s':''} de ${k} (${fmt(el.max)} versées ; toi : ${fmt(e.avant.verse[k])}).` : `Pas de Maire à ${k} ce mandat : personne n’a versé ${fmt(MAI.M.seuil)}.`); }
+  if(!premier) for(const k of Object.keys(avant)) if(!elus[k]) notify('maire', `Ton mandat de Maire de ${k} est terminé.`);
+  e.elus=elus; save();
+  const q=document.getElementById('com-q'); if(document.getElementById('s-communes').classList.contains('on') && !(q && (q.value || document.activeElement===q))) renderCommunes(); }
+// ma part de Maire en attente (démo) : 5 % des loyers des lieux simulés des autres joueurs, depuis la dernière récolte
+function partMaireEnAttente(){ const o={ total:0, parCommune:{} }; if(MODE_SERVEUR || !state.caisse) return o; const e=state.caisse, m=mandatCourant(); if(e.m!==m) return o;
+  const jours=Math.min(now()-Math.max(state.encaisse, debutMandat(m)), ECO.stock_loyer_heures*JOUR/24)/JOUR; if(!(jours>0)) return o;
+  for(const k of Object.keys(e.elus||{})){ const elu=MAI.elire(caisseDe(k, m-1)); if(!elu.maires.includes(ME)) continue;
+    const autres=FAKE.reduce((s,f)=>s+lieuxSimules(k,f),0)*LOYER_BASE, v=MAI.part(autres*jours, elu.maires.length, e.touche[k]||0);
+    if(v>0){ o.parCommune[k]=v; o.total+=v; } }
+  return o; }
+// verser à la caisse d'une commune (il faut y posséder un lieu)
+function verserCaisse(k){ if(MODE_SERVEUR) return bientot(); tickMairie(); const I=infoCommune(k); if(!I.lieux) return toast('Il te faut un lieu dans la commune pour verser à sa caisse');
+  const box=document.getElementById('modalbox'), min=MAI.M.versement_min;
+  box.innerHTML=`<h2>🏗️ Caisse de travaux</h2><div class="sub">${echapper(k)} · fin du mandat dans ${dureeTexte(I.fin-now())}</div>
+    <div class="vente-valeur"><span>${I.moi?'Tu as versé ce mandat':'Tu n’as pas encore versé'}</span><b>${I.moi?pcs(I.moi):''}</b></div>
+    <label class="champ-prix"><span>Je verse</span><input class="num" id="caisse-montant" type="text" inputmode="numeric" autocomplete="off" maxlength="13" value="${nb(Math.max(min, Math.min(I.manque||MAI.M.seuil, Math.max(min, dispo()))))}"><i class="pc"></i></label>
+    <div class="vite" id="caisse-vite"></div><div class="prix-note" id="caisse-note"></div>
+    <div class="m petit" style="text-align:center">Les pièces versées ne sont pas rendues : elles financent les travaux de la commune.</div>
+    <div class="liste-btn"><button class="btn large" id="caisse-ok"></button><button class="btn clair large" id="caisse-non">Annuler</button></div>`;
+  document.getElementById('modal').classList.add('on');
+  const inp=box.querySelector('#caisse-montant'), note=box.querySelector('#caisse-note'), ok=box.querySelector('#caisse-ok'); let montant=0, pts=0;
+  const maj=()=>{ const r=R.lirePrix(inp.value), v=r.ok ? MAI.peutVerser(r.prix, dispo(), I.lieux) : { ok:false, raison:'nombre' }; ok.disabled=!v.ok; ok.innerHTML='Verser';
+    if(!v.ok){ note.className='prix-note err'; note.innerHTML = v.raison==='fonds' ? 'Tu n’as pas assez de pièces disponibles.' : (v.raison==='minimum' ? `Au moins ${pcs(min)}.` : 'Tape un nombre entier de pièces.'); return; }
+    montant=r.prix; pts=MAI.points(montant, finMandat(mandatCourant())-now(), JOUR); const apres=I.moi+pts, tete=Math.max(0, ...I.caisse.rangs.filter(x=>x.qui!==ME).map(x=>x.n));
+    note.className='prix-note';
+    note.innerHTML = (pts<montant ? 'Dernière heure du mandat : ce versement ne compte qu’à moitié. ' : '') + (apres<MAI.M.seuil ? `Il faut ${pcs(MAI.M.seuil)} au total pour pouvoir être élu.` : (apres>tete ? 'Tu passes en tête de la caisse.' : (apres===tete ? 'Tu rejoins le premier : vous seriez co-Maires.' : `Il te manquera encore ${pcs(tete+1-apres)} pour mener.`)));
+    ok.innerHTML=`Verser ${pcs(montant)}`; };
+  const vite=box.querySelector('#caisse-vite'), choix = I.manque>0 ? [['Pour mener', I.manque], ['Belle avance', arrondiMise(I.manque*1.5+100)], ['Petit geste', 50]] : [['Creuser l’écart', 200], ['Petit geste', 50], ['Gros versement', 1000]];
+  choix.forEach(([t,x])=>{ const c=document.createElement('button'); c.className='raccourci'; c.innerHTML=`<span>${t}</span><b>${nb(x)}</b>`; c.onclick=()=>{ inp.value=nb(x); maj(); vibrer(8); }; vite.appendChild(c); });
+  inp.addEventListener('input', maj); inp.addEventListener('focus', ()=>inp.select()); inp.addEventListener('keydown', e=>{ if(e.key==='Enter') ok.click(); });
+  box.querySelector('#caisse-non').onclick=()=>closeModal();
+  ok.onclick=()=>{ maj(); if(ok.disabled) return; tickMairie(); state.wallet-=montant; state.caisse.verse[k]=(state.caisse.verse[k]||0)+pts; save(); closeModal();
+    fete(10); toast(`${fmt(montant)} versées à la caisse de ${k}`); refreshTop(); renderCommunes(); };
+  maj(); }
+// Communes et Maires, ancienne règle (le Maire possède le plus de lieux) : encore celle du mode serveur
 function mesLieuxParCommune(){ const mine={}; Object.values(state.owned).forEach(a=>{ const k=communeName(a.citycode,a.city); mine[k]=(mine[k]||0)+1; }); return mine; }
 function classementCommune(k, mine){ mine=mine||mesLieuxParCommune(); const moi=mine[k]||0;
   // mode serveur : les vrais joueurs (classement complet chargé, sinon au moins ses Maires) ; moi, d'après mes lieux
   const rows = MODE_SERVEUR ? (CLASSEMENTS[k] || MAIRES[k] || []).filter(r=>r.who!==ME).map(r=>({who:r.who, n:r.n})) : FAKE.map(f=>({who:f, n:(hash(k+f)%9)+ (hash(k)%3===0?6:0)}));
   rows.push({who:ME, n:moi}); rows.sort((a,b)=>b.n-a.n || (a.who===ME?-1:b.who===ME?1:0));
   const max=rows[0].n, maires=rows.filter(r=>r.n===max && max>0); return { rows, max, maires, moi, jeSuisMaire:maires.some(r=>r.who===ME) }; }
-const nomsMairesDe = c => c.maires.length ? c.maires.map(r=>r.who===ME?'toi':r.who).join(' et ') : 'personne';
 // la clé d'une commune trouvée par la recherche, comme celle d'un lieu (communeName) : Paris par arrondissement, Lyon et Marseille entières
 function cleCommune(p){ const code=p.citycode||''; if(code.startsWith('751')) return communeName(code, p.city); return (p.name||p.city||'').replace(/\s+\d+(er|e)\s+Arrondissement$/i,''); }
 let communeVue=null, chargeMaires=false;   // la commune ouverte en tête de l'écran : { k, sous, lon, lat }
-function carteCommune(k, sous, lon, lat){ const c=classementCommune(k), medailles=['🥇','🥈','🥉'];
+function carteCommune(k, sous, lon, lat){ const I=infoCommune(k), medailles=['🥇','🥈','🥉'];
   let h=`<div class="card commune-ouverte"><button class="fermer-commune" onclick="fermerCommune()" aria-label="Fermer">✕</button>
     <div style="text-align:center"><div class="plaque petite"><small>Commune</small>${echapper(k)}</div>${sous?`<div class="m" style="margin:0 0 6px">${echapper(sous)}</div>`:''}</div>
-    <div class="maire-ligne"><div style="min-width:0"><div class="m" style="margin:0">Maire${c.maires.length>1?'s':''}</div><div class="t">👑 ${echapper(nomsMairesDe(c))}${c.jeSuisMaire?' 🎉':''}</div></div>
-    ${c.jeSuisMaire?'<span class="chip or">Tu tiens la mairie</span>':`<span class="chip bleu">Encore <b>${c.max-c.moi}</b> lieu${c.max-c.moi>1?'x':''}</span>`}</div>`;
-  c.rows.forEach((r,i)=>{ h+=`<div class="rank${r.who===ME?' moi':''}"><span class="pos">${i<3&&r.n>0?medailles[i]:i+1}</span><span class="who" onclick="showPlayer('${r.who}')">${r.who===ME?echapper(disp(ME))+' (toi)':echapper(r.who)}</span><b>${r.n} lieu${r.n>1?'x':''}</b></div>`; });
+    <div class="maire-ligne"><div style="min-width:0"><div class="m" style="margin:0">Maire${I.maires.length>1?'s':''}${I.caisse?' (2 semaines)':''}</div><div class="t">👑 ${echapper(nomsMaires(I.maires))}${I.jeSuisMaire?' 🎉':''}</div></div>
+    ${I.jeSuisMaire?'<span class="chip or">Tu tiens la mairie</span>':(I.caisse?'':`<span class="chip bleu">Encore <b>${I.ancien.max-I.ancien.moi}</b> lieu${I.ancien.max-I.ancien.moi>1?'x':''}</span>`)}</div>`;
+  if(I.caisse){
+    if(I.jeSuisMaire) h+=`<div class="m maire-gain">Tu touches 5 % des loyers des autres joueurs de la commune : ${pcs(I.touche)} sur ${pcs(I.plafond)} ce mandat.</div>`;
+    else if(!I.maires.length) h+=`<div class="m maire-gain">Pas de Maire ce mandat : personne n’avait versé ${pcs(MAI.M.seuil)} à la caisse.</div>`;
+    h+=`<div class="caisse"><div class="caisse-tete"><span class="t">🏗️ Caisse de travaux</span><span class="caisse-fin" id="caisse-fin">⏳ ${dureeTexte(I.fin-now())}</span></div>
+      <div class="m" style="margin:2px 0 8px">Qui y aura versé le plus à la fin du mandat sera Maire les 2 semaines suivantes.</div>
+      <div class="caisse-total"><span>Versé ce mandat</span><b>${pcs(I.total)}</b></div>`;
+    I.caisse.rangs.forEach((r,i)=>{ h+=`<div class="rank${r.qui===ME?' moi':''}"><span class="pos">${i<3?medailles[i]:i+1}</span><span class="who" onclick="showPlayer('${r.qui}')">${r.qui===ME?echapper(disp(ME))+' (toi)':echapper(r.qui)}</span><b>${pcs(r.n)}</b></div>`; });
+    if(!I.caisse.rangs.length) h+=`<div class="m">Personne n’a encore versé : ${pcs(MAI.M.seuil)} suffisent pour devenir Maire.</div>`;
+    h+= I.lieux ? `<button class="btn large" style="margin-top:12px;width:100%" id="verser-caisse">🪙 Verser à la caisse${I.manque>0?` · ${nb(I.manque)} pour mener`:''}</button>`
+      : `<div class="m" style="margin-top:10px">Possède un lieu dans la commune pour verser à sa caisse.</div>`;
+    h+=`<div class="m petit">Il faut au moins ${pcs(MAI.M.seuil)} pour être élu. Dans la dernière heure du mandat, un versement ne compte qu’à moitié.</div></div>`; }
+  else I.ancien.rows.forEach((r,i)=>{ h+=`<div class="rank${r.who===ME?' moi':''}"><span class="pos">${i<3&&r.n>0?medailles[i]:i+1}</span><span class="who" onclick="showPlayer('${r.who}')">${r.who===ME?echapper(disp(ME))+' (toi)':echapper(r.who)}</span><b>${r.n} lieu${r.n>1?'x':''}</b></div>`; });
   if(lon!=null) h+=`<button class="btn bleu large" style="margin-top:12px" id="voir-commune">🗺️ Voir la commune sur la carte</button>`;
   return h+`</div>`; }
 function ouvrirCommune(k, sous, lon, lat){ communeVue={k, sous, lon, lat}; renderCommunes(); if(MODE_SERVEUR) chargerClassement(k).then(()=>{ if(communeVue && communeVue.k===k) renderCommunes(); }); const el=document.getElementById('s-communes'); el.scrollTop=0; vibrer(8); }
@@ -1887,12 +1965,14 @@ function renderCommunes(){ const el=document.getElementById('s-communes'); const
   let h=`<h1>Communes</h1>
     <div class="recherche-commune"><span class="loupe">🔍</span><input class="txt" id="com-q" type="search" enterkeyhint="search" autocomplete="off" placeholder="Chercher une commune…" aria-label="Chercher une commune"><div id="com-sugg"></div></div>`;
   if(communeVue) h+=carteCommune(communeVue.k, communeVue.sous, communeVue.lon, communeVue.lat);
-  else h+=`<div class="card flex"><div class="couronne" style="font-size:34px">👑</div><div style="flex:1"><div class="t">Deviens Maire</div><div class="m">Le Maire d’une commune est le joueur qui y possède le plus de lieux. À égalité, il y a deux Maires. Le titre dure tant que tu restes en tête.</div></div></div>`;
-  const communes=Object.keys(mine).sort((a,b)=>mine[b]-mine[a] || a.localeCompare(b,'fr'));
+  else h+=`<div class="card flex"><div class="couronne" style="font-size:34px">👑</div><div style="flex:1"><div class="t">Deviens Maire</div><div class="m">${MODE_SERVEUR ? 'Le Maire d’une commune est le joueur qui y possède le plus de lieux. À égalité, il y a deux Maires. Le titre dure tant que tu restes en tête.' : 'Chaque commune a une caisse de travaux. Toutes les 2 semaines, le joueur qui y a versé le plus de pièces devient Maire : il touche 5 % des loyers des autres joueurs de la commune.'}</div></div></div>`;
+  const communes=[...new Set([...Object.keys(mine), ...(MODE_SERVEUR?[]:Object.keys(state.caisse.elus||{}))])].sort((a,b)=>(mine[b]||0)-(mine[a]||0) || a.localeCompare(b,'fr'));
   h+=`<h2 class="section">Mes communes${communes.length?` (${communes.length})`:''}</h2>`;
   if(!communes.length) h+=`<div class="card vide" style="padding:18px"><div class="ico">🏘️</div><div class="m" style="margin:0">Une commune s’ajoute ici dès que tu y possèdes un lieu. En attendant, cherche n’importe quelle commune ci-dessus pour voir son Maire.</div></div>`;
-  else { h+=`<div class="card liste-communes">`; for(const k of communes){ const c=classementCommune(k, mine);
-      h+=`<button class="ligne-commune${communeVue&&communeVue.k===k?' on':''}" data-k="${echapper(k)}"><span class="nom">${c.jeSuisMaire?'👑 ':''}${echapper(k)}<small>Maire : ${echapper(nomsMairesDe(c))}</small></span><span class="moi-n">${c.moi} lieu${c.moi>1?'x':''}<small>${c.jeSuisMaire?'Tu es Maire':`encore ${c.max-c.moi}`}</small></span><span class="chevron">›</span></button>`; }
+  else { h+=`<div class="card liste-communes">`; for(const k of communes){ const I=infoCommune(k, mine), c=I.ancien;
+      const droite = I.caisse ? `${I.moi?pcs(I.moi):'—'}<small>${I.moi && !I.manque ? 'tu mènes' : (I.moi ? `${I.rang+1}e · encore ${nb(I.manque)}` : `${nb(I.manque)} pour mener`)}</small>`
+        : `${c.moi} lieu${c.moi>1?'x':''}<small>${c.jeSuisMaire?'Tu es Maire':`encore ${c.max-c.moi}`}</small>`;
+      h+=`<button class="ligne-commune${communeVue&&communeVue.k===k?' on':''}" data-k="${echapper(k)}"><span class="nom">${I.jeSuisMaire?'👑 ':''}${echapper(k)}<small>Maire : ${echapper(nomsMaires(I.maires))}</small></span><span class="moi-n">${droite}</span><span class="chevron">›</span></button>`; }
     h+=`</div>`; }
   el.innerHTML=h;
   // mode serveur : les Maires de mes communes (une requête), puis l'écran redessiné s'il n'est pas en train d'être tapé
@@ -1900,6 +1980,7 @@ function renderCommunes(){ const el=document.getElementById('s-communes'); const
     chargerMaires(manque).finally(()=>{ chargeMaires=false; const q=document.getElementById('com-q'); if(document.getElementById('s-communes').classList.contains('on') && !(q && (q.value || document.activeElement===q))) renderCommunes(); }); } }
   // les noms de communes passent par des attributs data- (une apostrophe, « L'Haÿ-les-Roses », casserait un onclick)
   el.querySelectorAll('.ligne-commune').forEach(b=>b.onclick=()=>ouvrirMaCommune(b.dataset.k));
+  const vc=el.querySelector('#verser-caisse'); if(vc){ const v=communeVue; vc.onclick=()=>verserCaisse(v.k); }
   const voir=el.querySelector('#voir-commune'); if(voir){ const v=communeVue; voir.onclick=()=>{ showScreen('carte'); allerA(v.lon, v.lat, 15.5, null, v.k, 'Commune'); }; }
   const inp=el.querySelector('#com-q'), box=el.querySelector('#com-sugg'); let minut=null, num=0;
   const proposer=async()=>{ const t=inp.value.trim(), moiNum=++num; if(t.length<2){ box.innerHTML=''; box.style.display='none'; return; }
@@ -1907,8 +1988,8 @@ function renderCommunes(){ const el=document.getElementById('s-communes'); const
       const vus=new Set(), res=[]; for(const f of (j.features||[])){ const p=f.properties; if(p.citycode==='75056') continue;   // Paris se joue par arrondissement
         const k=cleCommune(p); if(!k || vus.has(k)) continue; vus.add(k); res.push({k, sous:(p.context||'').split(',').slice(0,2).map(x=>x.trim()).join(' · '), lon:f.geometry.coordinates[0], lat:f.geometry.coordinates[1]}); }
       if(MODE_SERVEUR){ await chargerMaires(res.slice(0,6).map(x=>x.k)); if(moiNum!==num) return; }
-      box.innerHTML=''; res.slice(0,6).forEach(x=>{ const c=classementCommune(x.k, mine); const d=document.createElement('button'); d.className='sugg-commune';
-        d.innerHTML=`<span class="nom">${echapper(x.k)}<small>${echapper(x.sous)}</small></span><span class="maire-mini">👑 ${echapper(nomsMairesDe(c))}</span>`;
+      box.innerHTML=''; res.slice(0,6).forEach(x=>{ const c=infoCommune(x.k, mine); const d=document.createElement('button'); d.className='sugg-commune';
+        d.innerHTML=`<span class="nom">${echapper(x.k)}<small>${echapper(x.sous)}</small></span><span class="maire-mini">👑 ${echapper(nomsMaires(c.maires))}</span>`;
         d.onclick=()=>{ inp.blur(); ouvrirCommune(x.k, x.sous, x.lon, x.lat); }; box.appendChild(d); });
       if(!res.length) box.innerHTML=`<div class="aucune">Aucune commune trouvée</div>`; box.style.display='block'; }catch(e){ box.innerHTML=`<div class="aucune">Recherche impossible : vérifie ta connexion</div>`; box.style.display='block'; } };
   inp.addEventListener('input', ()=>{ clearTimeout(minut); minut=setTimeout(proposer, 250); });
@@ -1916,7 +1997,7 @@ function renderCommunes(){ const el=document.getElementById('s-communes'); const
 
 function setPref(k,v){ state.prefs[k]=v; save(); }
 // les notifications : une icône par sorte, l'heure relative, les actions ; les réglages sont à part
-function iconeNotif(n){ const t=n.text||''; if(n.type==='enchere') return /remporté/.test(t)?'🏆':(/surenchéri/.test(t)?'⚠️':'🔨'); if(n.type==='offre') return /accepté/.test(t)?'✅':(/refusé/.test(t)?'❌':'📨'); if(n.type==='vente') return '💰'; if(n.type==='echange') return /accepté/.test(t)?'🤝':(/refusé|annulé/.test(t)?'❌':'🔁'); return '🔔'; }
+function iconeNotif(n){ const t=n.text||''; if(n.type==='enchere') return /remporté/.test(t)?'🏆':(/surenchéri/.test(t)?'⚠️':'🔨'); if(n.type==='offre') return /accepté/.test(t)?'✅':(/refusé/.test(t)?'❌':'📨'); if(n.type==='vente') return '💰'; if(n.type==='maire') return /terminé/.test(t)?'🏛️':'👑'; if(n.type==='echange') return /accepté/.test(t)?'🤝':(/refusé|annulé/.test(t)?'❌':'🔁'); return '🔔'; }
 function ilYa(ts){ const s=Math.max(0,Math.floor((now()-ts)/1000)); if(s<60) return 'à l’instant'; const m=Math.floor(s/60); if(m<60) return `il y a ${m} min`; const h=Math.floor(m/60); if(h<24) return `il y a ${h} h`; return `il y a ${Math.floor(h/24)} j`; }
 function renderNotifs(){ const el=document.getElementById('s-notifs'); let h=`<h1>Notifications <button class="act rond" style="width:44px;height:44px;font-size:20px" onclick="ouvrirReglages()" aria-label="Réglages">⚙️</button></h1>`;
   if(!state.notifs.length) h+=`<div class="card vide"><div class="ico">🔔</div><div class="t">Rien de neuf</div><div class="m">Les offres reçues, les enchères et les ventes arrivent ici.</div></div>`;
@@ -1946,7 +2027,7 @@ const GUIDE=[
   { cible:'#walletpill', titre:'<i class="pc"></i> Tes pièces', texte:'Ton salaire et tes loyers s’accumulent pendant 24 h. Touche ta bourse pour récolter, et reviens chaque jour.' },
   { cible:'#nav button[data-s="patrimoine"]', titre:'🏘️ Ta collection', texte:'Tes lieux en cartes. Maison, Immeuble, Tour : plus tu construis haut, plus le loyer monte.' },
   { cible:'#nav button[data-s="encheres"]', titre:'🔨 Les monuments', texte:'Chaque semaine, trois monuments sont mis aux enchères pour toute la France.' },
-  { cible:'#nav button[data-s="communes"]', titre:'👑 Deviens Maire', texte:'Possède le plus de lieux d’une commune et tu en deviens le Maire.' } ];
+  { cible:'#nav button[data-s="communes"]', titre:'👑 Deviens Maire', texte:'Verse le plus de pièces à la caisse de travaux d’une commune : tu en deviens le Maire pour 2 semaines.' } ];
 function guide(i){ let g=document.getElementById('guide'); if(i>=GUIDE.length || i<0){ if(g) g.remove(); state.prefs.guideVu=true; save(); return; }
   if(document.querySelector('.screen.on')) showScreen('carte');
   if(!g){ g=document.createElement('div'); g.id='guide'; g.innerHTML='<div class="spot"></div><div class="bulle"></div>'; document.body.appendChild(g); }
@@ -2007,7 +2088,8 @@ async function profilReel(name){ let uid=PAR_PSEUDO[name];
   zone.outerHTML=(robot && robot.data ? `<div class="card" style="box-shadow:none;background:var(--plaque-clair);text-align:center"><div class="t">🤖 Joueur d’essai</div><div class="m">Un robot du serveur d’essai : il joue tout seul (lieux, ventes, offres) pour qu’on puisse tester.</div></div>` : '')+`<div class="kpis"><div class="kpi"><b>${n}</b><small>lieu${n>1?'x':''}</small></div><div class="kpi"><b>${nb(v)}<i class="pc"></i></b><small>de valeur</small></div><div class="kpi"><b>${b}</b><small>construit${b>1?'s':''}</small></div></div>
     <div class="card" style="box-shadow:none;background:var(--ciel)"><div class="t">📍 Présent dans ${c} commune${c>1?'s':''}</div><div class="m">Ses lieux sont en rouge sur la carte.</div></div>`; }
 // les communes où je suis Maire (mêmes règles que l'écran Communes)
-function mesMairies(){ const mine=mesLieuxParCommune(); return Object.keys(mine).filter(k=>classementCommune(k, mine).jeSuisMaire); }
+function mesMairies(){ const mine=mesLieuxParCommune(); if(MODE_SERVEUR) return Object.keys(mine).filter(k=>classementCommune(k, mine).jeSuisMaire);
+  return Object.keys(state.caisse.elus||{}).filter(k=>infoCommune(k, mine).jeSuisMaire); }
 // Signaler un joueur : une raison, un mot facultatif ; la file de signalements est traitée à la main par Gautier
 // (serveur simulé : gardée dans le profil ; avec Supabase : une table « signalements »).
 const RAISONS = { pseudo:'Pseudo inapproprié', triche:'Triche ou plusieurs comptes', comportement:'Comportement (offres, messages…)', autre:'Autre' };
@@ -2059,7 +2141,7 @@ function afficherBourse(cible){ const el=document.getElementById('wallet'); cibl
 function refreshTop(){ afficherBourse(dispo()); document.getElementById('meav').textContent=state.avatar||'🙂'; document.getElementById('mename').textContent=disp(ME); const n=Object.keys(state.owned).length; document.getElementById('count').textContent = `${n} lieu${n>1?'x':''}${MODE_SERVEUR?' · serveur':''}`;
   const p=Math.floor(pendingRent()); document.getElementById('pending').textContent = p>0 ? `+${nb(p)}` : '';
   const unread=state.notifs.filter(n=>!n.read).length; const c=document.getElementById('cnt-notif'); c.style.display=unread?'block':'none'; c.textContent=unread; refreshPack(); }
-setInterval(()=>{ refreshTop(); if(!MODE_SERVEUR){ tickOffers(); tickAuction(); } else { refreshPack(); tickEncheresServeur(); } }, 1000);
+setInterval(()=>{ refreshTop(); if(!MODE_SERVEUR){ tickOffers(); tickAuction(); tickMairie(); const cf=document.getElementById('caisse-fin'); if(cf) cf.textContent='⏳ '+dureeTexte(finMandat(mandatCourant())-now()); } else { refreshPack(); tickEncheresServeur(); } }, 1000);
 // À la connexion : la récolte des loyers (24 h au plus), puis le pack du jour s'il est prêt
 function packAuDemarrage(){ if(!packDispo()){ if(!state.prefs.guideVu) setTimeout(()=>guide(0), 800); return; } if(map.loaded()) setTimeout(ouvrirPack, 600); else map.once('idle', ()=>setTimeout(ouvrirPack, 900)); }
 async function recolteConnexion(ensuite){ if(MODE_SERVEUR){ const r=await synchroniser(); if(!r || !r.ok){ toast((r&&r.message)||'Serveur injoignable'); return ensuite(); } }

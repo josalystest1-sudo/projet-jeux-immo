@@ -1015,3 +1015,12 @@ body.promenade #sheet .svwrap{display:none}
    une carte réduite (collection), Chrome sur Android dessinait alors le filet plus petit, décalé vers le haut à gauche. */
 .cl-trait{vector-effect:none}
 .cl-trait.bord{stroke:var(--c2);stroke-width:2.8}
+
+/* ===================== la caisse de travaux (le Maire, 4 nov. 2026, GDD § 5) ===================== */
+.maire-gain{margin:8px 0 0;padding:8px 10px;border-radius:12px;background:var(--piece-clair);color:#7A5200}
+.caisse{margin-top:14px;padding-top:12px;border-top:1.5px dashed var(--ciel)}
+.caisse-tete{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.caisse-fin{font-family:var(--titre);font-weight:800;font-size:14px;color:var(--plaque);white-space:nowrap}
+.caisse-total{display:flex;align-items:center;justify-content:space-between;padding:8px 10px;border-radius:12px;background:var(--ciel);font-weight:800}
+.caisse-total b{font-family:var(--titre);font-size:18px}
+.m.petit{font-size:12px;margin-top:8px;opacity:.8}
