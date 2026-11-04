@@ -5010,6 +5010,43 @@
     return A.groupe;
   }
 
+  // le fort de Douaumont : les casemates et les tourelles de béton qui affleurent du fort enterré (les emprises de l'IGN)
+  function fortDouaumont(THREE) {
+    const A = atelier(THREE);
+    const beton = A.matiere(0xBDB8AC), betonFonce = A.matiere(0x9C978C);
+    pave(A, [[-81.5, 42.5], [-70, 52.5], [-72, 55], [-74, 54], [-76, 56], [-81, 59], [-84, 55], [-86.5, 57], [-91.5, 54], [-81.5, 42.5]], 5, beton, betonFonce, 0.6, betonFonce, []);
+    pave(A, [[-33, -97.5], [-30, -97.5], [-28.5, -96.5], [-27, -94.5], [-26.5, -93.5], [-26, -83], [-27, -81.5], [-27.5, -81], [-29, -81], [-30, -82], [-31, -83.5], [-37, -90.5], [-37, -92.5], [-37, -94.5], [-36, -96.5], [-34.5, -97], [-33, -97.5]], 4.8, beton, betonFonce, 0.6, betonFonce, []);
+    pave(A, [[-33, -97.5], [-30, -97.5], [-28.5, -96.5], [-27, -94.5], [-26.5, -93.5], [-26.5, -91.5], [-37, -91.5], [-37, -92.5], [-37, -94.5], [-36, -96.5], [-34.5, -97], [-33, -97.5]], 4.6, beton, betonFonce, 0.6, betonFonce, []);
+    pave(A, [[26.5, -67.5], [26.5, -66], [27, -64.5], [22, -61], [19, -57.5], [17, -57.5], [16, -57.5], [15, -58.5], [14, -61.5], [14.5, -63.5], [19.5, -64.5], [24.5, -67.5], [26.5, -67.5]], 5, beton, betonFonce, 0.6, betonFonce, []);
+    pave(A, [[46.5, -83.5], [47.5, -82.5], [47.5, -80.5], [46, -79.5], [45, -79.5], [44, -81], [43.5, -82], [44.5, -83], [45, -83.5], [46.5, -83.5]], 4.8, beton, betonFonce, 0.6, betonFonce, []);
+    pave(A, [[91, -90], [92.5, -89.5], [93.5, -88.5], [93.5, -88], [93.5, -86.5], [92, -85.5], [91, -85.5], [87.5, -80], [87.5, -78], [86.5, -76.5], [85, -76.5], [83.5, -76], [82, -76.5], [81, -78.5], [81, -80], [82.5, -82], [84.5, -82.5], [89, -87.5], [89.5, -88.5], [91, -90]], 4.6, beton, betonFonce, 0.6, betonFonce, []);
+    pave(A, [[98.5, -51], [101, -50.5], [104, -49], [106, -46.5], [106.5, -43], [106, -40.5], [105, -38], [103, -36], [100, -35], [95, -35], [92.5, -35.5], [90.5, -37], [89, -39], [88.5, -42], [89, -44], [90.5, -47], [93, -49.5], [96, -50.5], [98.5, -51]], 5, beton, betonFonce, 0.6, betonFonce, []);
+    pave(A, [[-111.5, -9.5], [-110, -9], [-108, -8.5], [-107.5, -6.5], [-108, -4], [-109.5, -3], [-111.5, -3], [-120, -5.5], [-121, -5.5], [-123, -6], [-123.5, -7], [-123.5, -8.5], [-122.5, -9], [-120, -9], [-111.5, -9.5]], 4.8, beton, betonFonce, 0.6, betonFonce, []);
+    return A.groupe;
+  }
+
+  // le fort de Vaux : les casemates de béton du fort enterré (les emprises de l'IGN)
+  function fortVaux(THREE) {
+    const A = atelier(THREE);
+    const beton = A.matiere(0xBDB8AC), betonFonce = A.matiere(0x9C978C);
+    pave(A, [[93.5, -98], [109.5, -94], [108, -87.5], [96.5, -91], [96, -88.5], [91.5, -90.5], [93.5, -98]], 5, beton, betonFonce, 0.6, betonFonce, []);
+    pave(A, [[93.5, -98], [94.5, -98], [94.5, -89.5], [91.5, -90.5], [93.5, -98]], 4.8, beton, betonFonce, 0.6, betonFonce, []);
+    pave(A, [[-18, -115], [-18, -110], [-23, -111], [-22, -115], [-18, -115]], 4.6, beton, betonFonce, 0.6, betonFonce, []);
+    pave(A, [[-54, -80.5], [-49.5, -77.5], [-47.5, -66.5], [-50.5, -61], [-54.5, -62], [-55.5, -60.5], [-59.5, -63], [-58.5, -77], [-54, -80.5]], 5, beton, betonFonce, 0.6, betonFonce, []);
+    pave(A, [[26.5, -95.5], [29, -95.5], [31, -95], [32, -93.5], [33.5, -91], [31, -85.5], [21.5, -88.5], [23, -94], [24.5, -95], [26.5, -95.5]], 4.8, beton, betonFonce, 0.6, betonFonce, []);
+    pave(A, [[70, -67], [74, -65.5], [72.5, -61.5], [69, -63], [70, -67]], 4.6, beton, betonFonce, 0.6, betonFonce, []);
+    pave(A, [[50, -16.5], [61.5, -10.5], [56, -4], [54.5, -5], [52, -1.5], [44.5, -6.5], [50, -16.5]], 5, beton, betonFonce, 0.6, betonFonce, []);
+    return A.groupe;
+  }
+
+  // le cimetière du Père-Lachaise : la chapelle néoclassique en haut de l'allée principale (l'emprise de l'IGN)
+  function pereLachaise(THREE) {
+    const A = atelier(THREE);
+    const pierre = A.matiere(0xEFE7D6), pierreFoncee = A.matiere(0xD2C6AC), zinc = A.matiere(0x8E9AB0);
+    pave(A, [[-89.5, -26], [-84.5, -17], [-101.5, -8.5], [-102, -9.5], [-105.5, -16], [-106, -17], [-89.5, -26]], 10, pierre, zinc, 2.5, pierreFoncee);
+    return A.groupe;
+  }
+
   // les maquettes connues : le monument (identifiant de data/monuments.json), où et comment la poser, et les
   // bâtiments de l'IGN qu'elle remplace (sinon les blocs gris de la BD TOPO resteraient dedans)
   const MODELES = {
@@ -6262,6 +6299,15 @@
     Q3124: {   // l'amphithéâtre des Trois Gaules (l'emprise « arène » de l'IGN)
       construire: troisGaules, centre: [4.8306, 45.7706], orientation: 0, masquer: ['BATIMENT0000000013370028'],
     },
+    Q186536: {   // le fort de Douaumont : les casemates de l'IGN
+      construire: fortDouaumont, centre: [5.4389, 49.2167], orientation: 0, masquer: ['BATIMENT0000002201697622', 'BATIMENT0000002201697627', 'BATIMENT0000000066046780', 'BATIMENT0000000066046779', 'BATIMENT0000000066046776', 'BATIMENT0000000066046775', 'BATIMENT0000000066046777'],
+    },
+    Q1438801: {   // le fort de Vaux : les casemates de l'IGN
+      construire: fortVaux, centre: [5.47, 49.1999], orientation: 0, masquer: ['BATIMENT0000002201697623', 'BATIMENT0000000066047768', 'BATIMENT0000000066047767', 'BATIMENT0000000066047765', 'BATIMENT0000000066047769', 'BATIMENT0000000066047766'],
+    },
+    Q311: {   // le cimetière du Père-Lachaise : la chapelle (l'emprise de l'IGN)
+      construire: pereLachaise, centre: [2.3942, 48.8611], orientation: 0, masquer: ['BATIMENT0000000240759424'],
+    },
   };
   const MASQUES = Object.values(MODELES).flatMap((m) => m.masquer);
 
@@ -6376,6 +6422,7 @@
     lariboisiere, saintLouisEnLIle, clairvaux,
     bicetre, champmol,
     placeAlliance,
-    troisGaules };
+    troisGaules,
+    fortDouaumont, fortVaux, pereLachaise };
   if (typeof module !== 'undefined' && module.exports) module.exports = api; else racine.Maquettes = api;
 })(typeof globalThis !== 'undefined' ? globalThis : this);

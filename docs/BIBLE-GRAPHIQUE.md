@@ -275,3 +275,6 @@ Où c'est dans le code : la pochette est dessinée par `makeArt()` (`index.html`
 - **L'amphithéâtre des Trois Gaules** à Lyon (nuit du 4 nov.) : les gradins dégagés en demi-ellipse sur la pente de la Croix-Rousse et l'arène (l'emprise « arène » de l'IGN).
 
 ![L'amphithéâtre des Trois Gaules](bible/monuments-55.jpg)
+- **Trois monuments de plus** (nuit du 4 nov.), sobres : **les forts de Douaumont et de Vaux** (les casemates et tourelles de béton qui affleurent, d'après l'IGN), **le cimetière du Père-Lachaise** (sa chapelle en haut de l'allée principale).
+
+![Le fort de Douaumont, le fort de Vaux et la chapelle du Père-Lachaise](bible/monuments-56.jpg)
