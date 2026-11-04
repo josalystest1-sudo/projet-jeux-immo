@@ -90,6 +90,7 @@ Rien d'important ne vit dans une conversation : tout est dans le dépôt ou sur 
 - Deuxième lot régional (PR #54) : Fontevraud, le palais du Tau, Azay-le-Rideau, Cordouan, Villandry, l'observatoire de Nice, Albi, l'École militaire, le théâtre des Champs-Élysées, le Clos Lucé.
 - Troisième lot régional (PR #55) : l'Odéon, Chantilly, Angers, Bayeux, l'arc d'Orange, la villa Savoye ; et les maquettes construites à la demande (le démarrage du jeu ne ralentit pas avec leur nombre).
 - Quatrième lot régional (PR #56) : Saint-Remi, Saint-Germain-l'Auxerrois, la tour Saint-Jacques, les arènes de Lutèce, Saumur, la place des Victoires, le Haut-Kœnigsbourg, Saint-Étienne-du-Mont, les arènes de Nîmes, la colonne de Juillet.
+- Cinquième lot régional (PR #57) : Pierrefonds, Saint-Jean de Lyon, la Major, la porte Saint-Denis, la colonne Vendôme, le trophée des Alpes, le Lion de Belfort, Ussé, le pont Mirabeau, Fourvière.
 
 ## Toutes les PR
 
@@ -172,6 +173,7 @@ Puis une PR par étape, fusionnée en squash :
 | #54 | 04/11 01:34 | Graphismes : dix monuments régionaux en 3D (Fontevraud, le palais du Tau, Azay-le-Rideau, Cordouan, Villandry, l'observatoire de Nice, Albi, l'École militaire, le théâtre des Champs-Élysées, le Clos Lucé) |
 | #55 | 04/11 01:39 | Graphismes : six monuments régionaux de plus (l'Odéon, Chantilly, Angers, Bayeux, l'arc d'Orange, la villa Savoye) ; les maquettes construites à la demande |
 | #56 | 04/11 01:43 | Graphismes : dix monuments régionaux de plus (Saint-Remi, Saint-Germain-l'Auxerrois, la tour Saint-Jacques, les arènes de Lutèce, Saumur, la place des Victoires, le Haut-Kœnigsbourg, Saint-Étienne-du-Mont, les arènes de Nîmes, la colonne de Juillet) |
+| #57 | 04/11 01:48 | Graphismes : dix monuments régionaux de plus (Pierrefonds, Saint-Jean de Lyon, la Major, la porte Saint-Denis, la colonne Vendôme, le trophée des Alpes, le Lion de Belfort, Ussé, le pont Mirabeau, Fourvière) |
 
 ## Les décisions de Gautier
 
@@ -202,7 +204,7 @@ Les décisions du 2 novembre (interview) sont dans `CLAUDE.md` § 4 et dans le G
 - **Le serveur, suite** (phase 8) :
   - 8.2 : le mode serveur par défaut, la fin des joueurs simulés, l'inscription des amis. Question posée à Gautier, sans réponse : couper la confirmation par e-mail pendant les essais ?
   - 8.3 : l'anti-triche.
-- **Les graphismes** (phase 10, avant 8.2 : décision de Gautier) : la preuve, l'ouverture, les monuments nationaux et 34 monuments régionaux en 3D (87 maquettes) ; ensuite les autres régionaux, l'habillage de la révélation, l'icône et le logo (`docs/BIBLE-GRAPHIQUE.md`).
+- **Les graphismes** (phase 10, avant 8.2 : décision de Gautier) : la preuve, l'ouverture, les monuments nationaux et 44 monuments régionaux en 3D (97 maquettes) ; ensuite les autres régionaux, l'habillage de la révélation, l'icône et le logo (`docs/BIBLE-GRAPHIQUE.md`).
 - **La boutique** (phase 9) : Stripe, packs et Pass mensuel (pack de 8 cartes, bon mensuel : GDD § 3), probabilités affichées, blocage Belgique et Pays-Bas, CGU, confidentialité, mentions légales.
 - **Ensuite** : les graphismes (phase 10), l'équilibrage et le lancement (phase 11).
 - **Au lancement** :
