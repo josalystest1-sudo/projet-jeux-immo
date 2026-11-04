@@ -266,6 +266,7 @@
   - Les maquettes ne sont préparées que pour les cartes à l'écran (`IntersectionObserver`, `SCENES_COLL`), et libérées ensuite ; leur plan est plus léger. Les cartes visibles sont dessinées à tour de rôle.
   - Une carte touchée s'ouvre en grand en haut de sa fiche : on l'incline au doigt, sa maquette tourne (`inclinable`, `CARTE_GRANDE`).
   - Corrigé : l'échelle était calculée avant l'affichage de l'écran, donc une grille vide.
+- 4 nov. 2026 (soir) : **le cadre des cartes** (demande de Gautier, capture de son téléphone : des cadres de couleur « rentrent et sortent de la carte »). Le filet intérieur (et son halo) est retiré : un seul filet au bord, à la couleur de la rareté (or pour les Communes, `.cl-trait.bord`). Cause du décalage : `vector-effect:non-scaling-stroke` dans une carte réduite par `transform:scale` (Chrome Android dessinait le filet plus petit, vers le haut à gauche) ; il n'est plus utilisé pour le cadre. 49 tests.
   - Pour l'instant, un monument montre le bâtiment de l'IGN, pas sa maquette. 49 tests.
 
 ## En cours
