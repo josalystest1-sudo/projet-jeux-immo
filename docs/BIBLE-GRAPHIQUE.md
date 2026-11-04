@@ -236,3 +236,6 @@ Où c'est dans le code : la pochette est dessinée par `makeArt()` (`index.html`
 - **Deux monuments régionaux de plus** (nuit du 4 nov.) : **le château de Rambouillet** (le triangle de l'IGN, ses toits d'ardoise, ses tours rondes), **la cathédrale de Dax** (la nef et son fronton, le transept, le chœur).
 
 ![Le château de Rambouillet et la cathédrale de Dax](bible/monuments-42.jpg)
+- **Sept monuments régionaux de plus** (nuit du 4 nov.), au plan trop mêlé pour des boîtes, montés sur leur emprise de l'IGN avec corniche et comble (nouvel outil `pave`) : **les cathédrales d'Aire-sur-l'Adour** et **d'Apt** (son clocher), **les abbayes d'Hautecombe**, **de Cîteaux** et **de Solesmes** (le clocher, la haute tour), **l'hôtel Lambert**, **la bibliothèque de l'Arsenal**. Plus simples que les autres maquettes : le volume juste, sans le détail.
+
+![Les cathédrales d'Aire et d'Apt, les abbayes d'Hautecombe et de Cîteaux, l'hôtel Lambert et l'abbaye de Solesmes](bible/monuments-43.jpg)

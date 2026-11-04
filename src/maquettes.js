@@ -4620,6 +4620,86 @@
     return A.groupe;
   }
 
+  // un bâtiment monté sur son emprise de l'IGN, sa corniche et un comble posé en retrait au-dessus
+  function pave(A, pts, h, mur, toit, hToit, corniche) {
+    emprise(A, pts, h, mur);
+    if (corniche) emprise(A, pts, 0.8, corniche, h);
+    const xs = pts.map((p) => p[0]), zs = pts.map((p) => p[1]), cx = (Math.min(...xs) + Math.max(...xs)) / 2, cz = (Math.min(...zs) + Math.max(...zs)) / 2;
+    const kx = Math.max(0.5, 1 - 3 / (Math.max(...xs) - Math.min(...xs))), kz = Math.max(0.5, 1 - 3 / (Math.max(...zs) - Math.min(...zs)));
+    if (toit) emprise(A, pts.map(([x, z]) => [cx + (x - cx) * kx, cz + (z - cz) * kz]), hToit || 3, toit, h + (corniche ? 0.8 : 0));
+  }
+
+  // la cathédrale Saint-Jean-Baptiste d'Aire-sur-l'Adour : la nef, le chevet arrondi, la salle capitulaire (les emprises de
+  // l'IGN)
+  function cathedraleAire(THREE) {
+    const A = atelier(THREE);
+    const pierre = A.matiere(0xE6DCC4), pierreFoncee = A.matiere(0xC9BB98), tuile = A.matiere(0xB0603F);
+    pave(A, [[-7.5, 4], [30, 3.5], [30, 9.5], [29.5, 32], [29, 37.5], [25.5, 37], [25.5, 39], [31.5, 39.5], [31.5, 46], [23.5, 46], [23.5, 47.5], [13, 47.5], [12.5, 40], [7.5, 40.5], [7, 33], [-7.5, 33], [-8, 16], [-8.5, 13.5], [-7.5, 11.5]], 14, pierre, tuile, 4, pierreFoncee);
+    pave(A, [[30, 9.5], [32, 9.5], [32, 14.5], [38.5, 14.5], [39.5, 15], [40, 15], [42, 16], [43, 17.5], [43.5, 18.5], [44, 20.5], [44, 22.5], [43.5, 24], [43, 25], [41.5, 26.5], [40, 27.5], [39, 27.5], [32.5, 28], [32.5, 32], [29.5, 32]], 16, pierre, tuile, 4, pierreFoncee);
+    pave(A, [[5, 37], [7, 37], [7.5, 40.5], [12.5, 40], [13, 50.5], [6, 50], [6, 46.5]], 10, pierre, tuile, 3);
+    return A.groupe;
+  }
+
+  // la cathédrale Sainte-Anne d'Apt : la cathédrale romane et ses chapelles (l'emprise de l'IGN), son clocher
+  function cathedraleApt(THREE) {
+    const A = atelier(THREE);
+    const pierre = A.matiere(0xE6D6B8), pierreFoncee = A.matiere(0xC9B48E), tuile = A.matiere(0xC8704A);
+    pave(A, [[-1.5, -29.5], [13, -29], [13, -28.5], [18.5, -28.5], [18.5, -23], [30.5, -23.5], [31, -19], [34, -16.5], [47.5, -16], [47.5, -3], [49.5, -2], [50, 1.5], [48.5, 1.5], [48.5, 4.5], [40.5, 4], [40.5, 11], [37, 11], [37, 12.5], [1.5, 12.5], [1.5, -11.5], [0, -13]], 13, pierre, tuile, 4, pierreFoncee);
+    emprise(A, [[17, 12.5], [22.5, 12.5], [22.5, 17], [17, 17]], 26, pierre); A.pyramide(4.2, 4, 4, 19.75, 26, 14.75, tuile);
+    return A.groupe;
+  }
+
+  // l'abbaye d'Hautecombe : l'abbatiale « troubadour » au bord du lac du Bourget, les bâtiments de l'abbaye (les emprises
+  // de l'IGN)
+  function hautecombe(THREE) {
+    const A = atelier(THREE);
+    const pierre = A.matiere(0xEFE7D6), pierreFoncee = A.matiere(0xD2C6AC), ardoise = A.matiere(0x4F5D8C);
+    pave(A, [[12.5, -30.5], [13, -22.5], [19, -23], [20.5, -24], [21, -21.5], [23.5, -20], [24.5, -18.5], [23.5, -13.5], [20, -11.5], [10.5, -12], [10.5, -7.5], [12.5, -7], [12.5, -4.5], [10, -2], [10, 14.5], [29, 14], [28.5, 7], [28.5, 5.5], [42.5, 6], [42.5, 8], [44.5, 7.5], [46, 7.5], [47, 9.5], [46.5, 11], [46, 12], [44, 12], [43.5, 15], [37.5, 15], [38, 37.5], [22, 38], [22, 29.5], [-7, 29], [-29.5, 29.5], [-30, 39], [-45, 39], [-45, 6.5], [-45, -9.5], [-45.5, -9.5], [-34, -30.5], [-24.5, -30], [-19.5, -30], [-19, -32.5], [-11, -32.5], [-11, -27], [-5, -26.5], [-4.5, -31], [2, -30.5], [3, -31.5], [5, -30.5]], 14, pierre, ardoise, 4, pierreFoncee);
+    pave(A, [[-29.5, -4], [-45, 23.5], [-45, 6.5], [-45, -9.5], [-46.5, -10], [-47, -14.5], [-47.5, -15.5], [-46.5, -16.5], [-47, -20], [-47.5, -21], [-46.5, -21.5], [-46.5, -25.5], [-47.5, -25.5], [-47.5, -27], [-46.5, -27.5], [-37.5, -27], [-37.5, -30.5], [-24.5, -30], [-19.5, -30], [-19, -32.5], [-14, -32.5], [-27, -9.5], [-29.5, -9]], 13.6, pierre, ardoise, 4, pierreFoncee);
+    pave(A, [[-3.5, -8.5], [-3, 18.5], [-5, 18.5], [-29.5, 18], [-29.5, -9], [-26, -9]], 16, pierre, ardoise, 5, pierreFoncee);
+    pave(A, [[31.5, -23.5], [40.5, -8], [37, -6.5], [27, -21]], 18, pierre, ardoise, 5, pierreFoncee);
+    return A.groupe;
+  }
+
+  // l'abbaye de Cîteaux : le grand bâtiment classique des moines (l'emprise de l'IGN), ses toits
+  function citeaux(THREE) {
+    const A = atelier(THREE);
+    const pierre = A.matiere(0xF0E8D4), pierreFoncee = A.matiere(0xD6C8A8), tuile = A.matiere(0x9A5A40);
+    pave(A, [[-43.5, -48], [-38, -48], [-35, -43], [-28.5, -43.5], [-27.5, -30.5], [-25, -31], [-25, -27.5], [-27, -27.5], [-27, -26], [-15.5, -26.5], [-15, -18], [-34, -16.5], [-33.5, -3], [-27, -3], [-26.5, 3.5], [-36.5, 4], [-36, 9.5], [-38.5, 10], [-40.5, 9], [-40.5, 4.5], [-43.5, 4.5], [-45, -16], [-52.5, -15], [-54, -42], [-48.5, -42.5]], 15, pierre, tuile, 5, pierreFoncee);
+    return A.groupe;
+  }
+
+  // l'hôtel Lambert : l'hôtel de la pointe de l'île Saint-Louis, son corps de logis et sa galerie (l'emprise de l'IGN)
+  function hotelLambert(THREE) {
+    const A = atelier(THREE);
+    const pierre = A.matiere(0xF2EEE4), pierreFoncee = A.matiere(0xD6CFC0), ardoise = A.matiere(0x5A6378);
+    pave(A, [[-33.5, -22.5], [-32, -22], [-23, -22], [-20, -21], [-2, -21], [-2, -22.5], [-3.5, -22.5], [-3.5, -25], [1.5, -25], [1.5, -21], [7, -21], [10, -21], [10, -21.5], [11.5, -21.5], [12, -21], [20, -21.5], [24.5, -23], [30.5, -11.5], [28, -10.5], [23.5, -8.5], [10, -8.5], [11.5, 5.5], [11, 8], [10.5, 13], [-4, 13], [-17, 12.5], [-21.5, 12.5], [-33.5, -8], [-33.5, -16], [-33.5, -20.5]], 17, pierre, ardoise, 4, pierreFoncee);
+    pave(A, [[-33.5, -22.5], [-32.5, -22.5], [-12.5, 12.5], [-17, 12.5], [-32.5, 12], [-33, -5], [-33.5, -16], [-33.5, -20.5]], 16.6, pierre, ardoise, 4, pierreFoncee);
+    return A.groupe;
+  }
+
+  // la bibliothèque de l'Arsenal : le long hôtel du Grand Maître de l'artillerie, ses toits d'ardoise (l'emprise de l'IGN)
+  function arsenal(THREE) {
+    const A = atelier(THREE);
+    const pierre = A.matiere(0xF2EEE4), pierreFoncee = A.matiere(0xD6CFC0), ardoise = A.matiere(0x5A6378);
+    pave(A, [[6.5, 1], [6.5, 11], [7.5, 47], [-4.5, 46.5], [-5, 50.5], [-10, 51], [-10.5, 51], [-11, 49.5], [-10.5, 49.5], [-11, 32], [-11.5, 32], [-11.5, 30.5], [-11, 30.5], [-12, 2.5], [-12.5, 1], [-12, 0.5], [-12.5, -4], [-12.5, -14]], 13, pierre, ardoise, 4, pierreFoncee);
+    pave(A, [[9, -55], [9.5, -47.5], [5, -47.5], [6.5, 11], [7, 21], [-12, 6.5], [-12, 2.5], [-12.5, 1], [-12, 0.5], [-12.5, -4], [-12.5, -15.5], [-13, -15.5], [-13, -17], [-4.5, -17], [-5.5, -54.5], [-2, -54.5], [-2, -55], [3, -55]], 12.6, pierre, ardoise, 4, pierreFoncee);
+    return A.groupe;
+  }
+
+  // l'abbaye Saint-Pierre de Solesmes : le grand monastère au-dessus de la Sarthe, le clocher de l'abbatiale, la haute
+  // tour du Grand Moûtier (les emprises de l'IGN)
+  function solesmes(THREE) {
+    const A = atelier(THREE);
+    const pierre = A.matiere(0xE8E2D2), pierreFoncee = A.matiere(0xC8C0AC), ardoise = A.matiere(0x4F5D8C);
+    pave(A, [[64, -44], [64, -42.5], [66, -42.5], [66.5, -40.5], [65.5, -40.5], [65.5, -39], [64, -39], [58, -39], [58, -26], [64, -26], [64, -30.5], [65, -30.5], [65, -30], [67, -30], [67, -31], [68.5, -31], [68.5, -30], [69.5, -30], [69.5, -29], [68, -29], [68, -25.5], [69.5, -25.5], [69.5, -23], [68.5, -22.5], [68.5, -21.5], [67.5, -21.5], [67, -22.5], [65, -22.5], [65, -21.5], [50, -21.5], [50, -23.5], [49.5, -24], [22.5, -23.5], [22.5, -19], [18, -19], [17.5, -14], [18, -6.5], [15, -7], [15, -6], [18.5, -5.5], [20, -2], [23, 5], [22.5, 5.5], [20, 5.5], [20, 7.5], [19, 8], [18.5, 8.5], [0.5, 8], [0.5, 12.5], [0, 17], [-9, 17], [-9, 19.5], [-17, 19.5], [-17, 11], [-17.5, 10], [-16.5, 7.5], [-22.5, 7.5], [-24, 9], [-28, 9.5], [-29, 6.5], [-31, 5.5], [-35, 6.5], [-39, 6], [-39, 4], [-40, 2.5], [-40, -4], [-51.5, -3.5], [-52.5, -37], [-14.5, -38], [-13, -36], [-10, -35.5], [-10, -37], [-9, -37], [-9, -41], [-11.5, -41], [-11.5, -42], [-9, -42.5], [-9, -43.5], [1.5, -43.5], [1.5, -42.5], [1, -38], [1.5, -26], [13.5, -26], [13, -38], [11, -42], [11, -43], [11.5, -43], [12, -45.5], [11, -45.5], [11, -46.5], [12, -46.5], [12, -47.5], [13, -48], [13, -46.5], [19, -46.5], [19, -42], [44, -42], [44, -45], [46, -45], [46, -44.5], [49.5, -44.5], [49.5, -45], [50.5, -45], [50.5, -44], [62.5, -43.5], [62.5, -44]], 15, pierre, ardoise, 4, pierreFoncee);
+    pave(A, [[64, -21.5], [64, 18.5], [54, 18.5], [54, 7.5], [50, 7.5], [50, -21.5]], 17, pierre, ardoise, 4, pierreFoncee);
+    emprise(A, [[11, -42], [13, -38], [1, -38], [1.5, -42.5], [4.5, -42.5], [4.5, -43.5], [6, -43.5], [6, -42.5]], 26, pierre); emprise(A, [[13, -38], [13.5, -26], [1.5, -26], [1, -38]], 24, pierre);
+    A.pyramide(8.6, 9, 4, 7.25, 26, -36, ardoise);
+    pave(A, [[64, -39], [64, -26], [58, -26], [58, -39]], 30, pierre, ardoise, 6, pierreFoncee);
+    return A.groupe;
+  }
+
   // les maquettes connues : le monument (identifiant de data/monuments.json), où et comment la poser, et les
   // bâtiments de l'IGN qu'elle remplace (sinon les blocs gris de la BD TOPO resteraient dedans)
   const MODELES = {
@@ -5767,6 +5847,27 @@
     Q1736177: {   // Notre-Dame de Dax (la façade à l'ouest)
       construire: cathedraleDax, centre: [-1.05303, 43.708461], orientation: -2, masquer: ['BATIMENT0000000328652766', 'BATIMENT0000000328652765'],
     },
+    Q1658766: {   // la cathédrale d'Aire-sur-l'Adour (les emprises de l'IGN)
+      construire: cathedraleAire, centre: [-0.2622, 43.7006], orientation: -7, masquer: ['BATIMENT0000000328917431', 'BATIMENT0000000328917430', 'BATIMENT0000000328917432'],
+    },
+    Q2942470: {   // la cathédrale d'Apt (les emprises de l'IGN)
+      construire: cathedraleApt, centre: [5.3969, 43.8761], orientation: -6, masquer: ['BATIMENT0000000297224610', 'BATIMENT0000002292460715'],
+    },
+    Q63524: {   // l'abbaye d'Hautecombe (les emprises de l'IGN)
+      construire: hautecombe, centre: [5.8397, 45.7528], orientation: 29, masquer: ['BATIMENT0000002493162776', 'BATIMENT0000000216721611', 'BATIMENT0000000216721615'],
+    },
+    Q843261: {   // l'abbaye de Cîteaux (l'emprise de l'IGN)
+      construire: citeaux, centre: [5.0933, 47.1281], orientation: -21, masquer: ['BATIMENT0000000217493239'],
+    },
+    Q1643082: {   // l'hôtel Lambert (l'emprise de l'IGN)
+      construire: hotelLambert, centre: [2.3596, 48.8509], orientation: -30, masquer: ['BATIMENT0000000316905354'],
+    },
+    Q2256147: {   // la bibliothèque de l'Arsenal (l'emprise de l'IGN)
+      construire: arsenal, centre: [2.3635, 48.8503], orientation: 38, masquer: ['BATIMENT0000000309679811'],
+    },
+    Q306131: {   // l'abbaye de Solesmes (les emprises de l'IGN)
+      construire: solesmes, centre: [-0.3031, 47.8521], orientation: 29, masquer: ['BATIMENT0000000215055821', 'BATIMENT0000000215056337', 'BATIMENT0000000215056339', 'BATIMENT0000000215056338', 'BATIMENT0000000215056342', 'BATIMENT0000000215055839'],
+    },
   };
   const MASQUES = Object.values(MODELES).flatMap((m) => m.masquer);
 
@@ -5868,6 +5969,7 @@
     gellone,  becHellouin,  villaEphrussi,  rocheAuxFees,  barnenez,  erGrah,
     chapelleMedaille,  matignon,  maisonLaRoche,
     sedan,  brest,  luneville,
-    rambouillet,  cathedraleDax };
+    rambouillet,  cathedraleDax,
+    cathedraleAire,  cathedraleApt,  hautecombe,  citeaux,  hotelLambert,  arsenal,  solesmes };
   if (typeof module !== 'undefined' && module.exports) module.exports = api; else racine.Maquettes = api;
 })(typeof globalThis !== 'undefined' ? globalThis : this);
