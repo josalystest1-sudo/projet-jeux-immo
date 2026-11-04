@@ -3487,6 +3487,115 @@
     return A.groupe;
   }
 
+  // la cathédrale Saint-Sauveur d'Aix-en-Provence : la façade gothique, la nef, le clocher octogonal au nord, le baptistère
+  function cathedraleAix(THREE) {
+    const g = cathedrale(THREE, { pierre: 0xEAD9B4, pierreFoncee: 0xCDB58A, toit: 0xB0603F, toitFonce: 0x9A4F34, F: -12, E: 32, larg: 16, mur: 25, toitH: 8, xT: 10, cote: 9, facadeH: 30, rose: 3,
+      tours: [{ z: -13, x: 22, h: 40, octogone: { h: 10, r: 4 } }] });
+    const A = atelier(THREE), pierre = A.matiere(0xEAD9B4), tuile = A.matiere(0xB0603F);
+    A.piece((e) => new THREE.CylinderGeometry(6 + e, 6 + e, 12 + 2 * e, 8).rotateY(Math.PI / 8).translate(0, 6, 0), pierre, A.V(-21, 0, 0)); A.dome(6, 0.6, -21, 12, 0, tuile);
+    g.add(A.groupe); return g;
+  }
+
+  // le château de Maisons (François Mansart) : le corps central et son avant-corps, les deux ailes, les hauts combles d'ardoise
+  function chateauMaisons(THREE) {
+    const A = atelier(THREE);
+    const pierre = A.matiere(0xF2EEE4), ardoise = A.matiere(0x4F5D8C);
+    A.boite(14, 17, 38, 5.5, 0, -2, pierre); A.combles(14.6, 9, 38.6, 5.5, 17, -2, ardoise);
+    A.boite(12, 22, 12, 5.5, 0, -2, pierre); A.domeCarre(12.6, 9, 12.6, 5.5, 22, -2, ardoise);
+    A.boite(33, 17, 16, -2.3, 0, -28.7, pierre); A.combles(33.6, 10, 16.6, -2.3, 17, -28.7, ardoise);
+    A.boite(33, 17, 15, -2.2, 0, 25, pierre); A.combles(33.6, 10, 15.6, -2.2, 17, 25, ardoise);
+    return A.groupe;
+  }
+
+  // le château du Plessis-Bourré : le château blanc dans ses larges douves, ses ailes, ses tours rondes et le grand donjon
+  function plessisBourre(THREE) {
+    const A = atelier(THREE);
+    const tuffeau = A.matiere(0xF4EEDC), ardoise = A.matiere(0x4F5D8C), eau = A.matiere(0x6DC4F0, 0x0E3A55);
+    A.plaques([[88, 0.3, 14, 6, 0.1, -32], [88, 0.3, 14, 6, 0.1, 54], [14, 0.3, 72, -32, 0.1, 11], [14, 0.3, 72, 44, 0.1, 11]], eau);
+    A.boite(50, 13, 11, 6, 0, -12.5, tuffeau); A.toit(11.6, 8, 50, 6, 13, -12.5, ardoise);
+    A.boites([[9, 9, 50, -15.5, 0, 12], [9, 9, 50, 26.5, 0, 12], [42, 7, 8, 5, 0, 37]], tuffeau);
+    A.toits([[9.6, 4, 50, -15.5, 9, 12, Math.PI / 2], [9.6, 4, 50, 26.5, 9, 12, Math.PI / 2]], ardoise);
+    const tours = [[-22, -16, 6.5, 15], [-18.7, 42, 6.5, 13], [28, 42, 6.5, 13]];
+    A.cylindres(tours.map(([x, z, r, h]) => [x, z, r, h, 0]), tuffeau, 18); A.cones(tours.map(([x, z, r, h]) => [x, z, r + 0.4, h, r * 1.8]), ardoise, 18);
+    A.cylindre(7.5, 7.5, 24, 20, 31, 0, -18, tuffeau); A.creneaux([anneau(31, -18, 7.7, 18)], 24, 0.8, tuffeau); A.cones([[31, -18, 5, 25, 7]], ardoise, 18);
+    return A.groupe;
+  }
+
+  // le château de Talcy : le logis, le pavillon d'entrée et ses tourelles en encorbellement, le grand colombier rond
+  function talcy(THREE) {
+    const A = atelier(THREE);
+    const pierre = A.matiere(0xEFE6D0), ardoise = A.matiere(0x4F5D8C), tuile = A.matiere(0xB0603F);
+    A.boite(14, 9, 50, 37, 0, -11, pierre); A.toit(14.6, 7, 50, 37, 9, -11, ardoise, Math.PI / 2);
+    A.boite(34, 9, 13, 12, 0, 32, pierre); A.toit(13.6, 7, 34, 12, 9, 32, ardoise);
+    A.boite(10, 14, 10, 31, 0, 31, pierre); A.creneaux([A.tourDe(10.4, 10.4, 31, 31)], 14, 0.7, pierre); A.combles(9, 5, 9, 31, 14.7, 31, ardoise);
+    A.cylindres([[26, 26, 1.6, 6, 8], [36, 26, 1.6, 6, 8]], pierre, 10); A.cones([[26, 26, 1.9, 14, 3.5], [36, 26, 1.9, 14, 3.5]], ardoise, 10);
+    A.cylindre(5, 5, 8, 18, -9.4, 0, -27.8, pierre); A.cones([[-9.4, -27.8, 5.6, 8, 6]], tuile, 18);
+    return A.groupe;
+  }
+
+  // le château de Roquetaillade : l'enceinte carrée, ses tours rondes coiffées de cônes, le grand donjon carré au milieu
+  function roquetaillade(THREE) {
+    const A = atelier(THREE);
+    const pierre = A.matiere(0xE6D8BC), ombre = A.matiere(0xC9B894), ardoise = A.matiere(0x4F5D8C);
+    const mur = [[-10.6, -17.8], [23.9, -20], [22.8, 13.9], [-10, 13.9], [-10.6, -17.8]];
+    A.remparts([mur], 16, 7, pierre); A.creneaux([mur], 16, 0.8, ombre);
+    A.boite(11, 35, 11, 6, 0, -2, pierre); A.creneaux([A.tourDe(11.4, 11.4, 6, -2)], 35, 0.8, ombre); A.combles(9, 6, 9, 6, 35.7, -2, ardoise);
+    const tours = [[-10.6, -17.8], [23.9, -20], [-10, 13.9], [22.8, 13.9], [-10.6, -5.6]];
+    A.cylindres(tours.map(([x, z]) => [x, z, 5, 22, 0]), pierre, 16); A.cones(tours.map(([x, z]) => [x, z, 5.5, 22, 10]), ardoise, 16);
+    return A.groupe;
+  }
+
+  // le château d'Abbadia : le château néo-gothique d'Antoine d'Abbadie, ses tours, ses toits pointus, son observatoire
+  function abbadia(THREE) {
+    const A = atelier(THREE);
+    const pierre = A.matiere(0xE6DCC4), ardoise = A.matiere(0x4F5D8C);
+    A.boites([[17, 14, 12, -24.5, 0, -6.5], [26, 14, 11, -7, 0, 4.5], [10, 14, 21, -11, 0, 20.5], [14, 14, 11, 12, 0, 4.5]], pierre);
+    A.toits([[12.6, 7, 17, -24.5, 14, -6.5], [11.6, 6, 26, -7, 14, 4.5], [10.6, 6, 21, -11, 14, 20.5, Math.PI / 2], [11.6, 6, 14, 12, 14, 4.5]], ardoise);
+    A.cylindre(4, 4, 20, 16, -12, 0, 28, pierre); A.cones([[-12, 28, 4.4, 20, 9]], ardoise, 16);
+    A.boite(5, 22, 5, -16, 0, -10, pierre); A.pyramide(3.6, 7, 4, -16, 22, -10, ardoise);
+    return A.groupe;
+  }
+
+  // l'abbaye Saint-Victor de Marseille : l'église fortifiée, ses deux tours crénelées
+  function saintVictor(THREE) {
+    const A = atelier(THREE);
+    const pierre = A.matiere(0xE3D3B4), ombre = A.matiere(0xC6B38E);
+    A.boite(40, 14, 26, 0, 0, -1, pierre); A.creneaux([A.tourDe(40.4, 26.4, 0, -1)], 14, 0.8, ombre);
+    A.boite(14, 22, 14, -23, 0, -12, pierre); A.creneaux([A.tourDe(14.4, 14.4, -23, -12)], 22, 0.8, ombre);
+    A.boite(12, 20, 16, 22, 0, -1, pierre); A.creneaux([A.tourDe(12.4, 16.4, 22, -1)], 20, 0.8, ombre);
+    return A.groupe;
+  }
+
+  // la basilique de la Daurade (Toulouse) : la grande salle classique, son portique et son fronton, l'abside
+  function daurade(THREE) {
+    const A = atelier(THREE);
+    const brique = A.matiere(0xD9845E), pierre = A.matiere(0xEFE4CC), tuile = A.matiere(0xB0603F);
+    A.boite(70, 20, 17, -1.5, 0, -0.5, brique); A.toit(17.6, 5, 70, -1.5, 20, -0.5, tuile);
+    A.cylindre(7.5, 7.5, 18, 18, 1.5, 0, 12, brique); A.dome(7.7, 0.5, 1.5, 18, 12, tuile);
+    A.boite(3, 22, 17, -38, 0, -0.5, pierre); A.cylindres([-6, -2, 2, 6].map((dz) => [-41, -0.5 + dz, 0.9, 15, 0]), pierre, 12);
+    A.boite(5, 2, 17, -40, 15, -0.5, pierre); A.toit(17, 4, 5, -40, 17, -0.5, pierre);
+    return A.groupe;
+  }
+
+  // la grande synagogue de Bordeaux : la salle, la grande façade et sa rose, ses deux tours à petits dômes
+  function synagogueBordeaux(THREE) {
+    const A = atelier(THREE);
+    const pierre = A.matiere(0xEADFC6), pierreFoncee = A.matiere(0xCDBB98), ardoise = A.matiere(0x56659A), vitrail = A.matiere(0x3F6FE0, 0x1C3C9E);
+    A.boite(26, 18, 39, 6.35, 0, 0, pierre); A.toit(26.6, 7, 39, 6.35, 18, 0, ardoise, Math.PI / 2);
+    A.boite(28, 22, 3, 6.35, 0, -20.5, pierreFoncee); A.toit(28, 6, 3, 6.35, 22, -20.5, pierreFoncee, Math.PI / 2);
+    A.piece((e) => new THREE.CylinderGeometry(4.5 + e, 4.5 + e, 1 + 2 * e, 28).rotateX(Math.PI / 2), vitrail, A.V(6.35, 15, -22.2));
+    for (const s of [1, -1]) { A.boite(4.5, 28, 4.5, 6.35 + s * 12, 0, -20.5, pierre); A.dome(2.6, 1.4, 6.35 + s * 12, 28, -20.5, ardoise); }
+    return A.groupe;
+  }
+
+  // la basilique Saint-Seurin de Bordeaux : le porche roman, la nef, le clocher au nord, le chevet
+  const saintSeurin = (THREE) => cathedrale(THREE, { F: -33, E: 37, larg: 14, mur: 17, toitH: 7, xT: 10, cote: 8, facadeH: 22, rose: 3, arcs: false,
+    tours: [{ z: -10, x: -24, h: 30, fleche: 10, r: 4, seg: 4 }] });
+
+  // la cathédrale Saint-Apollinaire de Valence : la cathédrale romane, son clocher-porche, son transept, son abside
+  const cathedraleValence = (THREE) => cathedrale(THREE, { pierre: 0xEAD9B4, pierreFoncee: 0xCDB58A, toit: 0xB0603F, toitFonce: 0x9A4F34, F: -24, E: 39.5, larg: 12, mur: 18, toitH: 6,
+    xT: 20, transept: 36, transeptL: 12, cote: 10, facadeH: 20, rose: 2, arcs: false, tours: [{ z: 0, h: 36, fleche: 10, r: 4.6, seg: 4 }] });
+
   // les maquettes connues : le monument (identifiant de data/monuments.json), où et comment la poser, et les
   // bâtiments de l'IGN qu'elle remplace (sinon les blocs gris de la BD TOPO resteraient dedans)
   const MODELES = {
@@ -4322,6 +4431,39 @@
     Q1736175: {   // Saint-Michel de Carcassonne
       construire: saintMichelCarcassonne, centre: [2.3512, 43.211], orientation: 2, masquer: ['BATIMENT0000000351170368', 'BATIMENT0000000351170367'],
     },
+    Q1539168: {   // Saint-Sauveur d'Aix-en-Provence
+      construire: cathedraleAix, centre: [5.4472, 43.5319], orientation: 24, masquer: ['BATIMENT0000000258073724', 'BATIMENT0000000258073708', 'BATIMENT0000000258073709', 'BATIMENT0000000258073711'],
+    },
+    Q2092716: {   // le château de Maisons
+      construire: chateauMaisons, centre: [2.1538, 48.9472], orientation: -39, masquer: ['BATIMENT0000000322461733'],
+    },
+    Q1377160: {   // le château du Plessis-Bourré
+      construire: plessisBourre, centre: [-0.5444, 47.601], orientation: -2, masquer: ['BATIMENT0000000313342706'],
+    },
+    Q1479356: {   // le château de Talcy
+      construire: talcy, centre: [1.4444, 47.7697], orientation: 10, masquer: ['BATIMENT0000000321386691', 'BATIMENT0000000321386788', 'BATIMENT0000000321386626', 'BATIMENT0000000321386627', 'BATIMENT0000000321386789'],
+    },
+    Q2060046: {   // le château de Roquetaillade
+      construire: roquetaillade, centre: [-0.2698, 44.4926], orientation: -27, masquer: ['BATIMENT0000000255227599'],
+    },
+    Q2093924: {   // le château d'Abbadia
+      construire: abbadia, centre: [-1.7492, 43.3775], orientation: 1, masquer: ['BATIMENT0000002480408128', 'BATIMENT0000002480408129'],
+    },
+    Q1858504: {   // l'abbaye Saint-Victor de Marseille
+      construire: saintVictor, centre: [5.3656, 43.2903], orientation: 9, masquer: ['BATIMENT0000000273403293'],
+    },
+    Q2887166: {   // la basilique de la Daurade
+      construire: daurade, centre: [1.4399, 43.601], orientation: 38, masquer: ['BATIMENT0000000347888821'],
+    },
+    Q1316358: {   // la grande synagogue de Bordeaux
+      construire: synagogueBordeaux, centre: [-0.5739, 44.8336], orientation: 1, masquer: ['BATIMENT0000000257671749'],
+    },
+    Q2887041: {   // la basilique Saint-Seurin de Bordeaux
+      construire: saintSeurin, centre: [-0.585694, 44.843173], orientation: 9, masquer: ['BATIMENT0000000248426355'],
+    },
+    Q2942311: {   // Saint-Apollinaire de Valence
+      construire: cathedraleValence, centre: [4.889386, 44.931675], orientation: -22, masquer: ['BATIMENT0000002008478781', 'BATIMENT0000002008478780'],
+    },
   };
   const MASQUES = Object.values(MODELES).flatMap((m) => m.masquer);
 
@@ -4408,6 +4550,7 @@
     basiliqueSaintQuentin, cathedraleNancy, cathedraleLisieux, cathedraleMontauban, cathedraleAgen, cathedraleCambrai, cathedraleSaintBrieuc, cathedraleSees, cathedraleSaintMalo, cathedraleAgde, tournus, saintPierreCaen,
     orsay, memorialThiepval, grosHorloge, porteDesAllemands, tarascon, salses, josselin, hautefort, chateauAnnecy, fortLaLatte, cathedraleLaRochelle, cathedraleVienne,
     saintPaulStrasbourg, collegialeColmar, notreDameDijon, triniteVendome, cathedraleVerdun, saintNicolasDePort, bonaguil, montreuilBellay, maintenon, chateauSceaux, templeMarais, theatreLyon,
-    chateauCaen, chateauDinan, anet, ecouen, moissac, cathedraleAjaccio, cathedraleSaintes, arcGermanicus, cathedraleBazas, sainteReparate, saintMichelCarcassonne };
+    chateauCaen, chateauDinan, anet, ecouen, moissac, cathedraleAjaccio, cathedraleSaintes, arcGermanicus, cathedraleBazas, sainteReparate, saintMichelCarcassonne,
+    cathedraleAix, chateauMaisons, plessisBourre, talcy, roquetaillade, abbadia, saintVictor, daurade, synagogueBordeaux, saintSeurin, cathedraleValence };
   if (typeof module !== 'undefined' && module.exports) module.exports = api; else racine.Maquettes = api;
 })(typeof globalThis !== 'undefined' ? globalThis : this);
