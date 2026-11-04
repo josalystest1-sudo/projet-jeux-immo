@@ -4216,6 +4216,130 @@
     return A.groupe;
   }
 
+  // le château de Châlus-Chabrol : le grand donjon rond (où Richard Cœur de Lion fut blessé), le logis, sa tour
+  function chalus(THREE) {
+    const A = atelier(THREE);
+    const pierre = A.matiere(0xD9D2C2), pierreFoncee = A.matiere(0xB9B0A0), ardoise = A.matiere(0x4F5D8C);
+    A.cylindre(5.3, 5.6, 25, 20, 18.5, 0, -10, pierre); A.creneaux([anneau(18.5, -10, 5.3, 16)], 25, 0.8, pierreFoncee); A.cones([[18.5, -10, 4.6, 25, 6]], ardoise, 20);
+    A.boite(8, 12, 35, -14, 0, -9.5, pierre); A.toit(8.6, 6, 35, -14, 12, -9.5, ardoise, Math.PI / 2);
+    A.boite(18.7, 12, 12, -8.65, 0, 14, pierre); A.toit(12.6, 6, 18.7, -8.65, 12, 14, ardoise);
+    A.cylindre(4, 4, 15, 16, -14.5, 0, 23.5, pierre); A.cones([[-14.5, 23.5, 4.5, 15, 9]], ardoise, 16);
+    return A.groupe;
+  }
+
+  // le château de Puivert : le grand donjon carré, l'enceinte et ses tours, les ruines du vieux château à l'ouest
+  function puivert(THREE) {
+    const A = atelier(THREE);
+    const pierre = A.matiere(0xD9CBB0), pierreFoncee = A.matiere(0xBCAA8A);
+    const P = (l) => l.map(([x, z]) => [x - 45, z - 12]);
+    const enceinte = P([[8, 0], [21, -5], [38, -5], [43, -6], [47, -7.5], [51, -6], [91, -8], [95, -8.5], [97, -5], [96, 6], [91.5, 12], [95, 17], [92, 34], [88, 34], [45, 32], [42, 36], [38, 32], [-10, 30], [-6, 12], [2, 6]]);
+    A.remparts([enceinte], 10, 2.4, pierre); A.creneaux([enceinte], 10, 2.4, pierreFoncee);
+    const ruines = [[[-4, -1], [-15, -2], [-29, -4], [-32, 16], [-18, 19]], [[-15, -2], [-17, 9], [-11, 11]], [[-29, -4], [-46, -2], [-55, -2]], [[-37, -3], [-46, -2], [-64, -1], [-69, 3], [-69, 7], [-67, 12]]].map(P);
+    A.remparts(ruines, 5, 1.8, pierreFoncee);
+    const carres = [[13, 31, 12.6, 2, 6.3], [8, 20, 6, 42, 36], [7, 19, 7, 95, -8.5], [9, 20, 10, 91.5, 12]].map(([lx, h, lz, x, z]) => [lx, h, lz, x - 45, z - 12]);
+    for (const [lx, h, lz, x, z] of carres) { A.boite(lx, h, lz, x, 0, z, pierre); A.creneaux([A.tourDe(lx, lz, x, z)], h, 0.8, pierreFoncee); }
+    A.cylindre(3.5, 3.5, 15, 16, 2, 0, -19.5, pierre); A.creneaux([anneau(2, -19.5, 3.5, 16)], 15, 0.8, pierreFoncee);
+    return A.groupe;
+  }
+
+  // l'abbaye Saint-Martin-du-Canigou : l'abbatiale romane accrochée à la montagne et sa tour crénelée
+  function canigou(THREE) {
+    const A = atelier(THREE);
+    const pierre = A.matiere(0xCFC3AE), pierreFoncee = A.matiere(0xA99C86), lauze = A.matiere(0x7A746C);
+    A.boite(11, 13, 29, -5.5, 0, -7.5, pierre); A.toit(11.6, 4, 29, -5.5, 13, -7.5, lauze, Math.PI / 2);
+    A.boite(8, 27, 8, -14.7, 0, -14, pierre); A.creneaux([A.tourDe(8, 8, -14.7, -14)], 27, 0.8, pierreFoncee);
+    return A.groupe;
+  }
+
+  // l'abbaye de Cadouin : l'abbatiale romane, son chevet et ses absidioles, son clocher de lauzes à la croisée
+  function cadouin(THREE) {
+    const A = atelier(THREE);
+    const pierre = A.matiere(0xE6D3A8), lauze = A.matiere(0x6B6660);
+    A.boite(46.5, 13, 21, -3.25, 0, 0, pierre); A.toit(21.6, 5, 46.5, -3.25, 13, 0, lauze);
+    A.abside(7, 12, 20, 0, 0, pierre); A.demiCone(7.5, 4, 20, 12, 0, lauze);
+    for (const z of [-8, 8]) { A.abside(3.5, 9, 19, 0, z, pierre); A.demiCone(4, 3, 19, 9, z, lauze); }
+    A.boite(9, 20, 9, 12, 0, 0, pierre); A.pyramide(6.4, 7, 4, 12, 20, 0, lauze);
+    return A.groupe;
+  }
+
+  // l'abbatiale Saint-Pierre de Remiremont : la longue nef et son grand clocher coiffé d'un bulbe lorrain
+  function remiremont(THREE) {
+    const A = atelier(THREE);
+    const gres = A.matiere(0xE2C2A8), ardoise = A.matiere(0x4F5D8C);
+    A.boite(67, 16, 21, -3.5, 0, -2.5, gres); A.toit(21.6, 7, 67, -3.5, 16, -2.5, ardoise);
+    A.boite(10, 30, 10, -32, 0, -2.5, gres); A.dome(5.4, 1.4, -32, 30, -2.5, ardoise);
+    A.cylindre(1.2, 1.2, 3, 8, -32, 37.2, -2.5, gres); A.pyramide(1.6, 4, 8, -32, 40.2, -2.5, ardoise);
+    return A.groupe;
+  }
+
+  // le château de Puilaurens : la citadelle cathare sur son piton, ses courtines crénelées, ses tours, son réduit
+  function puilaurens(THREE) {
+    const A = atelier(THREE);
+    const pierre = A.matiere(0xD9CBB0), pierreFoncee = A.matiere(0xBCAA8A);
+    const P = (l) => l.map(([x, z]) => [x + 20, z + 12]);
+    const murs = [[[4, -20], [-11, -26], [-18, -32], [-24, -35], [-26, -31], [-28, -32], [-31, -30], [-30, -27], [-28, -26], [-34, -22], [-34, -19], [-42, -14], [-44, -7], [-48, -8], [-50, -5], [-49, -1], [-46, 0], [-42, -4], [-30, -8], [-25, -10], [-13, -17]],
+      [[-25, -10], [-20, -8], [-2, 5], [2, 0]], [[-5, 5], [-6, 6], [-4, 8], [-7, 10], [-12, 7], [-15, 9], [-16, 8], [-16, 5], [-14, 3]], [[20, -14], [17, -15], [4, -20], [2, -14]], [[9, 12], [-2, 5]],
+      [[-14, -4], [-12, -7], [-9, -13], [-13, -17]], [[-13, -17], [-18, -26], [-25, -29], [-26, -31]], [[-22, -17], [-19, -20], [-24, -24]], [[-26, -22], [-24, -24], [-22, -27]], [[-27, -23], [-32, -18], [-29, -15]], [[-27, -14], [-25, -10]]].map(P);
+    A.remparts(murs, 9, 2.2, pierre); A.creneaux(murs, 9, 2.2, pierreFoncee);
+    const reduit = [[[-44, -7], [-42, -10], [-34, -16], [-32, -13], [-29, -8]], [[-32, -13], [-29, -15], [-28, -13], [-22, -17], [-27, -23]]].map(P);
+    A.remparts(reduit, 13, 2.4, pierre); A.creneaux(reduit, 13, 2.4, pierreFoncee);
+    for (const [x, z, r] of [[-30.5, -29.5, 3.2], [-47, -4, 3.4]]) { A.cylindre(r, r, 13, 16, x + 20, 0, z + 12, pierre); A.creneaux([anneau(x + 20, z + 12, r, 16)], 13, 0.8, pierreFoncee); }
+    return A.groupe;
+  }
+
+  // le château d'Aguilar : la forteresse cathare, son enceinte extérieure et ses tours en demi-lune, l'enceinte intérieure,
+  // le donjon carré
+  function aguilar(THREE) {
+    const A = atelier(THREE);
+    const pierre = A.matiere(0xD9CBB0), pierreFoncee = A.matiere(0xBCAA8A);
+    const P = (l) => l.map(([x, z]) => [x - 12, z + 8]);
+    const exterieur = [[[22, -33], [16, -35], [16, -33], [0, -22], [-17, -13], [-22, -12], [-23, -9], [-19, -8], [-12, 5]], [[-10, 10], [-8, 14], [-10, 18], [-8, 20], [-4, 17], [15, 13]],
+      [[24, 12], [30, 11], [33, 10], [30, 7], [39, -5], [40, -8], [45, -11], [41, -13], [35, -26], [37, -31], [33, -31], [24, -33]]].map(P);
+    A.remparts(exterieur, 8, 2.2, pierre); A.creneaux(exterieur, 8, 2.2, pierreFoncee);
+    const interieur = [[[-2, -8], [13, -17], [24, -17], [27, -16], [23, -5], [21, -1], [17, 1], [6, 4], [-2, 4], [-7, -6], [-2, -8]]].map(P);
+    A.remparts(interieur, 10, 2.4, pierre); A.creneaux(interieur, 10, 2.4, pierreFoncee);
+    A.boite(8, 15, 8, 0, 0, 1, pierre); A.creneaux([A.tourDe(8, 8, 0, 1)], 15, 0.8, pierreFoncee);
+    for (const [x, z] of P([[18, -35], [-21, -10], [-9, 18], [30, 11], [43, -11], [35, -30]])) { A.cylindre(2.6, 2.6, 10, 14, x, 0, z, pierre); A.creneaux([anneau(x, z, 2.6, 12)], 10, 0.7, pierreFoncee); }
+    return A.groupe;
+  }
+
+  // le château de Termes : les ruines de la grande forteresse cathare, ses deux enceintes, son donjon
+  function termes(THREE) {
+    const A = atelier(THREE);
+    const pierre = A.matiere(0xD9CBB0), pierreFoncee = A.matiere(0xBCAA8A);
+    const P = (l) => l.map(([x, z]) => [x + 3, z + 15]);
+    const murs = [[[18, -66], [-9, -56], [-25, -50], [-28, -51], [-27, -48], [-27, -40], [-29, -36], [-33, -17], [-36, -18], [-36, -12], [-33, -13], [-37, 8]], [[27, -38], [26, -46], [25, -62]],
+      [[-3, -36], [-3, -38], [-6, -39], [-6, -36], [-18, -38], [-19, -33], [-13, -32]], [[8, -10], [9, -15], [10, -15]], [[27, -10], [27, -24]], [[-25, 29], [-26, 36]], [[-16, 37], [-15, 29], [-25, 29]],
+      [[-27, 42], [-16, 41]], [[-2, 35], [8, 28], [22, 16], [30, 6]], [[9, -30], [13, -28], [12, -22], [7, -23], [9, -30]]].map(P);
+    A.remparts(murs, 7, 2.2, pierre); A.creneaux(murs, 7, 2.2, pierreFoncee);
+    A.boite(7, 13, 12, -13, 0, -5, pierre); A.creneaux([A.tourDe(7, 12, -13, -5)], 13, 0.8, pierreFoncee);
+    return A.groupe;
+  }
+
+  // l'abbaye de Beauport (Paimpol) : les murs de l'abbatiale sans toit, les bâtiments en ruine au bord de la mer
+  function beauport(THREE) {
+    const A = atelier(THREE);
+    const granit = A.matiere(0xCFC8BA), granitFonce = A.matiere(0xA8A094);
+    const P = (l) => l.map(([x, z]) => [x - 25, z - 25]);
+    A.remparts([P([[3, 9], [40, 14], [42, 1], [5, -4], [3, 9]]), P([[52, 1], [49, 17]])], 14, 1.6, granit);
+    A.remparts([P([[37, 37], [37, 57], [2, 52], [5, 38], [37, 37]]), P([[4, 43], [37, 48]])], 9, 1.4, granitFonce);
+    return A.groupe;
+  }
+
+  // le château de Commarque : les ruines du castrum dans la forêt, son haut donjon carré
+  function commarque(THREE) {
+    const A = atelier(THREE);
+    const pierre = A.matiere(0xE6D3A8), pierreFoncee = A.matiere(0xC4AE84);
+    const P = (l) => l.map(([x, z]) => [x + 12, z + 15]);
+    const murs = [[[24, -22], [28, -13], [22, -10], [21, -12], [17, -10], [16, -13], [9, -8], [1, -19], [9, -23], [12, -17], [24, -22]], [[6, -34], [1, -29], [-3, -32], [3, -37], [6, -34]],
+      [[3, -37], [-1, -41], [-3, -38], [-11, -43], [-9, -48], [-21, -51], [-20, -55], [-10, -53], [1, -49], [8, -45], [9, -43]],
+      [[-53, -13], [-47, 1], [-44, 8], [-33, 25], [-28, 32], [-21, 26], [-22, 25], [-25, 21], [-31, 25]], [[-10, 0], [-1, 13], [-7, 16]]].map(P);
+    A.remparts(murs, 8, 2, pierre); A.creneaux(murs, 8, 2, pierreFoncee);
+    const r = Math.atan2(-8, 5); A.boite(9.4, 24, 8.1, -11.5, 0, -2, pierre, r);
+    A.creneaux([P([[-23, -23], [-18, -15], [-25, -11], [-28, -17], [-23, -23]])], 24, 0.8, pierreFoncee);
+    return A.groupe;
+  }
+
   // les maquettes connues : le monument (identifiant de data/monuments.json), où et comment la poser, et les
   // bâtiments de l'IGN qu'elle remplace (sinon les blocs gris de la BD TOPO resteraient dedans)
   const MODELES = {
@@ -5264,6 +5388,36 @@
     Q3396772: {   // le Pont-Vieux d'Albi (x : de la rive nord à la rive sud)
       construire: pontVieuxAlbi, centre: [2.144556, 43.931205], orientation: -64, masquer: [],
     },
+    Q1011361: {   // le château de Châlus-Chabrol
+      construire: chalus, centre: [0.979463, 45.657615], orientation: -31, masquer: ['BATIMENT0000000353476844', 'BATIMENT0000000353477408'],
+    },
+    Q628375: {   // le château de Puivert (l'enceinte d'après les murs de l'IGN)
+      construire: puivert, centre: [2.05557, 42.921071], orientation: 11, masquer: ['BATIMENT0000000350885183', 'BATIMENT0000000350885182', 'BATIMENT0000000080180923', 'BATIMENT0000000350885181', 'BATIMENT0000000350885179', 'BATIMENT0000000350885178', 'BATIMENT0000000350885180'],
+    },
+    Q287751: {   // Saint-Martin-du-Canigou
+      construire: canigou, centre: [2.400888, 42.528187], orientation: -37, masquer: ['BATIMENT0000002275226617', 'BATIMENT0000002275226616'],
+    },
+    Q333850: {   // l'abbaye de Cadouin (la façade à l'ouest)
+      construire: cadouin, centre: [0.873825, 44.811675], orientation: 0, masquer: ['BATIMENT0000000295940893'],
+    },
+    Q334124: {   // l'abbatiale de Remiremont (le clocher à l'ouest)
+      construire: remiremont, centre: [6.591129, 48.015639], orientation: 2, masquer: ['BATIMENT0000000295128187', 'BATIMENT0000000295126153', 'BATIMENT0000000295126152'],
+    },
+    Q1013541: {   // le château de Puilaurens (les murs en ruine de l'IGN)
+      construire: puilaurens, centre: [2.299155, 42.803909], orientation: 0, masquer: [],
+    },
+    Q1010703: {   // le château d'Aguilar (les murs en ruine de l'IGN)
+      construire: aguilar, centre: [2.747047, 42.890672], orientation: 0, masquer: [],
+    },
+    Q1014245: {   // le château de Termes (les murs en ruine de l'IGN)
+      construire: termes, centre: [2.556663, 43.002336], orientation: 0, masquer: [],
+    },
+    Q333837: {   // l'abbaye de Beauport (les murs en ruine de l'IGN)
+      construire: beauport, centre: [-3.019059, 48.767574], orientation: 0, masquer: [],
+    },
+    Q1516747: {   // le château de Commarque (les murs en ruine de l'IGN)
+      construire: commarque, centre: [1.101748, 44.941836], orientation: 0, masquer: ['BATIMENT0000002292747217'],
+    },
   };
   const MASQUES = Object.values(MODELES).flatMap((m) => m.masquer);
 
@@ -5358,6 +5512,7 @@
     porteDeMars,  cathedraleChalons,  notreDameEnVaux,  templeVienne,  suscinio,  fougeres,  palaisLongchamp,  transbordeur,  cathedraleSaintPol,
     museePicardie,  najac,  sainteCroixBordeaux,  ainayLeVieil,  saintPierreLeJeune,  azayLeFerron,  saintLeu,
     murol,  villesavin,  montpoupon,  puymartin,  laBrede,  cathedraleAntibes,  cathedraleViviers,  chaalis,
-    fontfroide,  valmagne,  maguelone,  cathedraleLavaur,  epau,  montmajour,  saintPaulMausole,  pontVieuxAlbi };
+    fontfroide,  valmagne,  maguelone,  cathedraleLavaur,  epau,  montmajour,  saintPaulMausole,  pontVieuxAlbi,
+    chalus,  puivert,  canigou,  cadouin,  remiremont,  puilaurens,  aguilar,  termes,  beauport,  commarque };
   if (typeof module !== 'undefined' && module.exports) module.exports = api; else racine.Maquettes = api;
 })(typeof globalThis !== 'undefined' ? globalThis : this);

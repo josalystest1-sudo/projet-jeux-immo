@@ -114,6 +114,7 @@ Rien d'important ne vit dans une conversation : tout est dans le dépôt ou sur 
 - Vingt-sixième lot régional (PR #78) : le musée de Picardie, Najac, Sainte-Croix de Bordeaux, Ainay-le-Vieil, Saint-Pierre-le-Jeune, Azay-le-Ferron, Saint-Leu-Saint-Gilles.
 - Vingt-septième lot régional (PR #79) : Murol, Villesavin, Montpoupon, Puymartin, La Brède, Antibes, Viviers, Chaalis.
 - Vingt-huitième lot régional (PR #80) : Fontfroide, Valmagne, Maguelone, Lavaur, l'Épau, Montmajour, Saint-Paul-de-Mausole, le Pont-Vieux d'Albi.
+- Vingt-neuvième lot régional (PR #81) : Châlus-Chabrol, Puivert, Canigou, Cadouin, Remiremont et cinq ruines tracées d'après les murs de l'IGN (Puilaurens, Aguilar, Termes, Beauport, Commarque).
 
 ## Toutes les PR
 
@@ -220,6 +221,7 @@ Puis une PR par étape, fusionnée en squash :
 | #78 | 04/11 04:20 | Graphismes : sept monuments régionaux de plus (le musée de Picardie, Najac, Sainte-Croix de Bordeaux, Ainay-le-Vieil, Saint-Pierre-le-Jeune, Azay-le-Ferron, Saint-Leu-Saint-Gilles) |
 | #79 | 04/11 04:27 | Graphismes : huit monuments régionaux de plus (Murol, Villesavin, Montpoupon, Puymartin, La Brède, Antibes, Viviers, Chaalis) |
 | #80 | 04/11 04:34 | Graphismes : huit monuments régionaux de plus (Fontfroide, Valmagne, Maguelone, Lavaur, l'Épau, Montmajour, Saint-Paul-de-Mausole, le Pont-Vieux d'Albi) |
+| #81 | 04/11 04:43 | Graphismes : dix monuments régionaux de plus (Châlus-Chabrol, Puivert, Saint-Martin-du-Canigou, Cadouin, Remiremont, Puilaurens, Aguilar, Termes, Beauport, Commarque) |
 
 ## Les décisions de Gautier
 
@@ -250,7 +252,7 @@ Les décisions du 2 novembre (interview) sont dans `CLAUDE.md` § 4 et dans le G
 - **Le serveur, suite** (phase 8) :
   - 8.2 : le mode serveur par défaut, la fin des joueurs simulés, l'inscription des amis. Question posée à Gautier, sans réponse : couper la confirmation par e-mail pendant les essais ?
   - 8.3 : l'anti-triche.
-- **Les graphismes** (phase 10, avant 8.2 : décision de Gautier) : la preuve, l'ouverture, les monuments nationaux et 287 monuments régionaux en 3D (340 maquettes) ; ensuite les autres régionaux, l'habillage de la révélation, l'icône et le logo (`docs/BIBLE-GRAPHIQUE.md`).
+- **Les graphismes** (phase 10, avant 8.2 : décision de Gautier) : la preuve, l'ouverture, les monuments nationaux et 297 monuments régionaux en 3D (350 maquettes) ; ensuite les autres régionaux, l'habillage de la révélation, l'icône et le logo (`docs/BIBLE-GRAPHIQUE.md`).
 - **La boutique** (phase 9) : Stripe, packs et Pass mensuel (pack de 8 cartes, bon mensuel : GDD § 3), probabilités affichées, blocage Belgique et Pays-Bas, CGU, confidentialité, mentions légales.
 - **Ensuite** : les graphismes (phase 10), l'équilibrage et le lancement (phase 11).
 - **Au lancement** :

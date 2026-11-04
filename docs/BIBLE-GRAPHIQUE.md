@@ -215,3 +215,6 @@ Où c'est dans le code : la pochette est dessinée par `makeArt()` (`index.html`
 - **Huit monuments régionaux de plus** (nuit du 4 nov.) : les abbayes de **Fontfroide**, **Valmagne** (la grande abbatiale et ses deux tours), **l'Épau** et **Montmajour** (l'abbatiale, la tour de Pons de l'Orme, la ruine du monastère mauriste), **la cathédrale de Maguelone** sur son île, **la cathédrale de Lavaur** (la brique du gothique méridional, le clocher octogonal), **Saint-Paul-de-Mausole**, **le Pont-Vieux d'Albi** (ses arches sur le Tarn).
 
 ![Fontfroide, Valmagne, la cathédrale de Lavaur, l'Épau, Montmajour et le Pont-Vieux d'Albi](bible/monuments-35.jpg)
+- **Dix monuments régionaux de plus** (nuit du 4 nov.) : **Châlus-Chabrol** (le donjon rond), **Puivert** (le grand donjon carré et l'enceinte), **Saint-Martin-du-Canigou** (l'abbatiale et sa tour crénelée), **Cadouin** (le clocher de lauzes), **Remiremont** (le clocher à bulbe lorrain), les châteaux cathares en ruine de **Puilaurens**, **Aguilar** et **Termes**, **l'abbaye de Beauport**, **le château de Commarque** : les ruines sont tracées d'après les murs de l'IGN.
+
+![Châlus-Chabrol, Puivert, Saint-Martin-du-Canigou, Remiremont, Aguilar et Commarque](bible/monuments-36.jpg)
