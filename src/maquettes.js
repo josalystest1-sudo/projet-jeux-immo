@@ -1388,6 +1388,74 @@
     return A.groupe;
   }
 
+  // le théâtre de l'Odéon (la façade et son portique au nord, en -z, sur la place de l'Odéon)
+  function odeon(THREE) {
+    const A = atelier(THREE);
+    const pierre = A.matiere(0xEFE6D2), pierreFoncee = A.matiere(0xD6C8A8), ardoise = A.matiere(0x56659A);
+    A.boite(35, 18, 58, -4.7, 0, 0, pierre); A.boite(36, 1.4, 59, -4.7, 18, 0, pierreFoncee); A.combles(35.6, 6, 58.6, -4.7, 19.4, 0, ardoise);
+    A.cylindres(Array.from({ length: 8 }, (_, k) => [-19 + k * 4.1, -30.6, 0.9, 13, 1]), pierre, 12); A.boite(31, 2.4, 3.6, -4.7, 14, -30.6, pierreFoncee); A.boite(31, 1, 3.6, -4.7, 0, -30.6, pierreFoncee);
+    return A.groupe;
+  }
+
+  // le château de Chantilly : le Grand Château en triangle et ses tours rondes, la chapelle et sa flèche, le Petit Château
+  function chantilly(THREE) {
+    const A = atelier(THREE);
+    const pierre = A.matiere(0xF3EDDD), ardoise = A.matiere(0x4F5D8C), ardoiseFoncee = A.matiere(0x3F4B78);
+    const anneau = [[[-31, -60], [25, -17], [-13, 26], [-31, 20], [-31, -60]]];
+    A.remparts(anneau, 15, 12, pierre); A.remparts(anneau, 5, 12.4, ardoise, 15);
+    const tours = [[-28, -70, 6], [32, -18, 6], [8.6, 5, 4.5], [-2.4, 17, 4.5], [-29, 43, 5]];
+    A.cylindres(tours.map(([x, z, r]) => [x, z, r, 17, 0]), pierre, 16); A.cones(tours.map(([x, z, r]) => [x, z, r + 0.4, 17, r * 1.6]), ardoise, 16);
+    A.boite(10, 16, 24, -28, 0, 30, pierre); A.toit(10.6, 7, 24, -28, 16, 30, ardoise, Math.PI / 2); A.pyramide(2, 16, 8, -28, 22, 22, ardoiseFoncee);
+    const pc = [[11, 12, 53, -67.5, 8.5], [27, 12, 9, -49.5, 30.5], [38, 12, 12, -54, -12]];
+    A.boites(pc.map(([lx, h, lz, x, z]) => [lx, h, lz, x, 0, z]), pierre); A.toits(pc.map(([lx, h, lz, x, z]) => (lx > lz ? [lz + 0.6, 7, lx, x, h, z, 0] : [lx + 0.6, 7, lz, x, h, z, Math.PI / 2])), ardoise);
+    return A.groupe;
+  }
+
+  // le château d'Angers : l'enceinte et ses tours rondes rayées de schiste et de tuffeau, la chapelle
+  function angers(THREE) {
+    const A = atelier(THREE);
+    const schiste = A.matiere(0x6E6A72), tuffeau = A.matiere(0xEFE6D0), ardoise = A.matiere(0x4F5D8C);
+    const mur = [[[-40, -83], [-10, -80], [30, -72], [80, -62], [105, -57], [112, -30], [108, 0], [98, 12], [60, 36], [30, 54], [0, 60], [-10, 62], [-60, 63], [-100, 65], [-100, -10], [-40, -83]]];
+    A.remparts(mur, 22, 6, schiste); A.creneaux(mur, 22, 1, schiste);
+    const tours = [[-40, -84, 6.5], [22, -79, 9], [51, -75, 9], [75, -68, 9], [104, -62, 9], [108, -33, 9], [105, 3, 10], [65, 28, 9], [45, 42, 9], [22, 59, 9], [-31, 64, 9], [-53, 65, 9], [-75, 61, 9], [-91, 59, 9]];
+    A.cylindres(tours.map(([x, z, r]) => [x, z, r, 30, 0]), schiste, 20);
+    A.piece(() => A.fusion(tours.flatMap(([x, z, r]) => [3, 9, 15, 21, 27].map((y) => new THREE.CylinderGeometry(r + 0.06, r + 0.06, 2.2, 20).translate(x, y, z)))), tuffeau, null, null, true);
+    A.boite(23, 20, 12, -18, 0, -25, tuffeau, 0.2); A.toit(12.6, 12, 23, -18, 20, -25, ardoise, 0.2);
+    return A.groupe;
+  }
+
+  // la cathédrale de Bayeux : les deux flèches de la façade, la tour-lanterne de la croisée et son dôme vert
+  const bayeux = (THREE) => cathedrale(THREE, { F: -45, E: 41, larg: 22, mur: 26, toitH: 10, xT: 4, transept: 40, transeptL: 14, cote: 14, facadeH: 30, rose: 4.5,
+    tours: [{ z: -17.75, h: 38, fleche: 36, r: 5.5, seg: 8 }, { z: 17.75, h: 38, fleche: 36, r: 5.5, seg: 8 }], flecheCroisee: { tour: 18, cote: 13, seg: 8, h: 10, r: 7.5, couleur: 0x5FA58A } });
+
+  // l'arc antique d'Orange : trois arches, les colonnes, l'attique et ses reliefs
+  function arcOrange(THREE) {
+    const A = atelier(THREE);
+    const pierre = A.matiere(0xE6CDA0), pierreFoncee = A.matiere(0xC9AC78), ombre = A.matiere(0x8E7552);
+    for (const [x, l] of [[-8.5, 2.6], [-3.3, 1.8], [3.3, 1.8], [8.5, 2.6]]) A.boite(l, 11.5, 8.5, x, 0, 0, pierre);
+    A.boite(19.6, 3.4, 8.5, 0, 11.5, 0, pierre); A.boite(20.4, 1, 9.3, 0, 14.9, 0, pierreFoncee); A.boite(19.6, 3.3, 8.5, 0, 15.9, 0, pierre); A.boite(20, 1, 8.9, 0, 19.2, 0, pierreFoncee);
+    A.boite(4.8, 2.6, 8.5, 0, 8.9, 0, pierre); for (const s of [1, -1]) A.boite(3, 5, 8.5, s * 5.7, 6.5, 0, pierre);
+    A.cylindres([-9.6, -5.8, 5.8, 9.6].flatMap((x) => [[x, 4.45, 0.45, 11, 0.5], [x, -4.45, 0.45, 11, 0.5]]), pierreFoncee, 10);
+    A.plaques([[16, 2.4, 0.3, 0, 16.3, 4.35], [16, 2.4, 0.3, 0, 16.3, -4.35]], ombre);
+    return A.groupe;
+  }
+
+  // la villa Savoye (Le Corbusier) : la boîte blanche sur ses pilotis, la fenêtre en bandeau, le rez-de-chaussée vitré et
+  // courbe, le solarium et ses écrans courbes sur le toit
+  function villaSavoye(THREE) {
+    const A = atelier(THREE);
+    const blanc = A.matiere(0xF7F7F2), vitre = A.matiere(0x3E5C58), vert = A.matiere(0x6C8E7A);
+    const pil = []; for (const x of [-8.5, -3, 3, 8.5]) for (const z of [-9, -3, 3, 9]) pil.push([x, z, 0.22, 3.5, 0]);
+    A.cylindres(pil, blanc, 8);
+    const rdc = new THREE.Shape(); rdc.moveTo(-7, -8); rdc.lineTo(7, -8); rdc.lineTo(7, 4); rdc.absarc(0, 4, 7, 0, Math.PI, false); rdc.lineTo(-7, -8);
+    A.piece(() => new THREE.ExtrudeGeometry(rdc, { depth: 3.2, bevelEnabled: false, curveSegments: 16 }).rotateX(-Math.PI / 2), vert, null, null, true);
+    A.boite(19.5, 3.6, 21.5, 0, 3.5, 0, blanc);
+    A.plaques([[19.6, 1, 0.3, 0, 4.8, 10.8], [19.6, 1, 0.3, 0, 4.8, -10.8], [0.3, 1, 21.6, 9.8, 4.8, 0], [0.3, 1, 21.6, -9.8, 4.8, 0]], vitre);
+    const ecran = new THREE.Shape(); ecran.moveTo(-6, 0); ecran.quadraticCurveTo(-8, 4, -3, 5); ecran.quadraticCurveTo(0, 2, 3, 5.5); ecran.lineTo(3.3, 5.2); ecran.quadraticCurveTo(0, 1.5, -3, 4.5); ecran.quadraticCurveTo(-7.4, 3.6, -5.6, 0); ecran.closePath();
+    A.piece(() => new THREE.ExtrudeGeometry(ecran, { depth: 3, bevelEnabled: false, curveSegments: 12 }).rotateX(-Math.PI / 2), blanc, A.V(2, 7.1, 2), null, true);
+    return A.groupe;
+  }
+
   // les maquettes connues : le monument (identifiant de data/monuments.json), où et comment la poser, et les
   // bâtiments de l'IGN qu'elle remplace (sinon les blocs gris de la BD TOPO resteraient dedans)
   const MODELES = {
@@ -1628,6 +1696,24 @@
     Q1122731: {   // le Clos Lucé
       construire: closLuce, centre: [0.991958, 47.410324], orientation: 33, masquer: ['BATIMENT0000000322878440', 'BATIMENT0000000322878441'],
     },
+    Q1133501: {   // l'Odéon : le portique au nord, sur la place
+      construire: odeon, centre: [2.3388, 48.8495], orientation: 1, masquer: ['BATIMENT0000000241936602'],
+    },
+    Q766938: {   // Chantilly : le Grand Château en triangle, le Petit Château à l'ouest
+      construire: chantilly, centre: [2.4858, 49.1939], orientation: 27, masquer: ['BATIMENT0000000318467886', 'BATIMENT0000000318467885'],
+    },
+    Q1048155: {   // Angers : l'enceinte et ses tours, la Maine à l'ouest
+      construire: angers, centre: [-0.56, 47.47], orientation: -39, masquer: ['BATIMENT0000000313191949', 'BATIMENT0000000313191950', 'BATIMENT0000000313191951', 'BATIMENT0000000313191953', 'BATIMENT0000000313191952', 'BATIMENT0000000313191945', 'BATIMENT0000000313191934', 'BATIMENT0000000313191432', 'BATIMENT0000000313198134', 'BATIMENT0000000313191926', 'BATIMENT0000000313191922'],
+    },
+    Q1636244: {   // Bayeux : la façade et ses deux flèches à l'ouest
+      construire: bayeux, centre: [-0.703439, 49.275547], orientation: -29, masquer: ['BATIMENT0000000201938877', 'BATIMENT0000000201938878', 'BATIMENT0000000201938879', 'BATIMENT0000000201938890', 'BATIMENT0000000201937333'],
+    },
+    Q1777218: {   // l'arc d'Orange
+      construire: arcOrange, centre: [4.8048, 44.1422], orientation: 14, masquer: ['BATIMENT0000000272966361'],
+    },
+    Q940746: {   // la villa Savoye
+      construire: villaSavoye, centre: [2.0283, 48.9244], orientation: 33, masquer: ['BATIMENT0000002012317386'],
+    },
   };
   const MASQUES = Object.values(MODELES).flatMap((m) => m.masquer);
 
@@ -1647,18 +1733,18 @@
         // La lumière vient d'en haut à gauche (bible § 2) ; un ciel clair et un sol bleuté pour les faces à l'ombre.
         const ciel = new THREE.HemisphereLight(0xffffff, 0x8FA3D6, LUMIERE.ciel); this.scene.add(ciel);
         const soleil = new THREE.DirectionalLight(0xffffff, LUMIERE.soleil); soleil.position.set(-0.8, 1.6, -0.6); this.scene.add(soleil);
+        // Une maquette n'est construite que quand on approche de son monument (render) : les construire toutes au démarrage
+        // prenait 0,3 s sur un PC à 71 maquettes (bien plus sur un téléphone), et la mémoire de toutes leurs formes.
         for (const [id, m] of Object.entries(MODELES)) {
-          const g = m.construire(THREE); g.rotation.y = m.orientation * Math.PI / 180;
-          const objet = new THREE.Group(); objet.add(g); this.scene.add(objet);
           const mc = maplibregl.MercatorCoordinate.fromLngLat(m.centre, 0), s = mc.meterInMercatorCoordinateUnits();
           // mètres (x est, y haut, z sud) → mercator (x est, y sud, z haut)
           const place = new THREE.Matrix4().makeTranslation(mc.x, mc.y, mc.z).scale(new THREE.Vector3(s, -s, s)).multiply(new THREE.Matrix4().makeRotationX(Math.PI / 2));
-          poses.push({ id, objet, place, centre: m.centre });
+          poses.push({ id, m, objet: null, place, centre: m.centre });
         }
-        // rien ne bouge : les positions des pièces se calculent une fois pour toutes (sinon Three.js les recalcule à chaque
-        // dessin, pour toutes les pièces de tous les monuments, 22 fois par image : 10 ms de plus par image, 4 nov. 2026)
-        this.scene.updateMatrixWorld(true); if ('matrixWorldAutoUpdate' in this.scene) this.scene.matrixWorldAutoUpdate = false; else this.scene.autoUpdate = false;
-        this.loin = []; this.pres = []; this.scene.traverse((o) => { if (o.userData.contour === 'loin') this.loin.push(o); else if (o.userData.contour === 'pres') this.pres.push(o); }); this.deLoin = true;
+        // rien ne bouge : les positions des pièces se calculent une fois pour toutes, à la construction (sinon Three.js les
+        // recalcule à chaque dessin, pour toutes les pièces de tous les monuments : 10 ms de plus par image, 4 nov. 2026)
+        if ('matrixWorldAutoUpdate' in this.scene) this.scene.matrixWorldAutoUpdate = false; else this.scene.autoUpdate = false;
+        this.loin = []; this.pres = []; this.deLoin = true;
         this.renderer = new THREE.WebGLRenderer({ canvas: map.getCanvas(), context: gl, antialias: true });
         this.renderer.autoClear = false;
       },
@@ -1673,10 +1759,17 @@
         for (const p of poses) {
           const [lon, lat] = p.centre;
           if (lon < b.getWest() - marge || lon > b.getEast() + marge || lat < b.getSouth() - marge || lat > b.getNorth() + marge) continue;
-          for (const q of poses) q.objet.visible = q === p;
+          if (!p.objet) this.construire(p);
+          for (const q of poses) if (q.objet) q.objet.visible = q === p;
           this.camera.projectionMatrix.multiplyMatrices(carte, p.place); this.camera.projectionMatrixInverse.copy(this.camera.projectionMatrix).invert();
           this.renderer.render(this.scene, this.camera);
         }
+      },
+      // construire la maquette d'un monument, la première fois qu'il approche de l'écran
+      construire(p) {
+        const g = p.m.construire(THREE); g.rotation.y = p.m.orientation * Math.PI / 180;
+        const objet = new THREE.Group(); objet.add(g); this.scene.add(objet); objet.updateMatrixWorld(true); p.objet = objet;
+        objet.traverse((o) => { if (o.userData.contour === 'loin') { this.loin.push(o); o.visible = this.deLoin; } else if (o.userData.contour === 'pres') { this.pres.push(o); o.visible = !this.deLoin; } });
       },
       onRemove() { if (this.renderer) this.renderer.dispose(); },
     };
@@ -1689,6 +1782,7 @@
     vaux, vincennes, blois, amboise, chateauIf, notreDameDeLaGarde, viaducDeMillau,
     bourges, nantes, vezelay, beauvais, cluny, fontenay, ronchamp, maisonCarree, theatreOrange, pontAvignon, carnac,
     montsoreau, saintGermainEnLaye, saintSavin, salineRoyale, saintEustache, chaillot, placeStanislas, laon,
-    fontevraud, palaisTau, azayLeRideau, cordouan, villandry, observatoireNice, albi, ecoleMilitaire, theatreChampsElysees, closLuce };
+    fontevraud, palaisTau, azayLeRideau, cordouan, villandry, observatoireNice, albi, ecoleMilitaire, theatreChampsElysees, closLuce,
+    odeon, chantilly, angers, bayeux, arcOrange, villaSavoye };
   if (typeof module !== 'undefined' && module.exports) module.exports = api; else racine.Maquettes = api;
 })(typeof globalThis !== 'undefined' ? globalThis : this);
