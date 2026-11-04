@@ -4595,6 +4595,31 @@
     return A.groupe;
   }
 
+  // le château de Rambouillet : le château en triangle (l'emprise de l'IGN), son aile nord, ses tours rondes, ses toits
+  // d'ardoise
+  function rambouillet(THREE) {
+    const A = atelier(THREE);
+    const pierre = A.matiere(0xEDE6D6), ardoise = A.matiere(0x4F5D8C);
+    const P = (l) => l.map(([x, z]) => [x + 22, z - 12]);
+    emprise(A, P([[-35.5, -16], [-32, -14.5], [-30, -13], [-29, 17], [-20.5, 17.5], [-20, 14.5], [-13, 15], [-13, 18.5], [-3, 20], [0.5, 19.5], [1.5, 19.5], [2.5, 20], [3.5, 22.5], [0, 26], [-2.5, 23.5],
+      [-23, 42.5], [-23.5, 46], [-26, 46.5], [-28.5, 45], [-28, 40.5], [-46, 23.5], [-48, 25], [-49.5, 25], [-51, 22.5], [-51, 20.5], [-49.5, 19], [-47.5, 19], [-47.5, -11], [-47, -15.5], [-40, -14], [-37.5, -15.5]]), 15, pierre);
+    A.toits([[19, 7, 32, -16.25, 15, -11, Math.PI / 2], [10.6, 5, 30.5, -15, 15, 20.5, Math.atan2(-23, 20)], [10.6, 5, 34.7, 11, 15, 20.5, Math.atan2(-23, -26)], [6, 3, 31.5, 8.75, 15, 5.5]], ardoise);
+    const tours = [[-27.5, 10, 2.8], [23.5, 10, 2.8], [-4, 32.5, 3.2]];
+    A.cylindres(tours.map(([x, z, r]) => [x, z, r, 17, 0]), pierre, 16); A.cones(tours.map(([x, z, r]) => [x, z, r + 0.5, 17, r * 2.4]), ardoise, 16);
+    return A.groupe;
+  }
+
+  // la cathédrale Notre-Dame de Dax : la nef classique et sa façade à fronton, le transept, le chœur et son abside
+  function cathedraleDax(THREE) {
+    const A = atelier(THREE);
+    const pierre = A.matiere(0xE8DCC0), tuile = A.matiere(0xB0603F);
+    A.boite(31, 17, 24, -18.5, 0, -2, pierre); A.toit(24.6, 7, 31, -18.5, 17, -2, tuile);
+    A.boite(12.5, 17, 38.5, 3.25, 0, -1.75, pierre); A.toit(13.1, 7, 38.5, 3.25, 17, -1.75, tuile, Math.PI / 2);
+    A.boite(22, 14, 22, 20, 0, -2, pierre); A.toit(22.6, 6, 22, 20, 14, -2, tuile); A.abside(11, 14, 31, 0, -2, pierre); A.demiCone(11.5, 5, 31, 14, -2, tuile);
+    A.boite(1.5, 3, 24.6, -34, 17, -2, pierre); A.toit(24.6, 5, 1.5, -34, 20, -2, pierre);
+    return A.groupe;
+  }
+
   // les maquettes connues : le monument (identifiant de data/monuments.json), où et comment la poser, et les
   // bâtiments de l'IGN qu'elle remplace (sinon les blocs gris de la BD TOPO resteraient dedans)
   const MODELES = {
@@ -5736,6 +5761,12 @@
     Q205659: {   // le château de Lunéville (les emprises de l'IGN)
       construire: luneville, centre: [6.492233, 48.594603], orientation: 2, masquer: ['BATIMENT0000000334909320', 'BATIMENT0000000334909322', 'BATIMENT0000000334909321', 'BATIMENT0000000334910481', 'BATIMENT0000000334910378'],
     },
+    Q648534: {   // le château de Rambouillet (l'emprise de l'IGN)
+      construire: rambouillet, centre: [1.817534, 48.645459], orientation: 10, masquer: ['BATIMENT0000000322142706'],
+    },
+    Q1736177: {   // Notre-Dame de Dax (la façade à l'ouest)
+      construire: cathedraleDax, centre: [-1.05303, 43.708461], orientation: -2, masquer: ['BATIMENT0000000328652766', 'BATIMENT0000000328652765'],
+    },
   };
   const MASQUES = Object.values(MODELES).flatMap((m) => m.masquer);
 
@@ -5836,6 +5867,7 @@
     grandeChartreuse,  compiegne,  abbayeSaintRemi,  fortSaintJean,
     gellone,  becHellouin,  villaEphrussi,  rocheAuxFees,  barnenez,  erGrah,
     chapelleMedaille,  matignon,  maisonLaRoche,
-    sedan,  brest,  luneville };
+    sedan,  brest,  luneville,
+    rambouillet,  cathedraleDax };
   if (typeof module !== 'undefined' && module.exports) module.exports = api; else racine.Maquettes = api;
 })(typeof globalThis !== 'undefined' ? globalThis : this);
