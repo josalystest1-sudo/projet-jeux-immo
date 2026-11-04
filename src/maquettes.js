@@ -3859,6 +3859,119 @@
     return A.groupe;
   }
 
+  // la porte de Mars de Reims : le grand arc romain à trois arches, ses colonnes, son attique
+  function porteDeMars(THREE) {
+    const A = atelier(THREE);
+    const pierre = A.matiere(0xE2D6BC), pierreFoncee = A.matiere(0xC4B494);
+    A.boites([[4, 9.5, 6.4, -13.5, 0, 0], [4, 9.5, 6.4, -5, 0, 0], [4, 9.5, 6.4, 5, 0, 0], [4, 9.5, 6.4, 13.5, 0, 0]], pierre);
+    const voute = (r, ys, ytop) => { const v = new THREE.Shape(); v.moveTo(-r, ys); v.absarc(0, ys, r, Math.PI, 0, true); v.lineTo(r, ytop); v.lineTo(-r, ytop); v.closePath(); return v; };
+    for (const [x, r, ys] of [[-9.25, 2.25, 5.5], [0, 3, 6], [9.25, 2.25, 5.5]]) A.extrusion(voute(r, ys, 9.5), 6.4, x, 0, 0, pierre, 0, true);
+    A.boite(31.6, 0.8, 7, 0, 9.5, 0, pierreFoncee); A.boite(31, 3, 6.4, 0, 10.3, 0, pierre); A.boite(31.4, 0.6, 6.8, 0, 13.3, 0, pierreFoncee);
+    A.cylindres([-15, -12, -6.5, -3.5, 3.5, 6.5, 12, 15].flatMap((x) => [[x, 3.4, 0.4, 9, 0.3], [x, -3.4, 0.4, 9, 0.3]]), pierreFoncee, 10);
+    return A.groupe;
+  }
+
+  // la cathédrale Saint-Étienne de Châlons : la façade classique, la longue nef, le transept, la tour romane et sa flèche
+  const cathedraleChalons = (THREE) => cathedrale(THREE, { F: -46, E: 40, larg: 16, mur: 22, toitH: 9, xT: 16, transept: 50, transeptL: 18, cote: 10, facadeH: 26, rose: 2.5,
+    tours: [{ x: 13, z: -20, h: 32, fleche: 30, r: 4.2, seg: 8 }] });
+
+  // la collégiale Notre-Dame-en-Vaux de Châlons : ses deux flèches de plomb à l'ouest, ses deux tours romanes à l'est
+  const notreDameEnVaux = (THREE) => cathedrale(THREE, { F: -32, E: 30, larg: 12, mur: 20, toitH: 7, xT: -12, transept: 34, transeptL: 10, cote: 8, facadeH: 22, rose: 3, arcs: false,
+    tours: [{ z: -9, h: 26, fleche: 26, r: 3.4, seg: 8 }, { z: 9, h: 26, fleche: 26, r: 3.4, seg: 8 }],
+    plus: (A, m) => { for (const z of [-10, 10]) { A.boite(7, 24, 7, 2, 0, z, m.pierre); A.pyramide(3.4, 12, 8, 2, 24, z, m.toitFonce); } } });
+
+  // le temple d'Auguste et de Livie (Vienne) : le podium, la cella, les colonnes corinthiennes, les frontons, le toit de tuiles
+  function templeVienne(THREE) {
+    const A = atelier(THREE);
+    const pierre = A.matiere(0xEFE2C2), pierreFoncee = A.matiere(0xD6C29A), tuile = A.matiere(0xC8704A);
+    A.boite(25, 3, 15.5, 0, 0, 0, pierreFoncee);
+    A.boite(13, 9.4, 9.6, 1, 3, 0, pierre);
+    const col = []; for (let k = 0; k < 6; k++) for (const x of [-11, 11]) col.push([x, -6.2 + k * 2.48, 0.5, 9, 3]);
+    for (let k = 1; k < 7; k++) for (const z of [-6.2, 6.2]) col.push([-11 + k * 22 / 7, z, 0.5, 9, 3]);
+    A.cylindres(col, pierre, 12);
+    A.boite(23.6, 2, 14, 0, 12, 0, pierreFoncee);
+    for (const s of [1, -1]) A.toit(14, 3.4, 1.6, s * 11.4, 14, 0, pierre);
+    A.toit(14.6, 3.5, 21.6, 0, 14, 0, tuile);
+    return A.groupe;
+  }
+
+  // le château de Suscinio : la forteresse des ducs de Bretagne, ses logis aux toits d'ardoise, ses courtines et ses tours
+  function suscinio(THREE) {
+    const A = atelier(THREE);
+    const pierre = A.matiere(0xE2D9C6), pierreFoncee = A.matiere(0xC9BEA6), ardoise = A.matiere(0x4F5D8C);
+    const p = ([x, z]) => [x + 6, z + 9], ang = (a, b) => Math.atan2(-(b[1] - a[1]), b[0] - a[0]);
+    const [a, b, c, d, e, f, g, h, i] = [[-48, -40], [-14, -44], [20, -43], [31, -25], [36, 4], [17, 24], [-1, 26], [-40, 10], [-49, 1]].map(p);
+    for (const [u, v] of [[a, b], [b, c], [c, d], [d, e], [e, f]]) { const L = Math.hypot(v[0] - u[0], v[1] - u[1]), mx = (u[0] + v[0]) / 2, mz = (u[1] + v[1]) / 2, r = ang(u, v);
+      A.boite(L, 13, 9, mx, 0, mz, pierre, r); A.toit(9.6, 7, L, mx, 13, mz, ardoise, r); }
+    A.remparts([[f, g, h, i, a]], 10, 2.6, pierre); A.creneaux([[f, g, h, i, a]], 10, 2.6, pierreFoncee);
+    const tours = [[a, 7, 19, 0], [b, 4.5, 17, 1], [c, 4.5, 17, 1], [d, 5.5, 19, 0], [e, 4.5, 17, 1], [f, 6.5, 18, 0]];
+    A.cylindres(tours.map(([q, r, ht]) => [q[0], q[1], r, ht, 0]), pierre, 16);
+    A.cones(tours.filter((t) => t[3]).map(([q, r, ht]) => [q[0], q[1], r + 0.5, ht, r * 2.2]), ardoise, 16);
+    for (const [q, r, ht, toit] of tours) if (!toit) A.creneaux([anneau(q[0], q[1], r, 16)], ht, 0.8, pierreFoncee);
+    return A.groupe;
+  }
+
+  // le château de Fougères : la grande enceinte et ses tours (Mélusine, le Gobelin, Raoul, Surienne…), les ruines du logis
+  function fougeres(THREE) {
+    const A = atelier(THREE);
+    const pierre = A.matiere(0xD9D2C2), pierreFoncee = A.matiere(0xB9B0A0), ardoise = A.matiere(0x4F5D8C);
+    const P = (l) => l.map(([x, z]) => [x + 45, z + 40]);
+    const murs = [
+      [[-108, -24], [-115, -27], [-117, -25], [-118, -21], [-119, -19], [-118, -17], [-115, -16], [-105, -2], [-99, 6]],
+      [[-98, -24], [-89, -27], [-73, -28], [-36, -48], [-29, -56], [-16, -71], [-10, -78]],
+      [[-10, -88], [-3, -109], [0, -116]], [[6, -120], [11, -119]], [[16, -113], [23, -106]],
+      [[28, -101], [27, -98], [24, -77], [22, -65], [26, -64], [24, -39]], [[23, -31], [23, -29], [17, 3]],
+      [[9, 20], [1, 29], [-2, 32], [-5, 34], [-7, 34]], [[-26, 39], [-31, 38], [-59, 34], [-73, 31], [-79, 29], [-84, 26], [-87, 23], [-88, 19], [-91, 15]],
+      [[-62, -33], [-60, -30], [-58, -25], [-59, -20], [-60, -16], [-61, -11], [-64, -7], [-67, -3], [-75, 3], [-78, 4], [-81, 5], [-88, 6]],
+      [[22, -65], [8, -70], [8, -76]], [[-8, -76], [-5, -74], [1, -72]],
+    ].map(P);
+    A.remparts(murs, 10, 2.8, pierre); A.creneaux(murs, 10, 2.8, pierreFoncee);
+    A.remparts([P([[16, -36], [14, -20], [-1, -23], [2, -40], [16, -36]]), P([[19, -66], [16, -36]])], 5, 1.6, pierreFoncee);
+    const tours = [[-103, -20, 6.5, 26, 1], [-94, 9.5, 7, 30, 0], [17, 13, 10, 18, 0], [-15.5, 44, 10, 20, 0], [-8, -82, 5, 18, 1], [27, -35, 4, 16, 1], [27, -105, 3.8, 17, 1], [2, -118, 3.6, 14, 1]]
+      .map(([x, z, r, h, toit]) => [x + 45, z + 40, r, h, toit]);
+    A.cylindres(tours.map(([x, z, r, h]) => [x, z, r, h, 0]), pierre, 16);
+    A.cones(tours.filter((t) => t[4]).map(([x, z, r, h]) => [x, z, r + 0.5, h, r * 2.4]), ardoise, 16);
+    for (const [x, z, r, h, toit] of tours) if (!toit) A.creneaux([anneau(x, z, r, 16)], h, 0.8, pierreFoncee);
+    return A.groupe;
+  }
+
+  // le palais Longchamp (Marseille) : ses deux ailes de musées, la colonnade en demi-cercle, le château d'eau et sa cascade
+  function palaisLongchamp(THREE) {
+    const A = atelier(THREE);
+    const pierre = A.matiere(0xF2E9D6), pierreFoncee = A.matiere(0xD9CCAE), zinc = A.matiere(0x8E9AB0), sombre = A.matiere(0x5A5650), eau = A.matiere(0x6DC4F0, 0x0E3A55);
+    for (const s of [1, -1]) { A.boite(63, 17, 26, -8.5, 0, s * 53.75, pierre); A.boite(64, 1.2, 27, -8.5, 17, s * 53.75, pierreFoncee); A.combles(60, 4, 23, -8.5, 18.2, s * 53.75, zinc);
+      A.boite(11, 15, 13, -8.5, 0, s * 34.25, pierre); A.boite(11.6, 1, 13.6, -8.5, 15, s * 34.25, pierreFoncee); }
+    const demiAnneau = (ri, ro, h) => (e) => { const f = new THREE.Shape(); f.absarc(0, 0, ro + e, -Math.PI / 2, Math.PI / 2, false); f.absarc(0, 0, Math.max(0.1, ri - e), Math.PI / 2, -Math.PI / 2, true); f.closePath();
+      return new THREE.ExtrudeGeometry(f, { depth: h + 2 * e, bevelEnabled: false, curveSegments: 24 }).rotateX(-Math.PI / 2).translate(0, -e, 0); };
+    const col = []; for (let k = 0; k <= 20; k++) { const t = -Math.PI / 2 + k * Math.PI / 20; for (const r of [28.5, 33]) col.push([-2.75 + Math.cos(t) * r, Math.sin(t) * r, 0.5, 10, 0]); }
+    A.cylindres(col, pierre, 10); A.piece(demiAnneau(27.5, 34, 1.6), pierreFoncee, A.V(-2.75, 10, 0));
+    A.boite(10, 22, 18, 30, 0, 0, pierre); A.boite(10.8, 1.4, 18.8, 30, 22, 0, pierreFoncee); A.toit(18.8, 4, 10.8, 30, 23.4, 0, pierre, Math.PI / 2);
+    A.extrusion(A.formeArche(8, 15), 0.6, 24.8, 0, 0, sombre, Math.PI / 2, true);
+    A.cylindres([[23.6, -6.5, 0.8, 18, 0], [23.6, 6.5, 0.8, 18, 0]], pierreFoncee, 12);
+    A.plaques([[24, 0.3, 14, 10, 0.2, 0]], eau); A.boites([[24, 0.8, 0.6, 10, 0, -7.3], [24, 0.8, 0.6, 10, 0, 7.3]], pierreFoncee);
+    return A.groupe;
+  }
+
+  // le pont transbordeur de Rochefort : ses deux pylônes de 66 m, le tablier à 50 m au-dessus de la Charente, ses câbles,
+  // la nacelle qui fait traverser
+  function transbordeur(THREE) {
+    const A = atelier(THREE), V = A.V;
+    const acier = A.matiere(0x46505C), nacelle = A.matiere(0xE8E2D2);
+    for (const s of [1, -1]) { const x = s * 70;
+      for (const z of [-4, 4]) A.poutre(V(x, 0, z * 1.8), V(x, 66, z * 0.5), 1.6, 1.6, acier);
+      A.boite(2, 2, 6, x, 64, 0, acier); A.boite(2, 1.4, 9, x, 48, 0, acier); A.boite(2, 1.4, 12, x, 24, 0, acier);
+      for (const z of [-2, 2]) { A.poutre(V(x, 66, z), V(s * 132, 0, z * 3), 0.35, 0.35, acier);
+        for (const d of [18, 36, 54]) A.poutre(V(x, 66, z), V(x - s * d, 50, z), 0.3, 0.3, acier); } }
+    A.boite(178, 3, 4, 0, 48, 0, acier); A.boite(180, 0.6, 5, 0, 51, 0, acier);
+    A.poutre(V(-22, 47, -1), V(-22, 6, -1), 0.3, 0.3, acier); A.poutre(V(-22, 47, 1), V(-22, 6, 1), 0.3, 0.3, acier);
+    A.boite(10, 3, 7, -22, 3, 0, nacelle); A.boite(10.6, 0.6, 7.6, -22, 6, 0, acier);
+    return A.groupe;
+  }
+
+  // la cathédrale Saint-Paul-Aurélien de Saint-Pol-de-Léon : la cathédrale de granit, ses deux flèches de pierre
+  const cathedraleSaintPol = (THREE) => cathedrale(THREE, { pierre: 0xD9D4C7, pierreFoncee: 0xB8B0A0, F: -38.6, E: 37.6, larg: 10, mur: 16, toitH: 7, xT: 3, transept: 42, transeptL: 16,
+    cote: 7.5, facadeH: 20, rose: 2.5, arcs: false, tours: [{ z: -7, h: 28, fleche: 27, r: 3.3, seg: 8, couleur: 0xBDB6A8 }, { z: 7, h: 28, fleche: 27, r: 3.3, seg: 8, couleur: 0xBDB6A8 }] });
+
   // les maquettes connues : le monument (identifiant de data/monuments.json), où et comment la poser, et les
   // bâtiments de l'IGN qu'elle remplace (sinon les blocs gris de la BD TOPO resteraient dedans)
   const MODELES = {
@@ -4811,6 +4924,33 @@
     Q805255: {   // la salle du Jeu de paume
       construire: jeuDePaume, centre: [2.1239, 48.801], orientation: -14, masquer: ['BATIMENT0000000322531754'],
     },
+    Q1243526: {   // la porte de Mars (Reims)
+      construire: porteDeMars, centre: [4.029986, 49.260599], orientation: 28, masquer: ['BATIMENT0000000065172717'],
+    },
+    Q998451: {   // Saint-Étienne de Châlons (la façade à l'ouest)
+      construire: cathedraleChalons, centre: [4.357651, 48.955128], orientation: 17, masquer: ['BATIMENT0000002223260581'],
+    },
+    Q1384443: {   // Notre-Dame-en-Vaux (Châlons)
+      construire: notreDameEnVaux, centre: [4.363625, 48.957642], orientation: 15, masquer: ['BATIMENT0000002223260586'],
+    },
+    Q3517516: {   // le temple d'Auguste et de Livie (Vienne)
+      construire: templeVienne, centre: [4.874281, 45.525469], orientation: 5, masquer: ['BATIMENT0000000302565975', 'BATIMENT0000000302565976'],
+    },
+    Q2970742: {   // le château de Suscinio
+      construire: suscinio, centre: [-2.729439, 47.512894], orientation: -18, masquer: ['BATIMENT0000000292202233', 'BATIMENT0000000292202232'],
+    },
+    Q724929: {   // le château de Fougères (l'enceinte d'après les murs de l'IGN)
+      construire: fougeres, centre: [-1.209532, 48.354137], orientation: -39, masquer: ['BATIMENT0000000297451109', 'BATIMENT0000000297451122', 'BATIMENT0000000297451041', 'BATIMENT0000000297451011', 'BATIMENT0000000297451012', 'BATIMENT0000000297451120', 'BATIMENT0000000297451121', 'BATIMENT0000000047075770', 'BATIMENT0000000297451060'],
+    },
+    Q1619084: {   // le palais Longchamp (la cascade à l'ouest)
+      construire: palaisLongchamp, centre: [5.3944, 43.304246], orientation: 32, masquer: ['BATIMENT0000000266966981', 'BATIMENT0000000266966980', 'BATIMENT0000000266966979'],
+    },
+    Q924757: {   // le pont transbordeur de Rochefort (x : vers le sud, d'une rive à l'autre)
+      construire: transbordeur, centre: [-0.960668, 45.916178], orientation: -87, masquer: [],
+    },
+    Q739028: {   // Saint-Paul-Aurélien de Saint-Pol-de-Léon
+      construire: cathedraleSaintPol, centre: [-3.986165, 48.68497], orientation: 4, masquer: ['BATIMENT0000000316030794'],
+    },
   };
   const MASQUES = Object.values(MODELES).flatMap((m) => m.masquer);
 
@@ -4901,6 +5041,7 @@
     cathedraleAix, chateauMaisons, plessisBourre, talcy, roquetaillade, abbadia, saintVictor, daurade, synagogueBordeaux, saintSeurin, cathedraleValence,
     queribus, murbach, pontigny, abbatialeCorbie, cathedraleOloron, bregancon, tourClovis, ferrieres, thoronet, jumieges, montsegur,
     serrant, ancyLeFranc, fenelon, sache, cathedraleLescar, notreDameBonneNouvelle, fontaineMedicis, menars, rivau, beauregard,
-    cathedraleBesancon, meudon, saintMedard, saintEugene, sainteElisabeth, theatreArles, jeuDePaume };
+    cathedraleBesancon, meudon, saintMedard, saintEugene, sainteElisabeth, theatreArles, jeuDePaume,
+    porteDeMars,  cathedraleChalons,  notreDameEnVaux,  templeVienne,  suscinio,  fougeres,  palaisLongchamp,  transbordeur,  cathedraleSaintPol };
   if (typeof module !== 'undefined' && module.exports) module.exports = api; else racine.Maquettes = api;
 })(typeof globalThis !== 'undefined' ? globalThis : this);
