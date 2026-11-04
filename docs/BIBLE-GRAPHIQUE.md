@@ -11,6 +11,7 @@ Ce document fixe **comment le jeu doit avoir l'air**, pour que chaque image, cha
 | Par quoi commencer | **Le pack et les cartes** : la pochette du pack du jour, son ouverture, les cartes par rareté. C'est la preuve, avant de produire le reste. |
 | Le rendu | **Jeu mobile coloré** : formes rondes, couleurs vives, gros reliefs, dans l'esprit de Clash Royale ou Brawl Stars. |
 | Les outils | **Gratuits d'abord** : Claude dessine en code (SVG, CSS, Canvas, Three.js) ; on ne paie un outil d'image ou de 3D que si une preuve le demande, dans le budget de 20 € par semaine. |
+| Nouvelle direction (4 nov.) | **« Moins dessin animé, plus classe, stylé, impressionnant »**, et « une ouverture de pack doit être un vrai événement ». Appliquée d'abord à la révélation (§ 9). Gautier se dit prêt à payer Meshy (3D par IA) si c'est la solution. Pour le reste du jeu (cartes, pochette, écrans), la question lui est posée. |
 
 Méthode (la même que pour l'Arena) : **une preuve complète, validée par Gautier, avant la série**. Personne ne dessine à la main.
 
@@ -71,7 +72,7 @@ Où c'est dans le code : la pochette est dessinée par `makeArt()` (`index.html`
 
 1. ~~L'ouverture : la déchirure qui suit le doigt, les cartes qui glissent du pack, les sons (phase 10.3).~~ Fait le 3 nov. (§ 7).
 2. ~~Les monuments en 3D stylisée, la tour Eiffel d'abord (phase 10.4).~~ La preuve (la tour Eiffel) faite le 3 nov. (§ 8) ; les autres monuments ensuite, un par un, après validation.
-3. L'habillage de la révélation façon FIFA (phase 10.5).
+3. ~~L'habillage de la révélation façon FIFA (phase 10.5).~~ Fait le 4 nov., dans la nouvelle direction « classe » (§ 9).
 4. L'icône, le logo, l'écran d'accueil (phase 10.6).
 5. Les illustrations par lieu (églises, mairies, châteaux…) si les icônes ne suffisent plus : ce serait le premier besoin d'un outil d'image par IA.
 
@@ -288,3 +289,30 @@ Où c'est dans le code : la pochette est dessinée par `makeArt()` (`index.html`
   - **Saint-Pierre-le-Vieux de Strasbourg** : les deux églises en grès rose et le clocher médiéval entre elles.
 
 ![Saint-François-Xavier, Saint-Ambroise, Saint-Martin de Tours, Saint-Pierre-le-Vieux](bible/monuments-58.jpg)
+
+## 9. La révélation d'une carte (phase 10.5, 4 nov. 2026)
+
+Gautier : « Il faut qu'une ouverture de pack soit un vrai événement. Chaque carte révélée fait une explosion lumineuse de la couleur associée si c'est rare, épique ou légendaire, puis la révélation à la FIFA, où les informations arrivent petit à petit. » Puis : « moins dessin animé et plus classe, stylé, impressionnant ». Une première version « dessin animé » (contours encre épais, France crème, département bleu plaque, plaque émaillée) a été faite le matin et remplacée dans la foulée.
+
+**L'explosion de lumière.** Elle concerne les cartes Rare, Épique, Légendaire (et Extraordinaire), dès qu'on touche la carte, avant tout le reste :
+- un cœur blanc, puis la lumière de la rareté : bleu, violet, or orangé ;
+- un trait de lumière horizontal ;
+- des faisceaux fins et deux ondes de choc ;
+- des grains de lumière qui jaillissent du centre ;
+- un souffle et un accord qui montent avec la rareté, et une vibration.
+
+Une carte Légendaire a une deuxième explosion, avec un trait vertical. Les cartes Commun et Peu commun n'en ont pas. Tout est en CSS, sur des éléments posés puis retirés : pas de filtre, pas de boucle.
+
+**Les informations, une à une** (France, département, commune, puis le lieu) :
+- **La nuit** : un fond bleu nuit profond, des faisceaux de lumière fins qui tournent très lentement. La lumière de la couleur de la rareté vient dès le départ, comme le reflet d'un pack FIFA.
+- **La carte** : la France en trait d'or lumineux sur fond presque transparent, le département voilé d'or, la commune en feuille d'or. Le point du lieu est blanc, avec un halo. Les contours précédents s'estompent quand on zoome.
+- **La typographie** : les noms (France, département, commune) en capitales étroites et espacées, dorées, entre deux filets.
+- **Le nom du lieu** : en grandes capitales d'or métallique avec un halo. Il entre en se resserrant et en devenant net.
+- **La rareté** : en lettres blanches espacées dans un cadre fin de sa couleur, lumineux.
+- **L'éclair final** prend la couleur de la rareté.
+
+![L'explosion de lumière : Rare, Épique, Légendaire (à 0,09, 0,26 et 0,52 s)](bible/revelation-explosions.jpg)
+
+![La révélation : la France, le département, la commune, le lieu](bible/revelation.jpg)
+
+Où c'est dans le code : `explosion(r)` et `sonExplosion` (`index.html`), `revealSequence` (les étapes, `versLeHaut` laisse la place aux textes), `#rrayons` et les dégradés `rgFrance`, `rgDep`, `rgCom` du SVG. Les styles sont à la fin de `style.css`. Pour montrer une preuve quand Gautier est sur son téléphone : `tools/capture_revelation.js` (Chrome sans fenêtre).

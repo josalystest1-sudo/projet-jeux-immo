@@ -220,6 +220,13 @@
 
 - 4 nov. 2026 (matin) : **quatre églises de plus aux monuments**. Gautier : « oui les 4 ». Ce sont les lieux de culte au-dessus du seuil de la liste, dans le même cas que la Grande Mosquée : Saint-François-Xavier et Saint-Ambroise (Paris), la basilique Saint-Martin de Tours, Saint-Pierre-le-Vieux de Strasbourg. Elles sont régionales et ont chacune leur maquette 3D, d'après les emprises de l'IGN. Saint-François-Xavier a ses deux tours de façade, Saint-Ambroise ses flèches de 68 m à pinacles. Saint-Martin a son dôme et sa statue, plus l'aile est que l'IGN range à part. Saint-Pierre-le-Vieux a ses deux églises et son clocher. Personne ne les possédait. 463 monuments, 416 maquettes. 49 tests.
 
+- 4 nov. 2026 (matin) : **la révélation d'une carte devient un événement** (phase 10.5). Gautier : « une ouverture de pack doit être un vrai événement », puis « moins dessin animé, plus classe, stylé, impressionnant ».
+  - **L'explosion de lumière** (`explosion(r)`) : une carte Rare, Épique ou Légendaire explose dans la couleur de sa rareté dès qu'on la touche. Il y a un cœur blanc, un trait de lumière, des faisceaux, des ondes, des grains, un souffle et un accord. Une Légendaire explose deux fois.
+  - **Les informations arrivent une à une** dans un style « premium » : nuit profonde et fins faisceaux de lumière. La France est en trait d'or, le département voilé d'or, la commune en feuille d'or. Les noms sont en capitales dorées espacées, le lieu en grandes capitales d'or métallique, la rareté dans un cadre lumineux. L'éclair final prend la couleur de la rareté.
+  - Une version « dessin animé » faite le matin a été remplacée dans la foulée.
+  - Nouvel outil `tools/capture_revelation.js` : captures au format téléphone par Chrome sans fenêtre, pour envoyer les preuves à Gautier sur son téléphone.
+  - 49 tests.
+
 ## En cours
 - Lieux célèbres : les autres catégories (châteaux, mairies, gares, musées, ponts, phares, moulins…). Wikidata répond depuis le PC : `python tools/wikidata_celebres.py --categories chateau,mairie,…`, puis `gen_donnees.py celebres`. La fusion garde les catégories déjà reçues.
 - Phase 1.1 à 1.4 : la carte et le modèle des lieux reconstruits en modules (`src/`) à partir du prototype ; puis le marché (phase 4 : historique des ventes d'un lieu) et les communes et Maires (phase 6). Ensuite : Signaler envoyé au serveur dès qu'il y aura de vrais joueurs à l'écran ; Google ; un service d'envoi d'e-mails avant le lancement (le service de Supabase n'écrit qu'aux membres de l'équipe Supabase, deux e-mails par heure).
