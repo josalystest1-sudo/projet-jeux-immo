@@ -5047,6 +5047,20 @@
     return A.groupe;
   }
 
+  // la Grande Mosquée de Paris : les bâtiments blancs autour de leurs cours (le jardin, le patio et les petites cours,
+  // l'emprise de l'IGN), leurs toits de tuiles vertes, et le minaret carré coiffé de son lanternon (ajoutée aux monuments à
+  // la demande de Gautier, 4 nov. 2026)
+  function grandeMosquee(THREE) {
+    const A = atelier(THREE);
+    const blanc = A.matiere(0xF4EFE4), blancCasse = A.matiere(0xE2D8C4), vert = A.matiere(0x3E8E5E), or = A.matiere(0xE2B341);
+    const cours = [[[-30.5,43], [-34.5,44], [-33.5,51], [-32,52], [-27,50.5], [-28.5,43.5], [-30.5,43.5]], [[-37.5,-23.5], [-44,-22], [-43,-18.5], [-37.5,-19.5], [-36.5,-20.5]], [[-6.5,-57], [-14.5,-55], [-14,-54.5], [-35,-50], [-43,-48.5], [-42.5,-47], [-42,-45], [-41.5,-42], [-41,-40], [-39.5,-34.5], [-39.5,-33.5], [-35.5,-34.5], [-35,-32.5], [-34.5,-30.5], [-34.5,-30], [-34,-28.5], [-23,-31], [-23.5,-31.5], [-16.5,-33], [-16.5,-32.5], [-5.5,-35], [-5.5,-37], [-6,-37], [-6.5,-39], [-6,-39], [-7,-41.5], [-3,-42], [-3,-43], [-3.5,-45.5], [-5,-51]], [[-9,-21.5], [-25.5,-18], [-20.5,3.5], [-4.5,0]], [[-37.5,-60.5], [-45.5,-58.5], [-44,-52.5], [-36,-54]], [[-8.5,-67.5], [-16.5,-65.5], [-15.5,-59.5], [-7,-61]], [[5,-37], [-1,-35.5], [0,-31], [6,-32.5]]];
+    pave(A, [[1,-73.5], [4.5,-59.5], [-2,-58], [-2,-57], [-1.5,-55], [0.5,-46.5], [1,-44], [1.5,-43], [8.5,-45], [12,-29.5], [3.5,-28], [4,-24.5], [2.5,-24], [1,-22.5], [-2.5,-22], [-4,-23], [-5,-22.5], [1,4], [-2.5,5], [-1.5,9], [0,10], [-1.5,12], [7,17.5], [6,19.5], [7,20], [8.5,21], [6,25], [6,24.5], [1,32.5], [1.5,34], [12,32], [12,31.5], [14.5,27.5], [13.5,21], [13,20.5], [16.5,20], [18,19.5], [18,21.5], [25,20], [27.5,30], [20,32], [17.5,35], [19.5,42.5], [0,47.5], [-32.5,56], [-37,53.5], [-39.5,37], [-28.5,34.5], [-27.5,39], [-26,40], [-11.5,37], [-12,35], [-22.5,28], [-25,26.5], [-18,15.5], [-20,14.5], [-19,12.5], [-20,8.5], [-23.5,9], [-27.5,-7.5], [-29.5,-17.5], [-31,-17], [-31.5,-15.5], [-35,-15], [-35.5,-15], [-36.5,-15.5], [-38.5,-15.5], [-39,-18.5], [-48,-16.5], [-49.5,-25.5], [-44.5,-26.5], [-45.5,-32.5], [-50,-31.5], [-50.5,-35], [-49,-35.5], [-51,-44.5], [-52.5,-44], [-53.5,-47.5], [-53,-47.5], [-55,-61.5], [-27.5,-67.5], [-18,-69.5]], 9, blanc, vert, 3, blancCasse, cours);
+    // le minaret (33 m) : la tour, son couronnement, le lanternon et son toit vert, la boule dorée
+    A.boite(6, 25, 6, -47.8, 0, -29, blanc); A.boite(7, 1.2, 7, -47.8, 25, -29, blancCasse);
+    A.boite(3.6, 4, 3.6, -47.8, 26.2, -29, blanc); A.pyramide(2.9, 2.6, 4, -47.8, 30.2, -29, vert); A.cylindre(0.35, 0.35, 0.9, 8, -47.8, 32.7, -29, or);
+    return A.groupe;
+  }
+
   // les maquettes connues : le monument (identifiant de data/monuments.json), où et comment la poser, et les
   // bâtiments de l'IGN qu'elle remplace (sinon les blocs gris de la BD TOPO resteraient dedans)
   const MODELES = {
@@ -6308,6 +6322,9 @@
     Q311: {   // le cimetière du Père-Lachaise : la chapelle (l'emprise de l'IGN)
       construire: pereLachaise, centre: [2.3942, 48.8611], orientation: 0, masquer: ['BATIMENT0000000240759424'],
     },
+    Q392564: {   // la Grande Mosquée de Paris (l'emprise de l'IGN avec ses cours, le minaret)
+      construire: grandeMosquee, centre: [2.3553, 48.842], orientation: 0, masquer: ['BATIMENT0000000241932714', 'BATIMENT0000000241932713'],
+    },
   };
   const MASQUES = Object.values(MODELES).flatMap((m) => m.masquer);
 
@@ -6448,6 +6465,6 @@
     bicetre, champmol,
     placeAlliance,
     troisGaules,
-    fortDouaumont, fortVaux, pereLachaise };
+    fortDouaumont, fortVaux, pereLachaise, grandeMosquee };
   if (typeof module !== 'undefined' && module.exports) module.exports = api; else racine.Maquettes = api;
 })(typeof globalThis !== 'undefined' ? globalThis : this);
