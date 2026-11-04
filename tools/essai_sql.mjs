@@ -4,7 +4,8 @@
 // bloquées, surenchère, clôture (avec passage à la mise suivante) ; la caisse de travaux du Maire (090_mairie.sql) :
 // verser, part du Maire plafonnée, absence, fin de mandat annoncée une fois ; les classements et les saisons
 // (100_classements.sql) : patrimoine, Maires, saison figée une fois ; les monuments (110_monuments.sql) : entretien,
-// reprise (lot de reprise, alerte, échanges qui tombent) ; les refus attendus et les droits du jeu.
+// reprise (lot de reprise, alerte, échanges qui tombent) ; la boutique (120_boutique.sql) : gemmes d'essai, pack acheté,
+// Pass, bon ; les refus attendus et les droits du jeu.
 // Prérequis (une fois, rien n'est ajouté au dépôt) : npm i --no-save --no-package-lock @electric-sql/pglite
 //   node tools/essai_sql.mjs            (000_comptes.sql, qui demande l'extension unaccent, est remplacé par un profil minimal)
 import { PGlite } from '@electric-sql/pglite';
@@ -212,6 +213,26 @@ ok((await q("select count(*)::int as n from public.alertes where monument = 'QX'
 ok(Number((await q('select dette from public.joueurs where id = $1', [A]))[0].dette) === 0, 'après un impayé, la dette repart à zéro');
 ok((await q("select public.jeu_monument_reprendre('cl1', 'absence', null, null) as p"))[0].p === null && (await q("select count(*)::int as n from public.lieux where id = 'cl1'"))[0].n === 1, 'une adresse n’est jamais reprise');
 
+// ---------------------------------------------------------------- la boutique (120_boutique.sql)
+const gemmes = async (u) => Number((await q('select gemmes from public.joueurs where id = $1', [u]))[0].gemmes);
+ok(Number((await q('select public.jeu_gemmes_essai($1, 1000) as g', [C]))[0].g) === 1000, 'des gemmes d’essai sur le serveur accéléré');
+const carteBq = (id) => ({ id, type: 'adresse', label: 'x ' + id, lon: 1, lat: 47, citycode: '37261', city: 'Tours', commune: 'Tours', rarete: 1 });
+ok((await refus('select public.jeu_pack_achete($1, $2, 5000, $3::jsonb)', [C, 'pack_national', JSON.stringify([carteBq('bq1')])])) === 'gemmes' && (await q("select count(*)::int as n from public.lieux where id = 'bq1'"))[0].n === 0, 'pas assez de gemmes : ni lieu, ni paiement');
+const pa = (await q('select public.jeu_pack_achete($1, $2, 200, $3::jsonb) as g', [C, 'pack_national', JSON.stringify([carteBq('bq1'), carteBq('bq2'), carteBq('cl1')])]))[0].g;
+ok(pa.length === 2 && (await gemmes(C)) === 800, 'un pack acheté : les lieux libres sont à lui, 200 gemmes payées (un lieu déjà pris est ignoré)', pa);
+ok((await refus('select public.jeu_pack_achete($1, $2, 200, $3::jsonb)', [C, 'pack_national', JSON.stringify([carteBq('bq1')])])) === 'vide' && (await gemmes(C)) === 800, 'aucun lieu donné : rien n’est payé');
+ok((await refus("select public.jeu_bon($1, $2::jsonb)", [C, JSON.stringify(carteBq('bq3'))])) === 'bon', 'sans Pass, pas de bon');
+await q("select public.jeu_pass($1, 300, null, now() + interval '15 days', 1::smallint)", [C]);
+ok((await gemmes(C)) === 500 && (await q('select bons from public.joueurs where id = $1', [C]))[0].bons === 1, 'le Pass : 300 gemmes, un bon');
+ok(!!(await refus("select public.jeu_pass($1, 300, null, now() + interval '30 days', 2::smallint)", [C])), 'acheter deux fois le même Pass en même temps : refusé');
+ok((await refus("select public.jeu_bon($1, $2::jsonb)", [C, JSON.stringify(carteBq('bq1'))])) === 'pris' && (await q('select bons from public.joueurs where id = $1', [C]))[0].bons === 1, 'une adresse déjà prise : le bon reste');
+await q("select public.jeu_bon($1, $2::jsonb)", [C, JSON.stringify(carteBq('bq3'))]);
+ok((await q("select proprietaire from public.lieux where id = 'bq3'"))[0].proprietaire === C && (await q('select bons from public.joueurs where id = $1', [C]))[0].bons === 0, 'le bon prend l’adresse');
+ok((await q('select count(*)::int as n from public.gemmes_journal where joueur = $1', [C]))[0].n === 3, 'chaque mouvement de gemmes est écrit dans le journal');
+await q("update public.reglages set valeur = '86400' where cle = 'jour_secondes'");
+ok((await refus('select public.jeu_gemmes_essai($1, 1000)', [C])) === 'essai', 'pas de gemmes d’essai sur le vrai jeu (24 h)');
+await q("update public.reglages set valeur = '60' where cle = 'jour_secondes'");
+
 // les droits : le jeu lit ses échanges, n'écrit jamais, n'appelle aucune fonction jeu_*
 await db.exec(`set role authenticated; set essai.uid = '${A}';`);
 const vus = await q('select id from public.echanges');
@@ -243,6 +264,9 @@ ok(!!(await refus('select count(*) from public.alertes')), 'le jeu ne lit pas le
 ok(!!(await refus("select public.jeu_monument_reprendre('cl3', 'absence', null, null)")), 'le jeu ne peut pas appeler jeu_monument_reprendre');
 ok(!!(await refus('select public.jeu_entretien($1, now(), now(), 0, 0, null)', [A])), 'le jeu ne peut pas appeler jeu_entretien');
 ok(!!(await refus("update public.joueurs set dette = 0")), 'le jeu ne peut pas effacer sa dette');
+ok(!!(await refus("update public.joueurs set gemmes = 999999")), 'le jeu ne peut pas se donner des gemmes');
+ok(!!(await refus('select public.jeu_gemmes_essai($1, 1000)', [A])), 'le jeu ne peut pas appeler jeu_gemmes_essai');
+ok(!!(await refus("insert into public.gemmes_journal (joueur, delta, motif) values ($1, 1000, 'x')", [A])), 'le jeu ne peut pas écrire dans le journal des gemmes');
 await db.exec('reset role; set role anon;');
 ok((await q("select count(*)::int as n from public.caisse_communes(array['Bourg'], 6, now() - interval '7 days')"))[0].n > 0, 'sans compte aussi, on lit les caisses');
 ok((await q('select count(*)::int as n from public.encheres'))[0].n > 0, 'sans compte aussi, on lit les lots');

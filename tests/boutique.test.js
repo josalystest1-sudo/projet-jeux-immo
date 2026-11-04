@@ -25,7 +25,8 @@ test('le Pass 15 jours : 8 cartes au pack du jour, un bon par Pass (3 au plus), 
 
 test('un bon prend une adresse libre jusqu\'à Épique, jamais un monument', () => {
   assert.deepStrictEqual(B.bonPermis({ type: 'adresse' }, 4, true), { ok: true });
-  assert.deepStrictEqual(B.bonPermis({ type: 'lieu' }, 5, true), { ok: false, raison: 'rarete' });
+  assert.deepStrictEqual(B.bonPermis({ type: 'adresse' }, 5, true), { ok: false, raison: 'rarete' });
+  assert.deepStrictEqual(B.bonPermis({ type: 'lieu' }, 3, true), { ok: false, raison: 'rarete' });   // une adresse, pas un lieu nommé
   assert.deepStrictEqual(B.bonPermis({ type: 'monument' }, 6, true), { ok: false, raison: 'rarete' });
   assert.deepStrictEqual(B.bonPermis({ type: 'adresse' }, 1, false), { ok: false, raison: 'pris' });
 });

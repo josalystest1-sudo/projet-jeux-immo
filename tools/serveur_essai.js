@@ -221,6 +221,22 @@ async function nouveauJoueur(publique, secrete) {
     verifier(etM.corps && etM.corps.ok && etM.corps.entretien && etM.corps.entretien.dette === 0 && etM.corps.entretien.impayeDepuis === null, 'ma partie dit ma dette d’entretien des monuments (aucune)', etM.corps && etM.corps.entretien);
     const alertesLues = await requete(`${URL}/rest/v1/alertes?select=id&limit=1`, { headers: { apikey: publique, Authorization: `Bearer ${acces}` } });
     verifier(alertesLues.statut >= 400 || (Array.isArray(alertesLues.corps) && alertesLues.corps.length === 0), 'les alertes de Gautier ne se lisent pas depuis le jeu', alertesLues.statut);
+    // la boutique (GDD § 3 et § 9) : gemmes d'essai, Pass, pack national et régional, refus
+    const g0 = await jeu({ action: 'gemmes_essai' });
+    verifier(g0.corps && g0.corps.ok && g0.corps.gemmes >= 1000, 'des gemmes d’essai (serveur d’essai)', g0);
+    const pass = await jeu({ action: 'acheter_pass' });
+    verifier(pass.corps && pass.corps.ok && pass.corps.etat.gemmes === g0.corps.gemmes - 300 && pass.corps.etat.pass.bons === 1 && pass.corps.etat.pass.fin > Date.now(), 'le Pass 15 jours : 300 gemmes, un bon', pass.corps && pass.corps.etat && { g: pass.corps.etat.gemmes, p: pass.corps.etat.pass });
+    const nat = await jeu({ action: 'acheter_pack', article: 'pack_national' });
+    verifier(nat.corps && nat.corps.ok && nat.corps.cartes.length >= 1 && nat.corps.etat.gemmes === g0.corps.gemmes - 500 && nat.corps.cartes.every((c) => nat.corps.etat.lieux.some((l) => l.id === c.id)), `un pack national : ${nat.corps && nat.corps.cartes && nat.corps.cartes.length} lieux à moi, 200 gemmes`, nat.corps && { g: nat.corps.etat && nat.corps.etat.gemmes, n: nat.corps.cartes && nat.corps.cartes.length });
+    const reg = await jeu({ action: 'acheter_pack', article: 'pack_regional', region: 'Bretagne' });
+    const bzh = require('../src/regles/regions.js').REGIONS.Bretagne, dep = (c) => (String(c).startsWith('97') ? String(c).slice(0, 3) : String(c).slice(0, 2));
+    verifier(reg.corps && reg.corps.ok && reg.corps.cartes.length >= 1 && reg.corps.cartes.every((c) => bzh.includes(dep(c.citycode))) && reg.corps.etat.gemmes === g0.corps.gemmes - 800, `un pack régional : ${reg.corps && reg.corps.cartes && reg.corps.cartes.length} lieux, tous en Bretagne`, reg.corps && reg.corps.cartes && reg.corps.cartes.map((c) => c.citycode));
+    const trop = await jeu({ action: 'acheter_pass' });
+    verifier(trop.corps && trop.corps.ok === false && trop.corps.code === 'gemmes', 'un Pass sans assez de gemmes : refusé', trop.corps);
+    const faux = await jeu({ action: 'prendre_bon', id: 'adresse-inventee', lon: 2.35, lat: 48.85 });
+    verifier(faux.corps && faux.corps.ok === false && faux.corps.code === 'lieu', 'un bon sur une adresse inventée : refusé', faux.corps);
+    const gemVol = await requete(`${URL}/rest/v1/joueurs?id=eq.${id}`, { method: 'PATCH', headers: { apikey: publique, Authorization: `Bearer ${acces}`, 'Content-Type': 'application/json', Prefer: 'return=representation' }, body: JSON.stringify({ gemmes: 999999 }) });
+    verifier(gemVol.statut >= 400 || (Array.isArray(gemVol.corps) && gemVol.corps.length === 0), 'me donner des gemmes directement : refusé', gemVol.statut);
     const mairieVol = await requete(`${URL}/rest/v1/mairies`, { method: 'POST', headers: { apikey: publique, Authorization: `Bearer ${acces}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ mandat: 1, commune: 'x', maire: id, rivaux: 999 }) });
     verifier(mairieVol.statut >= 400, 'me donner une mairie directement : refusé', mairieVol.statut);
     const robots = await requete(`${URL}/rest/v1/robots?select=id,nom`, { headers: { apikey: publique } });
