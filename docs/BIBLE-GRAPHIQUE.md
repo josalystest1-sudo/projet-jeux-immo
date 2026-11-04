@@ -452,3 +452,7 @@ Gautier : « c'est top ». La collection (Patrimoine) passe aux nouvelles cartes
 
 ![Le cadre à la couleur de la rareté](bible/cadre-rarete.jpg)
 
+**Les cartes des monuments** (4 nov. au soir, PR #116, Gautier : « oui ») : la carte d'un monument montre sa maquette, celle de la carte du jeu, à la place du bloc de l'IGN. Elle garde le style des cartes : porcelaine blanche, arêtes d'or, lumière de la rareté ; pas de coque d'encre ni de couleurs de dessin animé. La caméra l'entoure en entier (la tour Eiffel haute et fine, Carcassonne large et basse) ; le plan d'or s'élargit autour des grands monuments.
+
+![Les cartes de Notre-Dame, de la tour Eiffel et de Carcassonne](bible/cartes-monuments.jpg)
+
