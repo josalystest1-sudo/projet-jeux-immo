@@ -256,6 +256,12 @@
 
 - 4 nov. 2026 (soir) : **le jeu s'appelle CityDeck** (décision de Gautier). Le nom se voit dans le titre de la page, sur la pochette (recto et verso), au dos des cartes, sur l'écran d'accueil et de connexion et dans le manifeste (nom à l'installation). Cadastra reste dans le code, les clés de stockage et les noms internes. 49 tests.
 
+- 4 nov. 2026 (soir) : **les coins, le dos, la tension** (retours de Gautier, bible § 11).
+  - Les cartes ont des coins arrondis, avec des angles ouvragés dans le cadre.
+  - Le dos est premium (`imageDosCarte`, dessiné une fois) : rosace guillochée, rayons, France en filigrane, double cadre d'or, médaillon perlé avec la pièce-maison, CITYDECK.
+  - Révélation : plus de point du lieu avant la rue. Une roulette sur les régions, puis sur les départements, s'arrête sur la bonne case, dont le nom claque.
+  - Mesuré : la révélation reste à environ 38 images par seconde. 49 tests.
+
 ## En cours
 - Lieux célèbres : les autres catégories (châteaux, mairies, gares, musées, ponts, phares, moulins…). Wikidata répond depuis le PC : `python tools/wikidata_celebres.py --categories chateau,mairie,…`, puis `gen_donnees.py celebres`. La fusion garde les catégories déjà reçues.
 - Phase 1.1 à 1.4 : la carte et le modèle des lieux reconstruits en modules (`src/`) à partir du prototype ; puis le marché (phase 4 : historique des ventes d'un lieu) et les communes et Maires (phase 6). Ensuite : Signaler envoyé au serveur dès qu'il y aura de vrais joueurs à l'écran ; Google ; un service d'envoi d'e-mails avant le lancement (le service de Supabase n'écrit qu'aux membres de l'équipe Supabase, deux e-mails par heure).

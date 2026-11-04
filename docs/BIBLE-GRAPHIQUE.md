@@ -414,3 +414,27 @@ Gautier : « l'ouverture lag trop, je ne peux pas faire de remarque constructive
 
 **Ne pas réintroduire** : `mix-blend-mode`, filtres animés, animations continues de fond, empilements de grandes couches 3D, `shadowBlur` de canevas pendant l'ouverture.
 
+### Les coins, le dos, la tension (4 nov. au soir)
+
+Gautier : « c'est pas mal, quelques petits réglages et on sera au top ». Ses trois remarques :
+- les cartes de dos semblaient « rognées sur les angles », ce n'était pas joli ;
+- le dos était « trop basique, vide, pas premium » ;
+- à la révélation, le point du lieu apparaissait dès le début : on savait où était le lieu avant même le zoom, donc pas de vraie tension.
+
+Les réponses :
+- **Les coins arrondis**, comme une vraie carte de collection : recto, verso, épaisseur et scène de révélation. Le cadre doré a des éventails ouvragés aux angles et de petits losanges sur les côtés, à la place des encoches.
+- **Le dos premium** (`imageDosCarte`), dessiné une seule fois au début de l'ouverture puis posé comme une image :
+  - un bleu nuit profond, des rayons et une rosace guillochée comme sur un billet de banque ;
+  - la France en filigrane ;
+  - un double cadre d'or aux angles ouvragés ;
+  - un médaillon d'or perlé avec la pièce-maison ;
+  - CITYDECK en capitales d'or, et « COLLECTIONNE LA FRANCE ».
+- **La tension** :
+  - plus de point du lieu avant la fin (il n'apparaît qu'à la rue) ;
+  - sur la France, les régions s'allument tour à tour, de plus en plus lentement, comme une roulette, et s'arrêtent sur la bonne, dont le nom claque ;
+  - puis la même chose avec les départements de la région ;
+  - un toucher arrête la roulette sur la bonne case et passe à la suite.
+  - Les cases de la roulette sont peintes à l'avance, plus légères (`kc`), aux moments où la page n'a rien d'autre à faire (`repos`).
+
+![Le paquet, l'annonce, la roulette des régions, la région, la roulette des départements, la commune, la rue avec le point, la carte](bible/revelation-tension.jpg)
+

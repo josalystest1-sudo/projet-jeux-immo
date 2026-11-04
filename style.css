@@ -984,3 +984,13 @@ body.promenade #sheet .svwrap{display:none}
 .rev-nom span{display:inline-block;padding:8px 14px 6px;background:linear-gradient(90deg,transparent,rgba(5,11,30,.82) 15%,rgba(5,11,30,.82) 85%,transparent);border-top:1.5px solid rgba(255,214,140,.75);border-bottom:1.5px solid rgba(255,214,140,.75)}
 .rev-fil{color:#FFF1C9;font-size:13px;font-weight:700;text-shadow:0 1px 6px rgba(0,0,0,.9);background:linear-gradient(90deg,transparent,rgba(5,11,30,.75) 20%,rgba(5,11,30,.75) 80%,transparent);padding:3px 0}
 .cl-moteur{pointer-events:none}
+
+/* ===================== les coins arrondis, le dos premium, la roulette (4 nov. au soir, retours de Gautier) ===================== */
+.cl,.c3d-dos,.c3d-avant,.rev-scene{clip-path:none;border-radius:14px;overflow:hidden}
+.c3d-bord.haut,.c3d-bord.bas{left:14px;right:14px}.c3d-bord.gauche,.c3d-bord.droite{top:14px;bottom:14px}
+.c3d-dos{background:var(--dos-carte,linear-gradient(160deg,#17326F,#050B1E)) center/100% 100% no-repeat,#0B1738;box-shadow:none}
+.c3d-dos::after{display:none}
+.c3d.annonce .c3d-dos{box-shadow:inset 0 0 0 2px color-mix(in srgb,var(--rc) 80%,#fff),inset 0 0 50px color-mix(in srgb,var(--rc) 60%,transparent)}
+.c3d.r1.annonce .c3d-dos{box-shadow:inset 0 0 0 2px #FFF1C9,inset 0 0 50px rgba(255,236,190,.45)}
+.rev-plan canvas{position:absolute;left:0;top:0;width:100%;height:100%}
+.rev-case{opacity:0;transition:opacity .09s linear}.rev-case.on{opacity:1}
