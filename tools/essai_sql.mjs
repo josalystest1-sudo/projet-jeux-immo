@@ -3,7 +3,8 @@
 // proposer, refuser, annuler, accepter, ce qui tombe ; les enchères (080_encheres.sql) : mise minimale, pièces
 // bloquées, surenchère, clôture (avec passage à la mise suivante) ; la caisse de travaux du Maire (090_mairie.sql) :
 // verser, part du Maire plafonnée, absence, fin de mandat annoncée une fois ; les classements et les saisons
-// (100_classements.sql) : patrimoine, Maires, saison figée une fois ; les refus attendus et les droits du jeu.
+// (100_classements.sql) : patrimoine, Maires, saison figée une fois ; les monuments (110_monuments.sql) : entretien,
+// reprise (lot de reprise, alerte, échanges qui tombent) ; les refus attendus et les droits du jeu.
 // Prérequis (une fois, rien n'est ajouté au dépôt) : npm i --no-save --no-package-lock @electric-sql/pglite
 //   node tools/essai_sql.mjs            (000_comptes.sql, qui demande l'extension unaccent, est remplacé par un profil minimal)
 import { PGlite } from '@electric-sql/pglite';
@@ -185,6 +186,32 @@ await q("select public.jeu_saison_figer(40, $1::jsonb, '[]'::jsonb, $2::jsonb, $
 const sa = (await q('select numero, maires, plaques from public.saisons where saison = 40'))[0], sj = await q('select joueur, rang_maires, rang_patrimoine from public.saisons_joueurs where saison = 40 order by rang_patrimoine');
 ok(sa.numero === 1 && sa.maires[0].joueur === A && sa.plaques.Bourg.joueur === A && sj.length === 2 && sj[0].joueur === B && sj[1].rang_maires === 1, 'la saison figée : podium, plaque, place de chacun', { sa, sj });
 
+// ---------------------------------------------------------------- les monuments (110_monuments.sql)
+await q('update public.joueurs set pieces = 1000 where id = $1', [A]);
+const le0 = (await q('select entretien_le from public.joueurs where id = $1', [A]))[0].entretien_le;
+ok((await q("select public.jeu_entretien($1, $2, now(), 300, 0, null) as r", [A, le0]))[0].r === true && (await pieces(A)) === 700, 'payer l’entretien : 300 pièces');
+ok((await q("select public.jeu_entretien($1, $2, now(), 10, 0, null) as r", [A, le0]))[0].r === false, 'payer deux fois le même entretien : refusé');
+const le1 = (await q('select entretien_le from public.joueurs where id = $1', [A]))[0].entretien_le;
+ok((await q("select public.jeu_entretien($1, $2, now(), 99999, 0, null) as r", [A, le1]))[0].r === false, 'payer plus que ses pièces : refusé');
+await q("select public.jeu_entretien($1, $2, now(), 700, 450, now() - interval '2 days')", [A, le1]);
+const ja = (await q('select pieces, dette, impaye_depuis from public.joueurs where id = $1', [A]))[0];
+ok(Number(ja.pieces) === 0 && Number(ja.dette) === 450 && ja.impaye_depuis !== null, 'ce qui manque devient une dette, l’impayé court', ja);
+await q("select public.jeu_averti($1, 'impaye')", [A]); await q("select public.jeu_averti($1, 'absence')", [A]);
+await q("update public.joueurs set vu_le = now() - interval '1 hour' where id = $1", [A]); await q('select public.jeu_vu($1)', [A]);
+const av = (await q('select averti_impaye, averti_absence from public.joueurs where id = $1', [A]))[0];
+ok(av.averti_impaye === true && av.averti_absence === false, 'un avertissement n’est donné qu’une fois ; revenir efface celui de l’absence', av);
+await q("insert into public.lieux (id, proprietaire, type, label, lon, lat, commune) values ('mon:QX', $1, 'monument', 'Le Monument', 0, 0, 'Bourg')", [A]);
+const [{ id: echX }] = await q("insert into public.echanges (lieu, proposeur, destinataire, donnes) values ('cl3', $1, $2, '{mon:QX}') returning id", [A, B]);
+const lotX = { cle: '77:R:QX:1', semaine: 77, rang: 10, palier: 'regional', monument: 'QX', lieu: { id: 'mon:QX', label: 'Le Monument' }, depart: 1000, fin: new Date(Date.now() + 86400000).toISOString() };
+const alerteX = { type: 'impaye', monument: 'QX', nom: 'Le Monument', commune: 'Bourg', fin_enchere: lotX.fin, texte: 'à poster' };
+const ancien = (await q('select public.jeu_monument_reprendre($1, $2, $3::jsonb, $4::jsonb) as p', ['mon:QX', 'impaye', JSON.stringify(lotX), JSON.stringify(alerteX)]))[0].p;
+ok(ancien === A && (await q("select count(*)::int as n from public.lieux where id = 'mon:QX'"))[0].n === 0, 'reprendre un monument : il n’est plus à A');
+ok((await q('select statut from public.echanges where id = $1', [echX]))[0].statut === 'caduque', 'l’échange qui le donnait tombe');
+ok((await q("select rang, statut from public.encheres where cle = '77:R:QX:1'"))[0].rang === 10, 'il attend aux enchères, dans un lot de reprise');
+ok((await q("select count(*)::int as n from public.alertes where monument = 'QX' and texte = 'à poster'"))[0].n === 1, 'Gautier a son alerte');
+ok(Number((await q('select dette from public.joueurs where id = $1', [A]))[0].dette) === 0, 'après un impayé, la dette repart à zéro');
+ok((await q("select public.jeu_monument_reprendre('cl1', 'absence', null, null) as p"))[0].p === null && (await q("select count(*)::int as n from public.lieux where id = 'cl1'"))[0].n === 1, 'une adresse n’est jamais reprise');
+
 // les droits : le jeu lit ses échanges, n'écrit jamais, n'appelle aucune fonction jeu_*
 await db.exec(`set role authenticated; set essai.uid = '${A}';`);
 const vus = await q('select id from public.echanges');
@@ -212,6 +239,10 @@ ok(!!(await refus("update public.saisons_joueurs set rang_maires = 1")), 'le jeu
 ok(!!(await refus("update public.lieux set rarete = 6 where id = 'cl2'")), 'le jeu ne peut pas changer la rareté d’un lieu');
 ok(!!(await refus("select public.jeu_raretes(array['cl2'], array[6]::smallint[])")), 'le jeu ne peut pas appeler jeu_raretes');
 ok(!!(await refus("select public.jeu_saison_figer(41, '[]', '[]', '{}', '[]')")), 'le jeu ne peut pas appeler jeu_saison_figer');
+ok(!!(await refus('select count(*) from public.alertes')), 'le jeu ne lit pas les alertes de Gautier');
+ok(!!(await refus("select public.jeu_monument_reprendre('cl3', 'absence', null, null)")), 'le jeu ne peut pas appeler jeu_monument_reprendre');
+ok(!!(await refus('select public.jeu_entretien($1, now(), now(), 0, 0, null)', [A])), 'le jeu ne peut pas appeler jeu_entretien');
+ok(!!(await refus("update public.joueurs set dette = 0")), 'le jeu ne peut pas effacer sa dette');
 await db.exec('reset role; set role anon;');
 ok((await q("select count(*)::int as n from public.caisse_communes(array['Bourg'], 6, now() - interval '7 days')"))[0].n > 0, 'sans compte aussi, on lit les caisses');
 ok((await q('select count(*)::int as n from public.encheres'))[0].n > 0, 'sans compte aussi, on lit les lots');

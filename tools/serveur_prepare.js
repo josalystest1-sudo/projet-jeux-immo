@@ -8,7 +8,7 @@ const path = require('path');
 
 const RACINE = path.resolve(__dirname, '..');
 const SORTIE = path.resolve(process.argv[2] || path.join(RACINE, 'supabase/functions/jeu/_genere'));
-const REGLES = ['regles/lieu.js', 'regles/pack.js', 'regles/encheres.js', 'regles/celebres.js', 'regles/mairie.js', 'regles/classements.js', 'tirage.js'];   // chacun pose son objet sur globalThis
+const REGLES = ['regles/lieu.js', 'regles/pack.js', 'regles/encheres.js', 'regles/celebres.js', 'regles/mairie.js', 'regles/classements.js', 'regles/monuments.js', 'tirage.js'];   // chacun pose son objet sur globalThis
 const ENTETE = '// Généré par tools/serveur_prepare.js depuis le dépôt : ne pas modifier ici.\n';
 
 // geo.js (contours de la France et des départements) est un script « const GEO = {…}; »
@@ -23,7 +23,7 @@ function preparer(sortie) {
   // s'accroche à globalThis (Regles, Pack, Encheres, Celebres), que l'on exporte ensuite
   let regles = ENTETE;
   for (const f of REGLES) regles += `\n// ---- src/${f}\n` + fs.readFileSync(path.join(RACINE, 'src', f), 'utf8') + '\n';
-  regles += '\nexport const { Regles, Pack, Encheres, Celebres, Mairie, Classements, Tirage } = globalThis;\n';
+  regles += '\nexport const { Regles, Pack, Encheres, Celebres, Mairie, Classements, Monuments, Tirage } = globalThis;\n';
   fs.writeFileSync(path.join(sortie, 'regles.mjs'), regles);
   const json = (f) => JSON.stringify(JSON.parse(fs.readFileSync(path.join(RACINE, 'data', f), 'utf8')));
   fs.writeFileSync(path.join(sortie, 'donnees.mjs'), ENTETE

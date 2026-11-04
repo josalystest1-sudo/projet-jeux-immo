@@ -1681,7 +1681,7 @@ async function appelServeur(action, corps){
     return data; }
   catch(e){ return { ok:false, code:'reseau', message:'Serveur injoignable : vérifie ta connexion et réessaie.' }; } }
 // ma partie, telle que le serveur la donne : pièces, dernière récolte, pack du jour, lieux
-function appliquerEtat(e){ if(!e) return; state.wallet=e.pieces; state.encaisse=e.encaisse; state.dernierJour = e.dernierJour==null ? null : e.dernierJour;
+function appliquerEtat(e){ if(!e) return; state.wallet=e.pieces; if(e.entretien) state.entretien=Object.assign({}, state.entretien, e.entretien); state.encaisse=e.encaisse; state.dernierJour = e.dernierJour==null ? null : e.dernierJour;
   if(e.jourMs){ state.jourMs=e.jourMs; JOUR=e.jourMs; SEMAINE=7*JOUR; }
   if(e.offresRecues) state.offersIn=e.offresRecues; if(e.offresEnvoyees) state.offersOut=e.offresEnvoyees; if(e.notifs) state.notifs=e.notifs;
   if(e.echangesRecus) state.echangesIn=e.echangesRecus; if(e.echangesEnvoyes) state.echangesOut=e.echangesEnvoyes;
@@ -1826,7 +1826,7 @@ function filtrerPatri(r){ filtrePatri = filtrePatri===r ? 0 : r; renderPatrimoin
 function renderPatrimoine(){ const el=document.getElementById('s-patrimoine'); const tous=Object.values(state.owned); const total=tous.reduce((s,a)=>s+valeur(a),0);
   const list = filtrePatri ? tous.filter(a=>rarete(a)===filtrePatri) : tous.slice();
   const p=Math.floor(pendingRent());
-  let h=`<h1>Mon patrimoine</h1><div class="kpis"><div class="kpi"><i>🏘️</i><b>${tous.length}</b><small>lieu${tous.length>1?'x':''}</small></div><div class="kpi"><i>💎</i><b>${nb(total)}<i class="pc"></i></b><small>de valeur</small></div><div class="kpi"><i>📈</i><b style="color:var(--cadre2)">${(v=>(v<0?'−':'+')+nb(Math.abs(v)))(SALAIRE+loyerTotal()-(MODE_SERVEUR?0:MON.parJour(tous)))}</b><small>par jour</small></div></div>`;
+  let h=`<h1>Mon patrimoine</h1><div class="kpis"><div class="kpi"><i>🏘️</i><b>${tous.length}</b><small>lieu${tous.length>1?'x':''}</small></div><div class="kpi"><i>💎</i><b>${nb(total)}<i class="pc"></i></b><small>de valeur</small></div><div class="kpi"><i>📈</i><b style="color:var(--cadre2)">${(v=>(v<0?'−':'+')+nb(Math.abs(v)))(SALAIRE+loyerTotal()-MON.parJour(tous))}</b><small>par jour</small></div></div>`;
   h+=`<div class="card flex"><div><div class="t">🌾 ${p>=1?`<span style="color:var(--cadre2)">+${nb(p)}</span> à récolter`:'Les loyers poussent…'}</div><div class="m">Salaire ${nb(SALAIRE)} + loyers ${nb(loyerTotal())} par jour, stockés 24 h au plus.</div></div>${p>=1?`<button class="btn vert" onclick="recolter()">Récolter</button>`:''}</div>`;
   { const mons=MON.entretiens(tous), e=state.entretien||{}; if(mons.length){ const jr=MON.joursAvantReprise(e.impayeDepuis, now(), JOUR), cher=mons[mons.length-1];
       h+=`<div class="card entretien${e.dette>0?' impaye':''}"><div class="t">🏛️ Entretien de tes monuments : ${pcs(MON.parMois(tous))} par mois</div>
@@ -2051,7 +2051,7 @@ function tickMonuments(){ if(MODE_SERVEUR) return; const t=now(), e=state.entret
   // « prélevé sur les loyers » : s'il manque des pièces, les loyers en attente sont récoltés d'abord
   if((d.montant>=1 || e.dette>0) && state.wallet < e.dette+d.montant && Math.floor(pendingRent())>=1) encaisser(true);
   if(d.montant>=1 || e.dette>0){ const avant=e.impayeDepuis, r=MON.payer(state.wallet, e.dette, d.montant, e.impayeDepuis, t);
-    state.wallet-=r.paye; e.le+=d.couvreMs; e.dette=r.dette; e.impayeDepuis=r.impayeDepuis; if(r.impayeDepuis==null) e.averti=false;
+    state.wallet-=r.paye; e.le=d.nouveauLe; e.dette=r.dette; e.impayeDepuis=r.impayeDepuis; if(r.impayeDepuis==null) e.averti=false;
     if(avant==null && r.impayeDepuis!=null){ const x=state.owned[MON.plusCher(mons)]; notify('monument', `⚠️ Pas assez de pièces pour l’entretien de tes monuments (${fmt(MON.parMois(mons))} par mois). Après ${MON.M.impaye_jours} jours d’impayé, ${x?x.label:'le plus cher'} sera remis aux enchères.`); }
     if(r.paye || avant!==r.impayeDepuis) save(); }
   const st=MON.impaye(e.impayeDepuis, t, JOUR);

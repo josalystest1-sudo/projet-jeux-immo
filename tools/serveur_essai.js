@@ -217,6 +217,10 @@ async function nouveauJoueur(publique, secrete) {
     verifier(cm.statut === 200 && Array.isArray(cm.corps), 'le classement des Maires se lit', cm);
     const sa = await requete(`${URL}/rest/v1/saisons?select=saison,numero&limit=1`, { headers: { apikey: publique } });
     verifier(sa.statut === 200 && Array.isArray(sa.corps), 'les saisons passées se lisent', sa);
+    const etM = await jeu({ action: 'etat' });
+    verifier(etM.corps && etM.corps.ok && etM.corps.entretien && etM.corps.entretien.dette === 0 && etM.corps.entretien.impayeDepuis === null, 'ma partie dit ma dette d’entretien des monuments (aucune)', etM.corps && etM.corps.entretien);
+    const alertesLues = await requete(`${URL}/rest/v1/alertes?select=id&limit=1`, { headers: { apikey: publique, Authorization: `Bearer ${acces}` } });
+    verifier(alertesLues.statut >= 400 || (Array.isArray(alertesLues.corps) && alertesLues.corps.length === 0), 'les alertes de Gautier ne se lisent pas depuis le jeu', alertesLues.statut);
     const mairieVol = await requete(`${URL}/rest/v1/mairies`, { method: 'POST', headers: { apikey: publique, Authorization: `Bearer ${acces}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ mandat: 1, commune: 'x', maire: id, rivaux: 999 }) });
     verifier(mairieVol.statut >= 400, 'me donner une mairie directement : refusé', mairieVol.statut);
     const robots = await requete(`${URL}/rest/v1/robots?select=id,nom`, { headers: { apikey: publique } });

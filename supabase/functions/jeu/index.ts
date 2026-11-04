@@ -3,12 +3,13 @@
 // que le jeu (src/regles, recopiées dans _genere/ par tools/serveur_prepare.js), puis écrit par les fonctions SQL
 // jeu_* (supabase/sql/010_jeu.sql), chacune atomique. Réponse : { ok: true, ... } ou { ok: false, code, message }.
 import { createClient } from '@supabase/supabase-js';
-import { Regles, Pack, Celebres, Tirage, Encheres, Mairie, Classements } from './_genere/regles.mjs';
+import { Regles, Pack, Celebres, Tirage, Encheres, Mairie, Classements, Monuments } from './_genere/regles.mjs';
 import { ECO, STANDING, FRANCE, DEPARTEMENTS, CELEBRES, MONUMENTS } from './_genere/donnees.mjs';
 
 const R = Regles.creer(ECO, STANDING);
 const MAI = Mairie.creer(ECO);   // le Maire par caisse de travaux (src/regles/mairie.js, GDD § 5)
 const CLA = Classements.creer(ECO);   // les classements et les saisons (src/regles/classements.js, GDD § 5 bis)
+const MON = Monuments.creer(ECO);     // les monuments : entretien, impayés, absence (src/regles/monuments.js, GDD § 5 ter)
 
 // la clé secrète du projet est donnée par Supabase à la fonction (jamais écrite dans le dépôt)
 function cleSecrete(): string {
@@ -58,7 +59,7 @@ function lieuDe(l: Ligne) {
 }
 async function joueur(j: string) {
   await rpc('jeu_nouveau_joueur', { j, depart: ECO.solde_depart });
-  const { data, error } = await admin.from('joueurs').select('pieces, encaisse, dernier_jour').eq('id', j).single();
+  const { data, error } = await admin.from('joueurs').select('pieces, encaisse, dernier_jour, dette, impaye_depuis').eq('id', j).single();
   if (error || !data) throw error || new Error('joueur introuvable');
   return data;
 }
@@ -122,6 +123,7 @@ async function etatDe(j: string) {
   return {
     pieces: Number(jr.pieces), encaisse: ms(jr.encaisse), dernierJour: jr.dernier_jour == null ? null : Number(jr.dernier_jour), jour: Regles.jourDuJeu(maintenant, jm),
     lieux, maintenant, aRecolter: R.aEncaisser(lieux, ms(jr.encaisse), maintenant, jm), jourMs: jm, ...offres, ...echanges, notifs, ...encheres,
+    entretien: { dette: Number(jr.dette || 0), impayeDepuis: jr.impaye_depuis ? ms(jr.impaye_depuis) : null },
   };
 }
 // mes offres reçues et envoyées (en attente, et les dernières réglées), avec le lieu et l'autre joueur
@@ -348,7 +350,7 @@ async function tenirEncheres(force = false) {
   if (error) throw error;
   for (const l of finis || []) await cloturer(l);
   const { s, fin } = await semaineServeur();
-  const { count } = await admin.from('encheres').select('cle', { count: 'exact', head: true }).eq('semaine', s);
+  const { count } = await admin.from('encheres').select('cle', { count: 'exact', head: true }).eq('semaine', s).lt('rang', 10);
   if (count) return;
   const { data: ouverts } = await admin.from('encheres').select('monument').eq('statut', 'ouverte');
   const { nat, reg } = await monumentsLibres((ouverts || []).map((o: Ligne) => o.monument));
@@ -363,6 +365,7 @@ async function cloturer(l: Ligne) {
   const top = ENC.meilleure((mises || []).map((b: Ligne) => ({ qui: b.joueur, montant: Number(b.montant), ts: Number(b.id) })));
   const r = await rpc('jeu_enchere_cloturer', { c: l.cle });
   if (!r) return;   // déjà clos par un autre appel
+  if (!r.gagnant && Number(l.rang) >= 10) await rpc('jeu_alerte', { alerte: { type: 'sans_preneur', monument: l.monument, nom: (l.lieu && l.lieu.label) || l.monument, commune: (l.lieu && l.lieu.commune) || '', fin_enchere: null, texte: `🏛️ ${(l.lieu && l.lieu.label) || 'Un monument'} attend toujours son propriétaire dans CityDeck : il reviendra bientôt aux enchères. #CityDeck` } }).catch((e) => console.error('alerte', e));
   const nom = (l.lieu && l.lieu.label) || 'le monument', g = r.gagnant as string | null, prix = Number(r.prix || 0), ps = await pseudos(joueurs);
   for (const u of joueurs) {
     if (u === g) { await notifier(u, 'enchere', `🏆 Tu as remporté ${nom} pour ${fmt(prix)} !`, { lieu: l.lieu.id }); continue; }
@@ -403,6 +406,7 @@ ACTIONS.miser = async (j, corps) => {
   const { data: l } = await admin.from('encheres').select('*').eq('cle', cle).maybeSingle();
   if (!l) throw new Refus('lot', REFUS_SQL.lot);
   if (l.statut !== 'ouverte' || Date.parse(l.fin) <= Date.now()) throw new Refus('close', REFUS_SQL.close);
+  if (Number(l.semaine) > (await semaineServeur()).s) throw new Refus('lot', 'Cette enchère ouvrira la semaine prochaine.');
   await recolter(j);
   let avant: Ligne;
   try { avant = (await rpc('jeu_miser', { j, c: cle, montant, pas: ECO.encheres.pas_min })) || {}; }
@@ -540,6 +544,85 @@ async function tenirRaretes(force = false) {
   await rpc('jeu_raretes', { ids: data.map((l: Ligne) => l.id), rs: data.map((l: Ligne) => R.rarete(lieuDe(l))) });
 }
 
+// ---------------------------------------------------------------- les monuments : prestige, pas revenu (GDD § 5 ter)
+// L'entretien (le n-ième monument : 300 × 2^(n−1) par mois du jeu) est prélevé à chaque appel du joueur (s'il manque des
+// pièces, ses loyers sont récoltés d'abord) ; ce qui manque devient une dette. Un monument est repris après un mois
+// d'impayé (le plus cher) ou 14 jours sans venir (tous) : il retourne aux enchères dans un lot de reprise, et une alerte
+// attend Gautier (table « alertes ») avec une phrase prête à poster.
+const mesMonuments = async (j: string): Promise<Ligne[]> => ((await admin.from('lieux').select('id, label, type, depuis, citycode, city, proprietaire').eq('proprietaire', j).eq('type', 'monument')).data || []).map((l: Ligne): Ligne => ({ ...l, depuis: ms(l.depuis) }));
+async function payerEntretien(j: string) {
+  const jm = await jourMs(); let recolte = false;
+  for (let essai = 0; essai < 3; essai++) {
+    const { data: jr } = await admin.from('joueurs').select('pieces, dette, impaye_depuis, entretien_le').eq('id', j).maybeSingle();
+    if (!jr) return;
+    const t = Date.now(), le = ms(jr.entretien_le), mons = await mesMonuments(j), dette = Number(jr.dette || 0), impaye = jr.impaye_depuis ? ms(jr.impaye_depuis) : null;
+    if (!mons.length) {
+      if (dette > 0 || impaye != null || t - le > 60000) await rpc('jeu_entretien', { j, avant: jr.entretien_le, apres: new Date(t).toISOString(), paye: 0, reste: 0, impaye: null });
+      return;
+    }
+    const d = MON.du(mons, le, t, jm);
+    if (d.montant < 1 && dette <= 0) return;
+    if (!recolte && Number(jr.pieces) < dette + d.montant) { recolte = true; await recolter(j).catch(() => {}); continue; }   // « prélevé sur les loyers »
+    const r = MON.payer(Number(jr.pieces), dette, d.montant, impaye, t);
+    const fait = await rpc('jeu_entretien', { j, avant: jr.entretien_le, apres: new Date(d.nouveauLe).toISOString(), paye: r.paye, reste: r.dette, impaye: r.impayeDepuis == null ? null : new Date(r.impayeDepuis).toISOString() });
+    if (!fait) continue;
+    if (impaye == null && r.impayeDepuis != null) {
+      const x = mons.find((m: Ligne) => m.id === MON.plusCher(mons));
+      await notifier(j, 'monument', `⚠️ Pas assez de pièces pour l’entretien de tes monuments (${fmt(MON.parMois(mons))} par mois). Après ${MON.M.impaye_jours} jours d’impayé, ${x ? x.label : 'le plus cher'} sera remis aux enchères.`, {});
+    }
+    return;
+  }
+}
+// la date de fin d'une enchère, pour la phrase à poster
+function dateEnchere(finMs: number, jm: number) {
+  const f = new Date(finMs).toLocaleString('fr-FR', { timeZone: 'Europe/Paris', weekday: 'long', day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit' });
+  return jm >= 86_400_000 ? f : `${f} (serveur d’essai)`;
+}
+// reprendre un monument : il retourne aux enchères (cette semaine s'il reste au moins 3 jours, sinon la suivante)
+async function reprendre(l: Ligne, raison: string, pourquoi: string) {
+  const id = String(l.id).replace(/^mon:/, ''), m = LISTE_MON.find((x: Ligne) => x.id === id), jm = await jourMs(), { s, fin } = await semaineServeur();
+  const assez = fin - Date.now() >= 3 * jm, sem = assez ? s : s + 1, finLot = assez ? fin : Regles.debutJour((s + 2) * 7, jm);
+  const nom = l.label || (m && m.nom) || 'Un monument', commune = Regles.nomCommune(l.citycode || '', l.city || '');
+  const lot = m ? { cle: `${sem}:R:${m.id}:${Date.now()}`, semaine: sem, rang: 10, palier: m.palier, monument: m.id, lieu: lieuMonument(m), depart: ENC.miseDepart(m), fin: new Date(finLot).toISOString() } : null;
+  const alerte = { type: raison, monument: id, nom, commune, fin_enchere: lot ? lot.fin : null,
+    texte: `🏛️ ${nom} (${commune}) est de nouveau libre dans CityDeck ! Enchères jusqu’au ${dateEnchere(finLot, jm)} : à vos pièces ! #CityDeck` };
+  const p = await rpc('jeu_monument_reprendre', { l: l.id, raison, lot, alerte });
+  if (p) await notifier(p, 'monument', `🏛️ ${nom} est remis aux enchères : ${pourquoi}.`, {});
+}
+// les absences et les impayés (au plus toutes les 30 s)
+let monumentsTenus = 0;
+async function tenirMonuments() {
+  if (Date.now() - monumentsTenus < 30000) return;
+  monumentsTenus = Date.now();
+  const jm = await jourMs(), t = Date.now();
+  // les absents qui ont des monuments : prévenus à 11 jours, repris à 14
+  const { data: absents } = await admin.from('lieux').select('id, label, citycode, city, proprietaire, joueurs!inner(vu_le, averti_absence)').eq('type', 'monument')
+    .lt('joueurs.vu_le', new Date(t - MON.M.absence_avertir_jours * jm).toISOString()).limit(200);
+  const avertis = new Set<string>();
+  for (const l of (absents || []) as Ligne[]) {
+    const vu = ms(l.joueurs.vu_le), etat = MON.absence(vu, t, jm), jours = Math.floor((t - vu) / jm);
+    if (etat === 'reprendre') await reprendre(l, 'absence', `tu n’es pas venu depuis ${jours} jours (${MON.M.absence_jours} au plus)`);
+    else if (etat === 'avertir' && !l.joueurs.averti_absence && !avertis.has(l.proprietaire)) {
+      avertis.add(l.proprietaire);
+      await notifier(l.proprietaire, 'monument', `⏳ Tu n’es pas venu depuis ${jours} jours : à ${MON.M.absence_jours} jours d’absence, tes monuments sont remis aux enchères.`, {});
+      await rpc('jeu_averti', { j: l.proprietaire, quoi: 'absence' });
+    }
+  }
+  // les impayés : prévenus 7 jours avant, le plus cher repris après un mois
+  const { data: impayes } = await admin.from('joueurs').select('id, impaye_depuis, averti_impaye').not('impaye_depuis', 'is', null)
+    .lt('impaye_depuis', new Date(t - MON.M.impaye_avertir_jours * jm).toISOString()).limit(200);
+  for (const jr of (impayes || []) as Ligne[]) {
+    const mons = await mesMonuments(jr.id); if (!mons.length) continue;
+    const x = mons.find((m: Ligne) => m.id === MON.plusCher(mons)), etat = MON.impaye(ms(jr.impaye_depuis), t, jm);
+    if (!x) continue;
+    if (etat === 'reprendre') await reprendre(x, 'impaye', `son entretien n’a pas été payé pendant ${MON.M.impaye_jours} jours`);
+    else if (etat === 'avertir' && !jr.averti_impaye) {
+      await notifier(jr.id, 'monument', `⏳ Entretien impayé : dans ${MON.joursAvantReprise(ms(jr.impaye_depuis), t, jm)} jours, ${x.label} sera remis aux enchères si tu n’as pas les pièces.`, {});
+      await rpc('jeu_averti', { j: jr.id, quoi: 'impaye' });
+    }
+  }
+}
+
 // ouvrir le pack du jour : le serveur tire au hasard (graine secrète), une fois par jour
 ACTIONS.pack = async (j) => {
   const jm = await jourMs(), jour = Regles.jourDuJeu(Date.now(), jm), jr = await joueur(j);
@@ -661,6 +744,7 @@ async function robotsTour() {
       }
       // 6 bis. verser à la caisse d'une de leurs communes (et passer pour présents : ils peuvent être élus)
       await rpc('jeu_vu', { j }).catch(() => {});
+      await payerEntretien(j).catch(() => {});
       if (mes.length && Math.random() < 0.35) {
         const k = hasard(mes).commune, montant = Math.min(Math.floor(pieces * 0.15 / 10) * 10, 50 + Math.floor(Math.random() * 30) * 10);
         if (k && montant >= MAI.M.versement_min) { await ACTIONS.verser(j, { commune: k, montant }).then(() => { pieces -= montant; }).catch(() => {}); }
@@ -691,6 +775,8 @@ Deno.serve(async (req: Request) => {
     await rpc('jeu_vu', { j: data.user.id }).catch((e) => console.error('visite', e));
     await tenirMairies().catch((e) => console.error('mairies', e));
     await tenirRaretes().catch((e) => console.error('raretés', e));
+    await payerEntretien(data.user.id).catch((e) => console.error('entretien', e));
+    await tenirMonuments().catch((e) => console.error('monuments', e));
     const res = await action(data.user.id, corps);
     // les robots jouent un tour après la réponse (sans faire attendre le vrai joueur)
     const runtime = (globalThis as Ligne).EdgeRuntime; if (runtime && runtime.waitUntil) runtime.waitUntil(robotsTour().catch((e) => console.error('robots', e)));
