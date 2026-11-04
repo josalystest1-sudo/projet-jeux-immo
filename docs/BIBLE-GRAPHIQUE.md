@@ -281,3 +281,10 @@ Où c'est dans le code : la pochette est dessinée par `makeArt()` (`index.html`
 - **La Grande Mosquée de Paris** (4 nov., ajoutée aux monuments à la demande de Gautier) : les bâtiments blancs autour du jardin, du patio et des petites cours (l'emprise de l'IGN, cours ouvertes), les toits de tuiles vertes, le minaret carré, son lanternon vert et sa boule dorée.
 
 ![La Grande Mosquée de Paris](bible/monuments-57.jpg)
+- **Quatre églises ajoutées aux monuments** (4 nov., à la demande de Gautier), d'après les emprises de l'IGN :
+  - **Saint-François-Xavier** (Paris) : la nef, le chœur à l'abside ronde, les deux tours carrées de la façade et leurs petits dômes.
+  - **Saint-Ambroise** (Paris) : les deux clochers de 68 m, leurs flèches octogonales et leurs pinacles.
+  - **La basilique Saint-Martin de Tours** : le dôme d'ardoise sur son tambour, la statue de saint Martin.
+  - **Saint-Pierre-le-Vieux de Strasbourg** : les deux églises en grès rose et le clocher médiéval entre elles.
+
+![Saint-François-Xavier, Saint-Ambroise, Saint-Martin de Tours, Saint-Pierre-le-Vieux](bible/monuments-58.jpg)

@@ -167,7 +167,7 @@ const MAIRES = {}, CLASSEMENTS = {};   // commune → [{ who, n }] : ses Maires 
 let REEL = {};                         // parcelle → ensemble des propriétaires (pour la couleur)
 const R = Regles.creer(ECO, STANDING); // moteur de règles (src/regles/lieu.js) : réglages data/economie.json, standing réel data/standing.json
 const NIVEAUX = R.NIVEAUX; const SALAIRE = ECO.salaire_par_jour; const LOYER_BASE = ECO.loyer_terrain; const RARETES = ECO.raretes;
-// Les 459 monuments (data/monuments.json), tous Extraordinaires : 60 nationaux et 399 régionaux ; chaque semaine, 1 national et 2 régionaux aux enchères.
+// Les 463 monuments (data/monuments.json), tous Extraordinaires : 60 nationaux et 403 régionaux ; chaque semaine, 1 national et 2 régionaux aux enchères.
 const ENC = Encheres.creer(ECO); // règles des enchères (src/regles/encheres.js)
 function iconeMonument(n){ n=n.toLowerCase(); if(/tour eiffel/.test(n)) return '🗼'; if(/mosquée/.test(n)) return '🕌'; if(/synagogue/.test(n)) return '🕍'; if(/cathédrale|basilique|église|chapelle|abbaye|abbatiale|primatiale|collégiale|monastère|synagogue|temple|couvent|chartreuse/.test(n)) return '⛪'; if(/château|forteresse|citadelle|fort |cité de/.test(n)) return '🏰'; if(/pont|viaduc/.test(n)) return '🌉'; if(/grotte|abri|caune/.test(n)) return '🪨'; if(/théâtre|opéra|palais garnier/.test(n)) return '🎭'; if(/phare/.test(n)) return '🗼'; if(/jardin|parc/.test(n)) return '🌳'; return '🏛️'; }
 const LISTE_MON = MONUMENTS.map(m=>({ ...m, icone: iconeMonument(m.nom), depart: ENC.miseDepart(m) }));
