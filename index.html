@@ -1504,7 +1504,7 @@ function dechirer(){ if(GL.torn) return; packTorn=true; packOuverture=null;
 // la révélation (France, département, commune, lieu), puis cette même carte se retourne dans la main. On l'incline au doigt
 // (ou en penchant le téléphone) ; on la fait glisser sur le côté, ou on la touche, pour passer à la suivante. À la fin, les
 // cartes en éventail ; en toucher une l'agrandit (et on peut encore l'incliner).
-const PK={ cartes:[], i:0, etat:'pile', zoom:-1, anim:0 };   // etat : pile, revele, main, fini
+const PK={ cartes:[], i:0, etat:'pile', zoom:-1, anim:0 };   // etat : pile, revele, main, passe (la carte s'envole), fini
 // Le dos des cartes (Gautier, 4 nov. : « trop basique, vide, pas premium ») : un bleu nuit profond, des rayons et une rosace
 // guillochée comme sur un billet de banque, la France en filigrane, un double cadre d'or aux angles ouvragés, un médaillon
 // d'or avec la pièce-maison, CITYDECK en capitales d'or. Dessiné une seule fois, puis posé comme une image (aucun coût
@@ -1593,7 +1593,7 @@ async function revelerCarte(k){ if(revealing) return; revealing=true; PK.etat='r
   pretCarte.then(s2=>{ k.scene=s2; if(s2){ s2.focus=true; s2.monter(); } });
   if(r>=3){ el.classList.remove('eclair'); void el.offsetWidth; el.classList.add('eclair'); }
   await pauseR(1500);
-  rv.className=''; sc.classList.remove('revele'); el.classList.remove('grande'); revealing=false; PK.etat='main'; dispoPack(); setTimeout(()=>{ scene.innerHTML=''; }, 700);
+  rv.className=''; sc.classList.remove('revele'); el.classList.remove('grande'); revealing=false; k.revelee=true; PK.etat='main'; dispoPack(); setTimeout(()=>{ scene.innerHTML=''; }, 700);
   const der=PK.i>=PK.cartes.length-1; hint.textContent = der ? 'Incline la carte · glisse-la pour finir' : 'Incline la carte · glisse-la pour la suivante';
   setTimeout(()=>{ if(PK.etat==='main' && PK.cartes[PK.i]===k) balancer(k.el); }, 950); setTimeout(()=>preparerCarte(PK.cartes[PK.i+1]), 1600); }
 // la carte en main se balance doucement (ou suit le téléphone penché) : les reflets bougent
@@ -1605,7 +1605,9 @@ function balancer(el){ cancelAnimationFrame(PK.anim); if(reduitMouvement()) retu
   PK.anim=requestAnimationFrame(pas); }
 function carteSuivante(k, sens){ const el=k.el; cancelAnimationFrame(PK.anim); if(k.scene) k.scene.focus=false; el.classList.remove('suit','eclair'); vibrer(10); sonGlisse(PK.i);
   el.style.setProperty('--x',(sens*innerWidth*0.95)+'px'); el.style.setProperty('--r',(sens*26)+'deg'); el.style.setProperty('--rx','0deg'); el.style.setProperty('--ry','0deg');
-  PK.i++; const fini=PK.i>=PK.cartes.length;
+  // Gautier (4 nov.) : en touchant vite, une carte sur deux partait sans être révélée. Le toucher suivant arrivait pendant
+  // que la carte s'envolait, quand la carte d'après était déjà dessus mais que le jeu se croyait encore « en main ».
+  PK.i++; PK.etat='passe'; const fini=PK.i>=PK.cartes.length;
   setTimeout(()=>{ const sc=document.getElementById('packscene');
     if(fini){ PK.etat='fini'; sc.classList.add('fini'); document.getElementById('packdone').style.display='block'; document.getElementById('pkhint').textContent = PACK_ESSAI ? 'Pack d’essai : ces lieux ne sont pas à toi · touche une carte pour la voir' : `${PK.cartes.length} nouveaux lieux dans ton patrimoine · touche une carte pour la voir`; }
     else { PK.etat='pile'; document.getElementById('pkhint').textContent='Touche la carte pour la révéler'; }
@@ -1614,7 +1616,7 @@ function carteSuivante(k, sens){ const el=k.el; cancelAnimationFrame(PK.anim); i
 (function(){ const wrap=document.getElementById('pkcards'); let g=null;
   wrap.addEventListener('pointerdown', e=>{ const el=e.target.closest('.c3d'); if(!el || revealing) return; const j=PK.cartes.findIndex(k=>k.el===el); if(j<0) return;
     if(PK.etat==='fini'){ if(j!==PK.zoom){ PK.zoom=j; vibrer(8); dispoPack(); setTimeout(()=>balancer(el), 600); return; } }
-    else if(j!==PK.i || PK.etat==='revele') return;
+    else if(j!==PK.i || PK.etat==='revele' || PK.etat==='passe') return;
     g={ k:PK.cartes[j], x0:e.clientX, y0:e.clientY, dx:0, dy:0, bouge:false, bx:parseFloat(el.style.getPropertyValue('--x'))||0, by:parseFloat(el.style.getPropertyValue('--y'))||0 };
     el.classList.add('libre'); try{ el.setPointerCapture(e.pointerId); }catch(_){} });
   wrap.addEventListener('pointermove', e=>{ if(!g) return; g.dx=e.clientX-g.x0; g.dy=e.clientY-g.y0; if(Math.abs(g.dx)>8 || Math.abs(g.dy)>8) g.bouge=true;
@@ -1623,8 +1625,9 @@ function carteSuivante(k, sens){ const el=k.el; cancelAnimationFrame(PK.anim); i
     el.style.setProperty('--x',(g.bx+g.dx*0.6)+'px'); el.style.setProperty('--y',(g.by+g.dy*0.35)+'px');
     reflets(el, Math.max(0,Math.min(1,(e.clientX-b.left)/b.width)), Math.max(0,Math.min(1,(e.clientY-b.top)/b.height))); });
   const fin=()=>{ if(!g) return; const {k,dx,dy,bouge}=g, el=k.el; g=null; el.classList.remove('libre'); el.style.setProperty('--rx','0deg'); el.style.setProperty('--ry','0deg');
-    if(PK.etat==='pile'){ dispoPack(); if(!bouge) revelerCarte(k); return; }
-    if(PK.etat==='main'){ if(!bouge || Math.abs(dx)>80 || dy<-110){ carteSuivante(k, dx<0?-1:1); return; } dispoPack(); return; }
+    if(k!==PK.cartes[PK.i] && PK.etat!=='fini'){ dispoPack(); return; }
+    if(PK.etat==='pile'){ dispoPack(); if(!bouge && !k.revelee) revelerCarte(k); return; }
+    if(PK.etat==='main' && k.revelee){ if(!bouge || Math.abs(dx)>80 || dy<-110){ carteSuivante(k, dx<0?-1:1); return; } dispoPack(); return; }
     if(PK.etat==='fini'){ if(!bouge){ PK.zoom=-1; cancelAnimationFrame(PK.anim); el.classList.remove('suit'); } dispoPack(); } };
   wrap.addEventListener('pointerup', fin); wrap.addEventListener('pointercancel', fin); })();
 
