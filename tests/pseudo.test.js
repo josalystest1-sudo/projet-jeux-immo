@@ -18,7 +18,7 @@ test('les mots interdits sont bloqués, même déguisés', () => {
 });
 
 test('les noms réservés sont bloqués', () => {
-  for (const p of ['Admin', 'Cadastra_FR', 'Le Modo', 'SupportFR', 'Modérateur']) assert.strictEqual(raison(p), 'reserve', p);
+  for (const p of ['Admin', 'Cadastra_FR', 'CityDeck_FR', 'City.Deck', 'Le Modo', 'SupportFR', 'Modérateur']) assert.strictEqual(raison(p), 'reserve', p);
 });
 
 test('longueur et caractères', () => {
