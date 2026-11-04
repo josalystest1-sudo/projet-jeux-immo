@@ -142,14 +142,16 @@
   // aux angles (pour toutes les raretés), plus orné avec la rareté (arcs de couleur, losanges, couronne)
   function cadre(r) {
     const W = 240, H = 350, rr = (i, a) => `M${i + a},${i} H${W - i - a} A${a},${a} 0 0 1 ${W - i},${i + a} V${H - i - a} A${a},${a} 0 0 1 ${W - i - a},${H - i} H${i + a} A${a},${a} 0 0 1 ${i},${H - i - a} V${i + a} A${a},${a} 0 0 1 ${i + a},${i} Z`;
-    let s = `<path class="cl-trait halo" d="${rr(6.5, 9)}"/><path class="cl-trait or" d="${rr(1.5, 13)}"/><path class="cl-trait vif" d="${rr(6.5, 9)}"/>`;
+    // un seul filet, au bord de la carte, à la couleur de la rareté (Gautier, 4 nov. : le filet intérieur « rentrait et sortait
+    // de la carte » sur son téléphone ; il est retiré)
+    let s = `<path class="cl-trait bord" d="${rr(1.5, 13)}"/>`;
     const coins = [[12, 12, 1, 1], [228, 12, -1, 1], [12, 338, 1, -1], [228, 338, -1, -1]];
     const arc = (cx, cy, sx, sy, a) => `M${cx + sx * a},${cy} A${a},${a} 0 0 ${sx * sy > 0 ? 1 : 0} ${cx},${cy + sy * a}`;
     for (const [x, y, sx, sy] of coins) s += `<path class="cl-trait or fin" d="${arc(x, y, sx, sy, 8)}"/><path class="cl-trait or fin" d="${arc(x, y, sx, sy, 12)}"/><circle class="cl-plein or" cx="${x + sx * 3}" cy="${y + sy * 3}" r="1.8"/>`;
     // de petits losanges d'or au milieu des côtés, à la hauteur des chiffres
     for (const x of [1.5, 238.5]) s += `<path class="cl-plein or" d="M${x},262 L${x + 3.5},268 L${x},274 L${x - 3.5},268 Z"/>`;
     if (r >= 3) for (const [x, y, sx, sy] of coins) s += `<path class="cl-trait vif epais" d="${arc(x - sx, y - sy, sx, sy, 17)}"/>`;
-    if (r >= 4) for (const y of [6.5, 343.5]) s += `<path class="cl-plein vif" d="M120,${y - 4} L124,${y} L120,${y + 4} L116,${y} Z"/>`;
+    if (r >= 4) for (const y of [4.5, 345.5]) s += `<path class="cl-plein vif" d="M120,${y - 4} L124,${y} L120,${y + 4} L116,${y} Z"/>`;
     // la couronne (Légendaire et au-delà), qui pend du haut du cadre
     if (r >= 5) s += `<path class="cl-plein or" d="M102,1.5 L138,1.5 L133,7 L128,4 L120,11 L112,4 L107,7 Z"/>`;
     return s;

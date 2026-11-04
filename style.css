@@ -1009,3 +1009,9 @@ body.promenade #sheet .svwrap{display:none}
 .cl-grand-in.libre{transition:transform .06s linear}
 .cl-grand-lumiere{position:absolute;inset:0;border-radius:14px;pointer-events:none;background:radial-gradient(circle at var(--mx,50%) var(--my,30%),rgba(255,255,255,.2),rgba(255,255,255,.05) 30%,transparent 65%)}
 @media (max-width:360px){.cl-grand-in{transform:scale(.9) rotateX(var(--rx,0deg)) rotateY(var(--ry,0deg))}}
+
+/* ===================== le cadre des cartes (4 nov. au soir : « supprime les cadres qui rentrent et qui sortent de la carte ») =====================
+   Un seul filet au bord, à la couleur de la rareté (or pour les Communes). Pas de « vector-effect:non-scaling-stroke » : dans
+   une carte réduite (collection), Chrome sur Android dessinait alors le filet plus petit, décalé vers le haut à gauche. */
+.cl-trait{vector-effect:none}
+.cl-trait.bord{stroke:var(--c2);stroke-width:2.8}

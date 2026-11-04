@@ -448,3 +448,7 @@ Gautier : « c'est top ». La collection (Patrimoine) passe aux nouvelles cartes
 
 ![La collection, et une carte ouverte](bible/collection.jpg)
 
+**Le cadre** (4 nov. au soir, PR #115) : un seul filet, au bord de la carte, à la couleur de la rareté (or pour les Communes), avec les éventails d'or aux angles. Gautier : le filet intérieur « rentrait et sortait de la carte » sur son téléphone ; il est retiré. Pas de `vector-effect:non-scaling-stroke` dans une carte réduite : Chrome sur Android décalait le trait.
+
+![Le cadre à la couleur de la rareté](bible/cadre-rarete.jpg)
+
