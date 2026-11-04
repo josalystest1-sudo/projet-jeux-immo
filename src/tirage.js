@@ -3,7 +3,7 @@
 // tout ce qui touche au réseau et à l'état est fourni par l'appelant (géocodeur IGN, listes de lieux célèbres,
 // « ce lieu est-il libre ? »), et le hasard vient d'une graine (Pack.alea).
 //   Commun : l'adresse la plus proche d'un point au hasard du territoire ; Peu commun : une adresse d'une commune au
-//   standing 2 ; Rare : un lieu nommé (église, mairie, château, gare, musée) près d'un point au hasard ;
+//   standing 2 ; Rare : un lieu nommé (lieu de culte, mairie, château, gare, musée) près d'un point au hasard ;
 //   Épique : une adresse d'une commune au standing 3 ; Légendaire : un lieu célèbre (Wikipédia).
 //   Jamais de monument (Extraordinaire : seulement aux enchères).
 (function (racine) {
@@ -29,15 +29,35 @@
       }
       return null;
     }
+    // Les lieux de culte de toutes les religions (décision de Gautier, 4 nov. 2026 : toutes présentes, sans quota) : on
+    // demande chacune près du point tiré, puis on garde les plus proches, quelle que soit la religion. Les églises, partout,
+    // sortent le plus souvent ; une mosquée, une synagogue, un temple sortent là où ils sont. Pour chaque catégorie de l'IGN,
+    // le mot « culte » ramène les lieux les plus proches (le géocodeur classe alors surtout par distance) ; « eglise » en plus
+    // pour les chrétiens, les plus nombreux. Cinq demandes à la fois au plus : le géocodeur en accepte 50 par seconde.
+    const CULTES = [['eglise', 'culte chrétien'], ['culte', 'culte chrétien'], ['culte', 'culte musulman'], ['culte', 'culte israélite'], ['culte', 'culte divers']];
+    function catCulte(x) {
+      const cats = (x.properties.category || []).map((t) => t.toLowerCase()), n = o.Celebres.mots(x.properties.toponym).join(' ');
+      if (cats.includes('culte musulman')) return 'mosquee';
+      if (cats.includes('culte israélite')) return 'synagogue';
+      if (/hindou|ganesh|tamoul|murugan/.test(n)) return 'temple_hindou';
+      if (/gurdwara|sikh/.test(n)) return 'gurdwara';
+      if (/bouddh|boudh|pagode|stupa|zen|tibet/.test(n)) return 'temple_bouddhiste';
+      const c = o.Celebres.categorieDuNom(x.properties.toponym); return o.Celebres.famille(c) === 'culte' ? c : (cats.includes('culte divers') ? 'temple' : 'eglise');
+    }
     async function lieuNommeProche(lon, lat, rng) {
-      const kinds = ['eglise', 'mairie', 'chateau', 'gare', 'musee']; const k = kinds[Math.floor(rng() * kinds.length)];
+      const kinds = ['culte', 'mairie', 'chateau', 'gare', 'musee']; const k = kinds[Math.floor(rng() * kinds.length)];
+      const demandes = k === 'culte' ? CULTES.map(([q, c]) => `search?index=poi&q=${q}&category=${encodeURIComponent(c)}&lat=${lat}&lon=${lon}&limit=10`)
+        : [`search?index=poi&q=${k}&lat=${lat}&lon=${lon}&limit=10`];
+      const reponses = await Promise.all(demandes.map((d) => o.geoJSON(d).catch(() => ({}))));
       // seulement les lieux qui ont un vrai nom (pas « Zone d'activité ou d'intérêt » ni « Mairie » tout court)
-      const j = await o.geoJSON(`search?index=poi&q=${k}&lat=${lat}&lon=${lon}&limit=10`);
-      const f = (j.features || []).filter((x) => { const n = (x.properties.toponym || '').trim(), cats = (x.properties.category || []).map((t) => t.toLowerCase());
-        return n.length > 3 && !cats.includes(n.toLowerCase()) && !/^zone d.activit/i.test(n) && o.Celebres.significatifs(n).filter((m) => !/^(gares|eglises|mairies|musees|chateaux|chapelles)$/.test(m)).length > 0; });
+      let f = reponses.flatMap((j) => j.features || []).filter((x) => { const n = (x.properties.toponym || '').trim(), cats = (x.properties.category || []).map((t) => t.toLowerCase());
+        return n.length > 3 && !cats.includes(n.toLowerCase()) && !/^zone d.activit/i.test(n) && o.Celebres.significatifs(n).filter((m) => !/^(gares|eglises|mairies|musees|chateaux|chapelles|mosquees|synagogues|temples)$/.test(m)).length > 0; });
+      // lieux de culte : les dix plus proches du point, toutes religions confondues (un même lieu n'est compté qu'une fois)
+      if (k === 'culte') { const vus = new Set(), d = (x) => o.Celebres.distance([lon, lat], x.geometry.coordinates);
+        f = f.filter((x) => { const c = x.properties.toponym + x.geometry.coordinates; if (vus.has(c)) return false; vus.add(c); return true; }).sort((a, b) => d(a) - d(b)).slice(0, 10); }
       if (!f.length) return null;
       const x = f[Math.floor(rng() * f.length)], p = x.properties;
-      let carte = { id: 'poi' + hash(p.toponym + x.geometry.coordinates), label: p.toponym, lon: x.geometry.coordinates[0], lat: x.geometry.coordinates[1], citycode: (p.citycode || [])[0] || '', city: (p.city || [])[0] || '', type: 'lieu', cat: k };
+      let carte = { id: 'poi' + hash(p.toponym + x.geometry.coordinates), label: p.toponym, lon: x.geometry.coordinates[0], lat: x.geometry.coordinates[1], citycode: (p.citycode || [])[0] || '', city: (p.city || [])[0] || '', type: 'lieu', cat: k === 'culte' ? catCulte(x) : k };
       const e = o.Celebres.trouver(carte, await o.celebres(o.Celebres.departement(carte.citycode))); if (e) carte = Object.assign(o.Celebres.lieuDe(e), { city: carte.city });
       return carte;
     }
@@ -72,7 +92,7 @@
       for (let k = 0; cartes.length < n && k < 4; k++) { const c = await tirerCarte(1, base + ':plus:' + k, cartes); if (c) cartes.push(c); }
       return cartes;
     }
-    return { tirerPack, tirerCarte, lieuDeRarete, pointAuHasard, adresseProche };
+    return { tirerPack, tirerCarte, lieuDeRarete, lieuNommeProche, pointAuHasard, adresseProche };
   }
 
   const api = { creer, hash, mkAddr, dansAnneau };

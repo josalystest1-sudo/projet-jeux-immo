@@ -22,7 +22,14 @@ CATEGORIES = {
     'manoir': 'Q879050', 'mairie': 'Q543654', 'gare': 'Q55488', 'musee': 'Q33506', 'phare': 'Q39715',
     'pont': 'Q12280', 'fort': 'Q57821', 'tour': 'Q12518', 'moulin_vent': 'Q38720', 'moulin_eau': 'Q185187',
     'theatre': 'Q24354', 'fontaine': 'Q483453',
-    'stade': 'Q483110', 'synagogue': 'Q34627', 'porte': 'Q82117',
+    'stade': 'Q483110', 'synagogue': ('Q34627', 'Q109300353'), 'porte': 'Q82117',
+    # les autres lieux de culte (décision de Gautier, 4 nov. 2026 : tous présents, sans quota ; les églises restent les
+    # plus nombreuses parce qu'il y en a le plus) : une catégorie peut regrouper plusieurs classes de Wikidata
+    'mosquee': ('Q32815', 'Q1454820'),                    # mosquée, grande mosquée
+    'temple': ('Q56242063', 'Q56242275', 'Q6807904'),     # temple protestant, église luthérienne, temple réformé
+    'eglise_orthodoxe': ('Q2031836', 'Q56242225'),        # église et cathédrale orthodoxes
+    'temple_bouddhiste': ('Q5393308', 'Q199451', 'Q180987'),  # temple bouddhiste, pagode, stupa
+    'temple_hindou': 'Q842402', 'gurdwara': 'Q337986',
 }
 # France métropolitaine et Corse
 LON, LAT = (-5.3, 9.7), (41.2, 51.2)
@@ -41,9 +48,11 @@ def sparql(requete, pause):
     raise RuntimeError('Wikidata ne répond pas')
 
 
-def lieux_de(classe, pause):
-    return sparql(f'''SELECT ?i ?nom ?coord ?insee ?liens WHERE {{
-      ?i wdt:P31 wd:{classe} ; wdt:P17 wd:Q142 ; wdt:P625 ?coord ; wikibase:sitelinks ?liens .
+def lieux_de(classes, pause):
+    classes = ' '.join('wd:' + c for c in ((classes,) if isinstance(classes, str) else classes))
+    return sparql(f'''SELECT DISTINCT ?i ?nom ?coord ?insee ?liens WHERE {{
+      VALUES ?classe {{ {classes} }}
+      ?i wdt:P31 ?classe ; wdt:P17 wd:Q142 ; wdt:P625 ?coord ; wikibase:sitelinks ?liens .
       ?article schema:about ?i ; schema:isPartOf <https://fr.wikipedia.org/> .
       OPTIONAL {{ ?i wdt:P131 ?commune . ?commune wdt:P374 ?insee . }}
       OPTIONAL {{ ?i rdfs:label ?nom FILTER(lang(?nom) = "fr") }}
@@ -84,8 +93,18 @@ def main():
         f.write_text(json.dumps(r), encoding='utf-8')
         print(f'{cat:18} {len(r)} lignes', flush=True)
 
-    # fusion : un lieu par identifiant (la première catégorie trouvée, dans l'ordre de CATEGORIES)
-    lieux = {}
+    # fusion : un lieu par identifiant (la première catégorie trouvée, dans l'ordre de CATEGORIES). Les catégories sans
+    # brouillon (reçues lors d'un passage précédent) sont reprises du fichier déjà écrit, et passent en premier.
+    lieux, anciennes = {}, set()
+    if SORTIE.exists():
+        for ligne in SORTIE.read_text(encoding='utf-8').splitlines():
+            if not ligne.strip() or ligne.startswith('#'):
+                continue
+            qid, nom, cat, lon, lat, insee, liens = ligne.split('|')
+            if (BROUILLON / f'{cat}.json').exists():
+                continue
+            anciennes.add(cat)
+            lieux[qid] = {'nom': nom, 'cat': cat, 'lon': float(lon), 'lat': float(lat), 'insee': insee, 'liens': int(liens)}
     for cat in CATEGORIES:
         f = BROUILLON / f'{cat}.json'
         if not f.exists():
@@ -114,7 +133,7 @@ def main():
             print(f'  {k}/{len(sans)}', flush=True)
 
     jour = datetime.date.today().isoformat()
-    recues = [c for c in CATEGORIES if (BROUILLON / f'{c}.json').exists()]
+    recues = [c for c in CATEGORIES if c in anciennes or (BROUILLON / f'{c}.json').exists()]
     lignes = [
         f'# Lieux de France métropolitaine (églises, châteaux, mairies, gares…) qui ont un article Wikipédia en français,',
         f'# extraits de Wikidata le {jour} par tools/wikidata_celebres.py. Notoriété « Célèbre » dans le jeu.',
