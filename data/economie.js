@@ -147,5 +147,14 @@ const ECO = {
   "pack_12": 16.99,
   "pass_mensuel": 4.99
  },
- "solde_depart": 1500
+ "solde_depart": 1500,
+ "mairie": {
+  "jours_mandat": 14,
+  "seuil": 100,
+  "part_loyers": 0.05,
+  "plafond_mandat": 1000,
+  "derniere_heure": 0.5,
+  "absence_jours": 7,
+  "versement_min": 10
+ }
 };
