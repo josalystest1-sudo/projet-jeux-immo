@@ -496,7 +496,7 @@ map.once('load', ()=>setTimeout(finAccueil, 400)); setTimeout(finAccueil, 6000);
 map.on('load', ()=>{ const at=document.querySelector('.maplibregl-ctrl-attrib'); if(at) at.classList.remove('maplibregl-compact-show'); });
 
 // clic
-map.on('click', (e)=>{ if(sugg.style.display==='block'){ sugg.style.display='none'; } pointVise=[e.lngLat.lng, e.lngLat.lat];
+map.on('click', (e)=>{ if(sugg.style.display==='block'){ sugg.style.display='none'; } if(PROM.on){ promToucher(e); return; } pointVise=[e.lngLat.lng, e.lngLat.lat];
   // une maquette sous le doigt : son monument (elle est dessinée par-dessus le sol et les parcelles), ou le monument
   // qu'elle porte s'il est plus près de l'endroit touché (l'obélisque dans la Concorde, la basilique dans la Cité)
   const mq = COUCHE_MAQ && COUCHE_MAQ.toucher(e.point.x, e.point.y);
@@ -712,7 +712,8 @@ async function promenade(depart){ if(PROM.on) return;
     const j=await promPhoto([[{lat:PROM.lat, lon:PROM.lon}, 25], [{lat:PROM.lat, lon:PROM.lon}, 60]], null); if(!PROM.on) return;
     if(j){ PROM.lat=j.location.lat; PROM.lon=j.location.lng; PROM.pano=j.pano_id; }
     else if(promAvecCle()){ finPromenade(); toast('📷 Pas de photo Street View ici : essaie une autre rue'); return; } }
-  promMontrer(); }
+  promMontrer();
+  if((state.prefs.astucePromCarte||0)<2){ state.prefs.astucePromCarte=(state.prefs.astucePromCarte||0)+1; save(); setTimeout(()=>{ if(PROM.on) toast('🗺️ Touche un bâtiment sur la carte pour aller devant'); }, 1500); } }
 function promDepuisFiche(){ if(!svCourant){ toast('Street View se charge encore…'); return; } promenade(svCourant); }
 function promDepuisCarte(){ if(map.getZoom()<16){ toast('🔍 Approche-toi d’abord d’une rue'); return; }
   const c=map.getCenter(), r=ruesAutour({lat:c.lat, lon:c.lng}, 150)[0];
@@ -737,6 +738,31 @@ async function promPas(sens){ if(!PROM.on || PROM.occupe) return; PROM.occupe=tr
     if(!promAvecCle()){ const pt=decale(PROM, dir, 12), r=ruesAutour(pt, 20)[0]; PROM.lat=r?r.lat:pt.lat; PROM.lon=r?r.lon:pt.lon; PROM.pano=null; }
     // en regardant le long de la rue, la vue suit ses virages ; tourné vers les façades, on les longe sans tourner la tête
     if(sens>0 && rue && rue.e<=35){ const r2=capDeRue(PROM, PROM.cap, 35); if(r2) PROM.cap=r2.cap; }
+    promMontrer();
+  } finally { PROM.occupe=false; box.classList.remove('marche'); } }
+// En promenade, toucher la carte (demande de Gautier, 4 nov.) : Street View nous emmène devant le bâtiment touché, face à
+// lui (un monument : d'où on le voit en entier, comme depuis sa fiche) ; toucher une rue ou une place : on y va, sans
+// changer de regard. La fiche ne s'ouvre pas : le bâtiment apparaît « en face » sous la carte, d'où on l'achète.
+function promToucher(e){ const ici={ lon:e.lngLat.lng, lat:e.lngLat.lat };
+  const mq = COUCHE_MAQ && COUCHE_MAQ.toucher(e.point.x, e.point.y);
+  if(mq){ const m=LISTE_MON.find(x=>x.id===mq.id); return promAller(m ? { lon:m.lon, lat:m.lat, monument:true } : { lon:mq.lon, lat:mq.lat, monument:true }); }
+  let b=null; try{ b=map.queryRenderedFeatures(e.point, {layers:['bati-3d']})[0]; }catch(_){}
+  if(b && b.geometry && (b.geometry.type==='Polygon' || b.geometry.type==='MultiPolygon')){
+    // l'endroit touché s'il tombe sur le bâtiment (un grand bâtiment : la partie touchée), sinon son milieu
+    const c = inside([ici.lon, ici.lat], b.geometry) ? [ici.lon, ici.lat] : centroid(b.geometry);
+    const m = LISTE_MON.find(x=>Math.abs(x.lat-c[1])<0.004 && Math.abs(x.lon-c[0])<0.006 && inside([x.lon, x.lat], b.geometry));
+    return promAller(m ? { lon:m.lon, lat:m.lat, monument:true } : { lon:c[0], lat:c[1], monument:false }); }
+  const mh = monumentDuHalo(e.point); if(mh) return promAller({ lon:mh.lon, lat:mh.lat, monument:true });
+  return promAller(ici, true); }
+async function promAller(cible, rue){ if(!PROM.on || PROM.occupe) return; PROM.occupe=true; vibrer(10); const box=document.getElementById('prom'); box.classList.add('marche');
+  try{ const vue = rue ? null : vueDepuisLaRue(cible);
+    if(promAvecCle()){
+      const j = rue ? await promPhoto([[cible, 15], [cible, 40]], null) : await choisirPhoto(cible, vue);
+      if(!PROM.on) return;
+      if(j){ PROM.lat=j.location.lat; PROM.lon=j.location.lng; PROM.pano=j.pano_id;
+        if(!rue){ const d=dist([PROM.lon,PROM.lat],[cible.lon,cible.lat]); PROM.cap = d>4 ? capVers(PROM, cible) : vue.cap; } }
+      else if(promAvecCle()){ toast(rue ? '📷 Pas de photo Street View par ici' : '📷 Pas de photo Street View devant ce bâtiment'); return; } }
+    if(!promAvecCle()){ const v = rue ? (ruesAutour(cible, 30)[0] || cible) : vue; PROM.lat=v.lat; PROM.lon=v.lon; PROM.pano=null; if(!rue) PROM.cap=vue.cap; }
     promMontrer();
   } finally { PROM.occupe=false; box.classList.remove('marche'); } }
 function promTourner(delta){ if(!PROM.on) return; PROM.cap=norm360(PROM.cap+delta); vibrer(6); promMontrer(); }
@@ -797,7 +823,7 @@ function lieuPhare(addrs){ const note=a=>{ const o=ownerOf(a); return o && o!==M
 const COTES = { gauche:['◀','À gauche'], droite:['▶','À droite'], face:['▲','En face'] };
 function promCarte(){ const box=document.getElementById('prom-lieux'); if(!box || !PROM.on) return; const rue=nomDeRue(PROM);
   let h=`<div class="prom-rue">🚶 ${echapper(rue || 'En promenade')}</div>`;
-  if(!PROM.liste.length) h+='<div class="prom-vide">Pas de bâtiment tout près : avance ou tourne-toi.</div>';
+  if(!PROM.liste.length) h+='<div class="prom-vide">Pas de bâtiment tout près : avance, tourne-toi, ou touche un bâtiment sur la carte.</div>';
   PROM.liste.forEach((e, i)=>{ const [fleche, texte]=COTES[e.cote], addrs=lieuxConnus(e.f); let corps, action='Voir';
     if(!addrs) corps='<b class="attente">Je regarde…</b>';
     else if(!addrs.length) corps='<b>Pas d’adresse</b><small><span class="gris">Cour, jardin ou voirie</span></small>';
