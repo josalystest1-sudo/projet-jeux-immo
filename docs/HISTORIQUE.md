@@ -95,6 +95,7 @@ Rien d'important ne vit dans une conversation : tout est dans le dépôt ou sur 
 - Septième lot régional (PR #59) : l'Institut de France, Saint-Gervais, Chaumont, Valençay, Orléans, Sens, Tours, Notre-Dame-des-Doms, Saint-Front, Sully-sur-Loire.
 - Huitième lot régional (PR #60) : Limoges, Sarlat, Noyon, Saint-Benoît-sur-Loire, Foix, Saint-Augustin, le Capitole, Sénanque, Saint-Alexandre-Nevsky, Le Mans.
 - Neuvième lot régional (PR #61) : Saint-Pierre de Montmartre, Brissac, le pont Royal, la Trinité, Autun, les ducs de Bretagne, Castelnaud, Dijon, Angoulême, Saint-Trophime, Narbonne, les arènes d'Arles.
+- Dixième lot régional (PR #62) : Saint-Merri, Saint-Séverin, Quimper, Troyes, Saint-Étienne de Toulouse, Saint-Roch, Saint-Vincent-de-Paul, la porte Saint-Martin, la Salpêtrière, la synagogue de Besançon, Chinon, Coucy.
 
 ## Toutes les PR
 
@@ -182,6 +183,7 @@ Puis une PR par étape, fusionnée en squash :
 | #59 | 04/11 01:58 | Graphismes : dix monuments régionaux de plus (l'Institut de France, Saint-Gervais, Chaumont, Valençay, Orléans, Sens, Tours, Notre-Dame-des-Doms, Saint-Front, Sully-sur-Loire) |
 | #60 | 04/11 02:02 | Graphismes : dix monuments régionaux de plus (Limoges, Sarlat, Noyon, Saint-Benoît-sur-Loire, Foix, Saint-Augustin, le Capitole, Sénanque, Saint-Alexandre-Nevsky, Le Mans) |
 | #61 | 04/11 02:20 | Graphismes : douze monuments régionaux de plus (Saint-Pierre de Montmartre, Brissac, le pont Royal, la Trinité, Autun, le château des ducs de Bretagne, Castelnaud, Dijon, Angoulême, Saint-Trophime, Narbonne, les arènes d'Arles) |
+| #62 | 04/11 03:20 | Graphismes : douze monuments régionaux de plus (Saint-Merri, Saint-Séverin, Quimper, Troyes, Saint-Étienne de Toulouse, Saint-Roch, Saint-Vincent-de-Paul, la porte Saint-Martin, la Salpêtrière, la synagogue de Besançon, Chinon, Coucy) |
 
 ## Les décisions de Gautier
 
@@ -212,7 +214,7 @@ Les décisions du 2 novembre (interview) sont dans `CLAUDE.md` § 4 et dans le G
 - **Le serveur, suite** (phase 8) :
   - 8.2 : le mode serveur par défaut, la fin des joueurs simulés, l'inscription des amis. Question posée à Gautier, sans réponse : couper la confirmation par e-mail pendant les essais ?
   - 8.3 : l'anti-triche.
-- **Les graphismes** (phase 10, avant 8.2 : décision de Gautier) : la preuve, l'ouverture, les monuments nationaux et 86 monuments régionaux en 3D (139 maquettes) ; ensuite les autres régionaux, l'habillage de la révélation, l'icône et le logo (`docs/BIBLE-GRAPHIQUE.md`).
+- **Les graphismes** (phase 10, avant 8.2 : décision de Gautier) : la preuve, l'ouverture, les monuments nationaux et 98 monuments régionaux en 3D (151 maquettes) ; ensuite les autres régionaux, l'habillage de la révélation, l'icône et le logo (`docs/BIBLE-GRAPHIQUE.md`).
 - **La boutique** (phase 9) : Stripe, packs et Pass mensuel (pack de 8 cartes, bon mensuel : GDD § 3), probabilités affichées, blocage Belgique et Pays-Bas, CGU, confidentialité, mentions légales.
 - **Ensuite** : les graphismes (phase 10), l'équilibrage et le lancement (phase 11).
 - **Au lancement** :
