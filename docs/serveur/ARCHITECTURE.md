@@ -24,7 +24,11 @@
 | `encheres` | les lots : semaine du jeu, monument, lieu donné au gagnant, mise de départ, fin, statut (ouverte, close), gagnant et prix ; un monument n'est que dans un lot ouvert à la fois | lire tous |
 | `mises` | les mises (lot, joueur, montant ; à montant égal, la plus ancienne l'emporte) | lire toutes |
 | `echanges` | échanges proposés : le lieu demandé, les lieux donnés (`donnes`, avec leurs noms), les pièces en plus (`ajout`), le statut (une seule proposition en attente par joueur et par lieu demandé ; un lieu n'est donné que dans un échange en attente à la fois) | lire les siens (proposeur ou destinataire) |
-| (fonctions) `classement_commune(c)`, `maires(communes)` | qui possède combien dans une commune ; ses Maires | appeler (lecture seule) |
+| (fonctions) `classement_commune(c)`, `maires(communes)` | qui possède combien dans une commune (ancienne règle du Maire, plus utilisée par le jeu depuis la PR #120) | appeler (lecture seule) |
+| `caisses` | la caisse de travaux (GDD § 5) : par mandat (jour du jeu / 14), commune et joueur, les points (la dernière heure à moitié) et les pièces versées | lire toutes |
+| `parts_maire` | ce que chaque Maire a touché pendant son mandat (part des loyers des autres, plafonnée) | lire toutes |
+| `mandats_tenus` | les fins de mandat déjà annoncées (une seule fois chacune) | rien |
+| (fonction) `caisse_communes(communes, m, absent_avant)` | les caisses du mandat m et du précédent (qui élit les Maires de m), avec les pseudos et qui est absent | appeler (lecture seule) |
 
 ## Côté jeu : le mode serveur
 
@@ -55,5 +59,6 @@ Demande de Gautier (3 nov.) : de vrais comptes qui jouent seuls, pour tester le 
 | 8.1e | Le marché : vente à prix libre, achat direct (au prix affiché), offres sans expiration (changer, annuler ; acceptées si l'acheteur a encore les pièces), notifications ; le jeu regarde le serveur chaque minute | fait |
 | 8.1f | Les échanges : proposer un ou plusieurs de ses lieux (plus des pièces) contre le lieu d'un autre, annuler, accepter ou refuser ; à l'acceptation, tout change de main d'un bloc (constructions gardées, ventes retirées), les offres et autres échanges sur ces lieux tombent (leurs auteurs sont prévenus) ; un échange n'est pas une vente (le marché des communes ne bouge pas). Essai local du SQL : `tools/essai_sql.mjs` | fait |
 | 8.1g | Les enchères : le calendrier tenu à chaque appel de la fonction (`tenirEncheres` : les lots finis sont clos, les 3 lots de la semaine ouverts parmi les monuments encore libres), miser (mise minimale, pièces bloquées par ses mises qui mènent ailleurs), surenchère signalée, clôture avec passage à la mise suivante, le monument au gagnant ; essai automatique avec un lot d'essai de 25 s | fait |
+| 10.M | Le Maire par caisse de travaux (4 nov. au soir, GDD § 5, `supabase/sql/090_mairie.sql`) : action `verser` (un lieu dans la commune, au moins 10 pièces, couvert par les pièces moins les mises qui mènent ; la dernière heure du mandat à moitié) ; les Maires d'un mandat élus par la caisse du précédent avec les règles du jeu (`MAI.elire` : seuil, égalité, un Maire absent depuis 7 jours du jeu cède la place ; la visite est notée à chaque appel : `jeu_vu`) ; la part des Maires versée à chaque récolte des autres (`partsDesMaires`, plafonnée par mandat : `jeu_part_maire`) ; la fin d'un mandat annoncée une fois (`tenirMairies` : élu, réélu, battu, mandat terminé) ; les robots versent aussi | fait |
 | 8.2 | Mode serveur par défaut ; fin des joueurs simulés ; premiers amis | à faire |
 | 9 | Boutique (Stripe) : packs payants et Pass, crédités par le serveur | à faire |

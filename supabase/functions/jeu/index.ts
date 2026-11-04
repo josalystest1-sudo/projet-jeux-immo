@@ -3,10 +3,11 @@
 // que le jeu (src/regles, recopiées dans _genere/ par tools/serveur_prepare.js), puis écrit par les fonctions SQL
 // jeu_* (supabase/sql/010_jeu.sql), chacune atomique. Réponse : { ok: true, ... } ou { ok: false, code, message }.
 import { createClient } from '@supabase/supabase-js';
-import { Regles, Pack, Celebres, Tirage, Encheres } from './_genere/regles.mjs';
+import { Regles, Pack, Celebres, Tirage, Encheres, Mairie } from './_genere/regles.mjs';
 import { ECO, STANDING, FRANCE, DEPARTEMENTS, CELEBRES, MONUMENTS } from './_genere/donnees.mjs';
 
 const R = Regles.creer(ECO, STANDING);
+const MAI = Mairie.creer(ECO);   // le Maire par caisse de travaux (src/regles/mairie.js, GDD § 5)
 
 // la clé secrète du projet est donnée par Supabase à la fonction (jamais écrite dans le dépôt)
 function cleSecrete(): string {
@@ -75,6 +76,7 @@ const REFUS_SQL: Record<string, string> = {
   deja_echange: 'Tu as déjà proposé un échange pour ce lieu : annule-le d’abord.', deja_propose: 'Un de ces lieux est déjà proposé dans un autre échange.',
   rien: 'Choisis au moins un de tes lieux.', trop: 'Trente lieux au plus dans un échange.',
   lot: 'Cette enchère n’existe pas.', close: 'Cette enchère est close.', min: 'Ta mise est trop basse.',
+  sans_lieu: 'Il te faut un lieu dans la commune pour verser à sa caisse.',
 };
 async function rpc(nom: string, args: Ligne) {
   const { data, error } = await admin.rpc(nom, args);
@@ -90,7 +92,7 @@ async function recolter(j: string) {
     const montant = R.aEncaisser(lieux, ms(jr.encaisse), maintenant, await jourMs());
     if (montant < 1) return { recolte: 0, pieces: Number(jr.pieces) };
     const p = await rpc('jeu_recolter', { j, montant, avant: jr.encaisse, maintenant: new Date(maintenant).toISOString() });
-    if (p != null) return { recolte: montant, pieces: Number(p) };
+    if (p != null) { await partsDesMaires(j, lieux, ms(jr.encaisse), maintenant).catch((e) => console.error('part des Maires', e)); return { recolte: montant, pieces: Number(p) }; }
   }
   throw new Refus('occupe', 'Une autre récolte est en cours : réessaie.');
 }
@@ -424,6 +426,75 @@ ACTIONS.miser = async (j, corps) => {
   return { cle, montant, nom };
 };
 
+// ---------------------------------------------------------------- le Maire par caisse de travaux (GDD § 5)
+// Le mandat en cours (2 semaines du jeu) ; les Maires d'un mandat sont élus par la caisse du mandat précédent, avec les
+// règles du jeu (MAI.elire : seuil, égalité, absence). Le Maire touche une part des loyers des autres joueurs de la commune
+// à chaque récolte de ceux-ci (elle s'ajoute : leurs loyers ne baissent pas), jusqu'au plafond du mandat.
+async function mandatServeur() {
+  const jm = await jourMs(), m = MAI.mandat(Regles.jourDuJeu(Date.now(), jm));
+  return { jm, m, fin: Regles.debutJour(MAI.premierJour(m + 1), jm) };
+}
+// les caisses de communes (mandats m - 1 et m), et pour chaque commune : ses Maires du mandat m, les versements
+async function caissesDe(communes: string[], m: number, jm: number) {
+  const out: Record<string, { avant: Ligne[]; cours: Ligne[]; maires: string[] }> = {};
+  for (const k of communes) out[k] = { avant: [], cours: [], maires: [] };
+  if (!communes.length) return out;
+  const data = await rpc('caisse_communes', { communes, m, absent_avant: new Date(Date.now() - MAI.M.absence_jours * jm).toISOString() });
+  for (const r of (data || []) as Ligne[]) { const o = out[r.commune]; if (o) (Number(r.mandat) === m ? o.cours : o.avant).push(r); }
+  for (const o of Object.values(out)) {
+    const absents = new Set(o.avant.filter((r) => r.absent).map((r) => r.joueur));
+    o.maires = MAI.elire(Object.fromEntries(o.avant.map((r) => [r.joueur, Number(r.points)])), (u: string) => absents.has(u)).maires;
+  }
+  return out;
+}
+// à chaque récolte : la part des Maires des communes où le joueur touche des loyers (pas sur ses propres lieux)
+async function partsDesMaires(j: string, lieux: Ligne[], depuis: number, maintenant: number) {
+  const jm = await jourMs(), jours = Math.min(maintenant - depuis, ECO.stock_loyer_heures * jm / 24) / jm;
+  if (!(jours > 0) || !lieux.length) return;
+  const loyers: Record<string, number> = {};
+  for (const l of lieux) { const k = Regles.nomCommune(l.citycode || '', l.city || ''); loyers[k] = (loyers[k] || 0) + R.loyerParJour(l) * jours; }
+  const m = MAI.mandat(Regles.jourDuJeu(maintenant, jm)), caisses = await caissesDe(Object.keys(loyers), m, jm);
+  for (const [k, c] of Object.entries(caisses)) {
+    const n = c.maires.length; if (!n) continue;
+    for (const u of c.maires) if (u !== j) await rpc('jeu_part_maire', { m, c: k, mr: u, montant: Math.floor(loyers[k] * MAI.M.part_loyers / n), plafond: MAI.plafondPart(n) });
+  }
+}
+// verser à la caisse d'une commune : un lieu dans la commune, au moins le minimum, couvert par les pièces moins les mises
+// qui mènent aux enchères ; un versement de la dernière heure du mandat compte à moitié
+ACTIONS.verser = async (j, corps) => {
+  const k = String(corps.commune || '').slice(0, 120), montant = Number(corps.montant);
+  const { m, fin, jm } = await mandatServeur();
+  await recolter(j);
+  const jr = await joueur(j), bloque = Number(await rpc('jeu_bloque', { j, sauf: '' }));
+  const { count } = await admin.from('lieux').select('id', { count: 'exact', head: true }).eq('proprietaire', j).eq('commune', k);
+  const v = MAI.peutVerser(montant, Math.max(0, Number(jr.pieces) - bloque), count || 0);
+  if (!v.ok) throw new Refus(v.raison, v.raison === 'sans_lieu' ? REFUS_SQL.sans_lieu : (v.raison === 'minimum' ? `Au moins ${fmt(MAI.M.versement_min)}.` : `Pas assez de pièces : ${fmt(Math.max(0, Number(jr.pieces) - bloque))} disponibles (tes mises qui mènent aux enchères sont bloquées).`));
+  const pts = MAI.points(montant, fin - Date.now(), jm);
+  await rpc('jeu_verser', { j, m, c: k, montant, pts });
+  return { commune: k, montant, points: pts, mandat: m };
+};
+// la fin d'un mandat (au premier appel du mandat suivant, une seule fois) : chacun apprend ce qui le concerne
+let mairiesTenues = 0;
+async function tenirMairies() {
+  if (Date.now() - mairiesTenues < 5000) return;
+  mairiesTenues = Date.now();
+  const { m, jm } = await mandatServeur();
+  if (!(await rpc('jeu_mandat_tenir', { m }))) return;
+  const { data } = await admin.from('caisses').select('commune').in('mandat', [m - 1, m - 2]).limit(5000);
+  const ks = [...new Set((data || []).map((r: Ligne) => r.commune as string))];
+  for (let i = 0; i < ks.length; i += 200) {
+    const lot = ks.slice(i, i + 200), elus = await caissesDe(lot, m, jm), avant = await caissesDe(lot, m - 1, jm);
+    for (const k of lot) {
+      const e = elus[k], a = avant[k], verses = e.avant;   // e.avant : la caisse du mandat qui vient de finir
+      const ps = await pseudos([...e.maires, ...verses.map((r) => r.joueur)]), noms = e.maires.map((u) => ps[u] || 'un joueur').join(' et ');
+      const max = verses.length ? Math.max(...verses.map((r) => Number(r.points))) : 0;
+      for (const u of e.maires) await notifier(u, 'maire', `👑 Tu es ${a.maires.includes(u) ? 'réélu' : 'élu'} Maire de ${k} pour 2 semaines : tu touches 5 % des loyers des autres joueurs de la commune.`, { commune: k });
+      for (const r of verses) if (!e.maires.includes(r.joueur)) await notifier(r.joueur, 'maire', e.maires.length ? `${noms} ${e.maires.length > 1 ? 'deviennent' : 'devient'} Maire${e.maires.length > 1 ? 's' : ''} de ${k} (${fmt(max)} versées ; toi : ${fmt(Number(r.points))}).` : `Pas de Maire à ${k} ce mandat : personne n’a versé ${fmt(MAI.M.seuil)}.`, { commune: k });
+      for (const u of a.maires) if (!e.maires.includes(u)) await notifier(u, 'maire', `Ton mandat de Maire de ${k} est terminé.`, { commune: k });
+    }
+  }
+}
+
 // ouvrir le pack du jour : le serveur tire au hasard (graine secrète), une fois par jour
 ACTIONS.pack = async (j) => {
   const jm = await jourMs(), jour = Regles.jourDuJeu(Date.now(), jm), jr = await joueur(j);
@@ -541,6 +612,12 @@ async function robotsTour() {
           if (mise <= Number(l.depart) * 1.5) { await ACTIONS.miser(j, { cle: l.cle, montant: mise }).catch(() => {}); break; }
         }
       }
+      // 6 bis. verser à la caisse d'une de leurs communes (et passer pour présents : ils peuvent être élus)
+      await rpc('jeu_vu', { j }).catch(() => {});
+      if (mes.length && Math.random() < 0.35) {
+        const k = hasard(mes).commune, montant = Math.min(Math.floor(pieces * 0.15 / 10) * 10, 50 + Math.floor(Math.random() * 30) * 10);
+        if (k && montant >= MAI.M.versement_min) { await ACTIONS.verser(j, { commune: k, montant }).then(() => { pieces -= montant; }).catch(() => {}); }
+      }
       // 6. construire le niveau suivant quand c'est possible
       if (mes.length && Math.random() < 0.4) {
         const l = lieuDe(hasard(mes)), n = (l.niveau || 0) + 1;
@@ -563,6 +640,9 @@ Deno.serve(async (req: Request) => {
     if (!action) throw new Refus('action', 'Action inconnue.');
     // le calendrier des enchères (lots finis clos, lots de la semaine ouverts) : une panne ici ne bloque pas le jeu
     await tenirEncheres().catch((e) => console.error('enchères', e));
+    // ma visite (un Maire absent depuis trop longtemps perd le titre) ; les fins de mandat de Maire à annoncer
+    await rpc('jeu_vu', { j: data.user.id }).catch((e) => console.error('visite', e));
+    await tenirMairies().catch((e) => console.error('mairies', e));
     const res = await action(data.user.id, corps);
     // les robots jouent un tour après la réponse (sans faire attendre le vrai joueur)
     const runtime = (globalThis as Ligne).EdgeRuntime; if (runtime && runtime.waitUntil) runtime.waitUntil(robotsTour().catch((e) => console.error('robots', e)));
