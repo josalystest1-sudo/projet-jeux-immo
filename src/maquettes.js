@@ -1815,6 +1815,103 @@
     return A.groupe;
   }
 
+  // l'Institut de France (le collège des Quatre-Nations, la bibliothèque Mazarine) : la chapelle à coupole et son portique
+  // face à la Seine (au nord, en -z), les deux ailes en arc de cercle, les pavillons d'angle
+  function institut(THREE) {
+    const A = atelier(THREE);
+    const pierre = A.matiere(0xEFE6D0), pierreFoncee = A.matiere(0xD6C8A8), ardoise = A.matiere(0x56659A), plomb = A.matiere(0x6E7AA0), or = A.matiere(0xFFC233, 0x7A4A00);
+    A.boite(20, 18, 24, 0, 0, 2, pierre); A.cylindres(Array.from({ length: 4 }, (_, k) => [-6 + k * 4, -10.8, 0.8, 14, 0]), pierre, 12); A.boite(16, 2, 3, 0, 14, -10.8, pierreFoncee); A.toit(16, 4, 3, 0, 16, -10.8, pierre, Math.PI / 2);
+    A.cylindre(8, 8, 6, 24, 0, 18, 2, pierre); A.dome(8, 1.4, 0, 24, 2, plomb);
+    for (let k = 0; k < 8; k++) A.piece((e) => new THREE.TorusGeometry(8.05, 0.25 + e, 4, 16, Math.PI / 2).scale(1, 1.4, 1).rotateY(k * Math.PI / 4), or, A.V(0, 24, 2), null, true);
+    A.cylindre(1.6, 1.6, 4, 10, 0, 35, 2, or); A.boule(0.7, 0, 39.6, 2, or);
+    for (const s of [1, -1]) { const aile = [[s * 10, 0], [s * 28, -6], [s * 42, -16]]; A.remparts([aile], 15, 10, pierre); A.remparts([aile], 4, 10.4, ardoise, 15);
+      A.boite(14, 18, 14, s * 50, 0, -20, pierre); A.combles(14.6, 7, 14.6, s * 50, 18, -20, ardoise); }
+    return A.groupe;
+  }
+
+  // l'église Saint-Gervais-Saint-Protais : la façade classique aux trois ordres de colonnes, la nef gothique, le clocher
+  function saintGervais(THREE) {
+    const A = atelier(THREE);
+    const pierre = A.matiere(0xEFE6D0), pierreFoncee = A.matiere(0xD6C8A8), ardoise = A.matiere(0x56659A);
+    A.boite(55, 12, 30, 2, 0, 0, pierreFoncee); A.boite(55, 20, 14, 2, 0, 0, pierre); A.toit(14.6, 8, 55, 2, 20, 0, ardoise); A.abside(7, 20, 29.5, 0, 0, pierre); A.demiCone(7.5, 6, 29.5, 20, 0, ardoise);
+    A.boite(5, 34, 22, -28, 0, 0, pierre);
+    A.cylindres([[-31, 0.6, 12, 0], [-31, 12.6, 10, 12], [-31, 0.5, 9, 22.6]].flatMap(([x, r, h, y]) => [-7, -2.5, 2.5, 7].map((z) => [x, z, r, h, y])), pierre, 10);
+    A.boites([[6, 1.2, 22, -29, 12, 0], [6, 1.2, 22, -29, 22.6, 0]], pierreFoncee); A.dome(5, 0.7, -28.5, 34, 0, pierreFoncee);
+    A.boite(8, 30, 8, 10, 0, -12, pierre); A.pyramide(5.6, 6, 4, 10, 30, -12, ardoise);
+    return A.groupe;
+  }
+
+  // le château de Chaumont-sur-Loire : les ailes autour de la cour ouverte sur la Loire, les tours rondes et leurs toits
+  // pointus, le chemin de ronde, le châtelet d'entrée et ses deux tours
+  function chaumont(THREE) {
+    const A = atelier(THREE);
+    const tuffeau = A.matiere(0xF4EEDC), tuffeauOmbre = A.matiere(0xDCD2B8), ardoise = A.matiere(0x4F5D8C);
+    const ailes = [[56, 15, 11, 0, 22], [11, 15, 44, -28, 0], [11, 15, 44, 28, 0]];
+    A.boites(ailes.map(([lx, h, lz, x, z]) => [lx, h, lz, x, 0, z]), tuffeau); A.creneaux(ailes.map(([lx, , lz, x, z]) => A.tourDe(lx + 1, lz + 1, x, z)), 15, 0.8, tuffeauOmbre);
+    A.toits(ailes.map(([lx, h, lz, x, z]) => (lx > lz ? [lz - 1, 8, lx - 2, x, 16.6, z, 0] : [lx - 1, 8, lz - 2, x, 16.6, z, Math.PI / 2])), ardoise);
+    const tours = [[-30, 25, 6], [30, 25, 6], [-30, -23, 6], [30, -23, 6], [-6, 28, 4.5], [6, 28, 4.5]];
+    A.cylindres(tours.map(([x, z, r]) => [x, z, r, 20, 0]), tuffeau, 16); A.cones(tours.map(([x, z, r]) => [x, z, r + 0.4, 20, r * 2]), ardoise, 16);
+    return A.groupe;
+  }
+
+  // le château de Valençay : le grand pavillon et son dôme carré, l'aile classique et ses combles, la tour ronde et son dôme
+  function valencay(THREE) {
+    const A = atelier(THREE);
+    const pierre = A.matiere(0xF2EAD6), ardoise = A.matiere(0x4F5D8C), or = A.matiere(0xFFC233, 0x7A4A00);
+    A.boite(80, 16, 14, 0, 0, -30, pierre); A.toit(14.6, 8, 80, 0, 16, -30, ardoise);
+    A.boite(22, 26, 22, -40, 0, -30, pierre); A.domeCarre(22, 12, 22, -40, 26, -30, ardoise); A.cylindre(2, 2, 4, 10, -40, 37, -30, pierre); A.boule(0.8, -40, 41.6, -30, or);
+    A.cylindre(8, 8, 24, 24, 40, 0, -30, pierre); A.dome(8.2, 1, 40, 24, -30, ardoise); A.cylindre(1.4, 1.4, 3, 10, 40, 32, -30, pierre);
+    A.boite(14, 14, 60, 40, 0, 6, pierre); A.toit(14.6, 7, 60, 40, 14, 6, ardoise, Math.PI / 2);
+    return A.groupe;
+  }
+
+  // la cathédrale Sainte-Croix d'Orléans : les deux tours de la façade et leurs couronnes ajourées, la flèche de la croisée
+  const orleans = (THREE) => cathedrale(THREE, { F: -64.5, E: 58.5, larg: 28, mur: 32, toitH: 11, xT: 0, transept: 65, transeptL: 14, cote: 16, facadeH: 50, rose: 6,
+    tours: [{ z: -17, h: 66, octogone: { h: 16, r: 6.5 } }, { z: 17, h: 66, octogone: { h: 16, r: 6.5 } }], flecheCroisee: { h: 64, r: 4, seg: 8 } });
+  // la cathédrale Saint-Étienne de Sens : la tour de pierre (au sud) et la tour de plomb (au nord)
+  const sens = (THREE) => cathedrale(THREE, { F: -53, E: 48, larg: 22, mur: 24, toitH: 10, xT: 16, transept: 50, transeptL: 14, cote: 12, facadeH: 34, rose: 5,
+    tours: [{ z: -14, h: 50, fleche: 10, r: 6, seg: 4 }, { z: 14, h: 72, octogone: { h: 6, r: 3 } }] });
+  // la cathédrale Saint-Gatien de Tours : la façade flamboyante et ses deux tours aux lanternes Renaissance
+  const cathedraleTours = (THREE) => cathedrale(THREE, { F: -37, E: 32, larg: 22, mur: 29, toitH: 10, xT: 12, transept: 46, transeptL: 12, cote: 12, facadeH: 40, rose: 5.5,
+    tours: [{ z: -12, h: 52, octogone: { h: 10, r: 5 }, fleche: 6, r: 5.2, seg: 8 }, { z: 12, h: 52, octogone: { h: 10, r: 5 }, fleche: 6, r: 5.2, seg: 8 }] });
+
+  // la cathédrale Notre-Dame-des-Doms d'Avignon : la nef romane et ses chapelles, le porche, le clocher et la Vierge dorée
+  function notreDameDesDoms(THREE) {
+    const A = atelier(THREE);
+    const pierre = A.matiere(0xE9D3A6), pierreFoncee = A.matiere(0xCDB07C), tuile = A.matiere(0xC8704A), or = A.matiere(0xFFC233, 0x7A4A00);
+    A.boite(48, 11, 30, 2, 0, 0, pierreFoncee); A.toit(30.6, 3, 48, 2, 11, 0, tuile); A.boite(48, 18, 14, 2, 0, 0, pierre); A.toit(14.6, 4, 48, 2, 18, 0, tuile);
+    A.abside(7, 18, 26, 0, 0, pierre); A.demiCone(7.5, 3, 26, 18, 0, tuile);
+    A.boite(10, 30, 10, -27, 0, 0, pierre); A.boite(10.8, 1.2, 10.8, -27, 30, 0, pierreFoncee); A.cylindre(2.4, 2.4, 3, 12, -27, 31.2, 0, pierre);
+    A.cylindre(0.7, 1.3, 6, 12, -27, 34.2, 0, or); A.boule(0.7, -27, 40.6, 0, or);
+    A.cylindre(4, 4, 4, 12, 8, 18, 0, pierre); A.dome(4, 0.8, 8, 22, 0, pierreFoncee);
+    return A.groupe;
+  }
+
+  // la cathédrale Saint-Front de Périgueux : la croix grecque et ses cinq coupoles, leurs lanternons, le haut clocher
+  function saintFront(THREE) {
+    const A = atelier(THREE);
+    const pierre = A.matiere(0xF2EEE2), pierreOmbre = A.matiere(0xDCD6C8);
+    const baies = [[10, 0], [-14, 0], [34, 0], [10, -24], [10, 24]];
+    A.boites(baies.map(([x, z]) => [24, 18, 24, x, 0, z]), pierre);
+    for (const [x, z] of baies) { A.dome(9, 1, x, 18, z, pierre); A.cylindre(1.4, 1.4, 3, 8, x, 26.6, z, pierreOmbre); A.pyramide(1.8, 3, 8, x, 29.6, z, pierreOmbre); }
+    A.cones(baies.flatMap(([x, z]) => [[x - 10, z - 10], [x + 10, z - 10], [x - 10, z + 10], [x + 10, z + 10]].map(([a, b]) => [a, b, 1, 18, 4])), pierreOmbre, 8);
+    A.boite(20, 14, 20, -36, 0, 0, pierreOmbre); A.boite(12, 30, 12, -42, 0, 0, pierre); A.cylindres(Array.from({ length: 12 }, (_, k) => [-42 + Math.cos(k * Math.PI / 6) * 5.4, Math.sin(k * Math.PI / 6) * 5.4, 0.5, 12, 30]), pierre, 8);
+    A.cylindre(5, 5, 12, 16, -42, 30, 0, pierreOmbre); A.pyramide(5.6, 16, 16, -42, 42, 0, pierre);
+    return A.groupe;
+  }
+
+  // le château de Sully-sur-Loire : le donjon et ses quatre tours rondes, son immense toit, le petit château, les douves
+  function sullySurLoire(THREE) {
+    const A = atelier(THREE);
+    const pierre = A.matiere(0xEFE8D8), ardoise = A.matiere(0x4F5D8C), eau = A.matiere(0x6DC4F0, 0x0E3A55);
+    A.plaques([[64, 0.3, 8, 0, 0.1, -38], [64, 0.3, 8, 0, 0.1, 42], [8, 0.3, 80, -32, 0.1, 2], [8, 0.3, 80, 32, 0.1, 2]], eau);
+    A.boite(40, 22, 20, 0, 0, -22, pierre); A.toit(20.6, 15, 40, 0, 22, -22, ardoise);
+    const tours = [[-20, -32], [20, -32], [-20, -12], [20, -12]];
+    A.cylindres(tours.map(([x, z]) => [x, z, 6, 26, 0]), pierre, 18); A.cones(tours.map(([x, z]) => [x, z, 6.4, 26, 12]), ardoise, 18);
+    A.boite(16, 14, 44, 12, 0, 12, pierre); A.toit(16.6, 8, 44, 12, 14, 12, ardoise, Math.PI / 2); A.cylindres([[20, 34, 5, 18, 0]], pierre, 16); A.cones([[20, 34, 5.4, 18, 10]], ardoise, 16);
+    return A.groupe;
+  }
+
   // les maquettes connues : le monument (identifiant de data/monuments.json), où et comment la poser, et les
   // bâtiments de l'IGN qu'elle remplace (sinon les blocs gris de la BD TOPO resteraient dedans)
   const MODELES = {
@@ -2164,6 +2261,36 @@
     Q1333442: {   // le viaduc de Garabit (le long de la voie ferrée relevée sur la carte)
       construire: garabit, centre: [3.177416, 44.97474], orientation: -73.9, masquer: [],
     },
+    Q774570: {   // l'Institut de France : la coupole face à la Seine
+      construire: institut, centre: [2.336963, 48.85726], orientation: 15, masquer: ['BATIMENT0000000253248237', 'BATIMENT0000000241937973'],
+    },
+    Q427340: {   // Saint-Gervais : la façade à l'ouest
+      construire: saintGervais, centre: [2.354731, 48.855509], orientation: -34, masquer: ['BATIMENT0000000253243449'],
+    },
+    Q522779: {   // Chaumont-sur-Loire : la cour ouverte sur la Loire
+      construire: chaumont, centre: [1.181796, 47.479168], orientation: 9, masquer: ['BATIMENT0000000321780020'],
+    },
+    Q1142363: {   // Valençay
+      construire: valencay, centre: [1.563487, 47.157533], orientation: 25, masquer: ['BATIMENT0000000324307683'],
+    },
+    Q1366553: {   // Sainte-Croix d'Orléans : la façade à l'ouest
+      construire: orleans, centre: [1.910435, 47.901916], orientation: 8, masquer: ['BATIMENT0000000209801950', 'BATIMENT0000000209801949'],
+    },
+    Q489014: {   // Saint-Étienne de Sens : la façade à l'ouest
+      construire: sens, centre: [3.284073, 48.198028], orientation: 6, masquer: ['BATIMENT0000002215628637', 'BATIMENT0000002215628638', 'BATIMENT0000002215628655', 'BATIMENT0000002215628657', 'BATIMENT0000002215628652'],
+    },
+    Q547013: {   // Saint-Gatien de Tours : la façade à l'ouest
+      construire: cathedraleTours, centre: [0.69458, 47.395603], orientation: 16, masquer: ['BATIMENT0000000322893740', 'BATIMENT0000000322899542', 'BATIMENT0000000322893742', 'BATIMENT0000000322899543', 'BATIMENT0000000322893739', 'BATIMENT0000000322897298'],
+    },
+    Q1200500: {   // Notre-Dame-des-Doms : le clocher à l'ouest
+      construire: notreDameDesDoms, centre: [4.8076, 43.951575], orientation: 2, masquer: ['BATIMENT0000000297746552', 'BATIMENT0000000297746551'],
+    },
+    Q1736213: {   // Saint-Front de Périgueux : le clocher à l'ouest
+      construire: saintFront, centre: [0.722734, 45.183684], orientation: 9, masquer: ['BATIMENT0000000295375605', 'BATIMENT0000000295375609'],
+    },
+    Q1470842: {   // Sully-sur-Loire
+      construire: sullySurLoire, centre: [2.375255, 47.767617], orientation: 23, masquer: ['BATIMENT0000000208850539'],
+    },
   };
   const MASQUES = Object.values(MODELES).flatMap((m) => m.masquer);
 
@@ -2236,6 +2363,7 @@
     odeon, chantilly, angers, bayeux, arcOrange, villaSavoye,
     saintRemi, saintGermainAuxerrois, tourSaintJacques, arenesLutece, saumur, placeVictoires, hautKoenigsbourg, saintEtienneDuMont, arenesNimes, colonneJuillet,
     pierrefonds, saintJeanLyon, laMajor, porteSaintDenis, colonneVendome, tropheeAlpes, lionBelfort, usse, pontMirabeau, fourviere,
-    loches, chateauGaillard, langeais, saintSernin, sainteClotilde, bordeaux, metz, clermont, cheverny, garabit };
+    loches, chateauGaillard, langeais, saintSernin, sainteClotilde, bordeaux, metz, clermont, cheverny, garabit,
+    institut, saintGervais, chaumont, valencay, orleans, sens, cathedraleTours, notreDameDesDoms, saintFront, sullySurLoire };
   if (typeof module !== 'undefined' && module.exports) module.exports = api; else racine.Maquettes = api;
 })(typeof globalThis !== 'undefined' ? globalThis : this);
