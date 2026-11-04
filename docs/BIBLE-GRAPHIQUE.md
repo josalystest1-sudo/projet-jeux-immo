@@ -340,6 +340,19 @@ Gautier : « le pack et les cartes sont moches ». Le pack n'était qu'un pavé 
 
 Où c'est dans le code : `initGL` (le sachet), `dessinPochette`, `sortirCartes`, `dispoPack`, `revelerCarte`, `balancer`, `carteSuivante` et les gestes (`index.html`, état `PK`). Les styles `.c3d` sont à la fin de `style.css`.
 
+**La sortie des cartes et la pile (5 nov., retours de Gautier)** : « les cartes n'ont pas l'air de sortir du pack. C'est juste l'image du pack qui disparaît et il y a des cartes qui apparaissent derrière. C'est vraiment moche. Et en plus, ça lag. Les cartes de dos, on voit mal l'effet comme quoi elles sont empilées. »
+- **La sortie** (`sortirCartes`, rythme dans `SORTIE`) :
+  - Dès la déchirure, les cartes montent hors du sachet, la carte du dessus d'abord. Elles sont un peu plus étroites que lui et cachées sous sa ligne d'ouverture : la découpe (`clipSortie`) est recalculée à chaque image par `animGL`, sur la projection du haut du sachet.
+  - Puis le sachet tombe tout droit, sans rétrécir, et dévoile le bas des cartes ; il est effacé dès qu'il a quitté l'écran.
+  - Enfin, la pile vient se poser au centre.
+  - Pendant la sortie (état `sortie`), la pile ne répond pas au toucher.
+- **Le lag** : l'ancienne sortie préparait la première révélation pendant l'animation (moteur 3D, images des étapes, faces des cinq cartes) ; mesuré au téléphone simulé, l'image se figeait environ une demi-seconde en pleine sortie. Désormais :
+  - les cartes naissent sans leur face, posée seulement quand on s'apprête à la révéler (`remplirFace`, appelée par `preparerCarte` et `revelerCarte`) ;
+  - la préparation attend que la pile soit posée (`SORTIE.preparer`).
+- **La pile se lit comme un paquet** : un décalage régulier vers le bas et la droite. Les cartes du dessous sont un peu plus sombres et bordées d'un liseré d'or (`.c3d.dessous`), et la dernière porte la tranche du paquet (`.c3d.socle`).
+
+![Avant / après : la sortie des cartes et la pile](bible/sortie-des-cartes.jpg)
+
 ## 11. Les cartes et la révélation, d'après l'interview de Gautier (4 nov. 2026)
 
 Gautier : « les cartes sont trop basiques », la révélation « est très simple et ne fait pas monter la pression ». Il ne savait pas exprimer ses idées : interview en cinq séries de questions à choix, puis une synthèse, validée (« Oui, fais la preuve »). Ses réponses :
@@ -352,7 +365,7 @@ Gautier : « les cartes sont trop basiques », la révélation « est très simp
 - **La révélation** : longue (environ 10 s). Un **toucher passe à l'étape suivante** (« la France, je clique, on passe directement à la région »).
   - La rareté d'abord : la couleur de la lumière, une comète qui tombe sur la France et explose. Pour Épique et au-delà, l'alerte : l'écran tremble, le bandeau de la rareté.
   - Puis la France, la **région**, le département, la commune, et la rue avec ses bâtiments en or, sans interface chargée.
-  - Le son : le cœur qui bat de plus en plus vite, un silence, puis le boum.
+  - Le son : le cœur qui bat de plus en plus vite, un silence, puis le boum. **Le 5 nov., Gautier a essayé avec le son : « les battements de cœur, ça fait nul ». Ils sont retirés (le son et la vibration) ; restent le silence et le boum.**
   - Enfin, la carte se dessine en lumière et la maquette monte du plan.
 - **La collection** : une grille de ces badges (à faire après validation).
 
@@ -362,7 +375,7 @@ Gautier : « les cartes sont trop basiques », la révélation « est très simp
 
 Où c'est dans le code :
 - `src/carte_lieu.js` : `donnees` (le plan d'un lieu par le WFS de l'IGN : parcelle, bâtiments et hauteurs, rues), `scene` (un seul moteur 3D partagé, recopié dans le canevas de chaque carte) et `html` (le badge).
-- `index.html` : `revealSequence` (les étapes, `REV` pour passer d'un toucher, `REV.pasAPas` pour les captures), `comete`, `alerteRarete`, `choc`, `coeur`, `dessinerRue`, `REGIONS`, `faceCarte`.
+- `index.html` : `revealSequence` (les étapes, `REV` pour passer d'un toucher, `REV.pasAPas` pour les captures), `comete`, `alerteRarete`, `choc`, `dessinerRue`, `REGIONS`, `faceCarte` (le cœur, `coeur`, est retiré depuis le 5 nov.).
 - Le **pack d'essai** (`ouvrirPackEssai`, dans les Réglages ou par `?essai-pack`, `?essai-pack=4`, `?essai-pack=5`) : il permet de voir les raretés hautes sans compter sur la chance, et ne donne rien. À retirer au lancement.
 
 ### Les retours de Gautier sur son téléphone (4 nov. au soir), et ce qui a changé

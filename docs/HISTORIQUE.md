@@ -164,6 +164,7 @@ Rien d'important ne vit dans une conversation : tout est dans le dépôt ou sur 
 - **La boutique sur le serveur** (PR #128). Le vrai serveur vend maintenant packs et Pass en gemmes (des gemmes d'essai en attendant le paiement par carte) ; le bon du Pass ne prend qu'une adresse, comme le dit le game design, et le serveur la vérifie auprès de la Base Adresse Nationale.
 - **Les ventes en gemmes** (PR #129). Gautier : « oui, vas-y ». Un joueur met en vente en pièces ou en gemmes ; les offres suivent la monnaie du vendeur (sinon celle de l'acheteur) ; les gemmes passent d'un joueur à l'autre sans commission. Dans la démo et sur le serveur.
 - **Le paiement par carte** (PR #130). Gautier : « on continue, guide-moi ». Il crée son compte Stripe en mode test et pose lui-même la clé secrète dans les secrets de GitHub (jamais dans la conversation). Le jeu ouvre la page de paiement de Stripe ; le serveur vérifie auprès de Stripe avant de créditer les gemmes.
+- **La sortie des cartes** (PR #132). Gautier, après avoir essayé avec le son : les cartes « n'ont pas l'air de sortir du pack », « ça lag », on voit mal que les cartes de dos sont empilées, et « les battements de cœur, ça fait nul ». Les cartes montent désormais hors du sachet, qui tombe ensuite ; la préparation de la révélation attend que la pile soit posée (l'image se figeait une demi-seconde) ; la pile a des liserés d'or ; le cœur est retiré.
 
 ## Toutes les PR
 
@@ -321,6 +322,7 @@ Puis une PR par étape, fusionnée en squash :
 | #129 | 05/11 00:00 | Vendre et offrir en gemmes : le vendeur choisit pièces ou gemmes, l'offre suit sa monnaie (sinon celle de l'acheteur), démo et serveur |
 | #130 | 05/11 | Le paiement des gemmes par carte (Stripe Checkout, mode test) : accès immédiat demandé, gemmes créditées après vérification auprès de Stripe, pas de packs pour les cartes belges et néerlandaises |
 | #131 | 05/11 | Publication du serveur : la clé Stripe s'envoie sans demande de confirmation (le nouvel outil Supabase bloquait) |
+| #132 | 05/11 | L'ouverture du pack : les cartes sortent vraiment du sachet (puis il tombe), plus de blocage pendant la sortie, une pile qui se lit comme un paquet, plus de battement de cœur |
 
 ## Les décisions de Gautier
 
