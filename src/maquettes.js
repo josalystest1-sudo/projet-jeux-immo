@@ -4403,6 +4403,51 @@
     return A.groupe;
   }
 
+  // la Grande Chartreuse : le très long grand cloître des chartreux, ses galeries et les petites maisons des moines, leurs
+  // toits d'ardoise
+  function grandeChartreuse(THREE) {
+    const A = atelier(THREE);
+    const pierre = A.matiere(0xEFE9DC), ardoise = A.matiere(0x5A6378);
+    A.boites([[10, 9, 241, 4.5, 0, 15.5], [12, 9, 241, 40.5, 0, 15.5], [25, 9, 12, 22, 0, -99], [25, 9, 12, 22, 0, 130]], pierre);
+    A.toits([[10.6, 5, 241, 4.5, 9, 15.5, Math.PI / 2], [12.6, 5, 241, 40.5, 9, 15.5, Math.PI / 2], [12.6, 5, 25, 22, 9, -99], [12.6, 5, 25, 22, 9, 130]], ardoise);
+    const cellules = []; for (let z = -92; z <= 124; z += 12) for (const x of [-3.5, 49.5]) if (x > 0 || z < -62 || z > 2) cellules.push([x, z]);
+    A.boites(cellules.map(([x, z]) => [6, 6.5, 7, x, 0, z]), pierre); A.toits(cellules.map(([x, z]) => [6.6, 3.5, 7.4, x, 6.5, z, Math.PI / 2]), ardoise);
+    return A.groupe;
+  }
+
+  // le palais de Compiègne : le grand palais en triangle, la longue façade sur le parc, la cour d'honneur et sa colonnade
+  function compiegne(THREE) {
+    const A = atelier(THREE);
+    const pierre = A.matiere(0xF2EEE4), pierreFoncee = A.matiere(0xD6CFC0), ardoise = A.matiere(0x5A6378);
+    const ailes = [[219, 20, 0.5, -52, 0], [78, 32, -70, -26, 0], [21, 83, -20.5, -0.5, 0], [90, 29, 35, -27.5, 0], [25, 23, 2.5, -1.5, 0], [69, 14, -65.5, 47, 0],
+      [189, 24, -7.2, 25.7, Math.atan2(98, 162)], [55, 18, -87.7, 56.6, Math.atan2(-48, 27)]];
+    A.boites(ailes.map(([l, w, x, z, r]) => [l, 18, w, x, 0, z, r]), pierre);
+    A.boites(ailes.map(([l, w, x, z, r]) => [l + 1, 1.4, w + 1, x, 18, z, r]), pierreFoncee);
+    A.comblesN(ailes.map(([l, w, x, z, r]) => [l - 1, 5, w - 1, x, 19.4, z, r]), ardoise);
+    A.boite(4, 8, 41, -101.5, 0, 15.5, pierre);
+    return A.groupe;
+  }
+
+  // l'abbaye Saint-Remi de Reims (le musée Saint-Remi) : les bâtiments du XVIIIe siècle autour du cloître, contre la basilique
+  function abbayeSaintRemi(THREE) {
+    const A = atelier(THREE);
+    const pierre = A.matiere(0xEFE5CF), ardoise = A.matiere(0x4F5D8C);
+    const ailes = [[82, 10, 8.5, -20], [82, 9, 8.5, 19.5], [17, 30, -23.9, 0], [17.5, 30, 40.75, 0], [41, 8.4, -53, -14.2]];
+    A.boites(ailes.map(([l, w, x, z], k) => [l, k === 4 ? 12 : 15, w, x, 0, z]), pierre);
+    A.comblesN(ailes.map(([l, w, x, z], k) => [l + 0.6, 5, w + 0.6, x, k === 4 ? 12 : 15, z]), ardoise);
+    return A.groupe;
+  }
+
+  // le fort Saint-Jean (Marseille) : la tour du Roi René à l'entrée du Vieux-Port, son échauguette, ses créneaux
+  function fortSaintJean(THREE) {
+    const A = atelier(THREE);
+    const pierre = A.matiere(0xE6D6B8), pierreFoncee = A.matiere(0xC9B48E);
+    A.boite(19, 12, 20, 0, 0, 0, pierre); A.creneaux([A.tourDe(19, 20, 0, 0)], 12, 0.8, pierreFoncee);
+    A.boite(13, 27, 13, -3, 0, -3.5, pierre); A.creneaux([A.tourDe(13, 13, -3, -3.5)], 27, 0.8, pierreFoncee);
+    A.cylindre(1.6, 1.2, 6, 10, 3.5, 24, 3, pierre); A.cones([[3.5, 3, 1.9, 30, 3]], pierreFoncee, 10);
+    return A.groupe;
+  }
+
   // les maquettes connues : le monument (identifiant de data/monuments.json), où et comment la poser, et les
   // bâtiments de l'IGN qu'elle remplace (sinon les blocs gris de la BD TOPO resteraient dedans)
   const MODELES = {
@@ -5496,6 +5541,18 @@
     Q306121: {   // l'abbaye Saint-Michel-de-Cuxa
       construire: cuxa, centre: [2.417317, 42.594827], orientation: 13, masquer: ['BATIMENT0000000341141967', 'BATIMENT0000000341141965'],
     },
+    Q180709: {   // la Grande Chartreuse : le grand cloître
+      construire: grandeChartreuse, centre: [5.793644, 45.363385], orientation: -20, masquer: ['BATIMENT0000000302487494', 'BATIMENT0000000302487492', 'BATIMENT0000000302487493', 'BATIMENT0000000302487484'],
+    },
+    Q516697: {   // le palais de Compiègne (la cour d'honneur à l'ouest, la façade sur le parc au sud-est)
+      construire: compiegne, centre: [2.831402, 49.419244], orientation: 39, masquer: ['BATIMENT0000000318369542', 'BATIMENT0000000318370169', 'BATIMENT0000000318370168'],
+    },
+    Q27969085: {   // l'abbaye Saint-Remi (les bâtiments du musée, au nord de la basilique)
+      construire: abbayeSaintRemi, centre: [4.041275, 49.243442], orientation: 21, masquer: ['BATIMENT0000002223501951', 'BATIMENT0000002223500674'],
+    },
+    Q1905802: {   // le fort Saint-Jean : la tour du Roi René
+      construire: fortSaintJean, centre: [5.362844, 43.294698], orientation: -33, masquer: ['BATIMENT0000000258935378'],
+    },
   };
   const MASQUES = Object.values(MODELES).flatMap((m) => m.masquer);
 
@@ -5592,6 +5649,7 @@
     murol,  villesavin,  montpoupon,  puymartin,  laBrede,  cathedraleAntibes,  cathedraleViviers,  chaalis,
     fontfroide,  valmagne,  maguelone,  cathedraleLavaur,  epau,  montmajour,  saintPaulMausole,  pontVieuxAlbi,
     chalus,  puivert,  canigou,  cadouin,  remiremont,  puilaurens,  aguilar,  termes,  beauport,  commarque,
-    lastours,  peyrepertuse,  clisson,  luxeuil,  cuxa };
+    lastours,  peyrepertuse,  clisson,  luxeuil,  cuxa,
+    grandeChartreuse,  compiegne,  abbayeSaintRemi,  fortSaintJean };
   if (typeof module !== 'undefined' && module.exports) module.exports = api; else racine.Maquettes = api;
 })(typeof globalThis !== 'undefined' ? globalThis : this);
