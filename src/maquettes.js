@@ -4448,6 +4448,67 @@
     return A.groupe;
   }
 
+  // l'abbaye de Gellone (Saint-Guilhem-le-Désert) : l'abbatiale romane, son transept, son abside, le clocher-porche
+  function gellone(THREE) {
+    const A = atelier(THREE);
+    const pierre = A.matiere(0xE6D6B8), pierreFoncee = A.matiere(0xC9B48E), tuile = A.matiere(0xC8704A);
+    A.boite(40, 14, 14, -4, 0, 0, pierre); A.toit(14.6, 5, 40, -4, 14, 0, tuile);
+    A.boite(10, 14, 28, 6, 0, 0, pierre); A.toit(10.6, 4, 28, 6, 14, 0, tuile, Math.PI / 2);
+    A.abside(7, 13, 16, 0, 0, pierre); A.demiCone(7.5, 4, 16, 13, 0, tuile);
+    A.boite(7, 24, 8, -27, 0, 1.5, pierre); A.creneaux([A.tourDe(7, 8, -27, 1.5)], 24, 0.7, pierreFoncee); A.pyramide(4.4, 3, 4, -27, 24, 1.5, tuile);
+    return A.groupe;
+  }
+
+  // l'abbaye du Bec-Hellouin : la tour Saint-Nicolas, haute tour flamboyante, seule debout de l'ancienne abbatiale
+  function becHellouin(THREE) {
+    const A = atelier(THREE);
+    const pierre = A.matiere(0xEFE7D6), pierreFoncee = A.matiere(0xD2C6AC), ardoise = A.matiere(0x4F5D8C);
+    A.boite(12, 36, 12, 0, 0, 0, pierre); A.boite(13.2, 1.4, 13.2, 0, 34.6, 0, pierreFoncee);
+    for (const [dx, dz] of [[1, 1], [1, -1], [-1, 1], [-1, -1]]) A.pyramide(1.2, 6, 4, dx * 5.4, 36, dz * 5.4, pierreFoncee);
+    A.pyramide(6, 9, 4, 0, 36, 0, ardoise);
+    return A.groupe;
+  }
+
+  // la villa Ephrussi de Rothschild (Saint-Jean-Cap-Ferrat) : la villa rose à l'italienne, ses toits de tuiles, sa loggia
+  function villaEphrussi(THREE) {
+    const A = atelier(THREE);
+    const rose = A.matiere(0xF3B8A8), blanc = A.matiere(0xF4EEE2), tuile = A.matiere(0xC8704A);
+    A.boite(44, 12, 26, -2, 0, -1, rose); A.boite(45, 1, 27, -2, 12, -1, blanc); A.comblesN([[44, 4, 26, -2, 13, -1]], tuile);
+    A.boite(10, 9, 8, 20, 0, 10, rose); A.boite(10.6, 0.8, 8.6, 20, 9, 10, blanc);
+    A.cylindres([0, 4, 8, 12].map((d) => [-15 + d, 12.6, 0.4, 7, 0]), blanc, 10);
+    return A.groupe;
+  }
+
+  // la Roche-aux-Fées (Essé) : la grande allée couverte de schiste, ses piliers et ses huit tables
+  function rocheAuxFees(THREE) {
+    const A = atelier(THREE);
+    const schiste = A.matiere(0xA8978C), schisteFonce = A.matiere(0x8C7C72);
+    const piliers = []; for (let x = -9; x <= 9; x += 1.6) for (const z of [-2.4, 2.4]) piliers.push([1.3, 2.4, 0.7, x, 0, z, ((x * 7) % 3) * 0.05]);
+    A.boites(piliers, schiste);
+    A.boites(Array.from({ length: 8 }, (_, k) => [2.4, 0.9, 5.6, -8.4 + k * 2.4, 2.4, 0, (k % 3 - 1) * 0.06]), schisteFonce);
+    return A.groupe;
+  }
+
+  // le cairn de Barnenez : le grand tertre de pierres sèches à gradins et ses onze couloirs vers les chambres
+  function barnenez(THREE) {
+    const A = atelier(THREE);
+    const pierre = A.matiere(0xBDB5A6), pierreFoncee = A.matiere(0xA39A8A), sombre = A.matiere(0x4E4840);
+    A.boite(72, 3, 24, 0, 0, 0, pierreFoncee); A.boite(66, 3, 19, 0, 3, -0.5, pierre); A.boite(58, 2.4, 13, 0, 6, -1, pierreFoncee);
+    for (let k = 0; k < 11; k++) A.extrusion(A.formeArche(1.4, 1.8), 0.6, -30 + k * 6, 0, 12.05, sombre, 0, true);
+    return A.groupe;
+  }
+
+  // le grand menhir brisé d'Er Grah (Locmariaquer) : le plus grand menhir connu, couché en quatre morceaux
+  function erGrah(THREE) {
+    const A = atelier(THREE);
+    const granit = A.matiere(0xC9C2B6);
+    A.piece((e) => new THREE.CylinderGeometry(1.2 + e, 1.6 + e, 4.7 + 2 * e, 7).rotateZ(Math.PI / 2).translate(0, 1.4, 0), granit, A.V(-8.6, 0, 0.3));
+    A.piece((e) => new THREE.CylinderGeometry(1.6 + e, 1.8 + e, 3.1 + 2 * e, 7).rotateZ(Math.PI / 2).rotateY(0.25).translate(0, 1.6, 0), granit, A.V(-4.4, 0, -0.4));
+    A.piece((e) => new THREE.CylinderGeometry(1.8 + e, 2 + e, 5.7 + 2 * e, 7).rotateZ(Math.PI / 2).rotateY(-0.12).translate(0, 1.8, 0), granit, A.V(0.6, 0, 0.2));
+    A.piece((e) => new THREE.CylinderGeometry(2 + e, 1.7 + e, 6 + 2 * e, 7).rotateZ(Math.PI / 2).rotateY(0.9).translate(0, 1.8, 0), granit, A.V(7.2, 0, 1.8));
+    return A.groupe;
+  }
+
   // les maquettes connues : le monument (identifiant de data/monuments.json), où et comment la poser, et les
   // bâtiments de l'IGN qu'elle remplace (sinon les blocs gris de la BD TOPO resteraient dedans)
   const MODELES = {
@@ -5553,6 +5614,24 @@
     Q1905802: {   // le fort Saint-Jean : la tour du Roi René
       construire: fortSaintJean, centre: [5.362844, 43.294698], orientation: -33, masquer: ['BATIMENT0000000258935378'],
     },
+    Q981723: {   // l'abbaye de Gellone (le clocher-porche à l'ouest)
+      construire: gellone, centre: [3.549432, 43.733929], orientation: -12, masquer: ['BATIMENT0000000207230070', 'BATIMENT0000000207230069', 'BATIMENT0000000207229932', 'BATIMENT0000000207229939', 'BATIMENT0000000207229937'],
+    },
+    Q32989: {   // l'abbaye du Bec-Hellouin : la tour Saint-Nicolas
+      construire: becHellouin, centre: [0.721155, 49.229663], orientation: 33, masquer: ['BATIMENT0000000338780425'],
+    },
+    Q2452513: {   // la villa Ephrussi de Rothschild
+      construire: villaEphrussi, centre: [7.328399, 43.69661], orientation: 12, masquer: ['BATIMENT0000000327558317', 'BATIMENT0000000327558316'],
+    },
+    Q1799090: {   // la Roche-aux-Fées (pas de bâtiment dans l'IGN : placée au point du monument, l'allée vers le nord-nord-ouest)
+      construire: rocheAuxFees, centre: [-1.4047, 47.9364], orientation: 112, masquer: [],
+    },
+    Q808456: {   // le cairn de Barnenez (placé au point du monument)
+      construire: barnenez, centre: [-3.8586, 48.6675], orientation: 10, masquer: [],
+    },
+    Q508651: {   // le menhir brisé d'Er Grah (placé au point du monument)
+      construire: erGrah, centre: [-2.9502, 47.5713], orientation: 20, masquer: [],
+    },
   };
   const MASQUES = Object.values(MODELES).flatMap((m) => m.masquer);
 
@@ -5650,6 +5729,7 @@
     fontfroide,  valmagne,  maguelone,  cathedraleLavaur,  epau,  montmajour,  saintPaulMausole,  pontVieuxAlbi,
     chalus,  puivert,  canigou,  cadouin,  remiremont,  puilaurens,  aguilar,  termes,  beauport,  commarque,
     lastours,  peyrepertuse,  clisson,  luxeuil,  cuxa,
-    grandeChartreuse,  compiegne,  abbayeSaintRemi,  fortSaintJean };
+    grandeChartreuse,  compiegne,  abbayeSaintRemi,  fortSaintJean,
+    gellone,  becHellouin,  villaEphrussi,  rocheAuxFees,  barnenez,  erGrah };
   if (typeof module !== 'undefined' && module.exports) module.exports = api; else racine.Maquettes = api;
 })(typeof globalThis !== 'undefined' ? globalThis : this);
