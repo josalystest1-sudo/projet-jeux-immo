@@ -4041,6 +4041,96 @@
   const saintLeu = (THREE) => cathedrale(THREE, { F: -21, E: 18, larg: 10, mur: 17, toitH: 6, xT: 0, cote: 5, facadeH: 18, rose: 2, arcs: false,
     tours: [{ z: -4.5, h: 22, fleche: 9, r: 2.4, seg: 8 }, { z: 4.5, h: 22, fleche: 9, r: 2.4, seg: 8 }] });
 
+  // le château de Murol : la forteresse de basalte sur sa butte, son enceinte épaisse et ses tours crénelées
+  function murol(THREE) {
+    const A = atelier(THREE);
+    const basalte = A.matiere(0x9C948A), basalteFonce = A.matiere(0x7E776E);
+    const p = ([x, z]) => [x - 14, z + 9];
+    const tour = [[26.4, -27], [22.5, -26.4], [13.5, -23.4], [8.4, -19.5], [0, -11.4], [-1.5, -5.4], [1.5, 6], [6, 10.5], [12, 11.4], [19.5, 10.5], [24.9, 6], [27, 3.6], [26.4, -18], [26.4, -27]].map(p);
+    A.remparts([tour], 16, 6, basalte); A.creneaux([tour], 16, 6, basalteFonce);
+    const tours = [[p([26.4, -28]), 4.5, 22], [p([2, 2]), 4, 19], [p([22, 8]), 3.6, 19]];
+    A.cylindres(tours.map(([q, r, h]) => [q[0], q[1], r, h, 0]), basalte, 16);
+    for (const [q, r, h] of tours) A.creneaux([anneau(q[0], q[1], r, 16)], h, 0.8, basalteFonce);
+    return A.groupe;
+  }
+
+  // le château de Villesavin : le logis bas de la Renaissance, ses ailes autour des cours, ses toits d'ardoise, son colombier
+  function villesavin(THREE) {
+    const A = atelier(THREE);
+    const tuffeau = A.matiere(0xF4EEDC), ardoise = A.matiere(0x4F5D8C);
+    A.boites([[99, 8, 11, 1.5, 0, 20], [9, 8, 39.6, -14, 0, -5.2], [10, 8, 39, 53.5, 0, -4], [50, 7, 9, -34.8, 0, -20.5], [44, 8, 9, 36.5, 0, -20.5], [7.5, 7, 48, -46, 0, 0.5]], tuffeau);
+    A.toits([[11.6, 7, 99, 1.5, 8, 20], [9.6, 6, 39.6, -14, 8, -5.2, Math.PI / 2], [10.6, 6, 39, 53.5, 8, -4, Math.PI / 2], [9.6, 5, 50, -34.8, 7, -20.5], [9.6, 6, 44, 36.5, 8, -20.5], [8.1, 5, 48, -46, 7, 0.5, Math.PI / 2]], ardoise);
+    A.boite(16, 10, 13, 19.5, 0, 20, tuffeau); A.combles(16.6, 9, 13.6, 19.5, 10, 20, ardoise);
+    A.cylindre(3.6, 3.6, 11, 18, 56.4, 0, 21.5, tuffeau); A.cones([[56.4, 21.5, 4.1, 11, 5]], ardoise, 18);
+    return A.groupe;
+  }
+
+  // le château de Montpoupon : le logis aux hautes toitures, ses tours rondes coiffées de poivrières
+  function montpoupon(THREE) {
+    const A = atelier(THREE);
+    const tuffeau = A.matiere(0xF4EEDC), ardoise = A.matiere(0x4F5D8C);
+    A.boite(34, 13, 14, 3, 0, 0, tuffeau); A.toit(14.6, 9, 34, 3, 13, 0, ardoise);
+    const tours = [[-15, -6, 5.5, 19], [-15, 4.5, 3.6, 16], [17, 4.5, 3.6, 16]];
+    A.cylindres(tours.map(([x, z, r, h]) => [x, z, r, h, 0]), tuffeau, 18); A.cones(tours.map(([x, z, r, h]) => [x, z, r + 0.5, h, r * 2.3]), ardoise, 18);
+    return A.groupe;
+  }
+
+  // le château de Puymartin : le logis en U du Périgord noir, ses tours rondes et leurs toits de lauzes
+  function puymartin(THREE) {
+    const A = atelier(THREE);
+    const pierre = A.matiere(0xE6D3A8), lauze = A.matiere(0x6B6660);
+    A.boites([[34.5, 14, 9, -1.75, 0, -10.5], [7.5, 12, 27, -9.25, 0, 7.5], [11, 12, 27, 10, 0, 7.5]], pierre);
+    A.toits([[9.6, 7, 34.5, -1.75, 14, -10.5], [8.1, 6, 27, -9.25, 12, 7.5, Math.PI / 2], [11.6, 7, 27, 10, 12, 7.5, Math.PI / 2]], lauze);
+    const tours = [[16.4, -16.5, 3.4, 20], [-19, -15, 3.2, 18]];
+    A.cylindres(tours.map(([x, z, r, h]) => [x, z, r, h, 0]), pierre, 16); A.cones(tours.map(([x, z, r, h]) => [x, z, r + 0.5, h, r * 2.5]), lauze, 16);
+    return A.groupe;
+  }
+
+  // le château de La Brède : la forteresse gothique de Montesquieu au milieu de ses douves, son enceinte, sa tour
+  function laBrede(THREE) {
+    const A = atelier(THREE);
+    const pierre = A.matiere(0xE6DCC4), pierreFoncee = A.matiere(0xC9BB98), tuile = A.matiere(0xB0603F);
+    const p = ([x, z]) => [x + 12, z + 8];
+    const tour = [[-26.4, -18], [-22.5, -21], [-13.5, -25.5], [-4.5, -25.5], [0.9, -21.6], [-2, -18], [-2, -4.5], [4.5, 0.9], [3, 5.4], [-6, 9.6], [-19.5, 7.5], [-30, 1.5], [-31.5, -6], [-26.4, -18]].map(p);
+    A.remparts([tour], 12, 6, pierre); A.creneaux([tour], 12, 6, pierreFoncee);
+    const [x, z] = p([-26.4, -22.5]); A.cylindre(4.6, 4.6, 22, 18, x, 0, z, pierre); A.cones([[x, z, 5.1, 22, 9]], tuile, 18);
+    return A.groupe;
+  }
+
+  // la cathédrale Notre-Dame-de-la-Platea d'Antibes : la façade ocre, la nef, l'abside, la vieille tour de guet devenue clocher
+  function cathedraleAntibes(THREE) {
+    const A = atelier(THREE);
+    const pierre = A.matiere(0xE6D6B8), ocre = A.matiere(0xE8C27A), tuile = A.matiere(0xC8704A);
+    A.boite(38, 10, 26, 0, 0, 0, pierre); A.toit(26.6, 3, 38, 0, 10, 0, tuile);
+    A.boite(40, 15, 12, -1, 0, 0, pierre); A.toit(12.6, 4.5, 40, -1, 15, 0, tuile);
+    A.abside(6, 15, 19, 0, 0, pierre); A.demiCone(6.5, 4, 19, 15, 0, tuile);
+    A.boite(2, 19, 14, -21, 0, 0, ocre); A.toit(14, 4, 2, -21, 19, 0, ocre);
+    A.boite(8, 30, 8, -32, 0, -1, pierre); A.pyramide(5.5, 4, 4, -32, 30, -1, tuile);
+    return A.groupe;
+  }
+
+  // la cathédrale Saint-Vincent de Viviers : le clocher-porche roman et son étage octogonal, la nef, le haut chœur gothique
+  function cathedraleViviers(THREE) {
+    const A = atelier(THREE);
+    const pierre = A.matiere(0xE6D6B8), pierreFoncee = A.matiere(0xC9B48E), tuile = A.matiere(0xC8704A);
+    A.boite(28, 16, 20, -7, 0, -1, pierre); A.toit(20.6, 5, 28, -7, 16, -1, tuile);
+    A.boite(12, 20, 24, 11, 0, 0, pierre); A.toit(24.6, 6, 12, 11, 20, 0, tuile); A.abside(12, 20, 17, 0, 0, pierre); A.demiCone(12.5, 5, 17, 20, 0, tuile);
+    A.boite(11, 26, 11, -31, 0, -8, pierre); A.boite(12, 1.4, 12, -31, 24.6, -8, pierreFoncee);
+    A.cylindre(4.6, 5, 10, 8, -31, 26, -8, pierre); A.pyramide(4.4, 6, 8, -31, 36, -8, tuile);
+    return A.groupe;
+  }
+
+  // l'abbaye de Chaalis : le château des abbés (le musée Jacquemart-André) et la chapelle Sainte-Marie
+  function chaalis(THREE) {
+    const A = atelier(THREE);
+    const pierre = A.matiere(0xF2EEE4), ardoise = A.matiere(0x4F5D8C);
+    A.boite(76, 12, 19, -5, 0, -28.5, pierre); A.toit(19.6, 7, 76, -5, 12, -28.5, ardoise);
+    for (const x of [-34.5, 24.5]) { A.boite(17, 12, 10, x, 0, -43, pierre); A.toit(10.6, 6, 17, x, 12, -43, ardoise); }
+    A.boite(23, 18, 11, 32.5, 0, 30.5, pierre); A.toit(11.6, 9, 23, 32.5, 18, 30.5, ardoise);
+    A.boite(7, 10, 10, 38.5, 0, 41, pierre); A.toit(7.6, 4, 10, 38.5, 10, 41, ardoise, Math.PI / 2);
+    return A.groupe;
+  }
+
   // les maquettes connues : le monument (identifiant de data/monuments.json), où et comment la poser, et les
   // bâtiments de l'IGN qu'elle remplace (sinon les blocs gris de la BD TOPO resteraient dedans)
   const MODELES = {
@@ -5041,6 +5131,30 @@
     Q1629670: {   // Saint-Leu-Saint-Gilles (la façade sur la rue Saint-Denis, à l'ouest)
       construire: saintLeu, centre: [2.350087, 48.862903], orientation: -17, masquer: ['BATIMENT0000000000161011'],
     },
+    Q1013167: {   // le château de Murol
+      construire: murol, centre: [2.945476, 45.578386], orientation: 2, masquer: ['BATIMENT0000000120176480'],
+    },
+    Q1808966: {   // le château de Villesavin
+      construire: villesavin, centre: [1.514356, 47.5465], orientation: 28, masquer: ['BATIMENT0000000321748065', 'BATIMENT0000000321748063', 'BATIMENT0000000321748062', 'BATIMENT0000000321748068', 'BATIMENT0000000321748067', 'BATIMENT0000000321748064', 'BATIMENT0000000321748066', 'BATIMENT0000000321748061'],
+    },
+    Q769365: {   // le château de Montpoupon
+      construire: montpoupon, centre: [1.141251, 47.252984], orientation: 35, masquer: ['BATIMENT0000000322583997', 'BATIMENT0000000322583998', 'BATIMENT0000000322583993'],
+    },
+    Q1518981: {   // le château de Puymartin
+      construire: puymartin, centre: [1.142327, 44.910572], orientation: 13, masquer: ['BATIMENT0000000296746539'],
+    },
+    Q1859459: {   // le château de La Brède
+      construire: laBrede, centre: [-0.544381, 44.679188], orientation: 39, masquer: ['BATIMENT0000000257040247'],
+    },
+    Q2942253: {   // Notre-Dame-de-la-Platea d'Antibes (la façade à l'ouest, le clocher devant)
+      construire: cathedraleAntibes, centre: [7.128527, 43.581116], orientation: -24, masquer: ['BATIMENT0000000327975014', 'BATIMENT0000000327975012', 'BATIMENT0000000327975011', 'BATIMENT0000000327975013'],
+    },
+    Q2942457: {   // Saint-Vincent de Viviers (le clocher-porche à l'ouest)
+      construire: cathedraleViviers, centre: [4.690604, 44.481936], orientation: -5, masquer: ['BATIMENT0000000331296541', 'BATIMENT0000000331296540', 'BATIMENT0000000331295709', 'BATIMENT0000000331295707'],
+    },
+    Q841839: {   // l'abbaye de Chaalis : le château des abbés et la chapelle
+      construire: chaalis, centre: [2.686043, 49.14796], orientation: 16, masquer: ['BATIMENT0000000317998894', 'BATIMENT0000000039384418'],
+    },
   };
   const MASQUES = Object.values(MODELES).flatMap((m) => m.masquer);
 
@@ -5133,6 +5247,7 @@
     serrant, ancyLeFranc, fenelon, sache, cathedraleLescar, notreDameBonneNouvelle, fontaineMedicis, menars, rivau, beauregard,
     cathedraleBesancon, meudon, saintMedard, saintEugene, sainteElisabeth, theatreArles, jeuDePaume,
     porteDeMars,  cathedraleChalons,  notreDameEnVaux,  templeVienne,  suscinio,  fougeres,  palaisLongchamp,  transbordeur,  cathedraleSaintPol,
-    museePicardie,  najac,  sainteCroixBordeaux,  ainayLeVieil,  saintPierreLeJeune,  azayLeFerron,  saintLeu };
+    museePicardie,  najac,  sainteCroixBordeaux,  ainayLeVieil,  saintPierreLeJeune,  azayLeFerron,  saintLeu,
+    murol,  villesavin,  montpoupon,  puymartin,  laBrede,  cathedraleAntibes,  cathedraleViviers,  chaalis };
   if (typeof module !== 'undefined' && module.exports) module.exports = api; else racine.Maquettes = api;
 })(typeof globalThis !== 'undefined' ? globalThis : this);
