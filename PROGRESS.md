@@ -162,12 +162,14 @@
 
 - 4 nov. 2026 (nuit) : **neuf monuments régionaux de plus en 3D** : la porte de Mars, la cathédrale de Châlons, Notre-Dame-en-Vaux, le temple d'Auguste et de Livie, Suscinio, Fougères, le palais Longchamp, le pont transbordeur de Rochefort, la cathédrale de Saint-Pol-de-Léon. 317 maquettes. 48 tests.
 
+- 4 nov. 2026 (nuit) : **sept monuments régionaux de plus en 3D** : le musée de Picardie, Najac, Sainte-Croix de Bordeaux, Ainay-le-Vieil, Saint-Pierre-le-Jeune (Strasbourg), Azay-le-Ferron, Saint-Leu-Saint-Gilles. 324 maquettes. 48 tests.
+
 ## En cours
 - Lieux célèbres : les autres catégories (châteaux, mairies, gares, musées, ponts, phares, moulins…) dès que Wikidata répond (`python3 tools/wikidata_celebres.py`, puis `--fusion` et `gen_donnees.py celebres`).
 - Phase 1.1 à 1.4 : la carte et le modèle des lieux reconstruits en modules (`src/`) à partir du prototype ; puis le marché (phase 4 : historique des ventes d'un lieu) et les communes et Maires (phase 6). Ensuite : Signaler envoyé au serveur dès qu'il y aura de vrais joueurs à l'écran ; Google ; un service d'envoi d'e-mails avant le lancement (le service de Supabase n'écrit qu'aux membres de l'équipe Supabase, deux e-mails par heure).
 
 ## À faire
-- Les graphismes (phase 10, avant 8.2 : décision de Gautier) : la preuve, l'ouverture, les monuments nationaux et 264 monuments régionaux en 3D (317 maquettes) ; ensuite les autres régionaux, l'habillage de la révélation, l'icône et le logo (`docs/BIBLE-GRAPHIQUE.md` § 5).
+- Les graphismes (phase 10, avant 8.2 : décision de Gautier) : la preuve, l'ouverture, les monuments nationaux et 271 monuments régionaux en 3D (324 maquettes) ; ensuite les autres régionaux, l'habillage de la révélation, l'icône et le logo (`docs/BIBLE-GRAPHIQUE.md` § 5).
 - La suite du serveur : 8.2 (le mode serveur par défaut, la fin des joueurs simulés, l'inscription des amis), 8.3 (anti-triche) ; puis la boutique (phase 9). Liste complète, avec ce qu'il faudra faire au lancement : `docs/HISTORIQUE.md` § « Ce qui reste à faire » ; l'ordre : `docs/PLAN.md` (phases 1 à 11).
 
 ## Questions ouvertes
