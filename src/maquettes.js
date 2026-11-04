@@ -3701,6 +3701,103 @@
     return A.groupe;
   }
 
+  // le château de Serrant : le logis de schiste et de tuffeau, ses deux ailes, ses grosses tours rondes coiffées de dômes
+  function serrant(THREE) {
+    const A = atelier(THREE);
+    const schiste = A.matiere(0xC8B496), tuffeau = A.matiere(0xF4EEDC), ardoise = A.matiere(0x4F5D8C), or = A.matiere(0xFFC233, 0x7A4A00);
+    A.boite(12, 19, 50, 16, 0, -17, schiste); A.combles(12.6, 8, 50.6, 16, 19, -17, ardoise);
+    A.boite(37, 17, 11, 3.5, 0, -41.5, schiste); A.toit(11.6, 7, 37, 3.5, 17, -41.5, ardoise);
+    A.boite(37, 17, 12, 3.5, 0, 9, schiste); A.toit(12.6, 7, 37, 3.5, 17, 9, ardoise);
+    for (const z of [-46, 12.4]) { A.cylindre(7, 7, 22, 20, 22.5, 0, z, schiste); A.cylindre(7.4, 7.4, 1.2, 20, 22.5, 22, z, tuffeau); A.dome(7.2, 1.1, 22.5, 23.2, z, ardoise); A.cylindre(1.3, 1.3, 3, 8, 22.5, 30.7, z, tuffeau); A.boule(0.6, 22.5, 34.3, z, or); }
+    return A.groupe;
+  }
+
+  // le château d'Ancy-le-Franc : le carré Renaissance autour de la cour, ses pavillons d'angle et leurs toits pyramidaux
+  function ancyLeFranc(THREE) {
+    const A = atelier(THREE);
+    const pierre = A.matiere(0xF2EEE4), ardoise = A.matiere(0x4F5D8C);
+    A.boites([[56, 15, 12, 1, 0, -28.7], [56, 15, 12, 1, 0, 15.6], [12, 15, 32, -21, 0, -6.5], [12, 15, 32, 23, 0, -6.5]], pierre);
+    A.toits([[12.6, 6, 56, 1, 15, -28.7], [12.6, 6, 56, 1, 15, 15.6], [12.6, 6, 32, -21, 15, -6.5, Math.PI / 2], [12.6, 6, 32, 23, 15, -6.5, Math.PI / 2]], ardoise);
+    for (const [x, z] of [[-21, -28.7], [23, -28.7], [-21, 15.6], [23, 15.6]]) { A.boite(14, 19, 14, x, 0, z, pierre); A.combles(14.6, 9, 14.6, x, 19, z, ardoise); }
+    return A.groupe;
+  }
+
+  // le château de Fénelon : le logis autour de sa petite cour, ses tours rondes et leurs toits de lauzes
+  function fenelon(THREE) {
+    const A = atelier(THREE);
+    const pierre = A.matiere(0xE6D3A8), lauze = A.matiere(0x857A70);
+    A.boites([[39, 14, 8, 0, 0, -7.3], [39, 12, 7, 0, 0, 11.2], [8, 13, 26, -16, 0, 1.7], [8, 13, 26, 15.3, 0, 1.7]], pierre);
+    A.toits([[8.6, 7, 39, 0, 14, -7.3], [7.6, 6, 39, 0, 12, 11.2], [8.6, 6, 26, -16, 13, 1.7, Math.PI / 2], [8.6, 6, 26, 15.3, 13, 1.7, Math.PI / 2]], lauze);
+    const tours = [[-16, 13.3, 4.5, 18], [8, 12, 4.5, 18], [-36, -22, 3, 12], [17, -30, 3.5, 14], [-20, -10, 4, 18]];
+    A.cylindres(tours.map(([x, z, r, h]) => [x, z, r, h, 0]), pierre, 16); A.cones(tours.map(([x, z, r, h]) => [x, z, r + 0.5, h, r * 2.4]), lauze, 16);
+    A.boite(40, 12, 11, 38, 0, 11, pierre, -0.22); A.toit(11.6, 6, 40, 38, 12, 11, lauze, -0.22);
+    return A.groupe;
+  }
+
+  // le château de Saché : la demeure de tuffeau où Balzac écrivait, ses hauts toits d'ardoise
+  function sache(THREE) {
+    const A = atelier(THREE);
+    const tuffeau = A.matiere(0xF4EEDC), ardoise = A.matiere(0x4F5D8C);
+    A.boite(32, 12, 10, 23.6, 0, -7, tuffeau); A.toit(10.6, 7, 32, 23.6, 12, -7, ardoise);
+    A.boite(10, 11, 12, 20, 0, 4, tuffeau); A.toit(10.6, 6, 12, 20, 11, 4, ardoise, Math.PI / 2);
+    return A.groupe;
+  }
+
+  // la cathédrale Notre-Dame de Lescar : la cathédrale romane du Béarn, son porche, sa nef, son abside
+  const cathedraleLescar = (THREE) => cathedrale(THREE, { pierre: 0xE6DCC4, pierreFoncee: 0xC9BB98, toit: 0xB0603F, toitFonce: 0x9A4F34, F: -46, E: 15, larg: 14, mur: 14, toitH: 6, xT: 0,
+    cote: 9, facadeH: 16, rose: 2, arcs: false, tours: [{ z: 0, h: 22, cote: 10, fleche: 6, r: 5, seg: 4 }] });
+
+  // l'église Notre-Dame-de-Bonne-Nouvelle : la nef néo-classique, sa façade, son vieux clocher
+  function notreDameBonneNouvelle(THREE) {
+    const A = atelier(THREE);
+    const pierre = A.matiere(0xEFE6D0), pierreFoncee = A.matiere(0xD6C8A8), ardoise = A.matiere(0x56659A);
+    A.boite(24, 16, 40, -4.7, 0, -2.5, pierre); A.toit(24.6, 6, 40, -4.7, 16, -2.5, ardoise, Math.PI / 2);
+    A.boite(18, 20, 3, -4.7, 0, 18.5, pierre); A.toit(18, 4, 3, -4.7, 20, 18.5, pierre, Math.PI / 2); A.cylindres([-6, -2, 2, 6].map((d) => [-4.7 + d, 20.5, 0.7, 12, 0]), pierre, 10);
+    A.boite(6, 26, 6, -14, 0, -20, pierre); A.domeCarre(6.6, 5, 6.6, -14, 26, -20, ardoise);
+    return A.groupe;
+  }
+
+  // la fontaine Médicis : la grotte de la fontaine, ses colonnes à bossages, son fronton, le long bassin
+  function fontaineMedicis(THREE) {
+    const A = atelier(THREE);
+    const pierre = A.matiere(0xE6DCC4), pierreFoncee = A.matiere(0xC9BB98), sombre = A.matiere(0x5A5650);
+    A.boite(4, 10, 11, 0, 0, 0, pierre); A.extrusion(A.formeArche(4, 7), 0.6, 2.1, 0.6, 0, sombre, Math.PI / 2, true);
+    A.cylindres([[2.3, -4, 0.6, 9, 0], [2.3, 4, 0.6, 9, 0]], pierreFoncee, 10); A.toit(11.6, 2.5, 4.6, 0, 10, 0, pierre);
+    A.boites([[2, 1.2, 12, 3.4, 0, 0]], pierreFoncee);
+    return A.groupe;
+  }
+
+  // le château de Menars : la très longue façade sur la Loire, ses pavillons et ses toits d'ardoise
+  function menars(THREE) {
+    const A = atelier(THREE);
+    const pierre = A.matiere(0xF2EEE4), ardoise = A.matiere(0x4F5D8C);
+    A.boite(97, 14, 15, 6.5, 0, 13, pierre); A.combles(97.6, 6, 15.6, 6.5, 14, 13, ardoise);
+    A.boite(16, 16, 18, 4, 0, 13, pierre); A.combles(16.6, 8, 18.6, 4, 16, 13, ardoise);
+    for (const x of [-38, 51]) { A.boite(9, 15, 17, x, 0, 13, pierre); A.combles(9.6, 7, 17.6, x, 15, 13, ardoise); }
+    return A.groupe;
+  }
+
+  // le château du Rivau : ses deux ailes, son donjon à mâchicoulis, ses tourelles en poivrière
+  function rivau(THREE) {
+    const A = atelier(THREE);
+    const pierre = A.matiere(0xF0E8D4), ardoise = A.matiere(0x4F5D8C);
+    A.boite(10, 14, 36, -0.6, 0, 2.2, pierre); A.toit(10.6, 7, 36, -0.6, 14, 2.2, ardoise, Math.PI / 2);
+    A.boite(30, 12, 8, -15, 0, 20.4, pierre); A.toit(8.6, 6, 30, -15, 12, 20.4, ardoise);
+    A.boite(8, 22, 8, 2, 0, 19, pierre); A.creneaux([A.tourDe(8.4, 8.4, 2, 19)], 22, 0.6, pierre); A.combles(7.6, 6, 7.6, 2, 22.6, 19, ardoise);
+    A.cylindres([[3.3, -13, 4, 18, 0], [-30, 20, 3.5, 14, 0]], pierre, 16); A.cones([[3.3, -13, 4.4, 18, 9], [-30, 20, 3.9, 14, 8]], ardoise, 16);
+    return A.groupe;
+  }
+
+  // le château de Beauregard : l'aile Renaissance et sa galerie des portraits, ses lucarnes, ses toits d'ardoise
+  function beauregard(THREE) {
+    const A = atelier(THREE);
+    const tuffeau = A.matiere(0xF4EEDC), ardoise = A.matiere(0x4F5D8C);
+    A.boite(13, 12, 46, 36, 0, 14, tuffeau); A.toit(13.6, 8, 46, 36, 12, 14, ardoise, Math.PI / 2);
+    A.boites(Array.from({ length: 5 }, (_, k) => [2.4, 3.6, 2.4, 29.8, 11.5, -2 + k * 8]), tuffeau); A.cones(Array.from({ length: 5 }, (_, k) => [29.8, -2 + k * 8, 1.9, 15.1, 3]), ardoise, 4);
+    A.boite(12, 10, 9, 50, 0, 36, tuffeau); A.toit(9.6, 5, 12, 50, 10, 36, ardoise);
+    return A.groupe;
+  }
+
   // les maquettes connues : le monument (identifiant de data/monuments.json), où et comment la poser, et les
   // bâtiments de l'IGN qu'elle remplace (sinon les blocs gris de la BD TOPO resteraient dedans)
   const MODELES = {
@@ -4602,6 +4699,36 @@
     Q1013191: {   // le château de Montségur, sur son pog
       construire: montsegur, centre: [1.8325, 42.8756], orientation: -10, masquer: [],
     },
+    Q2032139: {   // le château de Serrant
+      construire: serrant, centre: [-0.7439, 47.415], orientation: -27, masquer: ['BATIMENT0000000313092042'],
+    },
+    Q579961: {   // le château d'Ancy-le-Franc
+      construire: ancyLeFranc, centre: [4.1617, 47.7739], orientation: -25, masquer: ['BATIMENT0000002215923176', 'BATIMENT0000002215924981'],
+    },
+    Q2241121: {   // le château de Fénelon
+      construire: fenelon, centre: [1.3503, 44.8423], orientation: -39, masquer: ['BATIMENT0000000296696668', 'BATIMENT0000000296696667', 'BATIMENT0000000296696660', 'BATIMENT0000000296696658', 'BATIMENT0000000296696669'],
+    },
+    Q2054341: {   // le château de Saché
+      construire: sache, centre: [0.5444, 47.2458], orientation: 1, masquer: ['BATIMENT0000000322810051'],
+    },
+    Q2762952: {   // Notre-Dame de Lescar
+      construire: cathedraleLescar, centre: [-0.43323, 43.332916], orientation: -24, masquer: ['BATIMENT0000000332697002', 'BATIMENT0000000332697897'],
+    },
+    Q279151: {   // Notre-Dame-de-Bonne-Nouvelle
+      construire: notreDameBonneNouvelle, centre: [2.35, 48.8695], orientation: -4, masquer: ['BATIMENT0000000245194943'],
+    },
+    Q3076041: {   // la fontaine Médicis (tournée vers son bassin, à l'ouest)
+      construire: fontaineMedicis, centre: [2.339316, 48.848059], orientation: 180, masquer: ['BATIMENT0000000241937786'],
+    },
+    Q1192381: {   // le château de Menars
+      construire: menars, centre: [1.4104, 47.6388], orientation: 37, masquer: ['BATIMENT0000000322124010'],
+    },
+    Q769303: {   // le château du Rivau
+      construire: rivau, centre: [0.3233, 47.1039], orientation: 19, masquer: ['BATIMENT0000000322952043'],
+    },
+    Q576569: {   // le château de Beauregard
+      construire: beauregard, centre: [1.3836, 47.5369], orientation: 36, masquer: ['BATIMENT0000000321834668'],
+    },
   };
   const MASQUES = Object.values(MODELES).flatMap((m) => m.masquer);
 
@@ -4690,6 +4817,7 @@
     saintPaulStrasbourg, collegialeColmar, notreDameDijon, triniteVendome, cathedraleVerdun, saintNicolasDePort, bonaguil, montreuilBellay, maintenon, chateauSceaux, templeMarais, theatreLyon,
     chateauCaen, chateauDinan, anet, ecouen, moissac, cathedraleAjaccio, cathedraleSaintes, arcGermanicus, cathedraleBazas, sainteReparate, saintMichelCarcassonne,
     cathedraleAix, chateauMaisons, plessisBourre, talcy, roquetaillade, abbadia, saintVictor, daurade, synagogueBordeaux, saintSeurin, cathedraleValence,
-    queribus, murbach, pontigny, abbatialeCorbie, cathedraleOloron, bregancon, tourClovis, ferrieres, thoronet, jumieges, montsegur };
+    queribus, murbach, pontigny, abbatialeCorbie, cathedraleOloron, bregancon, tourClovis, ferrieres, thoronet, jumieges, montsegur,
+    serrant, ancyLeFranc, fenelon, sache, cathedraleLescar, notreDameBonneNouvelle, fontaineMedicis, menars, rivau, beauregard };
   if (typeof module !== 'undefined' && module.exports) module.exports = api; else racine.Maquettes = api;
 })(typeof globalThis !== 'undefined' ? globalThis : this);
