@@ -224,3 +224,6 @@ Où c'est dans le code : la pochette est dessinée par `makeArt()` (`index.html`
 - **Quatre monuments régionaux de plus** (nuit du 4 nov.) : **la Grande Chartreuse** (le très long grand cloître et les petites maisons des moines), **le palais de Compiègne** (le grand triangle, la cour d'honneur, les longs toits d'ardoise), **l'abbaye Saint-Remi** de Reims (les bâtiments du musée contre la basilique), **le fort Saint-Jean** à Marseille (la tour du Roi René).
 
 ![La Grande Chartreuse, le palais de Compiègne, l'abbaye Saint-Remi et le fort Saint-Jean](bible/monuments-38.jpg)
+- **Six monuments régionaux de plus** (nuit du 4 nov.) : **l'abbaye de Gellone** à Saint-Guilhem-le-Désert, **la tour Saint-Nicolas du Bec-Hellouin**, **la villa Ephrussi de Rothschild** (la villa rose), et trois mégalithes posés au point du monument (l'IGN n'a pas de bâtiment) : **la Roche-aux-Fées** (l'allée couverte), **le cairn de Barnenez** (le tertre à gradins et ses onze couloirs), **le grand menhir brisé d'Er Grah** (ses quatre morceaux couchés).
+
+![Gellone, la tour du Bec-Hellouin, la villa Ephrussi, la Roche-aux-Fées, le cairn de Barnenez et le menhir d'Er Grah](bible/monuments-39.jpg)
