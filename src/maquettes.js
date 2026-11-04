@@ -2920,6 +2920,124 @@
     return A.groupe;
   }
 
+  // le palais de la Légion d'honneur (l'hôtel de Salm) : le corps de logis et sa rotonde sur la Seine, la cour d'honneur et
+  // ses colonnades, l'arc de triomphe de l'entrée sur la rue de Lille
+  function palaisLegionHonneur(THREE) {
+    const A = atelier(THREE);
+    const pierre = A.matiere(0xEFE6D0), pierreFoncee = A.matiere(0xD6C8A8), plomb = A.matiere(0x6E7AA0), porte = A.matiere(0x6E5A44);
+    A.boite(40, 13, 22, 0, 0, -41, pierre); A.boite(41, 1.4, 23, 0, 13, -41, pierreFoncee);
+    A.cylindre(6.5, 6.5, 13, 20, 0, 0, -52, pierre); A.dome(6.7, 0.6, 0, 13, -52, plomb);
+    A.boites([[8, 8, 52, -35, 0, -4], [8, 8, 52, 27.5, 0, -4], [64, 9, 6, -4, 0, 24]], pierreFoncee);
+    A.boite(12, 14, 7, 0, 0, 24, pierre); A.extrusion(A.formeArche(6, 10), 0.8, 0, 0, 27.7, porte);
+    return A.groupe;
+  }
+
+  // le Grand-Théâtre de Bordeaux : le portique aux douze colonnes corinthiennes et ses douze statues, le grand bâtiment
+  function grandTheatreBordeaux(THREE) {
+    const A = atelier(THREE);
+    const pierre = A.matiere(0xEFE6D0), pierreFoncee = A.matiere(0xD6C8A8), plomb = A.matiere(0x6E7AA0);
+    A.boite(70, 20, 47, 2, 0, -9, pierre); A.boite(71, 1.4, 48, 2, 20, -9, pierreFoncee); A.combles(60, 5, 38, 2, 21.4, -9, plomb);
+    A.boite(8, 1.2, 50, -38, 0, -9, pierreFoncee);
+    const zs = Array.from({ length: 12 }, (_, k) => -30 + k * 3.8);
+    A.cylindres(zs.map((z) => [-41, z, 1, 18, 1.2]), pierre, 12); A.boite(8, 2.4, 48, -39, 19.2, -9, pierreFoncee);
+    A.cylindres(zs.map((z) => [-41.5, z, 0.55, 3, 21.6]), pierre, 8);
+    return A.groupe;
+  }
+
+  // la cathédrale orthodoxe Saint-Nicolas de Nice : ses cinq bulbes verts et dorés, ses murs de brique et de pierre, le clocher
+  function cathedraleRusseNice(THREE) {
+    const A = atelier(THREE);
+    const pierre = A.matiere(0xE6DCCB), brique = A.matiere(0xCB7E62), vert = A.matiere(0x3FA87A), or = A.matiere(0xFFC233, 0x7A4A00);
+    const cx = -4, cz = 5.5;
+    A.boite(28, 12, 24, cx, 0, cz, pierre); A.boite(28.6, 1, 24.6, cx, 12, cz, brique);
+    const bulbe = (x, z, r, y, m) => { A.piece((e) => new THREE.SphereGeometry(r + e, 16, 12).scale(1, 1.25, 1), m, A.V(x, y + r * 1.1, z)); A.pyramide(r * 0.35, r * 1.4, 8, x, y + r * 2.2, z, or); };
+    A.cylindre(4.2, 4.2, 10, 16, cx, 13, cz, brique); bulbe(cx, cz, 4.6, 22, or);
+    for (const [dx, dz] of [[1, 1], [1, -1], [-1, 1], [-1, -1]]) { A.cylindre(2.2, 2.2, 6, 12, cx + dx * 8, 13, cz + dz * 7, brique); bulbe(cx + dx * 8, cz + dz * 7, 2.6, 18.5, vert); }
+    A.boite(6, 18, 6, cx - 17, 0, cz, pierre); A.cylindre(2, 2, 4, 10, cx - 17, 18, cz, brique); bulbe(cx - 17, cz, 2.4, 21.5, vert);
+    return A.groupe;
+  }
+
+  // le palais Rohan de Strasbourg : le corps de logis sur l'Ill, les ailes autour de la cour d'honneur, le portail sur la place
+  function palaisRohan(THREE) {
+    const A = atelier(THREE);
+    const gres = A.matiere(0xE3B9A0), gresFonce = A.matiere(0xC99C82), ardoise = A.matiere(0x56659A), porte = A.matiere(0x6E5A44);
+    A.boite(75, 16, 16, 19.5, 0, 36, gres); A.combles(75.6, 8, 16.6, 19.5, 16, 36, ardoise);
+    A.boite(14, 13, 60, -13, 0, 4, gres); A.toit(14.6, 6, 60, -13, 13, 4, ardoise, Math.PI / 2);
+    A.boite(14, 13, 60, 52, 0, 4, gres); A.toit(14.6, 6, 60, 52, 13, 4, ardoise, Math.PI / 2);
+    A.boite(66, 7, 4, 19.5, 0, -29, gresFonce); A.boite(14, 14, 6, 19.5, 0, -29, gres); A.toit(14.6, 3.5, 6.4, 19.5, 14, -29, gres, Math.PI / 2);
+    A.extrusion(A.formeArche(6, 10), 0.8, 19.5, 0, -32.2, porte);
+    return A.groupe;
+  }
+
+  // l'hôtel de ville de Lyon : la façade sur la place des Terreaux et son beffroi à dôme, les ailes autour des deux cours
+  function hotelDeVilleLyon(THREE) {
+    const A = atelier(THREE);
+    const pierre = A.matiere(0xEDE3CB), pierreFoncee = A.matiere(0xD3C3A0), ardoise = A.matiere(0x56659A), or = A.matiere(0xFFC233, 0x7A4A00);
+    A.boite(33, 22, 47, -39.5, 0, 20.5, pierre); A.combles(33.6, 7, 47.6, -39.5, 22, 20.5, ardoise);
+    A.boite(82, 20, 11, 18, 0, 2.5, pierre); A.toit(11.6, 6, 82, 18, 20, 2.5, ardoise);
+    A.boite(82, 20, 11, 18, 0, 35.5, pierre); A.toit(11.6, 6, 82, 18, 20, 35.5, ardoise);
+    A.boite(6, 18, 22, 22.5, 0, 19, pierre); A.boite(8, 17, 24, 52, 0, 19, pierre); A.toit(8.6, 5, 24, 52, 17, 19, ardoise, Math.PI / 2);
+    A.boite(12, 30, 12, -50, 0, 20.5, pierre); A.boite(12.8, 1.2, 12.8, -50, 30, 20.5, pierreFoncee);
+    A.cylindre(4.5, 4.5, 7, 16, -50, 31.2, 20.5, pierre); A.dome(4.8, 1.3, -50, 38.2, 20.5, ardoise); A.cylindre(1.2, 1.2, 3, 8, -50, 44.2, 20.5, pierre); A.boule(0.7, -50, 48, 20.5, or);
+    return A.groupe;
+  }
+
+  // l'église Saint-Nicolas-des-Champs : la façade flamboyante, le clocher au sud, la nef et ses doubles bas-côtés
+  const saintNicolasDesChamps = (THREE) => cathedrale(THREE, { F: -34, E: 41, larg: 16, mur: 22, toitH: 8, xT: 4, cote: 8, facadeH: 24, rose: 3, arcs: false,
+    tours: [{ z: 12, h: 32, fleche: 6, r: 4.4, seg: 4 }] });
+
+  // le couvent de La Tourette (Le Corbusier) : l'église, grande boîte de béton, et le couvent en U posé sur ses pilotis
+  function laTourette(THREE) {
+    const A = atelier(THREE);
+    const beton = A.matiere(0xB5AFA4), betonFonce = A.matiere(0x8E887E);
+    A.boite(43, 18, 12, -5.5, 0, -29, beton); A.boite(4, 5, 1, 10, 18, -29, betonFonce);
+    const ailes = [[9, 48, -21.5, 8], [9, 48, 15.5, 8]];
+    for (const [lx, lz, x, z] of ailes) A.boite(lx, 10, lz, x, 6, z, beton);
+    A.boite(46, 10, 10, -3, 6, 27, beton); A.boites([[46.4, 0.8, 10.4, -3, 16, 27], [9.4, 0.8, 48.4, -21.5, 16, 8], [9.4, 0.8, 48.4, 15.5, 8 + 8, 8]], betonFonce);
+    A.boites([-20, -8, 4, 16, 28].flatMap((z) => [[0.7, 6, 0.7, -24, 0, z], [0.7, 6, 0.7, -19, 0, z], [0.7, 6, 0.7, 13, 0, z], [0.7, 6, 0.7, 18, 0, z]]), betonFonce);
+    return A.groupe;
+  }
+
+  // la cathédrale Notre-Dame-et-Saint-Vaast d'Arras : l'église classique toute blanche, son portique, sa nef, son transept,
+  // son chevet
+  function cathedraleArras(THREE) {
+    const A = atelier(THREE);
+    const pierre = A.matiere(0xF2EEE4), pierreOmbre = A.matiere(0xDCD6C8), ardoise = A.matiere(0x56659A);
+    A.boite(70, 14, 32, 5, 0, 3.8, pierreOmbre); A.toit(32.6, 4, 70, 5, 14, 3.8, ardoise);
+    A.boite(70, 26, 16, 5, 0, 3.8, pierre); A.toit(16.6, 7, 70, 5, 26, 3.8, ardoise);
+    A.boite(32.6, 26, 63, 14, 0, 5.5, pierre); A.toit(33, 8, 63, 14, 26, 5.5, ardoise, Math.PI / 2);
+    A.abside(8, 26, 40, 0, 3.8, pierre); A.demiCone(8.5, 7, 40, 26, 3.8, ardoise); A.abside(16, 14, 46, 0, 3.8, pierreOmbre); A.demiCone(16.5, 4, 46, 14, 3.8, ardoise);
+    A.boite(6, 1.4, 34, -33, 0, 3.8, pierreOmbre); A.cylindres([-8, -4.8, -1.6, 1.6, 4.8, 8].map((d) => [-35, 3.8 + d, 1.1, 16, 1.4]), pierre, 12);
+    A.boite(6, 2, 20, -34, 17.4, 3.8, pierreOmbre); A.toit(20, 5, 6, -34, 19.4, 3.8, pierre);
+    return A.groupe;
+  }
+
+  // la cathédrale Notre-Dame d'Évreux : la façade Renaissance et ses deux tours, la flèche ajourée de la croisée (la « flèche
+  // d'argent »), la nef, le transept
+  const cathedraleEvreux = (THREE) => cathedrale(THREE, { F: -36, E: 53, larg: 14, mur: 22, toitH: 8, xT: 4, transept: 44, transeptL: 13, cote: 8, facadeH: 25, rose: 4,
+    tours: [{ z: -8, h: 30, octogone: { h: 8, r: 3.5 } }, { z: 8, h: 30 }], flecheCroisee: { tour: 10, cote: 10, h: 32, r: 4, seg: 8 } });
+
+  // la cathédrale Saint-Jean-Baptiste de Perpignan : la grande nef unique de brique et de galets, le clocher et sa cage de
+  // fer forgé pour la cloche
+  function cathedralePerpignan(THREE) {
+    const A = atelier(THREE);
+    const mur = A.matiere(0xC9A27E), murClair = A.matiere(0xDCC09A), tuile = A.matiere(0xB0603F), fer = A.matiere(0x2E2E36);
+    A.boite(80, 22, 32, 10, 0, 7, mur); A.toit(32.6, 6, 80, 10, 22, 7, tuile);
+    A.boite(3, 24, 32, -31, 0, 7, murClair); A.boites([0, 4, 8].map((k) => [3.4, 0.6, 32.4, -31, 6 + k * 2, 7]), mur);
+    A.boite(10, 33, 11, 13.3, 0, -16, mur);
+    const t = [13.3, -16]; for (const [dx, dz] of [[1, 1], [1, -1], [-1, 1], [-1, -1]]) A.poutre(A.V(t[0] + dx * 3.6, 33, t[1] + dz * 3.6), A.V(t[0], 41, t[1]), 0.5, 0.4, fer);
+    A.boule(1.4, t[0], 36.5, t[1], fer);
+    return A.groupe;
+  }
+
+  // la cathédrale Notre-Dame-de-l'Annonciation de Moulins : la façade et ses deux hautes flèches, la nef, le chevet plat
+  const cathedraleMoulins = (THREE) => cathedrale(THREE, { F: -27, E: 45, chevetPlat: true, larg: 14, mur: 22, toitH: 9, xT: 8, cote: 9, facadeH: 28, rose: 4,
+    tours: [{ z: -9, h: 45, fleche: 40, r: 4.2, seg: 8 }, { z: 9, h: 45, fleche: 40, r: 4.2, seg: 8 }] });
+
+  // la cathédrale Saint-Mammès de Langres : la façade classique et ses deux tours carrées, la nef, le transept, le chevet
+  const cathedraleLangres = (THREE) => cathedrale(THREE, { F: -52, E: 28, larg: 16, mur: 24, toitH: 8, xT: 4, transept: 52, transeptL: 18, cote: 9, facadeH: 30, rose: 2, arcs: false,
+    tours: [{ z: -10, h: 40 }, { z: 10, h: 40 }] });
+
   // les maquettes connues : le monument (identifiant de data/monuments.json), où et comment la poser, et les
   // bâtiments de l'IGN qu'elle remplace (sinon les blocs gris de la BD TOPO resteraient dedans)
   const MODELES = {
@@ -3578,6 +3696,42 @@
     Q810098: {   // la basilique Sainte-Thérèse de Lisieux
       construire: basiliqueLisieux, centre: [0.2366, 49.1396], orientation: 15, masquer: ['BATIMENT0000000201310488', 'BATIMENT0000000246759938', 'BATIMENT0000000201310482'],
     },
+    Q1229917: {   // le palais de la Légion d'honneur (la rotonde au nord, sur la Seine)
+      construire: palaisLegionHonneur, centre: [2.3244, 48.8604], orientation: -26, masquer: ['BATIMENT0000000241935750', 'BATIMENT0000000241935039'],
+    },
+    Q1541186: {   // le Grand-Théâtre de Bordeaux
+      construire: grandTheatreBordeaux, centre: [-0.5736, 44.8425], orientation: 6, masquer: ['BATIMENT0000000248396296'],
+    },
+    Q2205594: {   // la cathédrale orthodoxe Saint-Nicolas de Nice
+      construire: cathedraleRusseNice, centre: [7.2539, 43.7039], orientation: 31, masquer: ['BATIMENT0000000327865950'],
+    },
+    Q1561438: {   // le palais Rohan de Strasbourg
+      construire: palaisRohan, centre: [7.752, 48.581], orientation: 34, masquer: ['BATIMENT0000002223297389'],
+    },
+    Q516: {   // l'hôtel de ville de Lyon
+      construire: hotelDeVilleLyon, centre: [4.835, 45.7678], orientation: 7, masquer: ['BATIMENT0000000240880562', 'BATIMENT0000000240880563', 'BATIMENT0000000240880561', 'BATIMENT0000000240879453', 'BATIMENT0000000240879699'],
+    },
+    Q1488512: {   // Saint-Nicolas-des-Champs
+      construire: saintNicolasDesChamps, centre: [2.354179, 48.865462], orientation: -20, masquer: ['BATIMENT0000000245159521'],
+    },
+    Q1902867: {   // le couvent de La Tourette
+      construire: laTourette, centre: [4.6225, 45.8194], orientation: -18, masquer: ['BATIMENT0000000239130105', 'BATIMENT0000000239130111', 'BATIMENT0000000239130092', 'BATIMENT0000000239130095'],
+    },
+    Q597090: {   // Notre-Dame-et-Saint-Vaast d'Arras
+      construire: cathedraleArras, centre: [2.7747, 50.2931], orientation: -36, masquer: ['BATIMENT0000000292593357'],
+    },
+    Q2918846: {   // Notre-Dame d'Évreux
+      construire: cathedraleEvreux, centre: [1.150809, 49.024178], orientation: 16, masquer: ['BATIMENT0000000338589429', 'BATIMENT0000000338589421', 'BATIMENT0000000338589422'],
+    },
+    Q2942355: {   // Saint-Jean-Baptiste de Perpignan
+      construire: cathedralePerpignan, centre: [2.8969, 42.7006], orientation: 27, masquer: ['BATIMENT0000000340646240', 'BATIMENT0000000340646184', 'BATIMENT0000000340646185', 'BATIMENT0000000340646188', 'BATIMENT0000000340646183'],
+    },
+    Q63504: {   // Notre-Dame-de-l'Annonciation de Moulins
+      construire: cathedraleMoulins, centre: [3.331672, 46.566741], orientation: 25, masquer: ['BATIMENT0000002201532422', 'BATIMENT0000002201532407', 'BATIMENT0000002201531211'],
+    },
+    Q1165266: {   // Saint-Mammès de Langres
+      construire: cathedraleLangres, centre: [5.335293, 47.864245], orientation: 6, masquer: ['BATIMENT0000000225066986', 'BATIMENT0000000225066983', 'BATIMENT0000000225066985', 'BATIMENT0000000225066984'],
+    },
   };
   const MASQUES = Object.values(MODELES).flatMap((m) => m.masquer);
 
@@ -3659,6 +3813,7 @@
     cathedraleBlois, cathedraleVannes, cathedralePoitiers, cathedraleMontpellier, cathedraleSoissons, cathedraleVersailles, valDeGrace, saintMichelBordeaux, cathedraleRodez, notreDameDesVictoires, grandeSynagogue, fontaineInnocents,
     saintPaulSaintLouis, notreDameDeLorette, saintJeanMontmartre, cathedraleSenlis, cathedraleMeaux, conques, abbayeAuxDames, chateaudun, hotelDeSens, hotelDeSully, saintUrbain, chapelleExpiatoire,
     cathedraleCoutances, cathedraleAuxerre, saintOuen, cathedraleBayonne, cathedraleBeziers, cathedraleNevers, cathedraleToul, hospicesBeaune, gien, falaise, ossuaireDouaumont, saintThomasStrasbourg,
-    pontValentre, saintJosephHavre, memorialVimy, notreDameLaGrande, cathedralePuy, saintMaclou, jacobins, cathedraleCahors, pharArMen, vitre, basiliqueLisieux };
+    pontValentre, saintJosephHavre, memorialVimy, notreDameLaGrande, cathedralePuy, saintMaclou, jacobins, cathedraleCahors, pharArMen, vitre, basiliqueLisieux,
+    palaisLegionHonneur, grandTheatreBordeaux, cathedraleRusseNice, palaisRohan, hotelDeVilleLyon, saintNicolasDesChamps, laTourette, cathedraleArras, cathedraleEvreux, cathedralePerpignan, cathedraleMoulins, cathedraleLangres };
   if (typeof module !== 'undefined' && module.exports) module.exports = api; else racine.Maquettes = api;
 })(typeof globalThis !== 'undefined' ? globalThis : this);
