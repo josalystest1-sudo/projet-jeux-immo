@@ -200,3 +200,6 @@ Où c'est dans le code : la pochette est dessinée par `makeArt()` (`index.html`
 - **Dix monuments régionaux de plus** (nuit du 4 nov.) : les châteaux de **Serrant** (ses tours à dômes), **Ancy-le-Franc** (le carré Renaissance), **Fénelon** (les toits de lauzes), **Saché**, **Menars** (la longue façade sur la Loire), **du Rivau** et **de Beauregard**, **la cathédrale de Lescar**, **Notre-Dame-de-Bonne-Nouvelle**, **la fontaine Médicis** (tournée vers son bassin). 301 maquettes : la barre des 300 est passée.
 
 ![Les châteaux de Serrant, Ancy-le-Franc et Fénelon, la fontaine Médicis, le Rivau et Menars](bible/monuments-30.jpg)
+- **Sept monuments régionaux de plus** (nuit du 4 nov.) : **la cathédrale de Besançon** (ses deux absides, son clocher à l'impériale), **l'observatoire de Meudon** (la grande coupole), les églises **Saint-Médard**, **Saint-Eugène-Sainte-Cécile** et **Sainte-Élisabeth-de-Hongrie**, **le théâtre antique d'Arles** (ses gradins et ses « deux veuves »), **la salle du Jeu de paume** de Versailles.
+
+![La cathédrale de Besançon, l'observatoire de Meudon, Saint-Médard, le théâtre antique d'Arles, la salle du Jeu de paume et Sainte-Élisabeth](bible/monuments-31.jpg)
