@@ -44,6 +44,7 @@ const VERSION='__VERSION__';
 <script src="src/regles/pack.js"></script>
 <script src="src/tirage.js"></script>
 <script src="src/maquettes.js"></script>
+<script src="src/carte_lieu.js"></script>
 <script src="src/regles/pseudo.js"></script>
 <script src="https://unpkg.com/@supabase/supabase-js@2.118.0/dist/umd/supabase.js"></script>
 <link rel="preload" href="fonts/baloo-2-latin-800-normal.woff2" as="font" type="font/woff2" crossorigin>
@@ -145,7 +146,7 @@ const VERSION='__VERSION__';
       <linearGradient id="rgFrance" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#FFFFFF" stop-opacity=".09"/><stop offset="1" stop-color="#FFFFFF" stop-opacity=".02"/></linearGradient>
       <linearGradient id="rgDep" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#F3D899" stop-opacity=".30"/><stop offset="1" stop-color="#C9973F" stop-opacity=".08"/></linearGradient>
       <linearGradient id="rgCom" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#FBE7A9" stop-opacity=".95"/><stop offset=".55" stop-color="#D9A548" stop-opacity=".9"/><stop offset="1" stop-color="#9C6A22" stop-opacity=".9"/></linearGradient>
-    </defs><g id="rg"></g></svg><div id="flash"></div><div id="rlabels"><div class="l" id="rl1"></div><div class="l big" id="rl2"></div><div class="l rar" id="rl3"></div></div><div id="rhint">Touche l’écran pour accélérer</div></div>
+    </defs><g id="rg"></g></svg><div id="flash"></div><div id="ralerte"><span></span></div><div id="rlabels"><div class="l" id="rl1"></div><div class="l big" id="rl2"></div><div class="l rar" id="rl3"></div></div><div id="rhint">Touche l’écran pour passer</div></div>
   </div>
   <div class="hint" id="pkhint">Glisse ton doigt sur le haut du pack pour l’ouvrir</div>
   <button class="btn" id="packdone" onclick="finPack()">Super !</button>
@@ -1350,62 +1351,112 @@ async function fetchCommune(c){ const code=c.citycode||''; if(!code) return null
     communeCache[code]={ nom: f.properties.nom_officiel||f.properties.nom||c.city, rings }; return communeCache[code]; }catch(e){ communeCache[code]=null; return null; } }
 function depOf(code){ if(!code) return null; let k=code.slice(0,2); if(k==='97') k=code.slice(0,3); if(code.startsWith('2A')||code.startsWith('2B')) k=code.slice(0,2); return GEO.deps[k] ? {code:k, ...GEO.deps[k]} : null; }
 let vbCur=null, vbAnim=0;
-// le cadre agrandi vers le bas : la forme remonte et laisse la place à la plaque et au nom du lieu
+// le cadre agrandi vers le bas : la forme remonte et laisse la place aux noms
 function versLeHaut(bb){ return [bb[0], bb[1], bb[2], bb[3]*1.35]; }
 function setVB(vb){ document.getElementById('rsvg').setAttribute('viewBox', vb.join(' ')); vbCur=vb; }
-function animVB(target, ms){ cancelAnimationFrame(vbAnim); const from=vbCur.slice(); let fait=0, avant=performance.now(); return new Promise(res=>{ const step=()=>{ const n=performance.now(); fait+=(n-avant)*vitesseReveal; avant=n; const t=Math.min(1,fait/ms); const e=t<.5?2*t*t:-1+(4-2*t)*t; setVB(from.map((v,i)=>v+(target[i]-v)*e)); if(t<1) vbAnim=requestAnimationFrame(step); else res(); }; step(); }); }
+// Toucher l'écran passe à l'étape suivante (demande de Gautier, 4 nov. : « la France, je clique, on passe directement à
+// la région ») : le zoom en cours se termine d'un coup, l'attente aussi. REV.passer est remis à zéro à chaque étape.
+const REV={ passer:false, reveil:null, pasAPas:false };   // pasAPas : chaque étape attend un toucher (captures de preuve)
+function etapeR(){ REV.passer=false; }
+function pauseR(ms){ if(REV.passer) return Promise.resolve(); return new Promise(res=>{ const t=REV.pasAPas ? 0 : setTimeout(()=>{ REV.reveil=null; res(); }, ms); REV.reveil=()=>{ clearTimeout(t); REV.reveil=null; res(); }; }); }
+const attendreR=pauseR; let vitesseReveal=1;   // (noms d'avant)
+function animVB(target, ms){ cancelAnimationFrame(vbAnim); const from=vbCur.slice(), t0=performance.now();
+  return new Promise(res=>{ const step=()=>{ const t=Math.min(1,(performance.now()-t0)/ms), e=t<.5?2*t*t:-1+(4-2*t)*t;
+    if(REV.passer){ setVB(target); res(); return; } setVB(from.map((v,i)=>v+(target[i]-v)*e)); if(t<1) vbAnim=requestAnimationFrame(step); else res(); }; step(); }); }
 const wait=ms=>new Promise(r=>setTimeout(r,ms));
-// la révélation d'une carte : toucher l'écran l'accélère (×4, puis ×12), même au milieu d'une attente ou d'un zoom
-let vitesseReveal=1;
-function attendreR(ms){ return new Promise(res=>{ let fait=0, avant=performance.now(); const pas=()=>{ const n=performance.now(); fait+=(n-avant)*vitesseReveal; avant=n; if(fait>=ms) res(); else setTimeout(pas, 25); }; setTimeout(pas, 25); }); } // horloge indépendante de l'affichage
-document.getElementById('reveal').addEventListener('pointerdown', (ev)=>{ ev.preventDefault(); vitesseReveal = vitesseReveal<4 ? 4 : 12; document.getElementById('reveal').classList.add('vite'); });
+document.getElementById('reveal').addEventListener('pointerdown', (ev)=>{ ev.preventDefault(); REV.passer=true; if(REV.reveil) REV.reveil(); document.getElementById('reveal').classList.add('vite'); });
 function label(id, text, on){ const el=document.getElementById(id); if(text!==undefined){ if(id==='rl2'){ const t=echapper(text); el.innerHTML=t ? `<span class="contour">${t}</span><span class="or">${t}</span>` : ''; } else el.textContent=text; } el.classList.toggle('on', !!on); }
-async function revealSequence(c){ const rv=document.getElementById('reveal'); const g=document.getElementById('rg'); g.innerHTML=''; ['rl1','rl2','rl3'].forEach(i=>label(i,'',false));
-  vitesseReveal=1; const r=rarete(c); rv.className='on'+(r>=3?' r'+r:''); const [dx,dy]=px(c.lon,c.lat); const dep=depOf(c.citycode); const comP=fetchCommune(c);
+// les régions (codes des départements), pour l'étape « région » de la révélation
+const REGIONS={ 'Auvergne-Rhône-Alpes':['01','03','07','15','26','38','42','43','63','69','73','74'], 'Bourgogne-Franche-Comté':['21','25','39','58','70','71','89','90'], 'Bretagne':['22','29','35','56'],
+  'Centre-Val de Loire':['18','28','36','37','41','45'], 'Corse':['2A','2B'], 'Grand Est':['08','10','51','52','54','55','57','67','68','88'], 'Hauts-de-France':['02','59','60','62','80'],
+  'Île-de-France':['75','77','78','91','92','93','94','95'], 'Normandie':['14','27','50','61','76'], 'Nouvelle-Aquitaine':['16','17','19','23','24','33','40','47','64','79','86','87'],
+  'Occitanie':['09','11','12','30','31','32','34','46','48','65','66','81','82'], 'Pays de la Loire':['44','49','53','72','85'], "Provence-Alpes-Côte d'Azur":['04','05','06','13','83','84'] };
+function regionDe(dep){ if(!dep) return null; for(const [nom,ds] of Object.entries(REGIONS)) if(ds.includes(dep.code)) return { nom, rings: ds.flatMap(k=>(GEO.deps[k]||{}).rings||[]) }; return null; }
+// un point de la carte de la révélation (unités du dessin) → l'écran (pixels, dans #reveal)
+function versEcran(x, y){ const svg=document.getElementById('rsvg'), m=svg.getScreenCTM(), b=document.getElementById('reveal').getBoundingClientRect(); if(!m) return [b.width/2, b.height*0.42];
+  const p=svg.createSVGPoint(); p.x=x; p.y=y; const q=p.matrixTransform(m); return [q.x-b.left, q.y-b.top]; }
+// La révélation d'une carte (refaite le 4 nov. d'après l'interview de Gautier) : environ 10 secondes ; un toucher passe à
+// l'étape suivante.
+//   0. la rareté d'abord : toute la lumière prend sa couleur, une comète de cette couleur tombe sur la France et explose à
+//      l'impact ; Épique et au-delà : l'alerte (l'écran tremble, le bandeau de la rareté, qui reste ensuite en haut) ;
+//   1-4. les indices un par un, chacun avec un choc : la France, la région, le département, la commune ;
+//   5. la rue : les rues et les bâtiments tracés en or (IGN), le bâtiment visé ;
+//   6. le cœur qui battait de plus en plus vite s'arrête, un silence, puis le boum : le nom et la rareté.
+// La carte se dessine ensuite en lumière dans la main (revelerCarte). Une lumière élégante, dans les couleurs du jeu.
+async function revealSequence(c){ const rv=document.getElementById('reveal'), g=document.getElementById('rg'); g.innerHTML=''; ['rl1','rl2','rl3'].forEach(i=>label(i,'',false));
+  const r=rarete(c); rv.className='on r'+r; REV.passer=false; const [dx,dy]=px(c.lon,c.lat); const dep=depOf(c.citycode), reg=regionDe(dep); const comP=fetchCommune(c);
+  const planP = window.CarteLieu ? CarteLieu.donnees(c).catch(()=>null) : Promise.resolve(null);
   const NS='http://www.w3.org/2000/svg'; const mk=(t,cls,d)=>{ const e=document.createElementNS(NS,t); e.setAttribute('class',cls); if(d) e.setAttribute('d',d); return e; };
-  // un nouveau contour passe devant ; les précédents s'estompent (on voit les rayons derrière)
-  const addSil=(rings,cls)=>{ g.querySelectorAll('.sil,.glow').forEach(e=>e.classList.add('loin')); const d=ringsPath(rings); const gl=mk('path','glow',d); const p=mk('path','sil'+(cls?' '+cls:''),d); g.appendChild(gl); g.appendChild(p); return p; };
-  const dotg=mk('circle','dotglow'); const dot=mk('circle','dot'); const ring=mk('circle','ring'); [dotg,dot,ring].forEach(e=>{ e.setAttribute('cx',dx); e.setAttribute('cy',dy); });
-  const setDot=(rad)=>{ dot.setAttribute('r',rad); dotg.setAttribute('r',rad*2.6); ring.setAttribute('r',rad*2); };
-  // 0. l'explosion de lumière, de la couleur de la rareté (Rare et au-delà), avant tout le reste : demande de Gautier
-  // (4 nov.), « une ouverture de pack doit être un vrai événement » ; puis les informations arrivent une à une
-  if(r>=3) await explosion(r);
-  battement(1.0);
-  // 1. la France
-  addSil(GEO.france,false); setVB(bboxOf(GEO.france,0.08)); await attendreR(300); label('rl1','France',true); await attendreR(600);
-  setDot(1.6); g.appendChild(dotg); g.appendChild(dot); g.appendChild(ring); sonTick(880); await attendreR(1000);
+  // un nouveau contour passe devant ; les précédents s'estompent
+  const addSil=(rings,cls)=>{ g.querySelectorAll('.sil,.glow,.rue,.bati,.parcelle').forEach(e=>e.classList.add('loin')); const d=ringsPath(rings); const gl=mk('path','glow',d); const p=mk('path','sil'+(cls?' '+cls:''),d); g.appendChild(gl); g.appendChild(p); return p; };
+  const dotg=mk('circle','dotglow'), dot=mk('circle','dot'), ring=mk('circle','ring'); [dotg,dot,ring].forEach(e=>{ e.setAttribute('cx',dx); e.setAttribute('cy',dy); });
+  const setDot=(rad)=>{ dot.setAttribute('r',rad); dotg.setAttribute('r',rad*2.6); ring.setAttribute('r',rad*2); }; const dessus=()=>{ g.appendChild(dotg); g.appendChild(dot); g.appendChild(ring); };
+  // 0. la rareté d'abord
+  etapeR(); setVB(bboxOf(GEO.france,0.08)); setDot(1.6); coeur(0.8);
+  const [ix,iy]=versEcran(dx,dy); await comete(r, ix, iy);
+  addSil(GEO.france); dessus(); choc(r, true); if(r>=3) explosion(r, ix, iy); if(r>=4) alerteRarete(r);
+  label('rl1','France',true); await pauseR(r>=4 ? 2000 : 1300);
+  // 1. la région
+  etapeR(); if(reg){ addSil(reg.rings,'reg'); dessus(); label('rl1',reg.nom,true); choc(r); coeur(1.15); const bb=bboxOf(reg.rings,0.12); setDot(bb[2]/90); await animVB(versLeHaut(bb),850); await pauseR(1000); }
   // 2. le département
-  if(dep){ addSil(dep.rings,'hi'); g.appendChild(dotg); g.appendChild(dot); g.appendChild(ring); label('rl1', dep.nom + ' · ' + dep.code, true); sonTick(990); battement(1.6);
-    const bb=bboxOf(dep.rings,0.12); setDot(bb[2]/70); await animVB(versLeHaut(bb), 900); await attendreR(600); }
+  etapeR(); if(dep){ addSil(dep.rings,'hi'); dessus(); label('rl1',dep.nom+' · '+dep.code,true); choc(r); coeur(1.5); const bb=bboxOf(dep.rings,0.12); setDot(bb[2]/70); await animVB(versLeHaut(bb),850); await pauseR(1000); }
   // 3. la commune
-  const com=await comP; if(com){ addSil(com.rings,'com'); g.appendChild(dotg); g.appendChild(dot); g.appendChild(ring); label('rl1', com.nom, true); sonTick(1100); battement(2.6); rv.classList.add('fast');
-    const bb=bboxOf(com.rings,0.15); setDot(Math.max(0.05,bb[2]/50)); await animVB(versLeHaut(bb), 900); await attendreR(500); }
-  // 4. montée puis la rue
-  riser(1.1); await attendreR(1100); battement(0); boom(r); flash(r); rv.classList.add('shake');
-  document.getElementById('rl3').className='l rar r'+r; label('rl2', c.label, true); label('rl3', RARETES[r], true); await attendreR(1400);
+  etapeR(); const com=await comP; if(com){ addSil(com.rings,'com'); dessus(); label('rl1',com.nom,true); choc(r); coeur(2.0); rv.classList.add('fast'); const bb=bboxOf(com.rings,0.15); setDot(Math.max(0.05,bb[2]/50)); await animVB(versLeHaut(bb),850); await pauseR(1000); }
+  // 4. la rue
+  etapeR(); const plan=await planP; if(plan && (plan.routes.length || plan.batiments.length)){ dessinerRue(g, c, plan); dessus(); const voie = estAdresse(c) ? (Regles.numeroEtVoie(c.label).voie||'') : '';
+    if(voie) label('rl1',voie,true); choc(r); coeur(2.8); const bb=cadreRue(c, 105); setDot(bb[2]/70); rv.classList.add('rue'); await animVB(versLeHaut(bb),950); await pauseR(1300); }
+  // 5. le silence, puis le boum
+  etapeR(); coeur(0); rv.classList.add('silence'); await pauseR(650); rv.classList.remove('silence');
+  boom(r); flash(r); rv.classList.add('shake'); label('rl2', c.label, true); document.getElementById('rl3').className='l rar r'+r; label('rl3', RARETES[r], true);
+  document.getElementById('ralerte').classList.remove('on','haut'); await pauseR(1400);
   rv.className=''; }
-// L'explosion de lumière d'une carte Rare, Épique, Légendaire (Extraordinaire) : un éclat de la couleur de la rareté,
-// deux ondes de choc, des rayons et des étincelles qui jaillissent du centre ; plus la carte est rare, plus il y en a
-// (Légendaire : une deuxième explosion). Tout en CSS sur des éléments posés puis retirés (pas de filtre, pas de boucle).
-function explosion(r){ const rv=document.getElementById('reveal');
-  const une=(bis)=>{ const ex=document.createElement('div'); ex.className='explo r'+r+(bis?' bis':''); const n = r>=5 ? 24 : (r>=4 ? 18 : 12);
+// le cadre de l'étape « rue » : un carré de d mètres de demi-côté autour du lieu (unités du dessin)
+function cadreRue(c, d){ const kx=111320*Math.cos(c.lat*Math.PI/180), ky=110574; const [x0,y0]=px(c.lon-d/kx, c.lat+d/ky), [x1,y1]=px(c.lon+d/kx, c.lat-d/ky); return [x0, y0, x1-x0, y1-y0]; }
+// les rues (rubans d'or à leur largeur), les bâtiments (contours d'or), la parcelle et le bâtiment visé (lumineux)
+function dessinerRue(g, c, plan){ const NS='http://www.w3.org/2000/svg', kx=111320*Math.cos(c.lat*Math.PI/180), ky=110574, pm=([x,y])=>px(c.lon+x/kx, c.lat+y/ky), u=px(c.lon,c.lat+1/ky)[1]-px(c.lon,c.lat)[1];
+  g.querySelectorAll('.sil,.glow').forEach(e=>e.classList.add('loin'));
+  const chemin=(pts,ferme)=>'M'+pts.map(q=>pm(q).map(v=>v.toFixed(5)).join(' ')).join('L')+(ferme?'Z':'');
+  const ajoute=(cls,d,larg)=>{ const e=document.createElementNS(NS,'path'); e.setAttribute('class',cls); e.setAttribute('d',d); if(larg) e.setAttribute('stroke-width',(Math.abs(u)*larg).toFixed(6)); g.appendChild(e); };
+  for(const rt of plan.routes) ajoute('rue', chemin(rt.p,false), rt.larg);
+  if(plan.parcelle) ajoute('parcelle', chemin(plan.parcelle,true));
+  for(const b of plan.batiments) ajoute('bati'+(b.cible?' cible':''), chemin(b.r,true)); }
+// la comète : une lumière de la couleur de la rareté tombe du ciel sur le lieu (plus c'est rare, plus elle est grosse)
+function comete(r, x, y){ const rv=document.getElementById('reveal'), el=document.createElement('div'); el.className='comete r'+r; const W=rv.clientWidth, x0=x+W*0.9, y0=y-W*1.1, a=Math.atan2(y-y0, x-x0)*180/Math.PI;
+  el.style.setProperty('--x0',x0+'px'); el.style.setProperty('--y0',y0+'px'); el.style.setProperty('--x',x+'px'); el.style.setProperty('--y',y+'px'); el.style.setProperty('--a',a+'deg'); el.style.setProperty('--t', (r>=5?1.05:0.85)+'s');
+  rv.appendChild(el); sonComete(r); setTimeout(()=>el.remove(), 1600); return pauseR(r>=5 ? 1050 : 850); }
+function sonComete(r){ const a=audio(); if(!a) return; const t0=a.currentTime, d=r>=5?1.05:0.85, n=Math.floor(a.sampleRate*d), b=a.createBuffer(1,n,a.sampleRate), x=b.getChannelData(0); for(let k=0;k<n;k++) x[k]=(Math.random()*2-1)*Math.pow(k/n,1.6);
+  const src=a.createBufferSource(); src.buffer=b; const f=a.createBiquadFilter(); f.type='bandpass'; f.Q.value=1.1; f.frequency.setValueAtTime(5200,t0); f.frequency.exponentialRampToValueAtTime(700,t0+d); const gn=a.createGain(); gn.gain.value=0.35; src.connect(f); f.connect(gn); gn.connect(a.destination); src.start(t0); }
+// l'alerte d'une carte Épique et au-delà : l'écran tremble, un double signal, le bandeau de la rareté au milieu, qui monte ensuite en haut
+function alerteRarete(r){ const al=document.getElementById('ralerte'), rv=document.getElementById('reveal'); al.className='r'+r; al.querySelector('span').textContent=RARETES[r]; void al.offsetWidth; al.classList.add('on');
+  rv.classList.remove('shake'); void rv.offsetWidth; rv.classList.add('shake'); vibrer([60,40,60,40,120]);
+  const a=audio(); if(a){ const t0=a.currentTime+0.05; [0,0.32].forEach(dt=>[[880,0],[660,0.14]].forEach(([fq,d2])=>{ const o=a.createOscillator(), gn=a.createGain(); o.type='triangle'; o.frequency.value=fq*(r>=5?1.12:1); gn.gain.setValueAtTime(0.0001,t0+dt+d2); gn.gain.exponentialRampToValueAtTime(0.16,t0+dt+d2+0.01); gn.gain.exponentialRampToValueAtTime(0.0001,t0+dt+d2+0.13); o.connect(gn); gn.connect(a.destination); o.start(t0+dt+d2); o.stop(t0+dt+d2+0.15); })); }
+  setTimeout(()=>al.classList.add('haut'), 1300); }
+// un choc à chaque indice : la lumière pulse, un coup sourd, une vibration
+function choc(r, fort){ const rv=document.getElementById('reveal'); rv.classList.remove('choc'); void rv.offsetWidth; rv.classList.add('choc'); vibrer(fort?[30]:[14]);
+  const a=audio(); if(!a) return; const o=a.createOscillator(), gn=a.createGain(); o.type='sine'; o.frequency.setValueAtTime(fort?120:95,a.currentTime); o.frequency.exponentialRampToValueAtTime(40,a.currentTime+0.25); gn.gain.setValueAtTime(fort?0.7:0.45,a.currentTime); gn.gain.exponentialRampToValueAtTime(0.0001,a.currentTime+0.3); o.connect(gn); gn.connect(a.destination); o.start(); o.stop(a.currentTime+0.32); }
+// L'explosion de lumière d'une carte Rare et au-delà, à l'impact de la comète (x, y : pixels dans #reveal) : un éclat de la
+// couleur de la rareté, un trait de lumière, des faisceaux, deux ondes, des grains ; Légendaire : une deuxième explosion.
+function explosion(r, x, y){ const rv=document.getElementById('reveal');
+  const une=(bis)=>{ const ex=document.createElement('div'); ex.className='explo r'+r+(bis?' bis':''); if(x!=null){ ex.style.left=x+'px'; ex.style.top=y+'px'; } const n = r>=5 ? 24 : (r>=4 ? 18 : 12);
     let h='<i class="eclat"></i><i class="rais"></i><i class="trait"></i><i class="onde"></i><i class="onde o2"></i>';
     for(let k=0;k<n;k++) h+=`<b style="--a:${Math.round(k*360/n+(k%2)*8)}deg;--d:${120+(k*53)%110}px;--t:${(0.6+(k%3)*0.14).toFixed(2)}s"></b>`;
     ex.innerHTML=h; rv.appendChild(ex); setTimeout(()=>ex.remove(), 2200); };
-  une(false); sonExplosion(r); vibrer(r>=5?[40,30,90]:(r>=4?[30,20,60]:[40]));
-  if(r>=5) setTimeout(()=>{ une(true); sonExplosion(r, true); vibrer([50,30,120]); }, 420);
-  return attendreR(r>=5 ? 1650 : (r>=4 ? 1250 : 1000)); }
+  une(false); sonExplosion(r);
+  if(r>=5) setTimeout(()=>{ une(true); sonExplosion(r, true); vibrer([50,30,120]); }, 420); }
 function sonExplosion(r, bis){ const a=audio(); if(!a) return; const t0=a.currentTime;
-  // le souffle (bruit qui descend) et un accord qui monte avec la rareté
   const n=Math.floor(a.sampleRate*0.9), b=a.createBuffer(1,n,a.sampleRate), d=b.getChannelData(0); for(let k=0;k<n;k++) d[k]=(Math.random()*2-1)*Math.pow(1-k/n,2.2);
   const src=a.createBufferSource(); src.buffer=b; const f=a.createBiquadFilter(); f.type='bandpass'; f.Q.value=0.8; f.frequency.setValueAtTime(bis?4200:3200,t0); f.frequency.exponentialRampToValueAtTime(260,t0+0.8);
   const gn=a.createGain(); gn.gain.value=0.55; src.connect(f); f.connect(gn); gn.connect(a.destination); src.start(t0);
   const accord = r>=5 ? [392,523.3,659.3,784,1046.5] : (r>=4 ? [349.2,440,523.3,698.5] : [329.6,415.3,493.9]);
   accord.forEach((fq,i)=>{ const o=a.createOscillator(), g=a.createGain(); o.type='triangle'; o.frequency.value=fq*(bis?2:1); g.gain.setValueAtTime(0.0001,t0+i*0.03); g.gain.exponentialRampToValueAtTime(0.12,t0+i*0.03+0.02); g.gain.exponentialRampToValueAtTime(0.0001,t0+i*0.03+1.1); o.connect(g); g.connect(a.destination); o.start(t0+i*0.03); o.stop(t0+i*0.03+1.2); }); }
-// rythme : battement qui accélère (0 = stop)
-let beatTimer=null; function battement(speed){ clearTimeout(beatTimer); if(!speed) return; const a=audio(); const tick=()=>{ if(a){ const o=a.createOscillator(); const gn=a.createGain(); o.type='sine'; o.frequency.setValueAtTime(110,a.currentTime); o.frequency.exponentialRampToValueAtTime(45,a.currentTime+0.12); gn.gain.setValueAtTime(0.5,a.currentTime); gn.gain.exponentialRampToValueAtTime(0.0001,a.currentTime+0.16); o.connect(gn); gn.connect(a.destination); o.start(); o.stop(a.currentTime+0.18); } vibrer(12); beatTimer=setTimeout(tick, 900/speed); }; tick(); }
+// le cœur : deux coups sourds (« boum-boum ») de plus en plus rapprochés ; 0 = il s'arrête
+let beatTimer=null;
+function coeur(vitesse){ clearTimeout(beatTimer); if(!vitesse) return; const a=audio();
+  const coup=(t,fq,v)=>{ if(!a) return; const o=a.createOscillator(), gn=a.createGain(); o.type='sine'; o.frequency.setValueAtTime(fq,t); o.frequency.exponentialRampToValueAtTime(38,t+0.14); gn.gain.setValueAtTime(v,t); gn.gain.exponentialRampToValueAtTime(0.0001,t+0.18); o.connect(gn); gn.connect(a.destination); o.start(t); o.stop(t+0.2); };
+  const bat=()=>{ if(a){ const t=a.currentTime; coup(t,82,0.75); coup(t+0.13,66,0.55); } vibrer([14,100,10]); beatTimer=setTimeout(bat, 1000/vitesse); }; bat(); }
+function battement(v){ coeur(v); }
 function riser(sec){ const a=audio(); if(!a) return; const n=a.sampleRate*sec; const b=a.createBuffer(1,n,a.sampleRate); const d=b.getChannelData(0); for(let i=0;i<n;i++) d[i]=(Math.random()*2-1)*(i/n); const src=a.createBufferSource(); src.buffer=b; const f=a.createBiquadFilter(); f.type='bandpass'; f.Q.value=1.2; f.frequency.setValueAtTime(200,a.currentTime); f.frequency.exponentialRampToValueAtTime(4000,a.currentTime+sec); const gn=a.createGain(); gn.gain.value=0.35; src.connect(f); f.connect(gn); gn.connect(a.destination); src.start(); }
-function boom(r){ const a=audio(); if(!a) return; const o=a.createOscillator(); const gn=a.createGain(); o.type='sine'; o.frequency.setValueAtTime(140,a.currentTime); o.frequency.exponentialRampToValueAtTime(35,a.currentTime+0.5); gn.gain.setValueAtTime(0.9,a.currentTime); gn.gain.exponentialRampToValueAtTime(0.0001,a.currentTime+0.7); o.connect(gn); gn.connect(a.destination); o.start(); o.stop(a.currentTime+0.75); vibrer(r>=4?[60,40,120]:[60]); }
+function boom(r){ const a=audio(); if(!a) return; const o=a.createOscillator(); const gn=a.createGain(); o.type='sine'; o.frequency.setValueAtTime(150,a.currentTime); o.frequency.exponentialRampToValueAtTime(32,a.currentTime+0.6); gn.gain.setValueAtTime(1,a.currentTime); gn.gain.exponentialRampToValueAtTime(0.0001,a.currentTime+0.85); o.connect(gn); gn.connect(a.destination); o.start(); o.stop(a.currentTime+0.9); vibrer(r>=4?[90,40,160]:[80]); }
 // l'éclair final : blanc, ou blanc cerné de la couleur de la rareté (Rare et au-delà)
 const COULEUR_RARETE={ 3:'#2F80ED', 4:'#9B51E0', 5:'#FF7A00', 6:'#FF4DC4' };
 function flash(r){ const f=document.getElementById('flash'); f.style.background = r>=3 ? `radial-gradient(circle at 50% 42%,#fff 0,#fff 25%,${COULEUR_RARETE[r]} 75%)` : '#fff'; f.style.transition='none'; f.style.opacity=.9; requestAnimationFrame(()=>{ f.style.transition='opacity .6s ease'; f.style.opacity=0; }); }
@@ -1416,7 +1467,7 @@ let packOuverture=null;   // la ligne d'ouverture du pack à l'écran (les carte
 function openScene(){ const sc=document.getElementById('packscene'); packTorn=false; packCards=null; packOuverture=null; document.getElementById('pkgl').style.display='block';
   document.getElementById('pkcards').innerHTML=''; document.getElementById('packdone').style.display='none'; document.getElementById('pkhint').textContent='Incline ton téléphone…'; document.getElementById('pkload').textContent='Le pack arrive…';
   sc.classList.add('on'); requestAnimationFrame(()=>{ sc.classList.add('show'); initGL(); }); }
-function finPack(){ const sc=document.getElementById('packscene'); cancelAnimationFrame(PK.anim); sc.classList.remove('show','fini'); setTimeout(()=>{ sc.classList.remove('on'); disposeGL(); }, 500); renderPatrimoine(); refreshTop(); if(!state.prefs.guideVu) setTimeout(()=>guide(0), 900); }
+function finPack(){ const sc=document.getElementById('packscene'); cancelAnimationFrame(PK.anim); if(PACK_ESSAI){ PACK_ESSAI=false; setTimeout(()=>toast('Pack d’essai : rien n’a été ajouté à ton patrimoine'), 600); } sc.classList.remove('show','fini'); setTimeout(()=>{ sc.classList.remove('on'); disposeGL(); }, 500); renderPatrimoine(); refreshTop(); if(!state.prefs.guideVu) setTimeout(()=>guide(0), 900); }
 function dechirer(){ if(GL.torn) return; packTorn=true; packOuverture=null;
   if(GL.r && GL.pack){ const cv=document.getElementById('pkgl'), r=cv.getBoundingClientRect(), w=GL.pack.localToWorld(new THREE.Vector3(0,1.17,0.12)).project(GL.cam); packOuverture=r.top+(1-w.y)/2*r.height; }
   if(GL.dech){ GL.dech.actif=false; GL.dech.cible=1; } sonDechirureFin(); GL.torn=true; GL.tornAt=performance.now(); sonDechirure(); sonOuverture(); document.getElementById('pkhint').textContent='';
@@ -1430,6 +1481,8 @@ function dechirer(){ if(GL.torn) return; packTorn=true; packOuverture=null;
 // (ou en penchant le téléphone) ; on la fait glisser sur le côté, ou on la touche, pour passer à la suivante. À la fin, les
 // cartes en éventail ; en toucher une l'agrandit (et on peut encore l'incliner).
 const PK={ cartes:[], i:0, etat:'pile', zoom:-1, anim:0 };   // etat : pile, revele, main, fini
+// la face d'une carte : le badge de src/carte_lieu.js (plan cadastral d'or, maquette de verre, plaque émaillée, chiffres)
+function faceCarte(c, r){ return CarteLieu.html({ r, rarete:RARETES[r], nom:echapper(c.label), commune:echapper(communeName(c.citycode, c.city)), valeur:pcs(valeur(c)), loyer:loyer(c), potentiel:NIVEAUX[plafond(c)].nom, standing:R.standing(c) }); }
 function reduitMouvement(){ return !!(window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches); }
 function sortirCartes(){ const wrap=document.getElementById('pkcards'); wrap.innerHTML=''; cancelAnimationFrame(PK.anim); Object.assign(PK,{ cartes:[], i:0, etat:'pile', zoom:-1 });
   // les cartes sortent de l'ouverture du pack : tout ce qui est sous l'ouverture reste caché le temps qu'elles montent
@@ -1439,7 +1492,7 @@ function sortirCartes(){ const wrap=document.getElementById('pkcards'); wrap.inn
     setTimeout(()=>{ wrap.style.transition='clip-path .55s ease-in'; wrap.style.clipPath='inset(0 0 0px 0)'; }, 670);
     setTimeout(()=>{ wrap.style.transition=''; wrap.style.clipPath=''; }, 1300); }
   packCards.forEach((c,i)=>{ const r=rarete(c); const el=document.createElement('div'); el.className='c3d r'+r+(sortie?' sortie':'');
-    el.innerHTML=`<div class="c3d-corps"><div class="c3d-face c3d-dos"><i class="pc c3d-embleme"></i><span class="c3d-nom">Cadastra</span></div><div class="c3d-face c3d-avant"><span class="rar">${RARETES[r]}</span>${carteArt(c, `<span class="valeur">${pcs(valeur(c))}</span><span class="plafond">Jusqu’à ${NIVEAUX[plafond(c)].icone} ${NIVEAUX[plafond(c)].nom}</span>`)}<i class="c3d-holo"></i><i class="c3d-brillance"></i></div></div>`;
+    el.innerHTML=`<div class="c3d-corps"><div class="c3d-face c3d-dos"><i class="pc c3d-embleme"></i><span class="c3d-nom">Cadastra</span></div><div class="c3d-face c3d-avant">${faceCarte(c, r)}<i class="c3d-holo"></i><i class="c3d-brillance"></i></div></div>`;
     wrap.appendChild(el); PK.cartes.push({ el, c, r });
     setTimeout(()=>{ el.classList.remove('sortie'); if(sortie) sonGlisse(i); }, sortie ? 90+i*70 : 60+i*90); });
   document.getElementById('pkhint').textContent='Touche la carte pour la révéler';
@@ -1459,7 +1512,9 @@ function reflets(el, fx, fy){ el.style.setProperty('--mx',(fx*100).toFixed(1)+'%
   el.style.setProperty('--hx',(100-fx*100).toFixed(1)+'%'); el.style.setProperty('--hy',(100-fy*100).toFixed(1)+'%'); }
 async function revelerCarte(k){ if(revealing) return; revealing=true; PK.etat='revele'; document.getElementById('pkhint').textContent='';
   try{ await revealSequence(k.c); }catch(e){}
-  revealing=false; const el=k.el; el.classList.add('vue'); el.style.setProperty('--flip','0deg'); sonCarte(k.r); vibrer(k.r>=4?[20,30,60]:15);
+  revealing=false; const el=k.el; el.classList.add('vue','materialise'); el.style.setProperty('--flip','0deg'); sonCarte(k.r); vibrer(k.r>=4?[20,30,60]:15);
+  // la carte se dessine en lumière, puis la maquette monte du plan
+  CarteLieu.animer(el.querySelector('.cl'), k.c, k.r).then(sc=>{ k.scene=sc; if(sc && sc.monter) sc.monter(); });
   if(k.r>=3){ el.classList.remove('eclair'); void el.offsetWidth; el.classList.add('eclair'); }
   PK.etat='main'; const der=PK.i>=PK.cartes.length-1;
   document.getElementById('pkhint').textContent = der ? 'Incline la carte · glisse-la pour finir' : 'Incline la carte · glisse-la pour la suivante';
@@ -1475,7 +1530,7 @@ function carteSuivante(k, sens){ const el=k.el; cancelAnimationFrame(PK.anim); e
   el.style.setProperty('--x',(sens*innerWidth*0.95)+'px'); el.style.setProperty('--r',(sens*26)+'deg'); el.style.setProperty('--rx','0deg'); el.style.setProperty('--ry','0deg');
   PK.i++; const fini=PK.i>=PK.cartes.length;
   setTimeout(()=>{ const sc=document.getElementById('packscene');
-    if(fini){ PK.etat='fini'; sc.classList.add('fini'); document.getElementById('packdone').style.display='block'; document.getElementById('pkhint').textContent=`${PK.cartes.length} nouveaux lieux dans ton patrimoine · touche une carte pour la voir`; }
+    if(fini){ PK.etat='fini'; sc.classList.add('fini'); document.getElementById('packdone').style.display='block'; document.getElementById('pkhint').textContent = PACK_ESSAI ? 'Pack d’essai : ces lieux ne sont pas à toi · touche une carte pour la voir' : `${PK.cartes.length} nouveaux lieux dans ton patrimoine · touche une carte pour la voir`; }
     else { PK.etat='pile'; document.getElementById('pkhint').textContent='Touche la carte pour la révéler'; }
     dispoPack(); }, 280); }
 // les gestes : la carte du dessus (ou la carte agrandie, à la fin) suit le doigt, s'incline vers lui, et revient
@@ -1596,6 +1651,19 @@ async function ouvrirPack(){ const sc0=document.getElementById('packscene');
   encaisser(true); state.lastPack=jour(); for(const c of cards){ if(!MODE_SERVEUR) state.owned[c.id]=Object.assign({}, c, {niveau:0, depuis:now()}); state.seen[c.id]='libre'; setBadge(c,0); } save(); refreshTop();
   // tri : les communes d'abord, la meilleure carte en dernier (suspense)
   cards.sort((a,b)=>rarete(a)-rarete(b)); packCards=cards; cards.forEach(c=>fetchCommune(c)); document.getElementById('pkload').textContent=''; if(GL.uni) GL.uni.uReady.value=1; document.getElementById('pkhint').textContent='Glisse ton doigt sur le haut du pack pour l’ouvrir'; }
+// Le pack d'essai (demande de Gautier, 4 nov. : « je ne dois compter que sur ma chance » pour voir une Légendaire) : il
+// s'ouvre comme un vrai pack, avec les raretés choisies, mais ne compte pas comme le pack du jour, ne passe jamais par le
+// serveur et n'ajoute rien au patrimoine. Réglages, ou l'adresse du jeu suivie de ?essai-pack (toutes les raretés),
+// ?essai-pack=4 (cinq Épiques) ou ?essai-pack=5 (cinq Légendaires). À retirer au lancement.
+let PACK_ESSAI=false;
+async function ouvrirPackEssai(raretes){ const sc0=document.getElementById('packscene'); if(sc0.classList.contains('on')) return; closeModal();
+  PACK_ESSAI=true; openScene(); document.getElementById('pkload').textContent='Pack d’essai…';
+  const cartes=[]; await Promise.all(raretes.map(async (r)=>{ for(let k=0;k<8;k++){ try{ const c=await TIRAGE.lieuDeRarete(r, Math.random); if(c && rarete(c)===r && !cartes.some(x=>x.id===c.id)){ cartes.push(c); return; } }catch(e){} } }));
+  if(!document.getElementById('packscene').classList.contains('on')) return;
+  if(!cartes.length){ finPack(); return toast('Pack d’essai impossible : vérifie ta connexion'); }
+  cartes.sort((a,b)=>rarete(a)-rarete(b)); packCards=cartes; cartes.forEach(c=>fetchCommune(c)); if(window.CarteLieu) cartes.forEach(c=>CarteLieu.donnees(c).catch(()=>{}));
+  document.getElementById('pkload').textContent=''; if(GL.uni) GL.uni.uReady.value=1; document.getElementById('pkhint').textContent='Glisse ton doigt sur le haut du pack pour l’ouvrir'; }
+{ const q=new URLSearchParams(location.search); if(q.has('essai-pack')){ const r=+q.get('essai-pack'); setTimeout(()=>ouvrirPackEssai(r>=1 && r<=5 ? [r,r,r,r,r] : [1,2,3,4,5]), 3000); } }
 function closeModal(){ document.getElementById('modal').classList.remove('on'); ficheOuverte=null; }
 document.getElementById('packbtn').onclick=ouvrirPack;
 function refreshPack(){ const b=document.getElementById('packbtn'), t=document.getElementById('packt'); if(!b||b.dataset.ouverture) return;
@@ -1794,6 +1862,8 @@ function ouvrirReglages(){ const box=document.getElementById('modalbox');
     <div class="sw"><span>Vibrations</span><input type="checkbox" ${state.prefs.vibrations!==false?'checked':''} onchange="setPref('vibrations',this.checked)"></div>
     ${window.Compte && Compte.actif() ? `<div class="sw mode"><span>Jouer sur le vrai serveur (essai)<small>${MODE_SERVEUR ? (enVraisJours() ? 'Ta partie est sur le serveur, en vrais jours de 24 h.' : `Serveur d’essai accéléré : un jour du jeu = ${Math.round(JOUR/60000)} min.`) : 'Ta partie de démo reste sur ce téléphone ; celle du serveur part de zéro.'}</small></span><input type="checkbox" ${MODE_SERVEUR?'checked':''} onchange="changerMode(this.checked)"></div>` : ''}
     ${(state.signalements||[]).length?`<div class="m" style="margin-top:10px">🚩 Signalements envoyés : ${state.signalements.length}</div>`:''}
+    <div class="essais"><b>Pack d’essai</b><small>S’ouvre comme un vrai pack, mais ne compte pas et ne te donne rien.</small>
+      <div class="liste-btn"><button class="btn clair" onclick="ouvrirPackEssai([1,2,3,4,5])">🎴 Toutes les raretés</button><button class="btn clair" onclick="ouvrirPackEssai([4,4,4,4,4])">✨ Épiques</button><button class="btn clair" onclick="ouvrirPackEssai([5,5,5,5,5])">👑 Légendaires</button></div></div>
     <div class="liste-btn"><button class="btn bleu large" onclick="closeModal();setTimeout(()=>guide(0),300)">🧭 Revoir le guide</button><button class="btn clair large" onclick="closeModal()">Fermer</button></div>
     <div class="m" style="text-align:center;margin-top:10px">Version du jeu : ${VERSION.indexOf('__')===0 ? 'locale' : VERSION.slice(0,7)}</div>`;
   document.getElementById('modal').classList.add('on'); }

@@ -233,6 +233,13 @@
   - Le dos des cartes est dans le style « classe ». La face garde le dessin de la collection, en attendant la réponse de Gautier.
   - `tools/visite_ecrans.js` suit les nouveaux gestes. 49 tests.
 
+- 4 nov. 2026 (après-midi) : **les cartes et la révélation refaites d'après l'interview de Gautier** (bible § 11).
+  - **La carte** (`src/carte_lieu.js`) : un badge bleu nuit et or aux coins coupés. Le plan cadastral d'or vient du WFS de l'IGN (parcelle, bâtiments, rues). Au-dessus, le vrai bâtiment en maquette de porcelaine blanche qui tourne, dessiné par un seul moteur 3D partagé. Le nom est sur la plaque émaillée, puis viennent valeur, loyer, potentiel et standing. Le cadre et la lumière suivent la rareté.
+  - **La révélation** : une comète de la couleur de la rareté qui explose sur la France, l'alerte pour Épique et au-delà, puis la France, la région (nouvelle étape), le département, la commune et la rue tracée en or. Le cœur bat de plus en plus vite, un silence, le boum, et la carte se dessine en lumière. **Un toucher passe à l'étape suivante.**
+  - **Le pack d'essai** (Réglages, ou `?essai-pack`, `=4`, `=5`) : voir des Épiques et des Légendaires sans compter sur la chance. Il ne compte pas et ne donne rien. À retirer au lancement.
+  - Corrigé en route, d'après Gautier : la plaque qui touchait le cadre, l'« hologramme » trop science-fiction (devenu porcelaine, sans reflet arc-en-ciel).
+  - La collection garde les anciennes cartes pour l'instant. 49 tests.
+
 ## En cours
 - Lieux célèbres : les autres catégories (châteaux, mairies, gares, musées, ponts, phares, moulins…). Wikidata répond depuis le PC : `python tools/wikidata_celebres.py --categories chateau,mairie,…`, puis `gen_donnees.py celebres`. La fusion garde les catégories déjà reçues.
 - Phase 1.1 à 1.4 : la carte et le modèle des lieux reconstruits en modules (`src/`) à partir du prototype ; puis le marché (phase 4 : historique des ventes d'un lieu) et les communes et Maires (phase 6). Ensuite : Signaler envoyé au serveur dès qu'il y aura de vrais joueurs à l'écran ; Google ; un service d'envoi d'e-mails avant le lancement (le service de Supabase n'écrit qu'aux membres de l'équipe Supabase, deux e-mails par heure).
