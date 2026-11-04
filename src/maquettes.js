@@ -3257,6 +3257,112 @@
   const cathedraleVienne = (THREE) => cathedrale(THREE, { F: -27, E: 57, larg: 16, mur: 21, toitH: 7, xT: 20, cote: 10, facadeH: 30, rose: 4, arcs: false,
     tours: [{ z: -10, h: 38 }, { z: 10, h: 38 }] });
 
+  // l'église Saint-Paul de Strasbourg : l'église néo-gothique de grès rose et ses deux flèches (76 m), sur la pointe de
+  // l'île au bord de l'Ill
+  const saintPaulStrasbourg = (THREE) => cathedrale(THREE, { pierre: 0xD9A592, pierreFoncee: 0xC08A78, F: -21, E: 19.7, larg: 12, mur: 20, toitH: 8, xT: 6.5, transept: 48,
+    transeptL: 15, cote: 8, facadeH: 26, rose: 3.5, tours: [{ z: -8, h: 40, fleche: 36, r: 3.6, seg: 8, couleur: 0xC08A78 }, { z: 8, h: 40, fleche: 36, r: 3.6, seg: 8, couleur: 0xC08A78 }] });
+
+  // la collégiale Saint-Martin de Colmar : la nef de grès, son toit de tuiles vernissées, la tour et son toit en « chapeau
+  // chinois »
+  const collegialeColmar = (THREE) => cathedrale(THREE, { pierre: 0xD9A592, pierreFoncee: 0xC08A78, toit: 0xC9902F, toitFonce: 0x3E8A55, F: -46, E: 21, larg: 14, mur: 22, toitH: 10,
+    xT: -9, transept: 38, transeptL: 18, cote: 9, facadeH: 26, rose: 3.5, tours: [{ z: 6, h: 40, fleche: 12, r: 6, seg: 4 }] });
+
+  // l'église Notre-Dame de Dijon : la façade plate et ses rangées de gargouilles, le Jacquemart, la tour de la croisée, les
+  // toits vernissés
+  const notreDameDijon = (THREE) => cathedrale(THREE, { toit: 0xD4A63A, toitFonce: 0x3E8A55, F: -21, E: 32, larg: 12, mur: 20, toitH: 8, xT: 6, transept: 34, transeptL: 12, cote: 6,
+    facadeH: 26, rose: 2, tours: [{ z: 9, h: 32, cote: 4, fleche: 6, r: 2.4, seg: 4 }], flecheCroisee: { tour: 10, cote: 9, h: 16, r: 4, seg: 8 } });
+
+  // l'abbaye de la Trinité de Vendôme : la façade flamboyante, la nef, le chœur, et le clocher roman isolé et sa flèche de
+  // pierre (80 m)
+  function triniteVendome(THREE) {
+    const g = cathedrale(THREE, { F: -32, E: 41.7, larg: 14, mur: 22, toitH: 8, xT: 18, transept: 36, transeptL: 14, cote: 8, facadeH: 30, rose: 4, tours: [{ z: 0, h: 30, cote: 8 }] });
+    const A = atelier(THREE), pierre = A.matiere(0xF0E3C4), pierreFoncee = A.matiere(0xD2BC8E);
+    A.boite(12, 40, 12, -53.5, 0, 15.6, pierre); A.cylindre(5, 5, 10, 8, -53.5, 40, 15.6, pierre); A.pyramide(5.2, 30, 8, -53.5, 50, 15.6, pierreFoncee);
+    g.add(A.groupe); return g;
+  }
+
+  // la cathédrale Notre-Dame de Verdun : la cathédrale romane et ses tours, la nef, le transept, le chevet
+  const cathedraleVerdun = (THREE) => cathedrale(THREE, { F: -41, E: 43, larg: 16, mur: 22, toitH: 8, xT: 18, transept: 44, transeptL: 16, cote: 9, facadeH: 28, rose: 2, arcs: false,
+    tours: [{ z: -11, h: 40, fleche: 10, r: 5, seg: 4 }, { z: 11, h: 40, fleche: 10, r: 5, seg: 4 }] });
+
+  // la basilique de Saint-Nicolas-de-Port : la haute nef flamboyante, ses deux tours (85 m) et leurs dômes
+  function saintNicolasDePort(THREE) {
+    const g = cathedrale(THREE, { F: -26, E: 44, larg: 14, mur: 30, toitH: 10, xT: 15, transept: 34, transeptL: 14, cote: 12, facadeH: 34, rose: 4,
+      tours: [{ z: -10, h: 64, octogone: { h: 8, r: 4.5 } }, { z: 10, h: 64, octogone: { h: 8, r: 4.5 } }] });
+    const A = atelier(THREE), ardoise = A.matiere(0x46567F), or = A.matiere(0xFFC233, 0x7A4A00);
+    for (const z of [-10, 10]) { A.dome(4.6, 1.3, -26, 72, z, ardoise); A.boule(0.7, -26, 78.6, z, or); }
+    g.add(A.groupe); return g;
+  }
+
+  // le château de Bonaguil : l'enceinte et ses tours, le donjon en proue de navire, la grosse tour ronde
+  function bonaguil(THREE) {
+    const A = atelier(THREE);
+    const pierre = A.matiere(0xE3D3B4), ombre = A.matiere(0xC6B38E);
+    const enc = [[-29, 12], [-23, -20], [-12, -33], [5, -30], [20, -45], [32, -59], [43, -40], [40, -10], [47, 0], [28, 20], [5, 27], [-20, 22], [-29, 12]];
+    A.remparts([enc], 16, 3, ombre); A.creneaux([enc], 16, 0.8, pierre);
+    A.boite(18, 32, 12, 12, 0, -20, pierre, -0.5); A.creneaux([A.tourDe(18.4, 12.4, 0, 0).map(([x, z]) => [12 + x * Math.cos(0.5) - z * Math.sin(0.5), -20 + x * Math.sin(0.5) + z * Math.cos(0.5)])], 32, 0.8, ombre);
+    const tours = [[-11, -27, 6, 24], [-25, 15, 5, 20], [38, -50, 5, 22], [44, -4, 4.5, 18], [6, 25, 4.5, 18]];
+    A.cylindres(tours.map(([x, z, r, h]) => [x, z, r, h, 0]), pierre, 16); for (const [x, z, r, h] of tours) A.creneaux([anneau(x, z, r + 0.2)], h, 0.7, ombre);
+    return A.groupe;
+  }
+
+  // le château de Montreuil-Bellay : les logis et leurs tours rondes coiffées d'ardoise, au-dessus du Thouet
+  function montreuilBellay(THREE) {
+    const A = atelier(THREE);
+    const tuffeau = A.matiere(0xF4EEDC), ardoise = A.matiere(0x4F5D8C);
+    const logis = [[30, 16, -11, -3.5, 0], [33, 14, -11.5, 29, 0], [30, 22, 37, 37, -0.35]];
+    for (const [lx, lz, x, z, r] of logis) { A.boite(lx, 18, lz, x, 0, z, tuffeau, r); A.toit(lz + 0.6, 9, lx, x, 18, z, ardoise, r); }
+    const tours = [[-24, -12, 4], [2, -12, 4], [-25, 2, 4], [3, 2, 4], [-31, 17, 4.5], [-25, 35, 4], [2, 36, 4], [22, 40, 4.5], [50, 28, 4]];
+    A.cylindres(tours.map(([x, z, r]) => [x, z, r, 20, 0]), tuffeau, 16); A.cones(tours.map(([x, z, r]) => [x, z, r + 0.4, 20, r * 2.2]), ardoise, 16);
+    return A.groupe;
+  }
+
+  // le château de Maintenon : les ailes de brique et de pierre autour de la cour, le donjon carré, les tours rondes et leurs
+  // toits pointus
+  function maintenon(THREE) {
+    const A = atelier(THREE);
+    const brique = A.matiere(0xB5523B), pierre = A.matiere(0xEDE4CF), ardoise = A.matiere(0x4F5D8C);
+    A.boite(40, 14, 11, 3, 0, -29, brique); A.toit(11.6, 7, 40, 3, 14, -29, ardoise);
+    A.boite(13, 14, 34, -14.5, 0, -16, brique); A.toit(13.6, 7, 34, -14.5, 14, -16, ardoise, Math.PI / 2);
+    A.boite(9, 14, 40, 18.5, 0, -12, brique); A.toit(9.6, 6, 40, 18.5, 14, -12, ardoise, Math.PI / 2);
+    A.boite(13, 24, 11, -14.5, 0, 6.5, pierre); A.combles(13.6, 7, 11.6, -14.5, 24, 6.5, ardoise);
+    const tours = [[-14, -34, 4], [18.7, -35, 4.5], [19.4, 7, 4]];
+    A.cylindres(tours.map(([x, z, r]) => [x, z, r, 18, 0]), pierre, 16); A.cones(tours.map(([x, z, r]) => [x, z, r + 0.4, 18, r * 2.4]), ardoise, 16);
+    A.boite(9, 10, 44, 34, 0, -49, brique, -0.17); A.toit(9.6, 4, 44, 34, 10, -49, ardoise, Math.PI / 2 - 0.17);
+    return A.groupe;
+  }
+
+  // le château de Sceaux : le château de brique et de pierre, ses deux pavillons, ses hauts toits d'ardoise
+  function chateauSceaux(THREE) {
+    const A = atelier(THREE);
+    const brique = A.matiere(0xC0614A), pierre = A.matiere(0xEDE4CF), ardoise = A.matiere(0x4F5D8C);
+    A.boite(12, 14, 31, 3.3, 0, 3.5, brique); A.toit(12.6, 8, 31, 3.3, 14, 3.5, ardoise, Math.PI / 2);
+    for (const z of [-16, 21.5]) { A.boite(18.6, 16, 8, 6, 0, z, brique); A.combles(19.2, 8, 8.6, 6, 16, z, ardoise); A.boites([[1, 16, 1, -3.3, 0, z - 4], [1, 16, 1, -3.3, 0, z + 4], [1, 16, 1, 15.3, 0, z - 4], [1, 16, 1, 15.3, 0, z + 4]], pierre); }
+    return A.groupe;
+  }
+
+  // le temple du Marais (la Visitation Sainte-Marie, de François Mansart) : la rotonde et son dôme, le portail sur la rue
+  function templeMarais(THREE) {
+    const A = atelier(THREE);
+    const pierre = A.matiere(0xEFE6D0), pierreFoncee = A.matiere(0xD6C8A8), ardoise = A.matiere(0x56659A), or = A.matiere(0xFFC233, 0x7A4A00);
+    A.cylindre(8.7, 8.7, 13, 24, 1, 0, -6, pierre); A.cylindre(9.1, 9.1, 1, 24, 1, 13, -6, pierreFoncee); A.dome(8.8, 0.95, 1, 14, -6, ardoise);
+    A.cylindre(1.5, 1.5, 3, 8, 1, 22, -6, pierre); A.dome(1.7, 1.2, 1, 25, -6, ardoise); A.boule(0.5, 1, 27.4, -6, or);
+    A.boite(10, 12, 4, 1, 0, -16, pierre); A.toit(10, 3, 4.4, 1, 12, -16, pierre, Math.PI / 2);
+    return A.groupe;
+  }
+
+  // le théâtre antique de Lyon : la cavea adossée à la colline de Fourvière, ses gradins, l'orchestre et la scène
+  function theatreLyon(THREE) {
+    const A = atelier(THREE);
+    const pierre = A.matiere(0xE3D2B0), pierreOmbre = A.matiere(0xC9B48E), herbe = A.matiere(0x9BCB7A);
+    const demiAnneau = (ri, ro, h) => (e) => { const f = new THREE.Shape(); f.absarc(0, 0, ro + e, -Math.PI / 2, Math.PI / 2, false); f.absarc(0, 0, Math.max(0.1, ri - e), Math.PI / 2, -Math.PI / 2, true); f.closePath();
+      return new THREE.ExtrudeGeometry(f, { depth: h + 2 * e, bevelEnabled: false, curveSegments: 24 }).rotateX(-Math.PI / 2).translate(0, -e, 0); };
+    for (let k = 0; k < 5; k++) A.piece(demiAnneau(14 + 8 * k, 22 + 8 * k, 2 + 2.5 * k), k % 2 ? pierreOmbre : pierre, A.V(0, 0, 0));
+    A.plaques([[2, 0.4, 34, -1, 0, 0]], herbe);
+    A.boite(7, 2.5, 60, -5, 0, 0, pierreOmbre); A.boites([[3, 5, 60, -10, 0, 0]], pierre);
+    return A.groupe;
+  }
+
   // les maquettes connues : le monument (identifiant de data/monuments.json), où et comment la poser, et les
   // bâtiments de l'IGN qu'elle remplace (sinon les blocs gris de la BD TOPO resteraient dedans)
   const MODELES = {
@@ -4023,6 +4129,42 @@
     Q1410336: {   // Saint-Maurice de Vienne
       construire: cathedraleVienne, centre: [4.8731, 45.524193], orientation: 2, masquer: ['BATIMENT0000000302566420', 'BATIMENT0000000302566419'],
     },
+    Q1504491: {   // Saint-Paul de Strasbourg (la façade au sud-ouest)
+      construire: saintPaulStrasbourg, centre: [7.759841, 48.586323], orientation: 68, masquer: ['BATIMENT0000002223299576'],
+    },
+    Q1581390: {   // la collégiale Saint-Martin de Colmar
+      construire: collegialeColmar, centre: [7.358359, 48.077281], orientation: -26, masquer: ['BATIMENT0000000229583047'],
+    },
+    Q1807058: {   // Notre-Dame de Dijon
+      construire: notreDameDijon, centre: [5.041494, 47.322686], orientation: -16, masquer: ['BATIMENT0000000217356154'],
+    },
+    Q745084: {   // la Trinité de Vendôme et son clocher isolé
+      construire: triniteVendome, centre: [1.069016, 47.791256], orientation: -11, masquer: ['BATIMENT0000000321811598', 'BATIMENT0000000321811080'],
+    },
+    Q2942293: {   // Notre-Dame de Verdun
+      construire: cathedraleVerdun, centre: [5.382312, 49.159484], orientation: 26, masquer: ['BATIMENT0000002266668312'],
+    },
+    Q2887149: {   // la basilique de Saint-Nicolas-de-Port
+      construire: saintNicolasDePort, centre: [6.303875, 48.631678], orientation: -37, masquer: ['BATIMENT0000000335283737', 'BATIMENT0000000335283733', 'BATIMENT0000000335283732', 'BATIMENT0000000335283738', 'BATIMENT0000000335283734', 'BATIMENT0000000335283730', 'BATIMENT0000000335283731', 'BATIMENT0000000335283729', 'BATIMENT0000000335283735', 'BATIMENT0000000335283736', 'BATIMENT0000000335283553', 'BATIMENT0000000335283554'],
+    },
+    Q2206135: {   // le château de Bonaguil
+      construire: bonaguil, centre: [1.0143, 44.5381], orientation: 29, masquer: ['BATIMENT0000000092708435'],
+    },
+    Q654569: {   // le château de Montreuil-Bellay
+      construire: montreuilBellay, centre: [-0.155, 47.1331], orientation: 41, masquer: ['BATIMENT0000000313888479', 'BATIMENT0000000313888474', 'BATIMENT0000000313888480', 'BATIMENT0000000313888478', 'BATIMENT0000000313888481', 'BATIMENT0000000313888477'],
+    },
+    Q1436883: {   // le château de Maintenon
+      construire: maintenon, centre: [1.5783, 48.5854], orientation: 16, masquer: ['BATIMENT0000000335351067'],
+    },
+    Q1579344: {   // le château de Sceaux
+      construire: chateauSceaux, centre: [2.3, 48.7744], orientation: 14, masquer: ['BATIMENT0000000240226633'],
+    },
+    Q1383413: {   // le temple du Marais
+      construire: templeMarais, centre: [2.3662, 48.8533], orientation: -16, masquer: ['BATIMENT0000000245197918', 'BATIMENT0000000245197917'],
+    },
+    Q1510: {   // le théâtre antique de Lyon (la scène à l'est)
+      construire: theatreLyon, centre: [4.819855, 45.75975], orientation: 180, masquer: ['BATIMENT0000000013381386'],
+    },
   };
   const MASQUES = Object.values(MODELES).flatMap((m) => m.masquer);
 
@@ -4107,6 +4249,7 @@
     pontValentre, saintJosephHavre, memorialVimy, notreDameLaGrande, cathedralePuy, saintMaclou, jacobins, cathedraleCahors, pharArMen, vitre, basiliqueLisieux,
     palaisLegionHonneur, grandTheatreBordeaux, cathedraleRusseNice, palaisRohan, hotelDeVilleLyon, saintNicolasDesChamps, laTourette, cathedraleArras, cathedraleEvreux, cathedralePerpignan, cathedraleMoulins, cathedraleLangres,
     basiliqueSaintQuentin, cathedraleNancy, cathedraleLisieux, cathedraleMontauban, cathedraleAgen, cathedraleCambrai, cathedraleSaintBrieuc, cathedraleSees, cathedraleSaintMalo, cathedraleAgde, tournus, saintPierreCaen,
-    orsay, memorialThiepval, grosHorloge, porteDesAllemands, tarascon, salses, josselin, hautefort, chateauAnnecy, fortLaLatte, cathedraleLaRochelle, cathedraleVienne };
+    orsay, memorialThiepval, grosHorloge, porteDesAllemands, tarascon, salses, josselin, hautefort, chateauAnnecy, fortLaLatte, cathedraleLaRochelle, cathedraleVienne,
+    saintPaulStrasbourg, collegialeColmar, notreDameDijon, triniteVendome, cathedraleVerdun, saintNicolasDePort, bonaguil, montreuilBellay, maintenon, chateauSceaux, templeMarais, theatreLyon };
   if (typeof module !== 'undefined' && module.exports) module.exports = api; else racine.Maquettes = api;
 })(typeof globalThis !== 'undefined' ? globalThis : this);
