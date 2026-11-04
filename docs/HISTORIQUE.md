@@ -100,6 +100,7 @@ Rien d'important ne vit dans une conversation : tout est dans le dépôt ou sur 
 - Douzième lot régional (PR #64) : les cathédrales de Blois, Vannes, Poitiers, Montpellier, Soissons, Versailles et Rodez, le Val-de-Grâce, Saint-Michel de Bordeaux, Notre-Dame-des-Victoires, la grande synagogue, la fontaine des Innocents.
 - Treizième lot régional (PR #65) : Saint-Paul-Saint-Louis, Notre-Dame-de-Lorette, Saint-Jean de Montmartre, Senlis, Meaux, Conques, l'abbaye aux Dames, Châteaudun, les hôtels de Sens et de Sully, Saint-Urbain de Troyes, la chapelle expiatoire.
 - Quatorzième lot régional (PR #66) : les cathédrales de Coutances, Auxerre, Bayonne, Béziers, Nevers et Toul, Saint-Ouen de Rouen, les Hospices de Beaune, Gien, Falaise, l'ossuaire de Douaumont, Saint-Thomas de Strasbourg.
+- Quinzième lot régional (PR #67) : le pont Valentré, Saint-Joseph du Havre, Vimy, Notre-Dame-la-Grande, Le Puy, Cahors, Saint-Maclou, les Jacobins, Ar-Men, Vitré, Lisieux.
 
 ## Toutes les PR
 
@@ -192,6 +193,7 @@ Puis une PR par étape, fusionnée en squash :
 | #64 | 04/11 02:45 | Graphismes : douze monuments régionaux de plus (les cathédrales de Blois, Vannes, Poitiers, Montpellier, Soissons, Versailles et Rodez, le Val-de-Grâce, Saint-Michel de Bordeaux, Notre-Dame-des-Victoires, la grande synagogue, la fontaine des Innocents) |
 | #65 | 04/11 02:50 | Graphismes : douze monuments régionaux de plus (Saint-Paul-Saint-Louis, Notre-Dame-de-Lorette, Saint-Jean de Montmartre, Senlis, Meaux, Conques, l'abbaye aux Dames, Châteaudun, les hôtels de Sens et de Sully, Saint-Urbain de Troyes, la chapelle expiatoire) |
 | #66 | 04/11 02:57 | Graphismes : douze monuments régionaux de plus (les cathédrales de Coutances, Auxerre, Bayonne, Béziers, Nevers et Toul, Saint-Ouen de Rouen, les Hospices de Beaune, Gien, Falaise, l'ossuaire de Douaumont, Saint-Thomas de Strasbourg) |
+| #67 | 04/11 03:05 | Graphismes : onze monuments régionaux de plus (le pont Valentré, Saint-Joseph du Havre, le mémorial de Vimy, Notre-Dame-la-Grande, les cathédrales du Puy et de Cahors, Saint-Maclou, les Jacobins de Toulouse, le phare d'Ar-Men, Vitré, la basilique de Lisieux) |
 
 ## Les décisions de Gautier
 
@@ -222,7 +224,7 @@ Les décisions du 2 novembre (interview) sont dans `CLAUDE.md` § 4 et dans le G
 - **Le serveur, suite** (phase 8) :
   - 8.2 : le mode serveur par défaut, la fin des joueurs simulés, l'inscription des amis. Question posée à Gautier, sans réponse : couper la confirmation par e-mail pendant les essais ?
   - 8.3 : l'anti-triche.
-- **Les graphismes** (phase 10, avant 8.2 : décision de Gautier) : la preuve, l'ouverture, les monuments nationaux et 146 monuments régionaux en 3D (199 maquettes) ; ensuite les autres régionaux, l'habillage de la révélation, l'icône et le logo (`docs/BIBLE-GRAPHIQUE.md`).
+- **Les graphismes** (phase 10, avant 8.2 : décision de Gautier) : la preuve, l'ouverture, les monuments nationaux et 157 monuments régionaux en 3D (210 maquettes) ; ensuite les autres régionaux, l'habillage de la révélation, l'icône et le logo (`docs/BIBLE-GRAPHIQUE.md`).
 - **La boutique** (phase 9) : Stripe, packs et Pass mensuel (pack de 8 cartes, bon mensuel : GDD § 3), probabilités affichées, blocage Belgique et Pays-Bas, CGU, confidentialité, mentions légales.
 - **Ensuite** : les graphismes (phase 10), l'équilibrage et le lancement (phase 11).
 - **Au lancement** :

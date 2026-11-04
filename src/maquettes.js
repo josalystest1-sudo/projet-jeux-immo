@@ -2790,6 +2790,136 @@
     return A.groupe;
   }
 
+  // le pont Valentré (x : l'axe du pont) : les six arches, les piles et leurs avant-becs, les trois tours fortifiées et leurs
+  // toits pointus
+  function pontValentre(THREE) {
+    const A = atelier(THREE);
+    const pierre = A.matiere(0xE6D5B0), pierreFoncee = A.matiere(0xCBB68C), tuile = A.matiere(0x9E5A44);
+    const larg = 6, p = 6, n = 6, x0 = -63.5, x1 = 63.5, s = (x1 - x0 - (n - 1) * p) / n, piles = [];
+    for (let i = 0; i < n; i++) { const xa = x0 + i * (s + p), xc = xa + s / 2, f = new THREE.Shape(); f.moveTo(xa, 0.5); f.absellipse(xc, 0.5, s / 2, 7, Math.PI, 0, true); f.lineTo(xa + s, 9.05); f.lineTo(xa, 9.05); f.closePath(); A.extrusion(f, larg - 0.04, 0, 0, 0, pierre, 0, true); if (i < n - 1) piles.push(xa + s + p / 2); }
+    A.boites(piles.map((x) => [p, 9, larg, x, 0, 0]), pierre); A.cylindres(piles.flatMap((x) => [[x, larg / 2, 3.6, 9, 0], [x, -larg / 2, 3.6, 9, 0]]), pierreFoncee, 4);
+    for (const sg of [1, -1]) A.boite(22, 9, larg, sg * 74.5, 0, 0, pierre);
+    A.boite(171, 1, larg + 1, 0, 9, 0, pierreFoncee); A.creneaux([[[-85.5, larg / 2], [85.5, larg / 2]], [[-85.5, -larg / 2], [85.5, -larg / 2]]], 10, 0.6, pierre);
+    for (const x of [-67.5, 0, 67.5]) { A.boite(9, 32, 9, x, 0, 0, pierre); A.boite(10.4, 2, 10.4, x, 30, 0, pierreFoncee); A.pyramide(7.6, 9, 4, x, 32, 0, tuile); }
+    return A.groupe;
+  }
+
+  // l'église Saint-Joseph du Havre (Auguste Perret) : le plan carré de béton, la grande tour-lanterne octogonale (107 m)
+  function saintJosephHavre(THREE) {
+    const A = atelier(THREE);
+    const beton = A.matiere(0xCBC4B6), betonFonce = A.matiere(0xA9A194), verre = A.matiere(0xE8B84A, 0x5A3A00);
+    A.boite(46, 17, 41, 0, 0, 0, beton); A.boite(36, 3, 31, 0, 17, 0, betonFonce);
+    const oct = (rh, rb, h, y, m) => A.piece((e) => new THREE.CylinderGeometry(rh + e, rb + e, h + 2 * e, 8).rotateY(Math.PI / 8).translate(0, h / 2, 0), m, A.V(0, y, 0));
+    oct(9, 9.5, 33, 20, beton); oct(9.3, 9.3, 1.2, 53, betonFonce);
+    oct(6.5, 9, 28, 54.2, beton); oct(3, 6.5, 18, 82.2, beton); oct(0.4, 3, 7, 100.2, betonFonce);
+    for (let k = 0; k < 8; k++) A.piece((e) => new THREE.BoxGeometry(1.2 + 2 * e, 26 + 2 * e, 0.3 + 2 * e).translate(0, 13, 9.2), verre, A.V(0, 24, 0), new THREE.Quaternion().setFromAxisAngle(A.V(0, 1, 0), k * Math.PI / 4), true);
+    return A.groupe;
+  }
+
+  // le mémorial national du Canada à Vimy : le grand mur de pierre blanche et ses deux pylônes (30 m)
+  function memorialVimy(THREE) {
+    const A = atelier(THREE);
+    const pierre = A.matiere(0xF2F0E8), pierreOmbre = A.matiere(0xD9D5C8);
+    A.boite(24, 2, 62, 31, 0, -26, pierreOmbre); A.boite(5, 7, 58, 31, 2, -26, pierre);
+    for (const z of [-32, -20]) A.piece((e) => new THREE.CylinderGeometry(1.9 + e, 3 + e, 30 + 2 * e, 4).rotateY(Math.PI / 4).translate(0, 15, 0), pierre, A.V(31, 9, z));
+    return A.groupe;
+  }
+
+  // l'église Notre-Dame-la-Grande de Poitiers : la façade romane sculptée et ses deux tourelles en pommes de pin, le clocher
+  // de la croisée et son toit en écailles, l'abside
+  function notreDameLaGrande(THREE) {
+    const A = atelier(THREE);
+    const pierre = A.matiere(0xEADCBE), pierreFoncee = A.matiere(0xCDB98F), tuile = A.matiere(0xB7684A), porte = A.matiere(0x6E5A44);
+    A.boite(52, 13, 24, -2, 0, 0, pierre); A.toit(24.6, 5, 52, -2, 13, 0, tuile);
+    A.abside(7, 12, 24, 0, 0, pierre); A.demiCone(7.5, 4, 24, 12, 0, tuile);
+    A.boite(3, 17, 24, -29, 0, 0, pierreFoncee); A.toit(20, 5, 3, -29, 17, 0, pierreFoncee);
+    for (const z of [-11, 11]) { A.cylindre(2.4, 2.4, 17, 12, -29, 0, z, pierre); A.cylindre(1.8, 1.8, 3, 10, -29, 17, z, pierre); A.pyramide(2.1, 6, 12, -29, 20, z, pierreFoncee); }
+    A.extrusion(A.formeArche(4.5, 7), 0.6, -30.6, 0, 0, porte, Math.PI / 2);
+    A.boite(8, 20, 8, 6, 0, 0, pierre); A.cylindre(3.6, 3.6, 6, 12, 6, 20, 0, pierre); A.pyramide(4, 8, 12, 6, 26, 0, pierreFoncee);
+    return A.groupe;
+  }
+
+  // la cathédrale Notre-Dame du Puy-en-Velay : la nef et ses coupoles, la façade polychrome en haut du grand escalier,
+  // le clocher à étages
+  function cathedralePuy(THREE) {
+    const A = atelier(THREE);
+    const pierre = A.matiere(0xD9C7A2), lave = A.matiere(0x6B5A50), tuile = A.matiere(0xA9614A);
+    A.boite(66, 22, 24, -7.4, 0, 0, pierre); A.toit(24.6, 4, 66, -7.4, 22, 0, tuile);
+    for (const x of [-32, -20, -8, 4]) { A.piece((e) => new THREE.CylinderGeometry(5 + e, 5 + e, 3 + 2 * e, 8).rotateY(Math.PI / 8).translate(0, 1.5, 0), pierre, A.V(x, 24, 0)); A.dome(5.2, 0.8, x, 27, 0, tuile); }
+    A.boite(3, 26, 24, -41.5, 0, 0, pierre); A.boites([[0.6, 24, 1.6, -43.2, 0, -8], [0.6, 24, 1.6, -43.2, 0, 8]], lave);
+    for (const z of [-4, 4]) A.extrusion(A.formeArche(5, 16), 0.6, -43.2, 0, z, lave, Math.PI / 2);
+    A.boites([[11, 20, 11, 31, 0, -6.2], [8.5, 12, 8.5, 31, 20, -6.2], [6.5, 10, 6.5, 31, 32, -6.2], [4.5, 8, 4.5, 31, 42, -6.2]], pierre); A.pyramide(3.2, 6, 4, 31, 50, -6.2, tuile);
+    return A.groupe;
+  }
+
+  // l'église Saint-Maclou de Rouen : le chef-d'œuvre flamboyant, le porche aux cinq pignons, la tour-lanterne et sa flèche
+  function saintMaclou(THREE) {
+    const g = cathedrale(THREE, { F: -17, E: 34, larg: 9, mur: 24, toitH: 8, xT: 23.6, transept: 29, transeptL: 8.4, cote: 9, facadeH: 26, rose: 3,
+      tours: [{ z: 0, h: 22, cote: 9 }], flecheCroisee: { tour: 14, cote: 9, h: 30, r: 4, seg: 8 } });
+    const A = atelier(THREE), pierre = A.matiere(0xF0E3C4);
+    A.boite(5, 13, 20, -21.5, 0, 0, pierre); for (const z of [-7, 0, 7]) A.toit(6.4, 6, 3, -23, 13, z, pierre);
+    g.add(A.groupe); return g;
+  }
+
+  // le couvent des Jacobins de Toulouse : l'église de brique et ses contreforts, son chevet, le clocher octogonal à étages
+  function jacobins(THREE) {
+    const A = atelier(THREE);
+    const brique = A.matiere(0xD27A55), briqueClaire = A.matiere(0xE59A72), tuile = A.matiere(0xB0563A);
+    A.boite(70, 29, 25.6, -11.6, 0, 45.5, brique); A.toit(26.2, 8, 70, -11.6, 29, 45.5, tuile); A.abside(12.8, 29, 23.4, 0, 45.5, brique); A.demiCone(13.3, 8, 23.4, 29, 45.5, tuile);
+    A.boites(Array.from({ length: 9 }, (_, k) => -44 + k * 8).flatMap((x) => [[2, 25, 2.4, x, 0, 32], [2, 25, 2.4, x, 0, 59]]), briqueClaire);
+    const oct = (rh, rb, h, y) => A.piece((e) => new THREE.CylinderGeometry(rh + e, rb + e, h + 2 * e, 8).rotateY(Math.PI / 8).translate(0, h / 2, 0), brique, A.V(12, y, 32.3));
+    oct(4.4, 4.4, 30, 0); oct(4.1, 4.3, 4.5, 30); oct(3.8, 4, 4.5, 34.5); oct(3.5, 3.7, 4.5, 39); A.pyramide(3.4, 5, 8, 12, 43.5, 32.3, tuile);
+    return A.groupe;
+  }
+
+  // la cathédrale Saint-Étienne de Cahors : le massif occidental fortifié, la nef et ses deux grandes coupoles, le chœur
+  function cathedraleCahors(THREE) {
+    const A = atelier(THREE);
+    const pierre = A.matiere(0xE6D3A8), pierreFoncee = A.matiere(0xC9B07E), tuile = A.matiere(0xB0603F);
+    A.boite(12.7, 34, 25, -35.7, 0, -11.3, pierre); A.creneaux([A.tourDe(13.1, 25.4, -35.7, -11.3)], 34, 0.8, pierreFoncee);
+    A.boites([[3, 6, 3, -35.7, 34, -20], [3, 6, 3, -35.7, 34, -2.6]], pierre); A.pyramide(2.4, 4, 4, -35.7, 40, -20, tuile); A.pyramide(2.4, 4, 4, -35.7, 40, -2.6, tuile);
+    A.boite(42, 17, 26, -8, 0, -11.3, pierre);
+    for (const x of [-19, 2]) { A.cylindre(9.5, 9.5, 3, 24, x, 17, -11.3, pierreFoncee); A.dome(9.6, 0.55, x, 20, -11.3, tuile); }
+    A.boite(9, 17, 24, 17.5, 0, -11.3, pierre); A.abside(8, 17, 22, 0, -11.3, pierre); A.demiCone(8.5, 5, 22, 17, -11.3, tuile);
+    A.abside(10, 10, 21, 0, -11.3, pierreFoncee); A.demiCone(10.5, 3, 21, 10, -11.3, tuile);
+    return A.groupe;
+  }
+
+  // le phare d'Ar-Men : la tour blanche sur son rocher en pleine mer, la lanterne
+  function pharArMen(THREE) {
+    const A = atelier(THREE);
+    const roche = A.matiere(0x5E5650), blanc = A.matiere(0xF4F4F0), noir = A.matiere(0x2E2E36), lumiere = A.matiere(0xFFE27A, 0x8A6A00);
+    A.piece((e) => new THREE.CylinderGeometry(6.5 + e, 8 + e, 3 + 2 * e, 9).translate(0, 1.5, 0), roche, A.V(0, 0, 0));
+    A.cylindre(3.2, 4.3, 30, 16, 0, 3, 0, blanc); A.cylindre(4, 4, 0.8, 16, 0, 33, 0, noir);
+    A.cylindre(2.3, 2.3, 3.4, 12, 0, 33.8, 0, lumiere); A.dome(2.5, 0.8, 0, 37.2, 0, noir);
+    return A.groupe;
+  }
+
+  // le château de Vitré : l'enceinte triangulaire, ses tours rondes et leurs toits pointus, le logis
+  function vitre(THREE) {
+    const A = atelier(THREE);
+    const schiste = A.matiere(0xBFB3A0), schisteOmbre = A.matiere(0xA0937E), ardoise = A.matiere(0x4F5D8C);
+    const coins = [[-38, -34], [37, -44], [36, -5], [33, 6], [11, 36], [-11, 12], [-38, -34]];
+    A.remparts([coins], 12, 4, schisteOmbre); A.creneaux([coins], 12, 0.9, schiste);
+    A.boite(45, 18, 14, -16, 0, -32, schiste); A.toit(14.6, 9, 45, -16, 18, -32, ardoise);
+    const tours = [[-38, -34, 5.5, 22], [37, -44, 6, 24], [36, -5, 4.5, 18], [33, 6, 4, 18], [11, 36, 7, 22], [-11, 12, 4.5, 18]];
+    A.cylindres(tours.map(([x, z, r, h]) => [x, z, r, h, 0]), schiste, 16); A.cones(tours.map(([x, z, r, h]) => [x, z, r + 0.4, h, r * 1.8]), ardoise, 16);
+    return A.groupe;
+  }
+
+  // la basilique Sainte-Thérèse de Lisieux : la nef, le transept, le grand dôme de la croisée et sa lanterne, le portique
+  function basiliqueLisieux(THREE) {
+    const A = atelier(THREE);
+    const pierre = A.matiere(0xF0EADA), pierreFoncee = A.matiere(0xD8CDB2), plomb = A.matiere(0x7E8AA8), or = A.matiere(0xFFC233, 0x7A4A00);
+    A.boite(80, 30, 30, 7, 0, 0, pierre); A.toit(30.6, 6, 80, 7, 30, 0, plomb); A.abside(15, 30, 47, 0, 0, pierre); A.demiCone(15.5, 6, 47, 30, 0, plomb);
+    A.boite(29.5, 30, 63, 3.85, 0, 1.2, pierre); A.toit(30, 6, 63, 3.85, 30, 1.2, plomb, Math.PI / 2);
+    A.cylindre(14, 14, 22, 24, 3.85, 30, 0, pierre); A.cylindre(14.8, 14.8, 1.4, 24, 3.85, 51, 0, pierreFoncee); A.dome(14.4, 1.3, 3.85, 52.4, 0, plomb);
+    A.cylindre(2.4, 2.4, 6, 12, 3.85, 70.8, 0, pierre); A.dome(2.7, 1.4, 3.85, 76.8, 0, plomb); A.boule(0.8, 3.85, 81, 0, or);
+    for (const [dx, dz] of [[1, 1], [1, -1], [-1, 1], [-1, -1]]) { A.cylindre(3, 3, 6, 12, 3.85 + dx * 17, 30, dz * 17, pierre); A.dome(3.2, 1.2, 3.85 + dx * 17, 36, dz * 17, plomb); }
+    A.boite(20, 38, 22, -43.5, 0, 0, pierre); A.toit(22.6, 6, 20, -43.5, 38, 0, plomb, Math.PI / 2); A.extrusion(A.formeArche(10, 22), 0.8, -53.7, 0, 0, pierreFoncee, Math.PI / 2);
+    return A.groupe;
+  }
+
   // les maquettes connues : le monument (identifiant de data/monuments.json), où et comment la poser, et les
   // bâtiments de l'IGN qu'elle remplace (sinon les blocs gris de la BD TOPO resteraient dedans)
   const MODELES = {
@@ -3415,6 +3545,39 @@
     Q1785858: {   // Saint-Thomas de Strasbourg
       construire: saintThomasStrasbourg, centre: [7.7453, 48.5797], orientation: 1, masquer: ['BATIMENT0000002223284743'],
     },
+    Q1816823: {   // le pont Valentré
+      construire: pontValentre, centre: [1.431684, 44.445057], orientation: 17.3, masquer: ['BATIMENT0000002004418725', 'BATIMENT0000002004418724', 'BATIMENT0000002004418726'],
+    },
+    Q588555: {   // l'église Saint-Joseph du Havre
+      construire: saintJosephHavre, centre: [0.101167, 49.490979], orientation: -4, masquer: ['BATIMENT0000000239665188', 'BATIMENT0000000239665187', 'BATIMENT0000000239665189', 'BATIMENT0000000239665190'],
+    },
+    Q2561040: {   // le mémorial de Vimy
+      construire: memorialVimy, centre: [2.7736, 50.3794], orientation: 0, masquer: ['BATIMENT0000000292662501'],
+    },
+    Q939114: {   // Notre-Dame-la-Grande de Poitiers
+      construire: notreDameLaGrande, centre: [0.344048, 46.583225], orientation: -32, masquer: ['BATIMENT0000000273320192'],
+    },
+    Q1537302: {   // Notre-Dame du Puy-en-Velay
+      construire: cathedralePuy, centre: [3.8848, 45.0456], orientation: 1, masquer: ['BATIMENT0000000353317496', 'BATIMENT0000000353317467'],
+    },
+    Q2640697: {   // Saint-Maclou de Rouen
+      construire: saintMaclou, centre: [1.098298, 49.439791], orientation: -8, masquer: ['BATIMENT0000000240188953', 'BATIMENT0000000240188954'],
+    },
+    Q2759640: {   // le couvent des Jacobins de Toulouse
+      construire: jacobins, centre: [1.4402, 43.6039], orientation: 9, masquer: ['BATIMENT0000000347888822', 'BATIMENT0000000347894234', 'BATIMENT0000000347894235', 'BATIMENT0000000347894309'],
+    },
+    Q847628: {   // Saint-Étienne de Cahors
+      construire: cathedraleCahors, centre: [1.4431, 44.4472], orientation: 10, masquer: ['BATIMENT0000000291402937', 'BATIMENT0000000291402931', 'BATIMENT0000000291402936'],
+    },
+    Q623540: {   // le phare d'Ar-Men, en pleine mer
+      construire: pharArMen, centre: [-4.9972, 48.0503], orientation: 0, masquer: [],
+    },
+    Q2418225: {   // le château de Vitré
+      construire: vitre, centre: [-1.2153, 48.1244], orientation: 9, masquer: ['BATIMENT0000002101264821', 'BATIMENT0000002101264822'],
+    },
+    Q810098: {   // la basilique Sainte-Thérèse de Lisieux
+      construire: basiliqueLisieux, centre: [0.2366, 49.1396], orientation: 15, masquer: ['BATIMENT0000000201310488', 'BATIMENT0000000246759938', 'BATIMENT0000000201310482'],
+    },
   };
   const MASQUES = Object.values(MODELES).flatMap((m) => m.masquer);
 
@@ -3495,6 +3658,7 @@
     saintJulienLePauvre, baptistere, beynac, pau, saintNicolasChardonnet, abbayeAuxHommes, aiguilhe, auch, rennes, cathedraleAngers, pontMarie, palaisDucsBourgogne,
     cathedraleBlois, cathedraleVannes, cathedralePoitiers, cathedraleMontpellier, cathedraleSoissons, cathedraleVersailles, valDeGrace, saintMichelBordeaux, cathedraleRodez, notreDameDesVictoires, grandeSynagogue, fontaineInnocents,
     saintPaulSaintLouis, notreDameDeLorette, saintJeanMontmartre, cathedraleSenlis, cathedraleMeaux, conques, abbayeAuxDames, chateaudun, hotelDeSens, hotelDeSully, saintUrbain, chapelleExpiatoire,
-    cathedraleCoutances, cathedraleAuxerre, saintOuen, cathedraleBayonne, cathedraleBeziers, cathedraleNevers, cathedraleToul, hospicesBeaune, gien, falaise, ossuaireDouaumont, saintThomasStrasbourg };
+    cathedraleCoutances, cathedraleAuxerre, saintOuen, cathedraleBayonne, cathedraleBeziers, cathedraleNevers, cathedraleToul, hospicesBeaune, gien, falaise, ossuaireDouaumont, saintThomasStrasbourg,
+    pontValentre, saintJosephHavre, memorialVimy, notreDameLaGrande, cathedralePuy, saintMaclou, jacobins, cathedraleCahors, pharArMen, vitre, basiliqueLisieux };
   if (typeof module !== 'undefined' && module.exports) module.exports = api; else racine.Maquettes = api;
 })(typeof globalThis !== 'undefined' ? globalThis : this);
