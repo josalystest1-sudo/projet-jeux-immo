@@ -1385,12 +1385,14 @@ const ETAPE_MS=900;
 // un cadre (unités du dessin) aux proportions de la scène (largeur / hauteur = ratio), autour du même centre
 function cadreAspect(bb, ratio){ let [x,y,w,h]=bb; if(w/h<ratio){ const w2=h*ratio; x-=(w2-w)/2; w=w2; } else { const h2=w/ratio; y-=(h2-h)/2; h=h2; } return [x,y,w,h]; }
 // peindre une étape : des couches d'anneaux (lon, lat) et, pour la rue, le plan de l'IGN ; k = pixels du canevas par pixel CSS
-function peindreEtape(cv, vue, couches, k, c, plan){ const g=cv.getContext('2d'), s=cv.width/vue[2];
+function peindreEtape(cv, vue, couches, k, c, plan, point){ const g=cv.getContext('2d'), s=cv.width/vue[2];
   g.setTransform(s,0,0,s,-vue[0]*s,-vue[1]*s); g.lineJoin='round'; g.lineCap='round'; const L=(px_)=>px_*k/s;
   const trace=(rings)=>{ g.beginPath(); for(const r of rings){ r.forEach(([lo,la],i)=>{ const [x,y]=px(lo,la); i?g.lineTo(x,y):g.moveTo(x,y); }); g.closePath(); } };
   for(const cc of couches){ trace(cc.rings);
     if(cc.style==='fond'){ g.fillStyle='rgba(233,199,123,.05)'; g.fill(); g.strokeStyle='rgba(233,199,123,.4)'; g.lineWidth=L(1.3); g.stroke(); }
+    else if(cc.style==='traits'){ g.strokeStyle='rgba(233,199,123,.28)'; g.lineWidth=L(1); g.stroke(); }
     else if(cc.style==='zone'){ g.fillStyle='rgba(233,199,123,.17)'; g.fill(); g.strokeStyle='rgba(255,200,110,.22)'; g.lineWidth=L(9); g.stroke(); g.strokeStyle='#F3D899'; g.lineWidth=L(2.6); g.stroke(); }
+    else if(cc.style==='allume'){ g.fillStyle='rgba(255,214,140,.5)'; g.fill(); g.strokeStyle='rgba(255,236,190,.4)'; g.lineWidth=L(10); g.stroke(); g.strokeStyle='#FFF6DA'; g.lineWidth=L(2.6); g.stroke(); }
     else if(cc.style==='cible'){ const gr=g.createLinearGradient(vue[0],vue[1],vue[0]+vue[2],vue[1]+vue[3]); gr.addColorStop(0,'rgba(251,231,169,.95)'); gr.addColorStop(1,'rgba(201,151,63,.92)'); g.fillStyle=gr; g.fill();
       g.strokeStyle='rgba(255,210,120,.3)'; g.lineWidth=L(10); g.stroke(); g.strokeStyle='#FFF1C9'; g.lineWidth=L(2.8); g.stroke(); } }
   if(plan){ const kx=111320*Math.cos(c.lat*Math.PI/180), ky=110574, pm=([x,y])=>px(c.lon+x/kx, c.lat+y/ky), u=Math.abs(px(c.lon,c.lat+1/ky)[1]-px(c.lon,c.lat)[1]);
@@ -1399,28 +1401,43 @@ function peindreEtape(cv, vue, couches, k, c, plan){ const g=cv.getContext('2d')
     for(const b of plan.batiments){ if(b.cible) continue; chemin(b.r,true); g.fillStyle='rgba(233,199,123,.08)'; g.fill(); g.strokeStyle='rgba(233,199,123,.85)'; g.lineWidth=L(1.6); g.stroke(); }
     if(plan.parcelle){ chemin(plan.parcelle,true); g.fillStyle='rgba(233,199,123,.22)'; g.fill(); g.strokeStyle='#FFF1C9'; g.lineWidth=L(2.4); g.stroke(); }
     for(const b of plan.batiments){ if(!b.cible) continue; chemin(b.r,true); g.strokeStyle='rgba(255,236,190,.35)'; g.lineWidth=L(10); g.stroke(); g.fillStyle='rgba(255,248,230,.88)'; g.fill(); g.strokeStyle='#fff'; g.lineWidth=L(2.2); g.stroke(); } }
-  // le lieu : un point blanc et son halo
-  const [dx,dy]=px(c.lon,c.lat); g.fillStyle='rgba(255,236,190,.35)'; g.beginPath(); g.arc(dx,dy,L(9),0,Math.PI*2); g.fill(); g.fillStyle='#fff'; g.beginPath(); g.arc(dx,dy,L(4.5),0,Math.PI*2); g.fill();
-  g.strokeStyle='rgba(255,241,201,.85)'; g.lineWidth=L(1.6); g.beginPath(); g.arc(dx,dy,L(11),0,Math.PI*2); g.stroke(); }
+  // le lieu : un point blanc et son halo, seulement à la fin (Gautier : on savait où était le lieu avant même le zoom)
+  if(point){ const [dx,dy]=px(c.lon,c.lat); g.fillStyle='rgba(255,236,190,.35)'; g.beginPath(); g.arc(dx,dy,L(9),0,Math.PI*2); g.fill(); g.fillStyle='#fff'; g.beginPath(); g.arc(dx,dy,L(4.5),0,Math.PI*2); g.fill();
+    g.strokeStyle='rgba(255,241,201,.85)'; g.lineWidth=L(1.6); g.beginPath(); g.arc(dx,dy,L(11),0,Math.PI*2); g.stroke(); } }
 // un nom « claque » au centre de la carte (grand, avec un choc), puis se range en haut
 function claque(scene, nom){ const el=scene.querySelector('.rev-nom'), fil=scene.querySelector('.rev-fil'); el.firstChild.textContent=nom; el.classList.remove('claque'); void el.offsetWidth; el.classList.add('claque');
   clearTimeout(el._t); el._t=setTimeout(()=>{ fil.textContent=nom; fil.classList.remove('arrive'); void fil.offsetWidth; fil.classList.add('arrive'); }, 720); }
 // préparer les images de toutes les étapes (pendant l'annonce) ; jouer ensuite n'est plus que des transformations CSS
+// attendre un moment où la page n'a rien d'autre à faire (pour préparer sans faire d'accroc)
+function repos(){ return new Promise(res=>window.requestIdleCallback ? requestIdleCallback(()=>res(), { timeout:250 }) : setTimeout(res,16)); }
 async function preparerRevelation(scene, c){ scene.innerHTML='<div class="rev-fil"></div><div class="rev-nom"><span></span></div><i class="rev-sombre"></i><i class="rev-vignette"></i>'; scene.classList.remove('fin');
   const W=scene.clientWidth||240, H=scene.clientHeight||350, ratio=W/H, k=Math.min(2.25, (devicePixelRatio||1)*(PK.grand||1.4)); const dep=depOf(c.citycode), reg=regionDe(dep);
   const autour=(bb,pad)=>{ const [x,y,w,h]=bb; return [x-w*pad, y-h*pad*1.6, w*(1+2*pad), h*(1+3.2*pad)]; };   // un peu plus de place en haut (le nom rangé)
   const [com, plan] = await Promise.all([fetchCommune(c).catch(()=>null), window.CarteLieu ? CarteLieu.donnees(c).catch(()=>null) : null]);
-  const etapes=[ { nom:'France', vue:autour(bboxOf(GEO.france,0),0.05), couches:[{ rings:GEO.france, style:'zone' }] } ];
-  if(reg) etapes.push({ nom:reg.nom, vue:autour(bboxOf(reg.rings,0),0.12), couches:[{ rings:GEO.france, style:'fond' }, { rings:reg.rings, style:'zone' }] });
-  if(dep) etapes.push({ nom:dep.nom+' · '+dep.code, vue:autour(bboxOf(dep.rings,0),0.14), couches:[{ rings:reg?reg.rings:GEO.france, style:'fond' }, { rings:dep.rings, style:'zone' }] });
-  if(com) etapes.push({ nom:com.nom, vue:autour(bboxOf(com.rings,0),0.18), couches:[{ rings:dep?dep.rings:[], style:'fond' }, { rings:com.rings, style:'cible' }] });
-  if(plan && (plan.routes.length || plan.batiments.length)){ const kx=111320*Math.cos(c.lat*Math.PI/180), ky=110574, d=95; const [x0,y0]=px(c.lon-d/kx,c.lat+d/ky), [x1,y1]=px(c.lon+d/kx,c.lat-d/ky);
-    etapes.push({ nom: estAdresse(c) ? (Regles.numeroEtVoie(c.label).voie||'') : '', vue:[x0,y0,x1-x0,y1-y0], couches:[{ rings:com?com.rings:[], style:'fond' }], plan }); }
-  // une image par étape ; on laisse respirer la page entre deux (l'annonce continue de trembler pendant ce temps)
-  for(const e of etapes){ e.vue=cadreAspect(e.vue, ratio); const cv=document.createElement('canvas'); cv.className='rev-plan'; cv.width=Math.round(W*k); cv.height=Math.round(H*k);
-    peindreEtape(cv, e.vue, e.couches, k, c, e.plan||null); e.cv=cv; await new Promise(res=>setTimeout(res,16)); }
+  const toutesDeps=Object.keys(GEO.deps), ringsDe=(codes)=>codes.flatMap(kk=>(GEO.deps[kk]||{}).rings||[]);
+  const avecRue = !!(plan && (plan.routes.length || plan.batiments.length));
+  // la roulette : les régions de France (étape 1), puis les départements de la région (étape 2) s'allument tour à tour
+  const regions=Object.entries(REGIONS).map(([nom,ds])=>({ nom, rings:ringsDe(ds) }));
+  const etapes=[ { nom:'France', vue:autour(bboxOf(GEO.france,0),0.05), couches:[{ rings:GEO.france, style:'zone' }, { rings:ringsDe(toutesDeps), style:'traits' }],
+    roulette: reg ? { calques:regions.map(x=>x.rings), noms:regions.map(x=>x.nom), cible:regions.findIndex(x=>x.nom===reg.nom) } : null } ];
+  if(reg){ const ds=REGIONS[reg.nom]; etapes.push({ nom:null, fil:reg.nom, vue:autour(bboxOf(reg.rings,0),0.12), couches:[{ rings:GEO.france, style:'fond' }, { rings:reg.rings, style:'zone' }, { rings:reg.rings, style:'traits' }],
+    roulette: dep ? { calques:ds.map(kk=>(GEO.deps[kk]||{}).rings||[]), noms:ds.map(kk=>((GEO.deps[kk]||{}).nom||'')+' · '+kk), cible:ds.indexOf(dep.code) } : null }); }
+  if(dep) etapes.push({ nom:null, fil:dep.nom+' · '+dep.code, vue:autour(bboxOf(dep.rings,0),0.14), couches:[{ rings:reg?reg.rings:GEO.france, style:'fond' }, { rings:dep.rings, style:'zone' }] });
+  if(com) etapes.push({ nom:com.nom, vue:autour(bboxOf(com.rings,0),0.18), couches:[{ rings:dep?dep.rings:[], style:'fond' }, { rings:com.rings, style:'cible' }], point:!avecRue });
+  if(avecRue){ const kx=111320*Math.cos(c.lat*Math.PI/180), ky=110574, d=95; const [x0,y0]=px(c.lon-d/kx,c.lat+d/ky), [x1,y1]=px(c.lon+d/kx,c.lat-d/ky);
+    etapes.push({ nom: estAdresse(c) ? (Regles.numeroEtVoie(c.label).voie||'') : '', vue:[x0,y0,x1-x0,y1-y0], couches:[{ rings:com?com.rings:[], style:'fond' }], plan, point:true }); }
+  // une image par étape (et une par case de la roulette) ; on laisse respirer la page entre deux
+  const kc=Math.min(1.25,k), toile=(kk)=>{ const cv=document.createElement('canvas'); cv.width=Math.round(W*kk); cv.height=Math.round(H*kk); return cv; };   // les cases de la roulette, plus légères
+  for(const e of etapes){ e.vue=cadreAspect(e.vue, ratio); const bloc=document.createElement('div'); bloc.className='rev-plan'; const cv=toile(k);
+    peindreEtape(cv, e.vue, e.couches, k, c, e.plan||null, !!e.point); bloc.appendChild(cv); e.cv=bloc; await repos();
+    if(e.roulette && e.roulette.cible>=0){ e.roulette.toiles=[]; for(const rings of e.roulette.calques){ const t2=toile(kc); t2.className='rev-case'; peindreEtape(t2, e.vue, [{ rings, style:'allume' }], kc, c, null, false); bloc.appendChild(t2); e.roulette.toiles.push(t2); await repos(); } } }
   return { etapes, W, H }; }
+// la roulette : les cases s'allument tour à tour, de plus en plus lentement, et s'arrêtent sur la bonne ; un toucher l'arrête
+async function roulette(rl, r){ const n=rl.toiles.length, voir=(i)=>rl.toiles.forEach((t,j)=>t.classList.toggle('on', j===i)); let i=(rl.cible+1+Math.floor(Math.random()*(n-1)))%n, d=70;
+  if(n>1) while(!REV.passer && d<300){ voir(i); sonTick(620+((i*97)%5)*90); vibrer(5); await pauseR(d); d*=1.17; i=(i+1+Math.floor(Math.random()*Math.max(1,n-2)))%n; if(i===rl.cible && d<300) i=(i+1)%n; }
+  voir(rl.cible); choc(r, true); }
 async function revelationSurCarte(scene, c, r, prep){ const { etapes, W, H } = prep || await preparerRevelation(scene, c); let prec=null, vuePrec=null;
+  const fil=(t)=>{ const f=scene.querySelector('.rev-fil'); f.textContent=t; f.classList.remove('arrive'); void f.offsetWidth; f.classList.add('arrive'); };
   for(let i=0;i<etapes.length;i++){ const e=etapes[i], cv=e.cv, vue=e.vue; etapeR(); scene.insertBefore(cv, scene.querySelector('.rev-fil'));
     if(prec){ const [x0,y0,w0,h0]=vuePrec, rx=(vue[0]-x0)/w0*W, ry=(vue[1]-y0)/h0*H, z=w0/vue[2], p=prec;
       // la nouvelle image part de l'endroit qu'elle occupe dans l'ancienne et s'agrandit ; l'ancienne s'agrandit au-delà et s'efface
@@ -1428,8 +1445,10 @@ async function revelationSurCarte(scene, c, r, prep){ const { etapes, W, H } = p
       cv.classList.add('entre'); p.classList.add('sort'); cv.style.transform='none'; cv.style.opacity='1';
       p.style.transform=`translate(${-rx*z}px,${-ry*z}px) scale(${z})`; p.style.opacity='0'; setTimeout(()=>p.remove(), 1200); }
     else { cv.classList.add('premiere'); }
-    prec=cv; vuePrec=vue; if(e.nom) claque(scene, e.nom); choc(r, i===0); coeur(1+i*0.5);
-    await pauseR(ETAPE_MS+(i===0?500:550)); }
+    prec=cv; vuePrec=vue; coeur(1+i*0.5);
+    if(e.nom) { claque(scene, e.nom); choc(r, i===0); } else if(e.fil) { fil(e.fil); }
+    if(e.roulette && e.roulette.toiles){ await pauseR(i===0 ? 1000 : 950); if(!REV.passer){ await roulette(e.roulette, r); claque(scene, e.roulette.noms[e.roulette.cible]); await pauseR(1100); } else e.roulette.toiles.forEach((t,j)=>t.classList.toggle('on', j===e.roulette.cible)); }
+    else await pauseR(ETAPE_MS+(i===0?500:550)); }
   return true; }
 // l'alerte d'une carte Épique et au-delà : l'écran tremble, un double signal, le bandeau de la rareté au milieu, qui monte ensuite en haut
 function alerteRarete(r){ const al=document.getElementById('ralerte'), rv=document.getElementById('reveal'); al.className='r'+r; al.querySelector('span').textContent=RARETES[r]; void al.offsetWidth; al.classList.add('on');
@@ -1469,7 +1488,7 @@ function sonTick(fq){ const a=audio(); if(!a) return; const o=a.createOscillator
 let revealing=false;
 let packCards=null, packTorn=false;
 let packOuverture=null;   // la ligne d'ouverture du pack à l'écran (les cartes en sortent)
-function openScene(){ const sc=document.getElementById('packscene'); packTorn=false; packCards=null; packOuverture=null; document.getElementById('pkgl').style.display='block';
+function openScene(){ const sc=document.getElementById('packscene'); setTimeout(()=>{ try{ document.documentElement.style.setProperty('--dos-carte', `url(${imageDosCarte()})`); }catch(e){} }, 250); packTorn=false; packCards=null; packOuverture=null; document.getElementById('pkgl').style.display='block';
   document.getElementById('pkcards').innerHTML=''; document.getElementById('packdone').style.display='none'; document.getElementById('pkhint').textContent='Incline ton téléphone…'; document.getElementById('pkload').textContent='Le pack arrive…';
   sc.classList.add('on'); requestAnimationFrame(()=>{ sc.classList.add('show'); initGL(); }); }
 function finPack(){ const sc=document.getElementById('packscene'); cancelAnimationFrame(PK.anim); if(PACK_ESSAI){ PACK_ESSAI=false; setTimeout(()=>toast('Pack d’essai : rien n’a été ajouté à ton patrimoine'), 600); } sc.classList.remove('show','fini'); setTimeout(()=>{ sc.classList.remove('on'); disposeGL(); }, 500); renderPatrimoine(); refreshTop(); if(!state.prefs.guideVu) setTimeout(()=>guide(0), 900); }
@@ -1486,10 +1505,44 @@ function dechirer(){ if(GL.torn) return; packTorn=true; packOuverture=null;
 // (ou en penchant le téléphone) ; on la fait glisser sur le côté, ou on la touche, pour passer à la suivante. À la fin, les
 // cartes en éventail ; en toucher une l'agrandit (et on peut encore l'incliner).
 const PK={ cartes:[], i:0, etat:'pile', zoom:-1, anim:0 };   // etat : pile, revele, main, fini
+// Le dos des cartes (Gautier, 4 nov. : « trop basique, vide, pas premium ») : un bleu nuit profond, des rayons et une rosace
+// guillochée comme sur un billet de banque, la France en filigrane, un double cadre d'or aux angles ouvragés, un médaillon
+// d'or avec la pièce-maison, CITYDECK en capitales d'or. Dessiné une seule fois, puis posé comme une image (aucun coût
+// pendant l'ouverture).
+function imageDosCarte(){ if(imageDosCarte.url) return imageDosCarte.url; const W=480, H=700, c=document.createElement('canvas'); c.width=W; c.height=H; const g=c.getContext('2d'), cx=W/2, cy=H*0.43;
+  const OR=(x0,y0,x1,y1)=>{ const d=g.createLinearGradient(x0,y0,x1,y1); d.addColorStop(0,'#FFF4D2'); d.addColorStop(.35,'#E9C77B'); d.addColorStop(.65,'#B8862F'); d.addColorStop(1,'#F6DE9C'); return d; };
+  const arrondi=(x,y,w,h,r)=>{ g.beginPath(); g.moveTo(x+r,y); g.arcTo(x+w,y,x+w,y+h,r); g.arcTo(x+w,y+h,x,y+h,r); g.arcTo(x,y+h,x,y,r); g.arcTo(x,y,x+w,y,r); g.closePath(); };
+  const f=g.createRadialGradient(cx,cy,20,cx,cy,H*0.72); f.addColorStop(0,'#1D3E84'); f.addColorStop(.5,'#0C1A40'); f.addColorStop(1,'#040A1C'); g.fillStyle=f; g.fillRect(0,0,W,H);
+  // les rayons derrière le médaillon
+  g.save(); g.translate(cx,cy); for(let k=0;k<48;k++){ g.rotate(Math.PI/24); g.fillStyle=k%2?'rgba(233,199,123,.05)':'rgba(233,199,123,.022)'; g.beginPath(); g.moveTo(0,0); g.lineTo(-20,-460); g.lineTo(20,-460); g.closePath(); g.fill(); } g.restore();
+  // la France en filigrane
+  if(window.GEO && GEO.france){ const kx=Math.cos(46.5*Math.PI/180), e=34, P=([lo,la])=>[cx+(lo-2.35)*kx*e, cy+18-(la-46.4)*e]; g.beginPath(); for(const r of GEO.france) r.forEach((q,i)=>{ const [x,y]=P(q); i?g.lineTo(x,y):g.moveTo(x,y); }); g.fillStyle='rgba(233,199,123,.035)'; g.fill(); g.strokeStyle='rgba(233,199,123,.12)'; g.lineWidth=1.4; g.stroke(); }
+  // la rosace guillochée, comme sur un billet : des cercles décalés autour du centre, deux couronnes
+  g.save(); g.translate(cx,cy); g.lineWidth=1; for(let k=0;k<40;k++){ const a=k*Math.PI/20; g.strokeStyle='rgba(233,199,123,.15)'; g.beginPath(); g.arc(Math.cos(a)*58,Math.sin(a)*58,74,0,Math.PI*2); g.stroke(); }
+    for(let k=0;k<72;k++){ const a=k*Math.PI/36; g.strokeStyle='rgba(233,199,123,.07)'; g.beginPath(); g.arc(Math.cos(a)*118,Math.sin(a)*118,40,0,Math.PI*2); g.stroke(); } g.restore();
+  // le double cadre d'or, aux angles ouvragés (éventails, losanges), et les losanges au milieu des côtés
+  arrondi(14,14,W-28,H-28,24); g.strokeStyle=OR(0,0,W,H); g.lineWidth=3.5; g.stroke(); arrondi(26,26,W-52,H-52,16); g.strokeStyle='rgba(233,199,123,.75)'; g.lineWidth=1.4; g.stroke();
+  for(const [x,y,sx,sy] of [[26,26,1,1],[W-26,26,-1,1],[26,H-26,1,-1],[W-26,H-26,-1,-1]]){ g.strokeStyle='rgba(233,199,123,.8)'; g.lineWidth=1.3;
+    for(const a of [18,28,38]){ g.beginPath(); g.arc(x,y,a, sx>0?(sy>0?0:-Math.PI/2):(sy>0?Math.PI/2:Math.PI), sx>0?(sy>0?Math.PI/2:0):(sy>0?Math.PI:Math.PI*1.5)); g.stroke(); }
+    g.fillStyle=OR(x-8,y-8,x+8,y+8); g.beginPath(); g.moveTo(x+sx*8,y+sy*2); g.lineTo(x+sx*12,y+sy*8); g.lineTo(x+sx*8,y+sy*14); g.lineTo(x+sx*4,y+sy*8); g.closePath(); g.fill(); }
+  for(const [x,y] of [[cx,14],[cx,H-14],[14,H/2],[W-14,H/2]]){ g.fillStyle=OR(x-7,y-7,x+7,y+7); g.beginPath(); g.moveTo(x,y-8); g.lineTo(x+8,y); g.lineTo(x,y+8); g.lineTo(x-8,y); g.closePath(); g.fill(); }
+  // le médaillon : deux anneaux d'or, une couronne de perles, le fond bleu, la pièce-maison
+  const m=g.createRadialGradient(cx-20,cy-24,8,cx,cy,84); m.addColorStop(0,'#24489A'); m.addColorStop(1,'#0A1738'); g.fillStyle=m; g.beginPath(); g.arc(cx,cy,84,0,Math.PI*2); g.fill();
+  g.strokeStyle=OR(cx-90,cy-90,cx+90,cy+90); g.lineWidth=6; g.beginPath(); g.arc(cx,cy,88,0,Math.PI*2); g.stroke(); g.lineWidth=1.6; g.beginPath(); g.arc(cx,cy,76,0,Math.PI*2); g.stroke();
+  g.fillStyle='#E9C77B'; for(let k=0;k<36;k++){ const a=k*Math.PI/18; g.beginPath(); g.arc(cx+Math.cos(a)*82,cy+Math.sin(a)*82,1.6,0,Math.PI*2); g.fill(); }
+  const MAISON=new Path2D('M16 2.3 29.7 13.5V27.3Q29.7 29.7 27.3 29.7H4.7Q2.3 29.7 2.3 27.3V13.5Z'), LETTRE=new Path2D('M19.8 17.3A4.8 4.8 0 1 0 19.8 23.9'), REFLET=new Path2D('M5.2 12.6 15.2 4.5');
+  g.save(); g.translate(cx-52,cy-56); g.scale(104/32,104/32); const p=g.createLinearGradient(0,0,28,32); p.addColorStop(0,'#FFF4BF'); p.addColorStop(.42,'#FFC93D'); p.addColorStop(1,'#C9780A'); g.fillStyle=p; g.fill(MAISON);
+  g.lineJoin='round'; g.lineCap='round'; g.strokeStyle='#8A5300'; g.lineWidth=1.1; g.stroke(MAISON); g.strokeStyle='rgba(255,255,255,.75)'; g.lineWidth=0.9; g.stroke(REFLET); g.strokeStyle='#8A5300'; g.lineWidth=2.6; g.stroke(LETTRE); g.restore();
+  // CITYDECK en capitales d'or, entre deux filets ; en bas, la promesse
+  const texte=(t,y,taille,esp,style)=>{ g.font=`700 ${taille}px "Barlow Condensed", "Arial Narrow", sans-serif`; const ls=[...t], w=ls.map(ch=>g.measureText(ch).width); let x=cx-(w.reduce((a,b)=>a+b,0)+esp*(ls.length-1))/2; g.fillStyle=style; ls.forEach((ch,i)=>{ g.fillText(ch,x,y); x+=w[i]+esp; }); };
+  texte('CITYDECK',cy+152,50,14,OR(0,cy+110,0,cy+152));
+  for(const [x0,x1] of [[60,150],[W-150,W-60]]){ const d=g.createLinearGradient(x0,0,x1,0); d.addColorStop(x0<cx?0:1,'rgba(233,199,123,0)'); d.addColorStop(x0<cx?1:0,'#E9C77B'); g.fillStyle=d; g.fillRect(x0,cy+170,x1-x0,2); }
+  texte('COLLECTIONNE LA FRANCE',H-62,17,6,'rgba(243,227,188,.75)');
+  imageDosCarte.url=c.toDataURL('image/jpeg',0.9); return imageDosCarte.url; }
 // la face d'une carte : le badge de src/carte_lieu.js (plan cadastral d'or, maquette de verre, plaque émaillée, chiffres)
 function faceCarte(c, r){ return CarteLieu.html({ r, rarete:RARETES[r], nom:echapper(c.label), commune:echapper(communeName(c.citycode, c.city)), valeur:pcs(valeur(c)), loyer:loyer(c), potentiel:NIVEAUX[plafond(c)].nom, standing:R.standing(c) }); }
 function reduitMouvement(){ return !!(window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches); }
-function sortirCartes(){ const wrap=document.getElementById('pkcards'); wrap.innerHTML=''; cancelAnimationFrame(PK.anim); Object.assign(PK,{ cartes:[], i:0, etat:'pile', zoom:-1 });
+function sortirCartes(){ const wrap=document.getElementById('pkcards'); wrap.innerHTML=''; try{ document.documentElement.style.setProperty('--dos-carte', `url(${imageDosCarte()})`); }catch(e){} cancelAnimationFrame(PK.anim); Object.assign(PK,{ cartes:[], i:0, etat:'pile', zoom:-1 });
   // les cartes sortent de l'ouverture du pack : tout ce qui est sous l'ouverture reste caché le temps qu'elles montent
   const sortie = packOuverture!=null && !reduitMouvement();
   // (le pack commence à tomber 0,95 s après la déchirure, soit 0,67 s après ce moment : la ligne descend avec lui)
@@ -1497,7 +1550,7 @@ function sortirCartes(){ const wrap=document.getElementById('pkcards'); wrap.inn
     setTimeout(()=>{ wrap.style.transition='clip-path .55s ease-in'; wrap.style.clipPath='inset(0 0 0px 0)'; }, 670);
     setTimeout(()=>{ wrap.style.transition=''; wrap.style.clipPath=''; }, 1300); }
   packCards.forEach((c,i)=>{ const r=rarete(c); const el=document.createElement('div'); el.className='c3d r'+r+(sortie?' sortie':'');
-    el.innerHTML=`<i class="c3d-aura"></i><div class="c3d-corps"><i class="c3d-bord haut"></i><i class="c3d-bord bas"></i><i class="c3d-bord gauche"></i><i class="c3d-bord droite"></i><div class="c3d-face c3d-dos"><i class="pc c3d-embleme"></i><span class="c3d-nom">CityDeck</span></div><div class="c3d-face c3d-avant">${faceCarte(c, r)}<div class="rev-scene"></div><i class="c3d-brillance"></i></div></div>`;
+    el.innerHTML=`<i class="c3d-aura"></i><div class="c3d-corps"><i class="c3d-bord haut"></i><i class="c3d-bord bas"></i><i class="c3d-bord gauche"></i><i class="c3d-bord droite"></i><div class="c3d-face c3d-dos"></div><div class="c3d-face c3d-avant">${faceCarte(c, r)}<div class="rev-scene"></div><i class="c3d-brillance"></i></div></div>`;
     wrap.appendChild(el); PK.cartes.push({ el, c, r });
     setTimeout(()=>{ el.classList.remove('sortie'); if(sortie) sonGlisse(i); }, sortie ? 90+i*70 : 60+i*90); });
   document.getElementById('pkhint').textContent='Touche la carte pour la révéler';

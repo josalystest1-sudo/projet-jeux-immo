@@ -146,6 +146,7 @@ Rien d'important ne vit dans une conversation : tout est dans le dépôt ou sur 
 - **La révélation sur la carte** (PR #110). Gautier teste avec le pack d'essai. La comète est « super moche », la pression ne monte pas, la carte est « trop fine », rien n'est fluide (écran noir avant le plan) et la pile ne fait pas un paquet. Quelques questions à choix précisent ses envies : la carte doit avoir de l'épaisseur, des traits plus marqués et plus de richesse ; la révélation doit se jouer sur la carte qui se retourne, annoncée par la carte de dos qui s'illumine et tremble, avec des noms qui claquent.
 - **La fluidité** (PR #111). Gautier : l'ouverture « lag trop » pour qu'il puisse juger, et les noms sont peu visibles. Claude mesure au téléphone simulé et trouve les causes : couches 3D trop nombreuses, effets coûteux, calculs au mauvais moment. La révélation passe d'environ 2,5 à 40 images par seconde. Pendant ce travail, Gautier annonce le nouveau nom du jeu : **CityDeck**.
 - **Le nom : CityDeck** (PR #112). Le nom se voit dans le titre, sur la pochette, au dos des cartes, sur l'écran d'accueil et de connexion, et à l'installation sur le téléphone. Cadastra reste dans le code et les clés internes, pour ne perdre aucune partie.
+- **Les coins, le dos, la tension** (PR #113). Gautier trouve l'ensemble « pas mal » et demande des réglages : les coins coupés font « rognés », le dos est « pas premium », et on voit le lieu avant le zoom. Réponses : coins arrondis et angles ouvragés, un dos premium (médaillon, rosace, filigrane), plus de point avant la fin, et une roulette des régions puis des départements.
 
 ## Toutes les PR
 
@@ -284,6 +285,7 @@ Puis une PR par étape, fusionnée en squash :
 | #110 | 04/11 11:20 | La révélation se joue sur la carte (annonce lumineuse, noms qui claquent), cartes épaisses en paquet, zooms fluides, carte plus riche |
 | #111 | 04/11 11:38 | Fluidité de l'ouverture (mesurée : révélation de 2,5 à environ 40 images/s) ; noms lisibles |
 | #112 | 04/11 11:45 | Le jeu s'appelle CityDeck (titre, pochette, dos des cartes, écran d'accueil, installation) |
+| #113 | 04/11 12:00 | Coins arrondis, dos de carte premium, roulette des régions et départements (le lieu n'apparaît qu'à la fin) |
 
 ## Les décisions de Gautier
 
