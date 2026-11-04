@@ -266,3 +266,6 @@ Où c'est dans le code : la pochette est dessinée par `makeArt()` (`index.html`
 - **Trois monuments régionaux de plus** (nuit du 4 nov.), identifiés sur un plan dessiné puis montés sur leur emprise de l'IGN : **l'hôpital Lariboisière** (ses pavillons autour de la longue cour, la chapelle), **Saint-Louis-en-l'Île** (la nef, la flèche de fer ajourée), **l'abbaye de Clairvaux** (le grand cloître, le bâtiment des convers).
 
 ![L'hôpital Lariboisière, Saint-Louis-en-l'Île et l'abbaye de Clairvaux](bible/monuments-52.jpg)
+- **Deux monuments régionaux de plus** (nuit du 4 nov.), sur leur emprise de l'IGN : **l'hôpital de Bicêtre** (les longs bâtiments du XVIIe siècle autour de la grande cour), **la chartreuse de Champmol** à Dijon (le pavillon hexagonal du Puits de Moïse, le portail de la chapelle).
+
+![L'hôpital de Bicêtre et la chartreuse de Champmol](bible/monuments-53.jpg)
