@@ -173,7 +173,7 @@
     const bas = Math.round(o.mur * 0.53), bc = Math.max(7, o.larg * 0.28);
     for (const s of [1, -1]) A.boite(long - 8, bas, bc, cx, 0, s * (demi + bc / 2 - 1), pierreFoncee);
     const tL = o.transeptL || 14;
-    A.boite(tL, o.mur, o.transept, o.xT, 0, 0, pierre); A.toit(tL, o.toitH, o.transept, o.xT, o.mur, 0, toit, Math.PI / 2);
+    if (o.transept) { A.boite(tL, o.mur, o.transept, o.xT, 0, 0, pierre); A.toit(tL, o.toitH, o.transept, o.xT, o.mur, 0, toit, Math.PI / 2); }   // (Bourges n'en a pas)
     A.abside(demi, o.mur, o.E, 0, 0, pierre); A.demiCone(demi + 0.5, o.toitH - 1, o.E, o.mur, 0, toit);
     // des arcs-boutants de chaque côté (pas devant le transept)
     if (o.arcs !== false) for (let x = debut + 10; x < o.E - 4; x += 15.5) { if (Math.abs(x - o.xT) < tL / 2 + 3) continue;
@@ -1006,6 +1006,162 @@
     return A.groupe;
   }
 
+  // ---------------------------------------------------------------- les dernières cathédrales et abbayes nationales
+  // Bourges : pas de transept, deux étages de bas-côtés, les doubles arcs-boutants, les deux tours (65 et 55 m), cinq
+  // portails
+  const bourges = (THREE) => cathedrale(THREE, { F: -52, E: 36, larg: 31, mur: 36, toitH: 14, xT: 0, transept: 0, cote: 16, facadeH: 46, rose: 6.5, roseY: 34, arcs: false,
+    tours: [{ z: -19, h: 65 }, { z: 18, h: 55 }],
+    plus: (A, m) => {
+      for (const s of [1, -1]) A.boite(84, 11, 9, -6, 0, s * 28, m.pierreFoncee);
+      A.abside(25, 11, 36, 0, 0, m.pierreFoncee);
+      for (let x = -36; x <= 32; x += 12) for (const s of [1, -1]) {
+        A.boite(2.6, 24, 3, x, 0, s * 33, m.pierreFoncee);
+        A.poutre(A.V(x, 22, s * 33), A.V(x, 27, s * 25), 1.8, 1.4, m.pierreFoncee); A.poutre(A.V(x, 27, s * 25), A.V(x, 33, s * 16.5), 1.6, 1.2, m.pierreFoncee); }
+      A.boite(10, 30, 12, -52, 0, 30, m.pierre);
+    } });
+  // Nantes : la nef très haute (37,5 m), le transept, les deux tours plates de la façade (63 m)
+  const nantes = (THREE) => cathedrale(THREE, { F: -47, E: 43, larg: 26, mur: 37.5, toitH: 12, xT: 18, transept: 52, transeptL: 14, cote: 12, facadeH: 44, rose: 5, pierre: 0xF2EEE4,
+    tours: [{ z: -10, h: 63 }, { z: 10, h: 63 }] });
+  // Vézelay : la nef romane basse, le narthex, la tour Saint-Michel au sud de la façade, le clocher de la croisée, le
+  // chœur gothique plus haut et ses chapelles ; des toits de tuiles
+  const vezelay = (THREE) => cathedrale(THREE, { F: -56, E: 43, larg: 22, mur: 18, toitH: 8, xT: 18, transept: 36, transeptL: 12, cote: 10, facadeH: 24, rose: 3, pierre: 0xEFE2C6, pierreFoncee: 0xD6C29C,
+    toit: 0xB0644A, toitFonce: 0x8E4E3A, arcs: false,
+    tours: [{ z: 10, h: 37, fleche: 6, r: 6.5, seg: 4 }], flecheCroisee: { tour: 7, cote: 9, h: 6, r: 6.4, seg: 4 },
+    plus: (A, m) => { A.boite(26, 24, 22, 31, 0, 0, m.pierre); A.toit(22.6, 9, 26, 31, 24, 0, m.toit); A.abside(11, 24, 44, 0, 0, m.pierre); A.demiCone(11.5, 9, 44, 24, 0, m.toit); A.abside(16, 10, 44, 0, 0, m.pierreFoncee); } });
+
+  // Beauvais : le chœur gothique le plus haut du monde (48,5 m sous la voûte) et le transept, sans nef ; ses arcs-boutants
+  // ; ses rosaces au nord et au sud (x : l'axe, le chœur à l'est ; le chœur sur l'axe z = -9)
+  function beauvais(THREE) {
+    const A = atelier(THREE), V = A.V, Z = -9;
+    const pierre = A.matiere(0xEFE6D0), pierreFoncee = A.matiere(0xD3C4A2), ardoise = A.matiere(0x56659A), vitrail = A.matiere(0x3F6FE0, 0x1C3C9E);
+    A.boite(41, 46, 30, 15.5, 0, Z, pierre); A.abside(15, 46, 36, 0, Z, pierre); A.toit(30.6, 18, 41, 15.5, 46, Z, ardoise); A.demiCone(15.5, 17, 36, 46, Z, ardoise);
+    for (const s of [1, -1]) A.boite(41, 20, 10, 15.5, 0, Z + s * 20, pierreFoncee);
+    A.abside(25, 20, 36, 0, Z, pierreFoncee);
+    for (const x of [-2, 8, 18, 28]) for (const s of [1, -1]) { A.boite(2.6, 34, 3.2, x, 0, Z + s * 29, pierreFoncee); A.poutre(V(x, 32, Z + s * 29), V(x, 42, Z + s * 15.5), 1.8, 1.4, pierreFoncee); }
+    A.boite(14, 46, 66, -21, 0, Z, pierre); A.toit(14.6, 16, 66, -21, 46, Z, ardoise, Math.PI / 2);
+    for (const s of [1, -1]) { A.boite(16, 50, 4, -21, 0, Z + s * 33, pierre); A.toit(16, 9, 4, -21, 50, Z + s * 33, pierre, Math.PI / 2);
+      A.piece((e) => new THREE.CylinderGeometry(5 + e, 5 + e, 0.8 + 2 * e, 28).rotateX(Math.PI / 2), vitrail, V(-21, 34, Z + s * 35.2)); }
+    return A.groupe;
+  }
+
+  // ---------------------------------------------------------------- ce qui reste de l'abbaye de Cluny (x : vers l'est-sud-est)
+  // le bras sud du grand transept, le clocher de l'Eau-Bénite (octogonal, 62 m) et le clocher de l'Horloge ; les bâtiments
+  // du XVIIIe siècle autour du cloître restent ceux de l'IGN
+  function cluny(THREE) {
+    const A = atelier(THREE);
+    const pierre = A.matiere(0xEFE4CB), pierreFoncee = A.matiere(0xD3C3A0), tuile = A.matiere(0xB0644A), tuileFoncee = A.matiere(0x8E4E3A);
+    A.boite(14, 30, 11, -5, 0, -54.5, pierre); A.toit(14.6, 9, 11, -5, 30, -54.5, tuile, Math.PI / 2);
+    A.boite(12, 34, 10, -5, 0, -55, pierre); A.cylindre(6, 6, 16, 8, -5, 34, -55, pierre); A.cylindre(6.6, 6.6, 1.2, 8, -5, 49.4, -55, pierreFoncee); A.pyramide(6.6, 12, 8, -5, 50.6, -55, tuileFoncee);
+    A.boite(6, 36, 6, -5, 0, -52, pierre); A.pyramide(4.4, 6, 4, -5, 36, -52, tuileFoncee);
+    return A.groupe;
+  }
+
+  // ---------------------------------------------------------------- l'abbaye de Fontenay (x : vers l'est-nord-est ; l'église
+  // au nord, en -z, la façade à l'ouest ; le cloître au milieu ; la forge au sud)
+  // l'église cistercienne sans clocher, son transept et son chevet plat, le cloître et ses galeries, le bâtiment des moines
+  // (dortoir), la forge ; des toits de tuiles plates
+  function fontenay(THREE) {
+    const A = atelier(THREE);
+    const pierre = A.matiere(0xEFE4CB), pierreFoncee = A.matiere(0xD3C3A0), tuile = A.matiere(0xA65E44), arcade = A.matiere(0x7E6A54);
+    A.boite(48, 8, 26, 1, 0, -76, pierreFoncee); A.boite(48, 15, 16, 1, 0, -76, pierre); A.toit(16.6, 7, 48, 1, 15, -76, tuile);
+    A.boite(12, 15, 32, 31, 0, -72, pierre); A.toit(12.6, 6, 32, 31, 15, -72, tuile, Math.PI / 2);
+    A.boite(10, 13, 10, 42, 0, -76, pierre); A.toit(10.6, 5, 10, 42, 13, -76, tuile);
+    A.boite(2, 4, 4, -23, 15, -76, pierre); A.toit(4.4, 2, 2, -23, 19, -76, pierre, Math.PI / 2);
+    const gal = [[31, 5, 5, 7.5, 0, -57.5], [31, 5, 5, 7.5, 0, -27.5], [5, 5, 25, -8.5, 0, -42.5], [5, 5, 25, 23.5, 0, -42.5]];
+    A.boites(gal, pierre); A.toits(gal.map(([lx, , lz, x, , z]) => (lx > lz ? [lz + 0.6, 2.4, lx, x, 5, z, 0] : [lx + 0.6, 2.4, lz, x, 5, z, Math.PI / 2])), tuile);
+    const arcs = []; for (let x = -4; x <= 19; x += 3.2) { arcs.push([2, 3, 0.3, x, 0.6, -54.85]); arcs.push([2, 3, 0.3, x, 0.6, -30.15]); } for (let z = -51; z <= -34; z += 3.2) { arcs.push([0.3, 3, 2, -5.85, 0.6, z]); arcs.push([0.3, 3, 2, 20.85, 0.6, z]); }
+    A.plaques(arcs, arcade);
+    A.boite(14, 12, 60, 40, 0, -28, pierre); A.toit(14.6, 7, 60, 40, 12, -28, tuile, Math.PI / 2);
+    A.boite(56, 9, 14, 26, 0, 41, pierre); A.toit(14.6, 5, 56, 26, 9, 41, tuile);
+    return A.groupe;
+  }
+
+  // ---------------------------------------------------------------- la chapelle Notre-Dame-du-Haut de Ronchamp (Le Corbusier)
+  // (x : vers l'est) : les murs blancs (le mur sud épais et ses petites fenêtres de couleur), le grand toit brun en coque, la
+  // haute tour du sud-ouest et les deux tours du nord, leurs capuchons arrondis
+  function ronchamp(THREE) {
+    const A = atelier(THREE);
+    const blanc = A.matiere(0xF7F5EE), beton = A.matiere(0x8C7A66), bleu = A.matiere(0x3F6FE0, 0x1C3C9E), rouge = A.matiere(0xE23B3B, 0x5A0A0A), jaune = A.matiere(0xFFD23F, 0x5A4A00);
+    A.boite(34, 11, 3, -4, 0, 14.5, blanc); A.boite(2.4, 10, 26, 12, 0, 2, blanc); A.boite(32, 9, 2.4, -5, 0, -10, blanc); A.boite(2.4, 9, 22, -20, 0, 2, blanc);
+    A.boite(28, 8, 22, -4, 0, 2, blanc);
+    const coque = new THREE.Shape(); coque.moveTo(-13, 10.5); coque.quadraticCurveTo(0, 8.2, 14.5, 14.5); coque.lineTo(14.5, 17); coque.quadraticCurveTo(0, 10.6, -13, 12.4); coque.closePath();
+    A.extrusion(coque, 36, -3, 0, 2.5, beton, -Math.PI / 2);
+    A.cylindre(4.2, 4.2, 22, 24, -18, 0, 13, blanc); A.dome(4.2, 0.8, -18, 22, 13, blanc);
+    for (const x of [-16, -6]) { A.cylindre(2.8, 2.8, 15, 20, x, 0, -10, blanc); A.dome(2.8, 0.8, x, 15, -10, blanc); }
+    const fen = (mat, liste) => A.plaques(liste.map(([x, y, l, h]) => [l, h, 0.4, x, y, 16.1]), mat);
+    fen(bleu, [[-14, 4, 1.2, 2.2], [-4, 6, 0.8, 1.4], [6, 3, 1.6, 2.6]]); fen(rouge, [[-9, 7, 1, 1.6], [2, 5, 1.2, 2], [10, 7.5, 0.8, 1.2]]); fen(jaune, [[-18, 6, 0.8, 1.4], [-1, 2.5, 1, 1.8], [8, 5, 0.9, 1.4]]);
+    return A.groupe;
+  }
+
+  // ---------------------------------------------------------------- la Maison carrée de Nîmes (x : l'axe, le portique au nord
+  // en -x) : le podium et ses marches, la cella, les colonnes corinthiennes, l'entablement, les frontons, le toit de tuiles
+  function maisonCarree(THREE) {
+    const A = atelier(THREE);
+    const pierre = A.matiere(0xEFE2C2), pierreFoncee = A.matiere(0xD6C29A), tuile = A.matiere(0xC8704A);
+    A.boite(26, 3, 15, 0, 0, 0, pierreFoncee); A.boite(4, 1.5, 12, -15, 0, 0, pierreFoncee); A.boite(2, 2.6, 12, -14, 0, 0, pierreFoncee);
+    A.boite(17, 9.4, 12.4, 3.3, 3, 0, pierre);
+    const col = []; for (let k = 0; k < 6; k++) col.push([-12.2, -6.1 + k * 2.44, 0.45, 9, 3]);
+    for (const x of [-9.3, -6.4]) for (const z of [-6.1, 6.1]) col.push([x, z, 0.45, 9, 3]);
+    for (let x = -3.5; x <= 11.5; x += 2.9) for (const z of [-6.15, 6.15]) col.push([x, z, 0.45, 9, 3]);
+    for (const z of [-6.1, -3.66, -1.22, 1.22, 3.66, 6.1]) col.push([12.2, z, 0.45, 9, 3]);
+    A.cylindres(col, pierre, 12);
+    A.boite(25.4, 2, 14.4, 0, 12, 0, pierreFoncee);
+    for (const s of [1, -1]) A.toit(14.4, 3.6, 1.6, s * 11.9, 14, 0, pierre);
+    A.toit(15, 3.7, 22.2, 0, 14, 0, tuile);
+    return A.groupe;
+  }
+
+  // ---------------------------------------------------------------- le théâtre antique d'Orange (x : le long du mur de
+  // scène ; le mur au nord, en -z ; les gradins au sud, en +z)
+  // le mur de scène (103 m, 37 m de haut) et sa façade d'arcades, le front de scène et ses colonnes, la statue d'Auguste,
+  // la scène, les gradins en demi-cercle
+  function theatreOrange(THREE) {
+    const A = atelier(THREE);
+    const pierre = A.matiere(0xE6CDA0), pierreFoncee = A.matiere(0xC9AC78), ombre = A.matiere(0x8E7552), blanc = A.matiere(0xF4F1EA), bois = A.matiere(0x9A6A42);
+    A.boite(104, 37, 20, -2.5, 0, -20, pierre); A.boite(105, 1.6, 21, -2.5, 35.4, -20, pierreFoncee);
+    const arcs = []; for (let k = 0; k < 17; k++) { const x = -50 + k * 6; arcs.push([3.4, 7, 0.3, x, 1, -30.15]); arcs.push([2.6, 5, 0.3, x, 14, -30.15]); }
+    A.plaques(arcs, ombre);
+    A.extrusion(A.formeArche(7, 12), 0.6, -2.5, 0, -9.7, ombre); for (const s of [1, -1]) A.extrusion(A.formeArche(4.5, 9), 0.6, -2.5 + s * 22, 0, -9.7, ombre);
+    A.cylindres([-3, 1].flatMap((t) => Array.from({ length: 12 }, (_, k) => [-36 + k * 6.6, -8.6 - t * 0.2, 0.55, 9, t < 0 ? 2 : 13])), pierreFoncee, 10);
+    A.plaques([[5, 8, 0.4, -2.5, 15, -9.8]], ombre); A.boite(1.6, 3.6, 1.2, -2.5, 16, -9.2, blanc); A.boule(0.6, -2.5, 20.2, -9.2, blanc);
+    A.boite(62, 1.4, 12, -2.5, 0, -4, bois);
+    A.piece(() => A.fusion(Array.from({ length: 8 }, (_, i) => { const r = 27 + i * 3.1, h = 2 + i * 4.4, f = new THREE.Shape(); f.absarc(0, 0, 52, Math.PI, 2 * Math.PI, false); f.absarc(0, 0, r, 2 * Math.PI, Math.PI, true); f.closePath();
+      return new THREE.ExtrudeGeometry(f, { depth: h, bevelEnabled: false, curveSegments: 28 }).rotateX(-Math.PI / 2).translate(-2.5, 0, -10); })), pierre);
+    return A.groupe;
+  }
+
+  // ---------------------------------------------------------------- le pont d'Avignon (pont Saint-Bénézet) (x : l'axe du pont,
+  // de la rive d'Avignon, en -x, vers le Rhône) : les quatre arches qui restent, les piles et leurs avant-becs, la chapelle
+  // Saint-Nicolas sur la deuxième pile, le châtelet à l'entrée
+  function pontAvignon(THREE) {
+    const A = atelier(THREE);
+    const pierre = A.matiere(0xE6D5AE), pierreFoncee = A.matiere(0xC9B48A), tuile = A.matiere(0xC8704A);
+    const piles = [-42, -6, 30, 66], R = 16.25;
+    A.boites(piles.map((x) => [8, 12, 4.9, x, 0, 0]), pierre);
+    A.cylindres(piles.flatMap((x) => [[x, 3.6, 3, 9, 0], [x, -3.6, 3, 9, 0]]), pierreFoncee, 4);
+    for (const [x0, x1] of [[-76, -46], [-38, -10], [-2, 26], [34, 62]]) { const xc = (x0 + x1) / 2, demi = (x1 - x0) / 2, cy = 10 - R, a = Math.asin(Math.min(1, demi / R)), f = new THREE.Shape();
+      f.moveTo(x0, cy + R * Math.cos(a)); f.absarc(xc, cy, R, Math.PI / 2 + a, Math.PI / 2 - a, true); f.lineTo(x1, 12.05); f.lineTo(x0, 12.05); f.closePath(); A.extrusion(f, 4.86, 0, 0, 0, pierre, 0, true); }
+    A.boite(146, 1, 5.2, -7, 12, 0, pierreFoncee); for (const s of [1, -1]) A.boite(146, 1, 0.5, -7, 13, s * 2.35, pierre);
+    A.boite(9, 7, 6, -6, 13, 4.5, pierre); A.toit(6.6, 3, 9, -6, 20, 4.5, tuile); A.boite(1.2, 3, 3, -10, 20, 4.5, pierre); A.toit(3, 1.2, 1.2, -10, 23, 4.5, pierre, Math.PI / 2);
+    A.boite(14, 20, 12, -82, 0, 0, pierre); A.creneaux([A.tourDe(14, 12, -82, 0)], 20, 0.9, pierreFoncee); A.extrusion(A.formeArche(4, 7), 0.6, -74.8, 0, 0, pierreFoncee, Math.PI / 2);
+    return A.groupe;
+  }
+
+  // ---------------------------------------------------------------- les alignements de Carnac (x : le long des files, vers
+  // l'est-nord-est) : dix files de menhirs, plus grands à l'ouest ; une représentation (les pierres ne sont pas relevées
+  // une à une : la BD TOPO ne les donne pas)
+  function carnac(THREE) {
+    const A = atelier(THREE);
+    const granit = A.matiere(0xB8B4AA);
+    let g = 12345; const hasard = () => { g = (g * 16807) % 2147483647; return g / 2147483647; };
+    const pierres = [];
+    for (let rang = 0; rang < 10; rang++) for (let x = -200; x <= 200; x += 7 + hasard() * 4) {
+      const h = 0.9 + 2.8 * (200 - x) / 400 + hasard() * 0.8, z = -45 + rang * 10 + (hasard() - 0.5) * 2.4 + x * 0.02 * (rang - 4.5) / 4.5;
+      pierres.push([0.9 + hasard() * 0.8, h, 0.8 + hasard() * 0.5, x + (hasard() - 0.5) * 2, 0, z, (hasard() - 0.5) * 0.6]); }
+    A.piece(() => A.fusion(pierres.map(([lx, ly, lz, x, y, z, r]) => new THREE.BoxGeometry(lx, ly, lz).translate(0, ly / 2, 0).rotateY(r).translate(x, y, z))), granit, null, null, true);   // sans contour : trop petites pour un trait d'encre
+    return A.groupe;
+  }
+
   // les maquettes connues : le monument (identifiant de data/monuments.json), où et comment la poser, et les
   // bâtiments de l'IGN qu'elle remplace (sinon les blocs gris de la BD TOPO resteraient dedans)
   const MODELES = {
@@ -1158,6 +1314,39 @@
     'manuel-viaduc-de-millau': {   // le viaduc de Millau : le long de l'A75 (relevée sur la carte), du nord au sud
       construire: viaducDeMillau, centre: [3.0225, 44.0775], orientation: 0, masquer: [],
     },
+    Q207985: {   // Bourges : la façade à l'ouest, sans transept
+      construire: bourges, centre: [2.39926, 47.08219], orientation: -19, masquer: ['BATIMENT0000000319908015', 'BATIMENT0000000319908016', 'BATIMENT0000000319908013', 'BATIMENT0000000319908014', 'BATIMENT0000000319908017', 'BATIMENT0000000319908018'],
+    },
+    Q1423005: {   // Nantes : la façade et ses deux tours à l'ouest-sud-ouest
+      construire: nantes, centre: [-1.55016, 47.218377], orientation: 15, masquer: ['BATIMENT0000000302931847', 'BATIMENT0000000302931846', 'BATIMENT0000000302931848', 'BATIMENT0000000302931849', 'BATIMENT0000000302931850'],
+    },
+    Q217452: {   // Vézelay : le narthex et la tour Saint-Michel à l'ouest
+      construire: vezelay, centre: [3.748563, 47.466387], orientation: 10, masquer: ['BATIMENT0000002216032157', 'BATIMENT0000002216032156', 'BATIMENT0000002216032155'],
+    },
+    Q513300: {   // Beauvais : le chœur et le transept, sans nef (la Basse-Œuvre, à l'ouest, reste celle de l'IGN)
+      construire: beauvais, centre: [2.0814, 49.4325], orientation: -17, masquer: ['BATIMENT0000000317903350', 'BATIMENT0000000317903344', 'BATIMENT0000000317903346', 'BATIMENT0000000317903357', 'BATIMENT0000002487948145'],
+    },
+    Q220301: {   // Cluny : le bras sud du grand transept et ses clochers
+      construire: cluny, centre: [4.6592, 46.4341], orientation: -18, masquer: ['BATIMENT0000000348292514'],
+    },
+    Q464918: {   // Fontenay : l'église au nord, le cloître, la forge au sud
+      construire: fontenay, centre: [4.3893, 47.6397], orientation: 22, masquer: ['BATIMENT0000000216978632', 'BATIMENT0000000216978639'],
+    },
+    Q638250: {   // Ronchamp : la haute tour au sud-ouest, le toit en coque
+      construire: ronchamp, centre: [6.6206, 47.7045], orientation: -11, masquer: ['BATIMENT0000000353013370'],
+    },
+    Q677659: {   // la Maison carrée : le portique au nord
+      construire: maisonCarree, centre: [4.356122, 43.838192], orientation: -78, masquer: ['BATIMENT0000000314416792'],
+    },
+    Q958961: {   // le théâtre d'Orange : le mur de scène au nord, les gradins au sud
+      construire: theatreOrange, centre: [4.8089, 44.1358], orientation: 13, masquer: ['BATIMENT0000000272966591', 'BATIMENT0000000037941502', 'BATIMENT0000000295114381'],
+    },
+    Q284444: {   // le pont d'Avignon : de la rive d'Avignon vers le Rhône (relevé sur la BD TOPO)
+      construire: pontAvignon, centre: [4.804944, 43.953773], orientation: 124.6, masquer: ['BATIMENT0000000297742774', 'BATIMENT0000000297743408', 'BATIMENT0000000297743407'],
+    },
+    Q833850: {   // Carnac : dix files de menhirs (une représentation)
+      construire: carnac, centre: [-3.0797, 47.5933], orientation: 30, masquer: [],
+    },
   };
   const MASQUES = Object.values(MODELES).flatMap((m) => m.masquer);
 
@@ -1216,6 +1405,7 @@
     elysee, sorbonne, sainteChapelle, invalides, luxembourg, fontainebleau, chambord, amiens, rouen, strasbourg,
     madeleine, palaisDesPapes, chenonceau, montSaintMichel, louvre, carcassonne, CARCA,
     grandPalais, pontAlexandre, pontNeuf, conciergerie, palaisRoyal, placeDesVosges, saintSulpice,
-    vaux, vincennes, blois, amboise, chateauIf, notreDameDeLaGarde, viaducDeMillau };
+    vaux, vincennes, blois, amboise, chateauIf, notreDameDeLaGarde, viaducDeMillau,
+    bourges, nantes, vezelay, beauvais, cluny, fontenay, ronchamp, maisonCarree, theatreOrange, pontAvignon, carnac };
   if (typeof module !== 'undefined' && module.exports) module.exports = api; else racine.Maquettes = api;
 })(typeof globalThis !== 'undefined' ? globalThis : this);
