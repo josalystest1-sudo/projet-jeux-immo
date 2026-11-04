@@ -108,6 +108,7 @@ const VERSION='__VERSION__';
   <div style="text-align:center;padding:0 34px"><div id="title" class="plaque">…</div></div>
   <div class="svwrap">
     <iframe id="sv" class="sv" loading="lazy" referrerpolicy="no-referrer-when-downgrade" allowfullscreen title="Street View"></iframe>
+    <div class="sv-touche" onclick="promDepuisFiche()" aria-label="Touche la photo pour te promener"></div>
     <a class="ext" id="svlink" target="_blank" rel="noopener">Plein écran ↗</a>
     <button class="prom-entree" onclick="promDepuisFiche()">🚶 Se promener</button>
   </div>
@@ -425,12 +426,11 @@ map.on('load', ()=>{
   map.addLayer({ id:'mon-nom', type:'symbol', source:'monuments', minzoom:15,
     layout:{ 'text-field':['get','nom'], 'text-font':['Open Sans Regular'], 'text-size':['case',['get','national'],15,13], 'text-offset':[0,-2.2], 'text-anchor':'bottom', 'text-allow-overlap':false },
     paint:{ 'text-color':'#5a3d00', 'text-halo-color':'#ffd65a', 'text-halo-width':2.2 } });
-  map.on('click','mon-halo', (e)=>{ const f=e.features[0]; const m=LISTE_MON.find(x=>x.id===f.properties.id); if(!m) return;
-    const enJeu = lotsDe(semaineEnCours()).some(l=>l.m.id===m.id); toast(`${m.icone} ${m.nom} · monument ${m.palier==='national'?'national':'régional'} (Extraordinaire)${enJeu?' · aux enchères cette semaine !':''}`); if(enJeu) setTimeout(()=>showScreen('encheres'), 900); });
 });
 // Les maquettes 3D des monuments (phase 10.4, src/maquettes.js) : la tour Eiffel d'abord. Sous les noms des monuments,
 // au-dessus de leur halo ; dessinées seulement quand la carte bouge (aucune animation : la carte se repose).
-map.on('load', ()=>{ try{ map.addLayer(Maquettes.couche(maplibregl, THREE), map.getLayer('mon-nom') ? 'mon-nom' : undefined); }catch(e){ dsay('Maquettes 3D indisponibles : '+String(e&&e.message||e).slice(0,120)); } });
+let COUCHE_MAQ = null;   // la couche des maquettes : elle dit aussi quel monument est sous le doigt (toucher)
+map.on('load', ()=>{ try{ COUCHE_MAQ = Maquettes.couche(maplibregl, THREE); map.addLayer(COUCHE_MAQ, map.getLayer('mon-nom') ? 'mon-nom' : undefined); }catch(e){ dsay('Maquettes 3D indisponibles : '+String(e&&e.message||e).slice(0,120)); } });
 // Les lieux célèbres (article Wikipédia) : un fichier par département (data/celebres/), chargé à la demande.
 const CELEBRES = {};
 function chargerCelebres(dep){ if(!dep) return Promise.resolve([]); if(!CELEBRES[dep]) CELEBRES[dep] = fetch(`data/celebres/${dep}.json`).then(r=>r.ok?r.json():{lieux:[]}).then(j=>j.lieux||[]).catch(()=>[]); return CELEBRES[dep]; }
@@ -489,10 +489,32 @@ map.on('load', ()=>{ const at=document.querySelector('.maplibregl-ctrl-attrib');
 
 // clic
 map.on('click', (e)=>{ if(sugg.style.display==='block'){ sugg.style.display='none'; } pointVise=[e.lngLat.lng, e.lngLat.lat];
-  const feats = map.queryRenderedFeatures(e.point, {layers:['bati-3d','parcel-fill']}); if(!feats.length){ closeSheet(); return; }
+  // une maquette sous le doigt : son monument (elle est dessinée par-dessus le sol et les parcelles), ou le monument
+  // qu'elle porte s'il est plus près de l'endroit touché (l'obélisque dans la Concorde, la basilique dans la Cité)
+  const mq = COUCHE_MAQ && COUCHE_MAQ.toucher(e.point.x, e.point.y);
+  if(mq){ const ici=[mq.lon, mq.lat]; let mt=LISTE_MON.find(m=>m.id===mq.id), d=mt ? dist([mt.lon,mt.lat], ici) : Infinity;
+    for(const m of LISTE_MON){ if(Math.abs(m.lat-mq.lat)>0.001 || Math.abs(m.lon-mq.lon)>0.0015) continue; const dm=dist([m.lon,m.lat], ici); if(dm<40 && dm<d){ mt=m; d=dm; } }
+    if(mt){ ouvrirMonument(mt); return; } }
+  const feats = map.queryRenderedFeatures(e.point, {layers:['bati-3d','parcel-fill']});
   let f = feats.find(x=>x.layer.id==='parcel-fill'); const b = feats.find(x=>x.layer.id==='bati-3d');
   if(b && batiParcel[b.id]){ const pf = map.querySourceFeatures('pci',{sourceLayer:'parcelle', filter:['==',['get','idu'],batiParcel[b.id]]})[0]; if(pf) f = pf; }
-  if(!f){ closeSheet(); return; } selectParcel(f); });
+  if(!f){ const mh = monumentDuHalo(e.point); if(mh) ouvrirMonument(mh); else closeSheet(); return; } selectParcel(f); });
+// le monument dont le halo doré est sous le doigt (le plus proche), quand aucune parcelle n'est touchée
+function monumentDuHalo(point){ let h=[]; try{ h=map.queryRenderedFeatures(point, {layers:['mon-halo']}); }catch(e){}
+  const ll=map.unproject(point), ici=[ll.lng, ll.lat]; let mieux=null;
+  for(const x of h){ const m=LISTE_MON.find(y=>y.id===x.properties.id); if(m && (!mieux || dist([m.lon,m.lat],ici)<dist([mieux.lon,mieux.lat],ici))) mieux=m; }
+  return mieux; }
+// Un monument touché : la fiche de la parcelle qui le porte ; s'il est sur la voie publique (la colonne Vendôme,
+// l'obélisque, un pont : aucune parcelle), sa fiche à lui seul, sur un petit disque autour de lui, sans adresse. Dans les
+// deux cas, Street View se tourne vers lui (bug du 4 nov. 2026 : toucher la colonne Vendôme n'ouvrait rien).
+function ouvrirMonument(m){ pointVise=[m.lon, m.lat];
+  let pf=null; try{ pf=map.querySourceFeatures('pci',{sourceLayer:'parcelle'}).find(f=>f.geometry && inside([m.lon,m.lat], f.geometry)); }catch(e){}
+  if(pf){ selectParcel(pf); return; }
+  if(selected){ if(!PROM.vus.has(selected)) map.setFeatureState({source:'pci', sourceLayer:'parcelle', id:selected}, {sel:false}); selected=null; paintBuildings(); }
+  const n=24, r=12, mx=111320*Math.cos(m.lat*Math.PI/180), my=110540, idu='mon:'+m.id;
+  const disque={ type:'Polygon', coordinates:[Array.from({length:n+1}, (_,k)=>[m.lon+Math.cos(k/n*2*Math.PI)*r/mx, m.lat+Math.sin(k/n*2*Math.PI)*r/my])] };
+  if(!parcelAddrs[idu]) parcelAddrs[idu]=[];   // pas d'adresse sur la voie publique : on ne la demande pas
+  openParcel({ id:idu, seul:true, properties:{ code_insee:m.insee, nom_com:m.ville, nom_lieu:m.nom, section:'(voie publique)', numero:'', contenance:'' }, geometry:disque }); }
 function selectParcel(f){ if(selected && !PROM.vus.has(selected)) map.setFeatureState({source:'pci', sourceLayer:'parcelle', id:selected}, {sel:false});
   selected = f.id; map.setFeatureState({source:'pci', sourceLayer:'parcelle', id:selected}, {sel:true}); paintBuildings(); openParcel(f); }
 let currentParcel = null;
@@ -506,7 +528,7 @@ async function openParcel(f){ const p = f.properties, idu = f.id; currentParcel 
   if(!currentParcel || currentParcel.idu!==idu) return;   // une autre parcelle a été touchée entre-temps
   // un lieu à moi juste à côté, sur la voie publique (le Gros-Horloge enjambe une rue) : montré en tête, sans l'attacher à la parcelle
   currentParcel.extra = Object.values(state.owned).filter(a=>(a.type==='lieu' || a.type==='monument') && !inside([a.lon,a.lat], f.geometry) && pointVise && dist([a.lon,a.lat], pointVise)<15);
-  renderAddrs(); paintParcel(idu); }
+  renderAddrs(); if(!f.seul) paintParcel(idu); }
 // Les lieux d'une parcelle (gardés dans parcelAddrs) : ses adresses (BAN), ses lieux célèbres, et les lieux nommés posés
 // dessus (les miens ; en mode serveur, ceux des autres joueurs, dont on lit aussi les propriétaires). La fiche de parcelle
 // et la promenade s'en servent ; une même parcelle n'est demandée qu'une fois à la fois.
@@ -802,7 +824,7 @@ function renderAddrs(){ const {p, idu, geometry} = currentParcel; const addrs = 
   const box = document.getElementById('addrs'); box.innerHTML='';
   document.getElementById('plafond').textContent = addrs[0] ? NIVEAUX[plafond(addrs[0])].nom : '—';
   const adr = addrs.find(x=>x.type==='adresse'), rue = adr ? String(adr.label).replace(/^\s*\d+\s*(bis|ter|[a-z])?\s+/i,'') : (addrs[0] ? addrs[0].label : '');
-  document.getElementById('title').innerHTML = `<small>${echapper(communeName((adr||addrs[0]||{}).citycode||p.code_insee, (adr||addrs[0]||{}).city||p.nom_com))}</small>${echapper(rue || p.nom_com || 'Parcelle')}`;
+  document.getElementById('title').innerHTML = `<small>${echapper(communeName((adr||addrs[0]||{}).citycode||p.code_insee, (adr||addrs[0]||{}).city||p.nom_com))}</small>${echapper(rue || p.nom_lieu || p.nom_com || 'Parcelle')}`;
   // les monuments de la parcelle (ou juste à côté) que je ne possède pas : leur fiche en tête (ils se gagnent aux enchères)
   const mons = LISTE_MON.filter(m=>Math.abs(m.lat-c[1])<0.02 && Math.abs(m.lon-c[0])<0.03 && deLaParcelle(m.lon, m.lat, geometry) && !state.owned['mon:'+m.id]);
   mons.forEach(m=>box.appendChild(ficheMonument(m)));
