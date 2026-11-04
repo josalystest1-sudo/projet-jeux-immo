@@ -122,6 +122,7 @@ Rien d'important ne vit dans une conversation : tout est dans le dépôt ou sur 
 - Trente-quatrième lot régional (PR #86) : Sedan, Brest, Lunéville, montés sur l'emprise exacte de l'IGN (un nouvel outil pour les plans trop compliqués).
 - Trente-cinquième lot régional (PR #87) : Rambouillet, la cathédrale de Dax.
 - Trente-sixième lot régional (PR #88) : Aire, Apt, Hautecombe, Cîteaux, l'hôtel Lambert, l'Arsenal, Solesmes, plus simples (le volume juste de l'IGN, sans le détail).
+- Trente-septième lot régional (PR #89) : Silvacane, Lérins, l'hôtel de Beauvais, le musée Chéret, La Trappe, Port-Royal-des-Champs, l'auberge Ravoux.
 
 ## Toutes les PR
 
@@ -236,6 +237,7 @@ Puis une PR par étape, fusionnée en squash :
 | #86 | 04/11 05:11 | Graphismes : trois grands châteaux de plus d'après leur emprise exacte (Sedan, Brest, Lunéville) |
 | #87 | 04/11 05:15 | Graphismes : deux monuments régionaux de plus (le château de Rambouillet, la cathédrale de Dax) |
 | #88 | 04/11 05:20 | Graphismes : sept monuments régionaux de plus sur leur emprise (Aire, Apt, Hautecombe, Cîteaux, l'hôtel Lambert, l'Arsenal, Solesmes) |
+| #89 | 04/11 05:24 | Graphismes : sept monuments régionaux de plus (Silvacane, Lérins, l'hôtel de Beauvais, le musée Chéret, La Trappe, Port-Royal-des-Champs, l'auberge Ravoux) |
 
 ## Les décisions de Gautier
 
@@ -266,7 +268,7 @@ Les décisions du 2 novembre (interview) sont dans `CLAUDE.md` § 4 et dans le G
 - **Le serveur, suite** (phase 8) :
   - 8.2 : le mode serveur par défaut, la fin des joueurs simulés, l'inscription des amis. Question posée à Gautier, sans réponse : couper la confirmation par e-mail pendant les essais ?
   - 8.3 : l'anti-triche.
-- **Les graphismes** (phase 10, avant 8.2 : décision de Gautier) : la preuve, l'ouverture, les monuments nationaux et 327 monuments régionaux en 3D (380 maquettes) ; ensuite les autres régionaux, l'habillage de la révélation, l'icône et le logo (`docs/BIBLE-GRAPHIQUE.md`).
+- **Les graphismes** (phase 10, avant 8.2 : décision de Gautier) : la preuve, l'ouverture, les monuments nationaux et 334 monuments régionaux en 3D (387 maquettes) ; ensuite les autres régionaux, l'habillage de la révélation, l'icône et le logo (`docs/BIBLE-GRAPHIQUE.md`).
 - **La boutique** (phase 9) : Stripe, packs et Pass mensuel (pack de 8 cartes, bon mensuel : GDD § 3), probabilités affichées, blocage Belgique et Pays-Bas, CGU, confidentialité, mentions légales.
 - **Ensuite** : les graphismes (phase 10), l'équilibrage et le lancement (phase 11).
 - **Au lancement** :
