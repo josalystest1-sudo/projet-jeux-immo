@@ -702,6 +702,167 @@
     return A.groupe;
   }
 
+  // ---------------------------------------------------------------- le Grand Palais (x : vers l'est ; la nef nord-sud le long
+  // de l'avenue Winston-Churchill, à l'est ; le palais de la Découverte à l'ouest)
+  // la grande verrière en berceau et ses arcs de fer, le dôme de verre, la colonnade et les quadriges de bronze aux
+  // angles, le palais de la Découverte et sa rotonde
+  function grandPalais(THREE) {
+    const A = atelier(THREE), V = A.V;
+    const pierre = A.matiere(0xF0E6D0), pierreFoncee = A.matiere(0xD8C9A8), verre = A.matiere(0xA6DCEB, 0x1C4652), fer = A.matiere(0x4F7F70), zinc = A.matiere(0x9AA3B5), bronze = A.matiere(0x5E8F6E), ombre = A.matiere(0x7E6E5A);
+    A.boite(95, 18, 235, 53.5, 0, 0.5, pierre); A.boite(96, 1.4, 236, 53.5, 18, 0.5, pierreFoncee);
+    A.piece((e) => new THREE.CylinderGeometry(24 + e, 24 + e, 200 + 2 * e, 32, 1, false, -Math.PI / 2, Math.PI).rotateX(-Math.PI / 2).scale(1, 0.62, 1), verre, V(48, 19.4, 0));
+    A.piece((e) => new THREE.CylinderGeometry(19 + e, 19 + e, 52 + 2 * e, 28, 1, false, -Math.PI / 2, Math.PI).rotateX(-Math.PI / 2).rotateY(Math.PI / 2).scale(1, 0.62, 1), verre, V(14, 19.4, 1));
+    A.piece(() => A.fusion(Array.from({ length: 19 }, (_, k) => new THREE.TorusGeometry(24.2, 0.35, 4, 24, Math.PI).scale(1, 0.62, 1).translate(0, 0, -90 + k * 10))), fer, V(48, 19.4, 0), null, true);
+    A.cylindre(17, 17, 4, 32, 46.5, 18, 1, pierreFoncee); A.dome(17, 1, 46.5, 22, 1, verre);
+    for (let k = 0; k < 12; k++) A.piece((e) => new THREE.TorusGeometry(17.1, 0.35 + e, 4, 20, Math.PI / 2).rotateY(k * Math.PI / 6), fer, V(46.5, 22, 1), null, true);
+    A.cylindre(2, 2, 3, 12, 46.5, 38.5, 1, fer); A.dome(2, 1, 46.5, 41.5, 1, fer);
+    A.boite(6, 4, 200, 104, 0, 0, pierreFoncee); A.cylindres(Array.from({ length: 40 }, (_, k) => [104, -97.5 + k * 5, 0.9, 14, 4]), pierre, 12); A.boite(6.4, 2.2, 200, 104, 18, 0, pierreFoncee);
+    A.boite(14, 26, 30, 100, 0, 0, pierre); A.extrusion(A.formeArche(9, 16), 0.6, 107.2, 0, 0, ombre, Math.PI / 2);
+    for (const s of [1, -1]) { A.boite(16, 22, 18, 95, 0, s * 108, pierre);
+      A.boites([[1.2, 3, 5, 92.5, 22.4, s * 108, 0.4], [1.2, 3, 5, 94.2, 22.4, s * 108, 0.2], [1.2, 3, 5, 95.9, 22.4, s * 108, -0.2], [1.2, 3, 5, 97.6, 22.4, s * 108, -0.4], [6, 1.4, 3, 95, 22, s * 106, 0]], bronze);
+      A.boule(1.4, 95, 27, s * 105.5, bronze); A.boite(0.5, 3.4, 3.6, 95, 25.6, s * 105.5, bronze); }
+    A.boite(109, 20, 145, -48.5, 0, -0.5, pierre); A.boite(110, 1.2, 146, -48.5, 20, -0.5, pierreFoncee);
+    A.plaques([[86, 0.6, 52, -44, 21, -40], [86, 0.6, 52, -44, 21, 40], [40, 0.6, 26, -30, 21, 0]], verre);
+    A.cylindre(12, 12, 6, 28, -76, 20, -1, pierre); A.dome(12, 0.85, -76, 26, -1, zinc); A.cylindre(1.6, 1.6, 2.5, 10, -76, 35.6, -1, pierre);
+    A.cylindres(Array.from({ length: 8 }, (_, k) => [-104.2, -14 + k * 4, 0.8, 13, 0]), pierre, 12); A.toit(32, 5, 4, -104.2, 13, 0, pierre);
+    return A.groupe;
+  }
+
+  // ---------------------------------------------------------------- le pont Alexandre-III (x : l'axe du pont, de la rive
+  // gauche vers la rive droite, dans l'axe des Invalides)
+  // une seule arche d'acier très plate (107 m), ses guirlandes dorées, le tablier, les culées, les quatre pylônes et
+  // leurs Pégase dorés, les lampadaires
+  function pontAlexandre(THREE) {
+    const A = atelier(THREE);
+    const pierre = A.matiere(0xEDE3CC), acier = A.matiere(0xB4B3A6), or = A.matiere(0xFFC233, 0x7A4A00), bronze = A.matiere(0x5C6E62), lampe = A.matiere(0xFFF2B0, 0x806A20), route = A.matiere(0x9C9FA6);
+    const R = 234.6, cy = 7.8 - R, a = Math.asin(54 / R);
+    const arche = new THREE.Shape(); arche.moveTo(-54, 1.5); arche.absarc(0, cy, R, Math.PI / 2 + a, Math.PI / 2 - a, true); arche.lineTo(54, 9.5); arche.lineTo(-54, 9.5); arche.closePath();
+    A.extrusion(arche, 40, 0, 0, 0, acier);
+    const bande = new THREE.Shape(); bande.absarc(0, cy, R + 1.2, Math.PI / 2 + a, Math.PI / 2 - a, true); bande.absarc(0, cy, R, Math.PI / 2 - a, Math.PI / 2 + a, false); bande.closePath();
+    for (const s of [1, -1]) A.extrusion(bande, 0.3, 0, 0, s * 20.15, or, 0, true);
+    A.boite(160, 1.2, 40, 0, 9.5, 0, pierre); A.plaques([[160, 0.2, 26, 0, 10.7, 0]], route); for (const s of [1, -1]) A.boite(160, 1.1, 0.8, 0, 10.7, s * 19.6, pierre);
+    for (const s of [1, -1]) A.boite(26, 9.5, 40, s * 67, 0, 0, pierre);
+    for (const sx of [1, -1]) for (const sz of [1, -1]) { const x = sx * 72, z = sz * 23.5;
+      A.boite(7, 17, 7, x, 0, z, pierre); A.boite(8, 1.4, 8, x, 17, z, pierre); A.boite(3.4, 1.6, 3.4, x, 18.4, z, or); A.boule(1.6, x, 21.4, z, or); A.boite(1.2, 2.4, 5, x, 20.2, z, or); }
+    const lamp = []; for (let k = 0; k < 9; k++) for (const s of [1, -1]) lamp.push([-56 + k * 14, s * 19.6, 0.25, 4.5, 11.8]);
+    A.cylindres(lamp, bronze, 6); A.boites(lamp.map(([x, z]) => [0.9, 0.9, 0.9, x, 16.3, z]), lampe);
+    return A.groupe;
+  }
+
+  // ---------------------------------------------------------------- le Pont-Neuf (x : l'axe du pont, du nord au sud ; le
+  // grand bras de la Seine en -x, la pointe de l'île de la Cité au milieu, le petit bras en +x)
+  // sept arches puis cinq, les avant-becs et les demi-lunes au-dessus des piles, les parapets, la statue d'Henri IV
+  function pontNeuf(THREE) {
+    const A = atelier(THREE);
+    const pierre = A.matiere(0xE9DFC6), pierreFoncee = A.matiere(0xCFC2A2), bronze = A.matiere(0x3F5B4E);
+    const larg = 20.5;
+    const bras = (x0, x1, n) => { const p = 4.5, s = (x1 - x0 - (n - 1) * p) / n, piles = [];
+      for (let i = 0; i < n; i++) { const xa = x0 + i * (s + p), xc = xa + s / 2, r = s / 2, f = new THREE.Shape();
+        f.moveTo(xc - r, 2); f.absarc(xc, 2, r, Math.PI, 0, true); f.lineTo(xc + r, 10.05); f.lineTo(xc - r, 10.05); f.closePath(); A.extrusion(f, larg - 0.04, 0, 0, 0, pierre, 0, true);
+        if (i < n - 1) piles.push(xa + s + p / 2); }
+      A.boites(piles.map((x) => [p, 10, larg, x, 0, 0]), pierre);
+      A.cylindres(piles.flatMap((x) => [[x, larg / 2, p / 2 + 0.4, 10, 0], [x, -larg / 2, p / 2 + 0.4, 10, 0]]), pierreFoncee, 16);
+      A.cylindres(piles.flatMap((x) => [[x, larg / 2 + 1.2, p / 2 + 1.6, 1.4, 10], [x, -larg / 2 - 1.2, p / 2 + 1.6, 1.4, 10]]), pierre, 16);
+      A.boite(x1 - x0, 1.2, larg + 1, (x0 + x1) / 2, 10, 0, pierreFoncee); for (const s2 of [1, -1]) A.boite(x1 - x0, 1.2, 0.8, (x0 + x1) / 2, 11.2, s2 * larg / 2, pierre);
+    };
+    bras(-156, -35, 7); bras(35, 89, 5);
+    A.boite(9, 10, larg, -160.5, 0, 0, pierre); A.boite(9, 10, larg, 93.5, 0, 0, pierre); A.boite(70, 10, larg, 0, 0, 0, pierreFoncee);
+    A.cylindre(10, 10, 10, 24, 0, 0, 14, pierreFoncee);
+    A.boite(4, 5, 7, 0, 10, 14, pierre); A.boite(2, 2.6, 5, 0, 15, 14, bronze); A.boite(1.1, 2.4, 1.1, 0, 17.6, 13.6, bronze); A.boule(0.6, 0, 20.4, 13.6, bronze); A.boite(0.9, 1.8, 1.4, 0, 16.6, 16.6, bronze);
+    return A.groupe;
+  }
+
+  // ---------------------------------------------------------------- la Conciergerie (x : le long du quai de l'Horloge ; la
+  // Seine au nord, en -z)
+  // le long bâtiment gothique et son haut toit d'ardoise, ses lucarnes, la tour Bonbec (crénelée), les tours d'Argent et
+  // César (toits pointus), la tour de l'Horloge à l'angle et son horloge bleue et or
+  function conciergerie(THREE) {
+    const A = atelier(THREE), V = A.V;
+    const pierre = A.matiere(0xE4DCC6), pierreFoncee = A.matiere(0xC9BC9C), ardoise = A.matiere(0x4F5D8C), or = A.matiere(0xFFC233, 0x7A4A00), bleu = A.matiere(0x2D55C8, 0x0A1E5A);
+    A.boite(170, 22, 20, -6, 0, 11.6, pierre); A.toit(20.6, 12, 170, -6, 22, 11.6, ardoise);
+    const luc = []; for (let x = -80; x <= 70; x += 12) if (Math.abs(x + 25) > 8 && Math.abs(x - 15) > 13) luc.push([2.4, 3, 2.2, x, 22, 4.4]);
+    A.boites(luc, pierre); A.toits(luc.map(([, , , x, , z]) => [3.2, 2, 2.6, x, 25, z, Math.PI / 2]), ardoise);
+    A.cylindres([[-25.3, 1.1, 5.6, 28], [9.3, -1.9, 5, 30], [21.3, -1.6, 5, 30]], pierre, 20);
+    A.cones([[9.3, -1.9, 5.6, 30, 12], [21.3, -1.6, 5.6, 30, 12]], ardoise, 20);
+    A.creneaux([Array.from({ length: 13 }, (_, k) => [-25.3 + 5.4 * Math.cos(k * Math.PI / 6), 1.1 + 5.4 * Math.sin(k * Math.PI / 6)])], 28, 0.8, pierreFoncee);
+    A.boite(12, 38, 12, 83, 0, 6, pierre); A.pyramide(8.6, 10, 4, 83, 38, 6, ardoise); A.cylindre(1, 1, 3, 8, 83, 47.5, 6, pierre); A.pyramide(1.3, 3, 8, 83, 50.5, 6, ardoise);
+    A.plaque(5.4, 5.4, 0.3, 83, 13.5, -0.1, bleu); A.piece(() => new THREE.CylinderGeometry(2, 2, 0.4, 24).rotateX(Math.PI / 2), or, V(83, 16.2, -0.35), null, true);
+    return A.groupe;
+  }
+
+  // ---------------------------------------------------------------- le Palais-Royal (x : vers l'est-sud-est ; le palais au
+  // sud sur la place, en +z ; le jardin au nord, en -z)
+  // le palais et ses ailes, la cour d'honneur et les colonnes de Buren, la galerie d'Orléans, les galeries autour du jardin
+  // et leurs arcades, les deux massifs de tilleuls, le bassin
+  function palaisRoyal(THREE) {
+    const A = atelier(THREE);
+    const pierre = A.matiere(0xEFE4CB), pierreFoncee = A.matiere(0xD7C7A2), ardoise = A.matiere(0x56659A), noir = A.matiere(0x2C2F3A), blanc = A.matiere(0xF7F7F2),
+      arbre = A.matiere(0x5DAE58), eau = A.matiere(0x6DC4F0, 0x0E3A55), arcade = A.matiere(0x8C7A5E);
+    const aile = (x0, x1, z0, z1, h, hr) => { const lx = x1 - x0, lz = z1 - z0, x = (x0 + x1) / 2, z = (z0 + z1) / 2; A.boite(lx, h, lz, x, 0, z, pierre);
+      if (lx > lz) A.toit(lz + 0.6, hr, lx, x, h, z, ardoise); else A.toit(lx + 0.6, hr, lz, x, h, z, ardoise, Math.PI / 2); };
+    aile(-58, 59, 12, 42, 18, 8); aile(-58, -36, -35, 12, 18, 7); aile(37, 59, -35, 12, 18, 7); aile(-59, 58, -82, -35, 18, 9);
+    aile(-63, -47, -312, -94, 17, 6); aile(44, 58, -312, -94, 17, 6); aile(-63, 58, -331, -312, 17, 6);
+    A.boite(24, 22, 6, 0.5, 0, 40, pierre); A.toit(24, 5, 6, 0.5, 22, 40, pierre, Math.PI / 2);
+    A.cylindres([-91, -85].flatMap((z) => Array.from({ length: 26 }, (_, k) => [-45 + k * 3.6, z, 0.5, 7, 0])), pierre, 10);
+    A.boites([[95, 1, 2, 0, 7, -91], [95, 1, 2, 0, 7, -85]], pierreFoncee);
+    const col = [[], []]; for (let i = 0; i < 9; i++) for (let j = 0; j < 5; j++) col[(i + j) % 2].push([-28 + i * 7, -28 + j * 8, 0.45, 0.6 + ((i * 7 + j * 3) % 6) * 0.55, 0]);
+    A.cylindres(col[0], noir, 10); A.cylindres(col[1], blanc, 10);
+    const arc = []; for (let z = -308; z <= -98; z += 4) { arc.push([0.3, 3.6, 2.6, -46.85, 0.2, z]); arc.push([0.3, 3.6, 2.6, 43.85, 0.2, z]); }
+    for (let x = -44; x <= 42; x += 4) arc.push([2.6, 3.6, 0.3, x, 0.2, -311.85]);
+    A.plaques(arc, arcade);
+    A.boites([[10, 7, 150, -30, 0, -200], [10, 7, 150, 27, 0, -200]], arbre);
+    A.cylindre(8, 8, 0.7, 28, -1.5, 0, -150, pierreFoncee); A.cylindre(7.3, 7.3, 0.4, 28, -1.5, 0.5, -150, eau);
+    return A.groupe;
+  }
+
+  // ---------------------------------------------------------------- la place des Vosges (x et z : les côtés de la place ; le
+  // pavillon du Roi au sud, en +z, et celui de la Reine au nord)
+  // les 36 pavillons de brique et de pierre et leurs hauts toits d'ardoise, les arcades, les fenêtres, le jardin et ses
+  // tilleuls, les quatre fontaines, la statue de Louis XIII
+  function placeDesVosges(THREE) {
+    const A = atelier(THREE);
+    const brique = A.matiere(0xC4603F), pierre = A.matiere(0xF1E7D2), ardoise = A.matiere(0x4F5D8C), arcade = A.matiere(0x7A5E4A), arbre = A.matiere(0x5DAE58), eau = A.matiere(0x6DC4F0, 0x0E3A55), blanc = A.matiere(0xF4F1EA);
+    const s = 70.5, d = 20, pav = [];
+    for (let i = 0; i < 9; i++) { const w = 2 * (s + d) / 9, x = -s - d + w * (i + 0.5); for (const sz of [-1, 1]) pav.push([w, d, x, sz * (s + d / 2), i === 4, 'z', sz]); }
+    for (let i = 0; i < 7; i++) { const w = 2 * s / 7, z = -s + w * (i + 0.5); for (const sx of [-1, 1]) pav.push([d, w, sx * (s + d / 2), z, false, 'x', sx]); }
+    const rdc = [], corps = [], corniches = [], toits = [], arcs = [], fen = [];
+    for (const [lx, lz, x, z, haut, face, sg] of pav) {
+      const h = haut ? 17 : 13; rdc.push([lx - 0.2, 4.2, lz - 0.2, x, 0, z]); corps.push([lx - 0.2, h - 4.2, lz - 0.2, x, 4.2, z]); corniches.push([lx, 0.8, lz, x, h - 0.8, z]); toits.push([lx + 0.4, haut ? 13 : 9.5, lz + 0.4, x, h, z]);
+      const w = face === 'z' ? lx : lz;
+      for (let k = 0; k < 3; k++) { const t = -w / 2 + w * (k + 0.5) / 3;
+        if (face === 'z') { const zf = z - sg * (d / 2 + 0.05); arcs.push([w / 3 - 1.6, 3.4, 0.3, x + t, 0.2, zf]); for (const y of [5.5, 9]) fen.push([1.6, 2.4, 0.3, x + t, y, zf]); }
+        else { const xf = x - sg * (d / 2 + 0.05); arcs.push([0.3, 3.4, w / 3 - 1.6, xf, 0.2, z + t]); for (const y of [5.5, 9]) fen.push([0.3, 2.4, 1.6, xf, y, z + t]); } }
+    }
+    A.boites(rdc, pierre); A.boites(corps, brique); A.boites(corniches, pierre); A.comblesN(toits, ardoise); A.plaques(arcs, arcade); A.plaques(fen, pierre);
+    A.boites([[7, 9, 118, -57, 0, 0], [7, 9, 118, 57, 0, 0], [104, 9, 7, 0, 0, -57], [104, 9, 7, 0, 0, 57]], arbre);
+    for (const [x, z] of [[-30, -30], [30, -30], [-30, 30], [30, 30]]) { A.cylindre(5, 5, 0.6, 20, x, 0, z, pierre); A.cylindre(4.4, 4.4, 0.4, 20, x, 0.4, z, eau); A.cylindre(0.6, 1, 2.5, 10, x, 0.6, z, pierre); }
+    A.boite(4, 3.5, 6, 0, 0, 0, pierre); A.boite(1.8, 2.4, 4.5, 0, 3.5, 0, blanc); A.boite(1, 2.2, 1, 0, 5.9, -0.4, blanc); A.boule(0.5, 0, 8.6, -0.4, blanc); A.boite(0.8, 1.6, 1.2, 0, 5.4, 2.4, blanc);
+    return A.groupe;
+  }
+
+  // ---------------------------------------------------------------- l'église Saint-Sulpice (x : l'axe, la façade à l'ouest
+  // en -x, sur la place Saint-Sulpice ; la tour nord, la plus haute, en -z)
+  // les bas-côtés et les chapelles, la nef et le transept sous leurs toits d'ardoise, l'abside, la chapelle de la Vierge
+  // et sa coupole, la façade à deux étages de colonnes, les deux tours (73 et 68 m) et leur étage rond
+  function saintSulpice(THREE) {
+    const A = atelier(THREE);
+    const pierre = A.matiere(0xEDE4CF), pierreFoncee = A.matiere(0xD3C5A5), ardoise = A.matiere(0x56659A), plomb = A.matiere(0x7B88B0);
+    A.boite(105, 21, 56, 10.5, 0, 0, pierre); A.boite(106, 1.2, 57, 10.5, 21, 0, pierreFoncee);
+    A.boite(84, 33, 18, 0, 0, 0, pierre); A.toit(18.6, 9, 84, 0, 33, 0, ardoise);
+    A.boite(17, 33, 57, 6.5, 0, 0, pierre); A.toit(17.6, 9, 57, 6.5, 33, 0, ardoise, Math.PI / 2);
+    A.abside(9, 33, 42, 0, 0, pierre); A.demiCone(9.5, 9, 42, 33, 0, ardoise);
+    A.cylindre(6, 6, 4, 20, 57, 21, 0, pierre); A.dome(6, 1.1, 57, 25, 0, plomb); A.boule(0.8, 57, 32.4, 0, pierreFoncee);
+    A.boite(12.5, 30, 56, -47.75, 0, 0, pierre);
+    A.cylindres(Array.from({ length: 13 }, (_, k) => [-55.8, -18 + k * 3, 0.85, 13, 1.5]), pierre, 12);
+    A.boite(4, 1.5, 42, -55.8, 0, 0, pierreFoncee); A.boite(3.6, 2.2, 42, -55.8, 14.5, 0, pierreFoncee);
+    A.cylindres(Array.from({ length: 13 }, (_, k) => [-55.8, -18 + k * 3, 0.7, 11, 16.7]), pierre, 12);
+    A.boite(3.6, 2, 42, -55.8, 27.7, 0, pierreFoncee);
+    for (const [z, hh] of [[-21, 73], [21, 68]]) { A.boite(14, 50, 14, -49, 0, z, pierre); A.boite(15, 1.6, 15, -49, 48.4, z, pierreFoncee);
+      A.cylindre(6.5, 6.5, 13, 20, -49, 50, z, pierre); A.cylindre(7.2, 7.2, 1.4, 20, -49, 63, z, pierreFoncee);
+      if (hh > 70) { A.cylindre(5, 5, 7, 20, -49, 64.4, z, pierre); A.cylindre(5.6, 5.6, 1.2, 20, -49, 71.4, z, pierreFoncee); } }
+    return A.groupe;
+  }
+
   // les maquettes connues : le monument (identifiant de data/monuments.json), où et comment la poser, et les
   // bâtiments de l'IGN qu'elle remplace (sinon les blocs gris de la BD TOPO resteraient dedans)
   const MODELES = {
@@ -811,6 +972,28 @@
     Q389269: {   // Carcassonne : les murs et les tours relevés sur la BD TOPO (CARCA)
       construire: carcassonne, centre: [2.3638, 43.2064], orientation: 0, masquer: CARCA.ids.map((s) => 'BATIMENT000000' + s),
     },
+    Q457318: {   // le Grand Palais : la nef nord-sud à l'est, le palais de la Découverte à l'ouest
+      construire: grandPalais, centre: [2.311912, 48.866167], orientation: -2, masquer: ['BATIMENT0000000245172546', 'BATIMENT0000000245172471', 'BATIMENT0000000245172547'],
+    },
+    Q390418: {   // le pont Alexandre-III : dans l'axe des Invalides, l'arche au-dessus de la Seine (berges relevées sur la carte)
+      construire: pontAlexandre, centre: [2.313545, 48.863672], orientation: 86, masquer: ['BATIMENT0000000241926834', 'BATIMENT0000000241926789'],
+    },
+    Q335277: {   // le Pont-Neuf : du nord au sud, par la pointe de l'île de la Cité (berges relevées sur la carte)
+      construire: pontNeuf, centre: [2.341236, 48.857048], orientation: -119.5, masquer: [],
+    },
+    Q138101: {   // la Conciergerie : la façade sur le quai de l'Horloge (le reste du Palais de justice reste celui de l'IGN)
+      construire: conciergerie, centre: [2.3452, 48.8565], orientation: -21.4, masquer: ['BATIMENT0000000245185645', 'BATIMENT0000000245185646', 'BATIMENT0000000245185647'],
+    },
+    Q329948: {   // le Palais-Royal : le palais au sud, le jardin au nord
+      construire: palaisRoyal, centre: [2.3369, 48.8633], orientation: -20, masquer: ['BATIMENT0000000245185223', 'BATIMENT0000002007520021', 'BATIMENT0000000245185414', 'BATIMENT0000000245185422', 'BATIMENT0000000245185421', 'BATIMENT0000000245185413', 'BATIMENT0000000245185412', 'BATIMENT0000000253248247', 'BATIMENT0000000245185410', 'BATIMENT0000000245185418', 'BATIMENT0000000245185416', 'BATIMENT0000000245185420', 'BATIMENT0000000245185415', 'BATIMENT0000000245182221', 'BATIMENT0000000245182210', 'BATIMENT0000000245182220', 'BATIMENT0000000245182209', 'BATIMENT0000000245185419', 'BATIMENT0000000245185417', 'BATIMENT0000000245182421', 'BATIMENT0000000245182422', 'BATIMENT0000000245182420', 'BATIMENT0000000245182419', 'BATIMENT0000000245182418', 'BATIMENT0000000245182423', 'BATIMENT0000000245182424', 'BATIMENT0000000245182425', 'BATIMENT0000000245182426', 'BATIMENT0000000253245823', 'BATIMENT0000000245185423', 'BATIMENT0000000245182427', 'BATIMENT0000000245182428', 'BATIMENT0000000245182429', 'BATIMENT0000000245182222', 'BATIMENT0000000245182430', 'BATIMENT0000000245182223'],
+    },
+    Q898629: {   // la place des Vosges : le centre du jardin ; le pavillon du Roi au sud
+      construire: placeDesVosges, centre: [2.365538, 48.855621], orientation: -16,
+      masquer: ['BATIMENT0000000245197734', 'BATIMENT0000000245185831', 'BATIMENT0000000245185829', 'BATIMENT0000000245197738', 'BATIMENT0000000245197732', 'BATIMENT0000000245197717', 'BATIMENT0000000245197715', 'BATIMENT0000000245197731', 'BATIMENT0000000245197694', 'BATIMENT0000000245197714', 'BATIMENT0000000245197703', 'BATIMENT0000000245197705', 'BATIMENT0000000245197707', 'BATIMENT0000000245197706', 'BATIMENT0000000245197695', 'BATIMENT0000000245197687', 'BATIMENT0000000245197685', 'BATIMENT0000000245197686', 'BATIMENT0000000245185835', 'BATIMENT0000000245185710', 'BATIMENT0000000245185711', 'BATIMENT0000000245185712', 'BATIMENT0000000245185713', 'BATIMENT0000000245185714', 'BATIMENT0000000245185715', 'BATIMENT0000000245185716', 'BATIMENT0000000245197745', 'BATIMENT0000000245197741', 'BATIMENT0000000245197823', 'BATIMENT0000000245197749', 'BATIMENT0000000245197824', 'BATIMENT0000000245197697', 'BATIMENT0000002496152971', 'BATIMENT0000000245197698', 'BATIMENT0000000245197709', 'BATIMENT0000000245197711', 'BATIMENT0000000245197721', 'BATIMENT0000000245197712', 'BATIMENT0000000245197710', 'BATIMENT0000000245197723', 'BATIMENT0000000245197439', 'BATIMENT0000000245197722', 'BATIMENT0000000245197740', 'BATIMENT0000000245197737', 'BATIMENT0000000245197736', 'BATIMENT0000000245197727', 'BATIMENT0000000245197726', 'BATIMENT0000000245197730', 'BATIMENT0000000245197725', 'BATIMENT0000000245197440'],
+    },
+    Q295844: {   // Saint-Sulpice : la façade à l'ouest, sur la place
+      construire: saintSulpice, centre: [2.334821, 48.851001], orientation: 6, masquer: ['BATIMENT0000000241937855', 'BATIMENT0000000241937858', 'BATIMENT0000000241937859', 'BATIMENT0000000241937856', 'BATIMENT0000000253245361'],
+    },
   };
   const MASQUES = Object.values(MODELES).flatMap((m) => m.masquer);
 
@@ -867,6 +1050,7 @@
 
   const api = { MODELES, MASQUES, couche, tourEiffel, cathedrale, notreDame, chartres, reims, saintDenis, arcDeTriomphe, sacreCoeur, pantheon, garnier, concorde, pontDuGard, versailles,
     elysee, sorbonne, sainteChapelle, invalides, luxembourg, fontainebleau, chambord, amiens, rouen, strasbourg,
-    madeleine, palaisDesPapes, chenonceau, montSaintMichel, louvre, carcassonne, CARCA };
+    madeleine, palaisDesPapes, chenonceau, montSaintMichel, louvre, carcassonne, CARCA,
+    grandPalais, pontAlexandre, pontNeuf, conciergerie, palaisRoyal, placeDesVosges, saintSulpice };
   if (typeof module !== 'undefined' && module.exports) module.exports = api; else racine.Maquettes = api;
 })(typeof globalThis !== 'undefined' ? globalThis : this);
