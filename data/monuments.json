@@ -3330,6 +3330,26 @@
   "articles": 14
  },
  {
+  "id": "Q526293",
+  "nom": "Église Saint-François-Xavier",
+  "lon": 2.31333,
+  "lat": 48.85056,
+  "insee": "75107",
+  "ville": "Paris 7e",
+  "palier": "regional",
+  "articles": 14
+ },
+ {
+  "id": "Q2626611",
+  "nom": "Église Saint-Ambroise",
+  "lon": 2.37606,
+  "lat": 48.86131,
+  "insee": "75111",
+  "ville": "Paris 11e",
+  "palier": "regional",
+  "articles": 14
+ },
+ {
   "id": "Q1025950",
   "nom": "Filitosa",
   "lon": 8.8714,
@@ -3930,6 +3950,16 @@
   "articles": 13
  },
  {
+  "id": "Q1464908",
+  "nom": "Basilique Saint-Martin de Tours",
+  "lon": 0.68278,
+  "lat": 47.39306,
+  "insee": "37261",
+  "ville": "Tours",
+  "palier": "regional",
+  "articles": 13
+ },
+ {
   "id": "Q1131080",
   "nom": "Hôpital Cochin",
   "lon": 2.3403,
@@ -4426,6 +4456,16 @@
   "lat": 43.0022,
   "insee": "11388",
   "ville": "Termes",
+  "palier": "regional",
+  "articles": 12
+ },
+ {
+  "id": "Q2212725",
+  "nom": "Église Saint-Pierre-le-Vieux de Strasbourg",
+  "lon": 7.74,
+  "lat": 48.58278,
+  "insee": "67482",
+  "ville": "Strasbourg",
   "palier": "regional",
   "articles": 12
  },

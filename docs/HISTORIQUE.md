@@ -139,6 +139,7 @@ Rien d'important ne vit dans une conversation : tout est dans le dépôt ou sur 
 - **Street View reste gratuit** (PR #103). Gautier a essayé : la photo de la fiche semblait figée, il fallait la toucher une fois avant de pouvoir tourner. Et la rotation de la promenade se faisait par à-coups, comme un diaporama. Ces à-coups viennent de la version gratuite de Street View, qui ne dit jamais au jeu où l'on regarde. Claude a proposé le Street View interactif de Google : fluide, avec la carte qui suit en direct, mais payant au-delà de 5 000 ouvertures par mois. Gautier a choisi de rester gratuit, sans balade automatique : la photo de la fiche se tourne de nouveau au doigt, et la promenade part de son bouton.
 - **Tous les lieux de culte** (PR #104). Gautier ne demande pas l'égalité des nombres : « si il y a plus d'églises c'est comme ça, mais les autres lieux de culte doivent aussi être présents ». Les lieux célèbres comptent maintenant 149 synagogues, 67 mosquées, 193 temples protestants, 25 temples bouddhistes et pagodes, 8 églises orthodoxes et un temple hindou (Bussy-Saint-Georges) ; aucune gurdwara n'a d'article. Dans les packs, la carte bleue « église » devient « lieu de culte », de toute religion : le plus proche du point tiré.
 - **La Grande Mosquée de Paris devient un monument** (PR #105), à la demande de Gautier, avec sa maquette 3D. Elle est nationale selon la règle commune (47 articles Wikipédia), et la cathédrale de Nantes passe en régional. Gautier a demandé de vérifier les autres lieux de culte. Quatre églises sont au-dessus du seuil, dans le même cas. Une vingtaine de lieux sont pile au seuil, dont deux synagogues (Marseille, Versailles) et la cathédrale grecque orthodoxe de Paris. Question posée à Gautier.
+- **Quatre églises de plus aux monuments** (PR #106). Gautier : « oui les 4 ». Saint-François-Xavier, Saint-Ambroise, la basilique Saint-Martin de Tours et Saint-Pierre-le-Vieux de Strasbourg ont chacune leur maquette 3D.
 
 ## Toutes les PR
 
@@ -270,6 +271,7 @@ Puis une PR par étape, fusionnée en squash :
 | #103 | 04/11 08:34 | La photo Street View de la fiche se tourne de nouveau au doigt (Street View reste gratuit) |
 | #104 | 04/11 09:00 | Tous les lieux de culte : mosquées, synagogues, temples… dans les lieux célèbres et dans les packs |
 | #105 | 04/11 09:20 | La Grande Mosquée de Paris devient un monument (nationale), avec sa maquette 3D |
+| #106 | 04/11 09:32 | Quatre églises de plus aux monuments (Saint-François-Xavier, Saint-Ambroise, Saint-Martin de Tours, Saint-Pierre-le-Vieux), avec leurs maquettes 3D |
 
 ## Les décisions de Gautier
 
@@ -302,7 +304,7 @@ Les décisions du 2 novembre (interview) sont dans `CLAUDE.md` § 4 et dans le G
 - **Le serveur, suite** (phase 8) :
   - 8.2 : le mode serveur par défaut, la fin des joueurs simulés, l'inscription des amis. Question posée à Gautier, sans réponse : couper la confirmation par e-mail pendant les essais ?
   - 8.3 : l'anti-triche.
-- **Les graphismes** (phase 10, avant 8.2 : décision de Gautier) : la preuve, l'ouverture, les monuments nationaux et 358 monuments régionaux en 3D, plus la Grande Mosquée de Paris (412 maquettes ; les autres n'ont pas de bâtiment à dessiner ou portent une marque) ; ensuite l'habillage de la révélation, l'icône et le logo (`docs/BIBLE-GRAPHIQUE.md`).
+- **Les graphismes** (phase 10, avant 8.2 : décision de Gautier) : la preuve, l'ouverture, les monuments nationaux et 358 monuments régionaux en 3D, plus la Grande Mosquée de Paris et quatre églises ajoutées le 4 nov. (416 maquettes ; les autres n'ont pas de bâtiment à dessiner ou portent une marque) ; ensuite l'habillage de la révélation, l'icône et le logo (`docs/BIBLE-GRAPHIQUE.md`).
 - **La boutique** (phase 9) : Stripe, packs et Pass mensuel (pack de 8 cartes, bon mensuel : GDD § 3), probabilités affichées, blocage Belgique et Pays-Bas, CGU, confidentialité, mentions légales.
 - **Ensuite** : les graphismes (phase 10), l'équilibrage et le lancement (phase 11).
 - **Au lancement** :

@@ -50,6 +50,12 @@ AJOUTS = [
     ('manuel-viaduc-de-millau', 'viaduc de Millau', 3.0225, 44.0775, '12145', 40),
     # demande de Gautier (4 nov. 2026) ; nombre d'articles lu dans Wikidata (celebres_wikidata.txt) : classée comme les autres
     ('Q392564', 'Grande Mosquée de Paris', 2.3550, 48.8419, '75105', 47),
+    # les lieux de culte au-dessus du seuil de la liste (monuments historiques, plus de 11 articles) qui y manquaient : vérifiés
+    # le 4 nov. 2026, ajoutés à la demande de Gautier
+    ('Q526293', 'église Saint-François-Xavier', 2.31333, 48.85056, '75107', 14),
+    ('Q2626611', 'église Saint-Ambroise', 2.37606, 48.86131, '75111', 14),
+    ('Q1464908', 'basilique Saint-Martin de Tours', 0.68278, 47.39306, '37261', 13),
+    ('Q2212725', 'église Saint-Pierre-le-Vieux de Strasbourg', 7.74000, 48.58278, '67482', 12),
 ]
 NATIONAUX = 60  # les 60 plus connus : légendaires nationaux ; les suivants : régionaux
 # Corrections du classement automatique (le nombre d'articles Wikipédia a des biais) : [Proposé], Gautier tranchera.
