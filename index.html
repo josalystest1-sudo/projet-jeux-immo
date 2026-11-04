@@ -42,6 +42,7 @@ const VERSION='__VERSION__';
 <script src="src/regles/celebres.js"></script>
 <script src="src/regles/mairie.js"></script>
 <script src="src/regles/classements.js"></script>
+<script src="src/regles/monuments.js"></script>
 <script src="src/regles/encheres.js"></script>
 <script src="src/regles/pack.js"></script>
 <script src="src/tirage.js"></script>
@@ -178,6 +179,7 @@ const NIVEAUX = R.NIVEAUX; const SALAIRE = ECO.salaire_par_jour; const LOYER_BAS
 const ENC = Encheres.creer(ECO); // règles des enchères (src/regles/encheres.js)
 const MAI = Mairie.creer(ECO);    // le Maire par caisse de travaux (src/regles/mairie.js, GDD § 5)
 const CLA = Classements.creer(ECO); // les classements et les saisons (src/regles/classements.js, GDD § 5 bis)
+const MON = Monuments.creer(ECO);   // les monuments : entretien, impayés, absence (src/regles/monuments.js, GDD § 5 ter)
 function iconeMonument(n){ n=n.toLowerCase(); if(/tour eiffel/.test(n)) return '🗼'; if(/mosquée/.test(n)) return '🕌'; if(/synagogue/.test(n)) return '🕍'; if(/cathédrale|basilique|église|chapelle|abbaye|abbatiale|primatiale|collégiale|monastère|synagogue|temple|couvent|chartreuse/.test(n)) return '⛪'; if(/château|forteresse|citadelle|fort |cité de/.test(n)) return '🏰'; if(/pont|viaduc/.test(n)) return '🌉'; if(/grotte|abri|caune/.test(n)) return '🪨'; if(/théâtre|opéra|palais garnier/.test(n)) return '🎭'; if(/phare/.test(n)) return '🗼'; if(/jardin|parc/.test(n)) return '🌳'; return '🏛️'; }
 const LISTE_MON = MONUMENTS.map(m=>({ ...m, icone: iconeMonument(m.nom), depart: ENC.miseDepart(m) }));
 const MON_NATIONAUX = LISTE_MON.filter(m=>m.palier==='national'); const MON_REGIONAUX = LISTE_MON.filter(m=>m.palier==='regional');
@@ -198,7 +200,10 @@ if(!state.echangesIn) state.echangesIn=[];
 // la caisse de travaux (démo) : mes versements du mandat en cours et du précédent, ma part de Maire touchée, mes mairies
 if(!state.caisse) state.caisse={ m:null, verse:{}, avant:{ m:null, verse:{} }, touche:{}, elus:{} };
 if(!state.caisse.hist) state.caisse.hist={};   // mandat → { commune: points } : mes versements passés (classement des Maires, Maire de la saison)
-if(!state.saisons) state.saisons={ origine:null, vues:null, passees:[] };   // la première saison jouée, la dernière vue, les résultats figés   // échanges reçus d'autres joueurs (mode serveur)
+if(!state.saisons) state.saisons={ origine:null, vues:null, passees:[] };
+// l'entretien des monuments (démo) : payé jusqu'à `le`, la dette, le début de l'impayé ; ma dernière visite (absence)
+if(!state.entretien) state.entretien={ le:Date.now(), dette:0, impayeDepuis:null, averti:false };
+if(state.vuLe==null) state.vuLe=Date.now();   // la première saison jouée, la dernière vue, les résultats figés   // échanges reçus d'autres joueurs (mode serveur)
 // 3 nov. 2026 : le Gratte-ciel s'insère avant le Prestige ; un monument déjà au Prestige (ancien niveau 4) passe au niveau 5
 if(!state.niveaux6){ for(const a of Object.values(state.owned)) if(a.type==='monument' && (a.niveau||0)>=4) a.niveau=(a.niveau||0)+1; state.niveaux6=true; }
 // puis le Palace s'insère avant le Prestige (un bâtiment par rareté) : un monument au Prestige (niveau 5) passe au niveau 6
@@ -915,7 +920,7 @@ function addrRow(a, withBuild){
       <div class="n">${echapper(a.label)}</div><div class="m">${echapper(communeName(a.citycode,a.city))}</div>
       <div class="lignes"><span class="tag r${r}">${RARETES[r]}</span>${a.qid?`<a class="tag bleu-lien" target="_blank" rel="noopener" href="https://www.wikidata.org/wiki/Special:GoToLinkedPage/frwiki/${a.qid}">📖 Wikipédia</a>`:''}${vente?'<span class="tag" style="background:#DDF3E6;color:var(--cadre2)">💰 En vente</span>':''}${proprio}</div>
     </div></div>
-    <div class="stats"><div class="stat or"><span>Valeur</span><b>${pcs(valeur(rec))}</b>${(()=>{ const x=indiceDe(rec).i-1; return Math.abs(x)>=0.005 ? `<i class="var ${x>0?'plus':'moins'}">${x>0?'▲':'▼'} ${Math.abs(Math.round(x*100))} %</i>` : ''; })()}</div><div class="stat vert"><span>Loyer</span><b>+${nb(loyer(rec))}<small>/jour</small></b></div>${a.type==='lieu'||a.type==='monument'?'':`<div class="stat"><span>Quartier</span><b class="etoiles">${'★'.repeat(R.standing(a))}<i>${'☆'.repeat(3-R.standing(a))}</i></b></div>`}</div>
+    <div class="stats"><div class="stat or"><span>Valeur</span><b>${pcs(valeur(rec))}</b>${(()=>{ const x=indiceDe(rec).i-1; return Math.abs(x)>=0.005 ? `<i class="var ${x>0?'plus':'moins'}">${x>0?'▲':'▼'} ${Math.abs(Math.round(x*100))} %</i>` : ''; })()}</div><div class="stat vert"><span>Loyer</span><b>+${nb(loyer(rec))}<small>/jour</small></b></div>${a.type==='monument' && moi ? (()=>{ const x=MON.entretiens(Object.values(state.owned)).find(y=>y.id===a.id); return x ? `<div class="stat rouge"><span>Entretien</span><b>−${nb(x.parMois)}<small>/mois</small></b></div>` : ''; })() : ''}${a.type==='lieu'||a.type==='monument'?'':`<div class="stat"><span>Quartier</span><b class="etoiles">${'★'.repeat(R.standing(a))}<i>${'☆'.repeat(3-R.standing(a))}</i></b></div>`}</div>
     ${(()=>{ const f=indiceDe(rec), parts=[['commune',f.commune],['quartier',f.quartier],['semaine',f.tendance]].filter(([,x])=>Math.abs(x)>=0.005);
       return parts.length ? `<div class="facteurs">${f.i>=1?'📈':'📉'} Marché : ${parts.map(([n,x])=>`${n} <b class="${x>0?'plus':'moins'}">${pct(x)}</b>`).join(' · ')}</div>` : ''; })()}
     ${echelleHTML(a, lv, pl, moi && withBuild, rec)}`;
@@ -1821,8 +1826,13 @@ function filtrerPatri(r){ filtrePatri = filtrePatri===r ? 0 : r; renderPatrimoin
 function renderPatrimoine(){ const el=document.getElementById('s-patrimoine'); const tous=Object.values(state.owned); const total=tous.reduce((s,a)=>s+valeur(a),0);
   const list = filtrePatri ? tous.filter(a=>rarete(a)===filtrePatri) : tous.slice();
   const p=Math.floor(pendingRent());
-  let h=`<h1>Mon patrimoine</h1><div class="kpis"><div class="kpi"><i>🏘️</i><b>${tous.length}</b><small>lieu${tous.length>1?'x':''}</small></div><div class="kpi"><i>💎</i><b>${nb(total)}<i class="pc"></i></b><small>de valeur</small></div><div class="kpi"><i>📈</i><b style="color:var(--cadre2)">+${nb(SALAIRE+loyerTotal())}</b><small>par jour</small></div></div>`;
+  let h=`<h1>Mon patrimoine</h1><div class="kpis"><div class="kpi"><i>🏘️</i><b>${tous.length}</b><small>lieu${tous.length>1?'x':''}</small></div><div class="kpi"><i>💎</i><b>${nb(total)}<i class="pc"></i></b><small>de valeur</small></div><div class="kpi"><i>📈</i><b style="color:var(--cadre2)">${(v=>(v<0?'−':'+')+nb(Math.abs(v)))(SALAIRE+loyerTotal()-(MODE_SERVEUR?0:MON.parJour(tous)))}</b><small>par jour</small></div></div>`;
   h+=`<div class="card flex"><div><div class="t">🌾 ${p>=1?`<span style="color:var(--cadre2)">+${nb(p)}</span> à récolter`:'Les loyers poussent…'}</div><div class="m">Salaire ${nb(SALAIRE)} + loyers ${nb(loyerTotal())} par jour, stockés 24 h au plus.</div></div>${p>=1?`<button class="btn vert" onclick="recolter()">Récolter</button>`:''}</div>`;
+  { const mons=MON.entretiens(tous), e=state.entretien||{}; if(mons.length){ const jr=MON.joursAvantReprise(e.impayeDepuis, now(), JOUR), cher=mons[mons.length-1];
+      h+=`<div class="card entretien${e.dette>0?' impaye':''}"><div class="t">🏛️ Entretien de tes monuments : ${pcs(MON.parMois(tous))} par mois</div>
+        <div class="m">${mons.map(x=>`${echapper(x.label)} <b>${nb(x.parMois)}</b>`).join(' · ')}</div>
+        ${e.dette>0 ? `<div class="m alerte-impaye">⚠️ Il te manque ${pcs(e.dette)} : ${echapper(cher.label)} sera remis aux enchères dans ${jr} jour${jr>1?'s':''} si l’entretien n’est pas payé.</div>` : ''}
+        <div class="m petit">Prélevé sur tes pièces au fil des jours. Un monument de plus coûterait ${pcs(MON.prochain(tous))} par mois : l’entretien double à chaque monument. Si tu ne viens pas pendant ${MON.M.absence_jours} jours, tes monuments sont remis aux enchères.</div></div>`; } }
   { const t=tendancesDeLaSemaine(); if(t.hausse.length || t.baisse.length) h+=`<div class="card tendances"><div class="t">🌤️ Le marché cette semaine</div>
       ${t.hausse.length?`<div class="m"><b class="plus">📈 En vogue</b> ${t.hausse.slice(0,4).map(x=>`${echapper(x.nom)} <b class="plus">${pct(x.v)}</b>`).join(', ')}</div>`:''}
       ${t.baisse.length?`<div class="m"><b class="moins">📉 En baisse</b> ${t.baisse.slice(0,4).map(x=>`${echapper(x.nom)} <b class="moins">${pct(x.v)}</b>`).join(', ')}</div>`:''}
@@ -1879,6 +1889,7 @@ function renderEncheres(){ const el=document.getElementById('s-encheres');
   const idx=semaineEnCours(), debut=MODE_SERVEUR ? ENCH.debut : idx*SEMAINE, finS=MODE_SERVEUR ? ENCH.fin : debut+SEMAINE, reste=Math.max(0, finS-now()), pct=Math.min(100, 100*(now()-debut)/(finS-debut));
   let h=`<h1>Enchères <span class="act compte-a-rebours">⏳ ${dureeTexte(reste)}</span></h1>
     <div class="card"><div class="t">Les 3 monuments de la semaine</div><div class="m">Des monuments Extraordinaires, qui ne sortent jamais des packs : un national et deux régionaux, pour toute la France. ${MODE_SERVEUR ? (enVraisJours() ? 'Les enchères se terminent à minuit, heure de Paris, au bout de la semaine.' : `Serveur d’essai : une semaine dure ${Math.round(7*JOUR/60000)} minutes.`) : 'Démo : une semaine dure 7 minutes.'}</div>
+    <div class="m petit" style="margin-top:6px">🏛️ Entretien : ton prochain monument coûtera ${pcs(MON.prochain(Object.values(state.owned)))} par mois (il double à chaque monument). Un monument est remis aux enchères si son propriétaire ne vient pas pendant ${MON.M.absence_jours} jours.</div>
     <div class="bar"><i style="width:${pct}%"></i></div><div class="flex"><span class="m" style="margin:0">Disponible pour miser</span><span class="montant" style="font-size:20px">${nb(dispo())}<i class="pc"></i></span></div></div>`;
   if(!lotsDe(idx).length) h+=`<div class="card vide"><div class="ico">🏛️</div><div class="t">Pas de monument cette semaine</div><div class="m">Tous les monuments ont déjà un propriétaire.</div></div>`;
   for(const lot of lotsDe(idx)){ const mises=misesDe(lot), top=ENC.meilleure(mises), min=ENC.miseMin(lot.m, mises), nat=lot.palier==='national', id='bid-'+lot.cle.replace(':','-');
@@ -2018,6 +2029,34 @@ function ouvrirClassements(onglet){ onglet=onglet||'maires'; const box=document.
     <div class="filtres onglets-classement">${[['maires','👑 Maires'],['patrimoine','🏛️ Patrimoine'],['passees','📜 Passées']].map(([o,t])=>`<button class="filtre${o===onglet?' on':''}" onclick="ouvrirClassements('${o}')">${t}</button>`).join('')}</div>
     ${corps}<button class="btn clair large" style="width:100%;margin-top:14px" onclick="closeModal()">Fermer</button>`;
   document.getElementById('modal').classList.add('on'); }
+// =================== les monuments : prestige, pas revenu (GDD § 5 ter) ===================
+// L'entretien (le n-ième monument : 300 × 2^(n−1) pièces par mois du jeu) est prélevé au fil des jours sur mes pièces ;
+// ce qui manque devient une dette ; après un mois d'impayé, le monument le plus cher est remis aux enchères (prévenu 7 jours
+// avant). Une absence de 14 jours fait perdre ses monuments (prévenu au retour s'il s'en est fallu de peu). Démo : un monument
+// repris est simplement libéré (les lots de la démo sont simulés).
+const mesMonuments = () => Object.values(state.owned).filter(x=>x.type==='monument');
+function reprendreMonument(x, raison){ delete state.owned[x.id]; if(badges[x.id]){ badges[x.id].remove(); delete badges[x.id]; }
+  notify('monument', `🏛️ ${x.label} est remis aux enchères : ${raison}.`); }
+function retourAbsence(){ const t=now(), mons=mesMonuments(), jours=Math.floor((t-state.vuLe)/JOUR), a=MON.absence(state.vuLe, t, JOUR);
+  if(mons.length && a==='reprendre'){ for(const x of mons) reprendreMonument(x, `tu n’es pas venu depuis ${jours} jours (${MON.M.absence_jours} au plus)`); state.entretien={ le:t, dette:0, impayeDepuis:null, averti:false }; apresAction(); }
+  else if(mons.length && a==='avertir') notify('monument', `⏳ Tu n’étais pas venu depuis ${jours} jours : à ${MON.M.absence_jours} jours d’absence, tes monuments sont remis aux enchères.`);
+  state.vuLe=t; save(); }
+let vuLeSauve=0;
+function tickMonuments(){ if(MODE_SERVEUR) return; const t=now(), e=state.entretien;
+  // ma visite (seulement quand le jeu est à l'écran : un onglet oublié ne compte pas)
+  if(document.visibilityState==='visible'){ if(t-state.vuLe>5000) retourAbsence(); else { state.vuLe=t; if(t-vuLeSauve>10000){ vuLeSauve=t; save(); } } }
+  const mons=mesMonuments();
+  if(!mons.length){ if(e.dette || e.impayeDepuis!=null){ e.dette=0; e.impayeDepuis=null; e.averti=false; save(); } e.le=t; return; }
+  const d=MON.du(mons, e.le, t, JOUR);
+  // « prélevé sur les loyers » : s'il manque des pièces, les loyers en attente sont récoltés d'abord
+  if((d.montant>=1 || e.dette>0) && state.wallet < e.dette+d.montant && Math.floor(pendingRent())>=1) encaisser(true);
+  if(d.montant>=1 || e.dette>0){ const avant=e.impayeDepuis, r=MON.payer(state.wallet, e.dette, d.montant, e.impayeDepuis, t);
+    state.wallet-=r.paye; e.le+=d.couvreMs; e.dette=r.dette; e.impayeDepuis=r.impayeDepuis; if(r.impayeDepuis==null) e.averti=false;
+    if(avant==null && r.impayeDepuis!=null){ const x=state.owned[MON.plusCher(mons)]; notify('monument', `⚠️ Pas assez de pièces pour l’entretien de tes monuments (${fmt(MON.parMois(mons))} par mois). Après ${MON.M.impaye_jours} jours d’impayé, ${x?x.label:'le plus cher'} sera remis aux enchères.`); }
+    if(r.paye || avant!==r.impayeDepuis) save(); }
+  const st=MON.impaye(e.impayeDepuis, t, JOUR);
+  if(st==='avertir' && !e.averti){ e.averti=true; const x=state.owned[MON.plusCher(mons)]; notify('monument', `⏳ Entretien impayé : dans ${MON.joursAvantReprise(e.impayeDepuis, t, JOUR)} jours, ${x?x.label:'ton monument le plus cher'} sera remis aux enchères si tu n’as pas les pièces.`); save(); }
+  if(st==='reprendre'){ const x=state.owned[MON.plusCher(mons)]; if(x) reprendreMonument(x, `son entretien n’a pas été payé pendant ${MON.M.impaye_jours} jours`); e.dette=0; e.impayeDepuis=null; e.averti=false; save(); apresAction(); } }
 // ma part de Maire en attente (démo) : 5 % des loyers des lieux simulés des autres joueurs, depuis la dernière récolte
 function partMaireEnAttente(){ const o={ total:0, parCommune:{} }; if(MODE_SERVEUR || !state.caisse) return o; const e=state.caisse, m=mandatCourant(); if(e.m!==m) return o;
   const jours=Math.min(now()-Math.max(state.encaisse, debutMandat(m)), ECO.stock_loyer_heures*JOUR/24)/JOUR; if(!(jours>0)) return o;
@@ -2123,7 +2162,7 @@ function renderCommunes(){ const el=document.getElementById('s-communes'); const
 
 function setPref(k,v){ state.prefs[k]=v; save(); }
 // les notifications : une icône par sorte, l'heure relative, les actions ; les réglages sont à part
-function iconeNotif(n){ const t=n.text||''; if(n.type==='enchere') return /remporté/.test(t)?'🏆':(/surenchéri/.test(t)?'⚠️':'🔨'); if(n.type==='offre') return /accepté/.test(t)?'✅':(/refusé/.test(t)?'❌':'📨'); if(n.type==='vente') return '💰'; if(n.type==='maire') return /terminé/.test(t)?'🏛️':'👑'; if(n.type==='saison') return '🏆'; if(n.type==='echange') return /accepté/.test(t)?'🤝':(/refusé|annulé/.test(t)?'❌':'🔁'); return '🔔'; }
+function iconeNotif(n){ const t=n.text||''; if(n.type==='enchere') return /remporté/.test(t)?'🏆':(/surenchéri/.test(t)?'⚠️':'🔨'); if(n.type==='offre') return /accepté/.test(t)?'✅':(/refusé/.test(t)?'❌':'📨'); if(n.type==='vente') return '💰'; if(n.type==='maire') return /terminé/.test(t)?'🏛️':'👑'; if(n.type==='saison') return '🏆'; if(n.type==='monument') return /⚠️|⏳/.test(t)?'⏳':'🏛️'; if(n.type==='echange') return /accepté/.test(t)?'🤝':(/refusé|annulé/.test(t)?'❌':'🔁'); return '🔔'; }
 function ilYa(ts){ const s=Math.max(0,Math.floor((now()-ts)/1000)); if(s<60) return 'à l’instant'; const m=Math.floor(s/60); if(m<60) return `il y a ${m} min`; const h=Math.floor(m/60); if(h<24) return `il y a ${h} h`; return `il y a ${Math.floor(h/24)} j`; }
 function renderNotifs(){ const el=document.getElementById('s-notifs'); let h=`<h1>Notifications <button class="act rond" style="width:44px;height:44px;font-size:20px" onclick="ouvrirReglages()" aria-label="Réglages">⚙️</button></h1>`;
   if(!state.notifs.length) h+=`<div class="card vide"><div class="ico">🔔</div><div class="t">Rien de neuf</div><div class="m">Les offres reçues, les enchères et les ventes arrivent ici.</div></div>`;
@@ -2266,7 +2305,7 @@ function afficherBourse(cible){ const el=document.getElementById('wallet'); cibl
 function refreshTop(){ afficherBourse(dispo()); document.getElementById('meav').textContent=state.avatar||'🙂'; document.getElementById('mename').textContent=disp(ME); const n=Object.keys(state.owned).length; document.getElementById('count').textContent = `${n} lieu${n>1?'x':''}${MODE_SERVEUR?' · serveur':''}`;
   const p=Math.floor(pendingRent()); document.getElementById('pending').textContent = p>0 ? `+${nb(p)}` : '';
   const unread=state.notifs.filter(n=>!n.read).length; const c=document.getElementById('cnt-notif'); c.style.display=unread?'block':'none'; c.textContent=unread; refreshPack(); }
-setInterval(()=>{ refreshTop(); if(!MODE_SERVEUR){ tickOffers(); tickAuction(); tickMairie(); tickSaison(); const cf=document.getElementById('caisse-fin'); if(cf) cf.textContent='⏳ '+dureeTexte(finMandat(mandatCourant())-now());
+setInterval(()=>{ refreshTop(); if(!MODE_SERVEUR){ tickOffers(); tickAuction(); tickMairie(); tickSaison(); tickMonuments(); const cf=document.getElementById('caisse-fin'); if(cf) cf.textContent='⏳ '+dureeTexte(finMandat(mandatCourant())-now());
     const sf=document.getElementById('saison-fin'); if(sf) sf.textContent='⏳ '+dureeTexte(finSaison(CLA.saison(mandatCourant()))-now()); } else { refreshPack(); tickEncheresServeur(); } }, 1000);
 // À la connexion : la récolte des loyers (24 h au plus), puis le pack du jour s'il est prêt
 function packAuDemarrage(){ if(!packDispo()){ if(!state.prefs.guideVu) setTimeout(()=>guide(0), 800); return; } if(map.loaded()) setTimeout(ouvrirPack, 600); else map.once('idle', ()=>setTimeout(ouvrirPack, 900)); }

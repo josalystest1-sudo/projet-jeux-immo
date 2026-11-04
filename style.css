@@ -1049,3 +1049,9 @@ body.promenade #sheet .svwrap{display:none}
 .plaques-saison{display:flex;flex-direction:column;gap:6px;margin-top:12px}
 .plaque-saison{display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:12px;background:linear-gradient(90deg,#F7E7B8,#FFF6DA);color:#6B4A00;font-weight:800;font-size:13px}
 .plaque-saison span{flex:1}
+
+/* ===================== l'entretien des monuments (4 nov. au soir, GDD § 5 ter) ===================== */
+.stat.rouge b{color:#C2412D}
+.card.entretien{border:2px solid var(--piece-clair)}
+.card.entretien.impaye{border-color:#E4573D;background:#FFF4F1}
+.alerte-impaye{color:#B23A22;font-weight:800}

@@ -158,6 +158,7 @@ Rien d'important ne vit dans une conversation : tout est dans le dépôt ou sur 
 - **La maquette qui se montrait trop tôt** (PR #122). Gautier : en dévoilant une carte, on apercevait le modèle 3D de l'adresse avant la carte de France. Le voile de la révélation arrivait en fondu pendant que la carte se retournait ; il est désormais opaque dès le départ.
 - **Les saisons et les classements, dans le jeu** (PR #123). Gautier : « enchaîne ». Deuxième étape du game design du 4 nov. : une carte « Saison » en tête de l'écran Communes (mes places), les classements des Maires et de patrimoine, et à chaque fin de saison un podium et une plaque « Maire de la saison » sur la fiche des communes. Le serveur suit à l'étape d'après.
 - **Les saisons sur le serveur** (PR #124). Les classements portent maintenant sur les vrais joueurs du serveur ; à chaque fin de saison, le serveur fige les podiums, grave les plaques et prévient chacun de sa place.
+- **Les monuments, dans le jeu** (PR #125). Gautier : « enchaîne, je teste en même temps ». Troisième étape du game design du 4 nov. : l'entretien des monuments (300, 600, 1 200… par mois), la dette et la reprise du plus cher après un mois d'impayé, la reprise de tous ses monuments après 14 jours d'absence. Le serveur et l'alerte à Gautier suivent.
 
 ## Toutes les PR
 
@@ -308,6 +309,7 @@ Puis une PR par étape, fusionnée en squash :
 | #122 | 04/11 18:20 | Révélation : la maquette du lieu n'apparaît plus avant la carte de France |
 | #123 | 04/11 19:00 | Les saisons et les classements dans le jeu (démo) : classement des Maires et de patrimoine, fin de saison figée, Maire de la saison |
 | #124 | 04/11 19:40 | Les saisons et les classements sur le serveur : rareté des lieux, Maires de chaque mandat, classements lisibles, saison figée et annoncée |
+| #125 | 04/11 20:30 | Les monuments dans le jeu (démo) : entretien qui double à chaque monument, impayé, reprise après 14 jours d'absence |
 
 ## Les décisions de Gautier
 
