@@ -88,6 +88,7 @@ Rien d'important ne vit dans une conversation : tout est dans le dépôt ou sur 
 - Quatrième lot de la nuit (PR #52) : les onze derniers monuments nationaux. Tous ont leur maquette, sauf les grottes, les cimetières et les jardins (halo doré) et le Ritz (une marque, question pour Gautier).
 - Premier lot de monuments régionaux (PR #53) : Montsoreau, Saint-Germain-en-Laye, Saint-Savin, la Saline royale, Saint-Eustache, Chaillot, la place Stanislas, Laon.
 - Deuxième lot régional (PR #54) : Fontevraud, le palais du Tau, Azay-le-Rideau, Cordouan, Villandry, l'observatoire de Nice, Albi, l'École militaire, le théâtre des Champs-Élysées, le Clos Lucé.
+- Troisième lot régional (PR #55) : l'Odéon, Chantilly, Angers, Bayeux, l'arc d'Orange, la villa Savoye ; et les maquettes construites à la demande (le démarrage du jeu ne ralentit pas avec leur nombre).
 
 ## Toutes les PR
 
@@ -168,6 +169,7 @@ Puis une PR par étape, fusionnée en squash :
 | #52 | 04/11 01:23 | Graphismes : les onze derniers monuments nationaux en 3D (Bourges, Beauvais, Nantes, Vézelay, Cluny, Fontenay, Ronchamp, la Maison carrée, Orange, le pont d'Avignon, Carnac) |
 | #53 | 04/11 01:29 | Graphismes : huit monuments régionaux en 3D (Montsoreau, Saint-Germain-en-Laye, Saint-Savin, la Saline royale, Saint-Eustache, Chaillot, la place Stanislas, Laon) |
 | #54 | 04/11 01:34 | Graphismes : dix monuments régionaux en 3D (Fontevraud, le palais du Tau, Azay-le-Rideau, Cordouan, Villandry, l'observatoire de Nice, Albi, l'École militaire, le théâtre des Champs-Élysées, le Clos Lucé) |
+| #55 | 04/11 01:39 | Graphismes : six monuments régionaux de plus (l'Odéon, Chantilly, Angers, Bayeux, l'arc d'Orange, la villa Savoye) ; les maquettes construites à la demande |
 
 ## Les décisions de Gautier
 
@@ -198,7 +200,7 @@ Les décisions du 2 novembre (interview) sont dans `CLAUDE.md` § 4 et dans le G
 - **Le serveur, suite** (phase 8) :
   - 8.2 : le mode serveur par défaut, la fin des joueurs simulés, l'inscription des amis. Question posée à Gautier, sans réponse : couper la confirmation par e-mail pendant les essais ?
   - 8.3 : l'anti-triche.
-- **Les graphismes** (phase 10, avant 8.2 : décision de Gautier) : la preuve, l'ouverture, les monuments nationaux et 18 monuments régionaux en 3D (71 maquettes) ; ensuite les autres régionaux, l'habillage de la révélation, l'icône et le logo (`docs/BIBLE-GRAPHIQUE.md`).
+- **Les graphismes** (phase 10, avant 8.2 : décision de Gautier) : la preuve, l'ouverture, les monuments nationaux et 24 monuments régionaux en 3D (77 maquettes) ; ensuite les autres régionaux, l'habillage de la révélation, l'icône et le logo (`docs/BIBLE-GRAPHIQUE.md`).
 - **La boutique** (phase 9) : Stripe, packs et Pass mensuel (pack de 8 cartes, bon mensuel : GDD § 3), probabilités affichées, blocage Belgique et Pays-Bas, CGU, confidentialité, mentions légales.
 - **Ensuite** : les graphismes (phase 10), l'équilibrage et le lancement (phase 11).
 - **Au lancement** :
