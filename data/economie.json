@@ -42,5 +42,10 @@
     "derniere_heure": 0.5,
     "absence_jours": 7,
     "versement_min": 10
+  },
+  "classements": {
+    "poids_rarete": { "1": 1, "2": 2, "3": 4, "4": 8, "5": 12, "6": 20 },
+    "bonus_niveau": [0, 1, 3, 6, 10, 12, 15],
+    "mandats_par_saison": 6
   }
 }
