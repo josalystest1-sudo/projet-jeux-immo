@@ -174,7 +174,7 @@
     for (const s of [1, -1]) A.boite(long - 8, bas, bc, cx, 0, s * (demi + bc / 2 - 1), pierreFoncee);
     const tL = o.transeptL || 14;
     if (o.transept) { A.boite(tL, o.mur, o.transept, o.xT, 0, 0, pierre); A.toit(tL, o.toitH, o.transept, o.xT, o.mur, 0, toit, Math.PI / 2); }   // (Bourges n'en a pas)
-    A.abside(demi, o.mur, o.E, 0, 0, pierre); A.demiCone(demi + 0.5, o.toitH - 1, o.E, o.mur, 0, toit);
+    if (!o.chevetPlat) { A.abside(demi, o.mur, o.E, 0, 0, pierre); A.demiCone(demi + 0.5, o.toitH - 1, o.E, o.mur, 0, toit); }   // (Laon : un chevet plat)
     // des arcs-boutants de chaque côté (pas devant le transept)
     if (o.arcs !== false) for (let x = debut + 10; x < o.E - 4; x += 15.5) { if (Math.abs(x - o.xT) < tL / 2 + 3) continue;
       for (const s of [1, -1]) { const zp = demi + bc + 2; A.boite(3, o.mur * 0.6, 3, x, 0, s * zp, pierreFoncee); A.poutre(V(x, o.mur * 0.57, s * zp), V(x, o.mur * 0.93, s * (demi + 0.5)), 2, 1.6, pierreFoncee); } }
@@ -1162,6 +1162,98 @@
     return A.groupe;
   }
 
+  // ---------------------------------------------------------------- monuments régionaux (nuit du 4 nov. 2026), les plus connus
+  // d'abord
+  // le château de Montsoreau (x : le long de la Loire, au nord en -z) : le logis de tuffeau, son haut toit, ses lucarnes,
+  // ses cheminées, les deux tours d'escalier côté cour
+  function montsoreau(THREE) {
+    const A = atelier(THREE);
+    const tuffeau = A.matiere(0xF6F0E0), tuffeauOmbre = A.matiere(0xE2D7BD), ardoise = A.matiere(0x4F5D8C);
+    A.boite(51, 22, 14, 4.5, 0, -21, tuffeau); A.toit(14.6, 11, 51, 4.5, 22, -21, ardoise);
+    const luc = Array.from({ length: 6 }, (_, k) => [2.2, 4, 2, -15 + k * 7.8, 21, -27.4]);
+    A.boites(luc, tuffeau); A.toits(luc.map(([, , , x, , z]) => [3, 2.4, 2.4, x, 25, z, Math.PI / 2]), ardoise);
+    A.boites([-16, 6, 26].map((x) => [1.8, 9, 3, x, 28, -21]), tuffeauOmbre);
+    for (const [x, h] of [[-10, 26], [25, 24]]) { A.boite(10, h, 7, x, 0, -10.5, tuffeau); A.pyramide(7.4, 7, 4, x, h, -10.5, ardoise); }
+    return A.groupe;
+  }
+
+  // le château de Saint-Germain-en-Laye : le pentagone de brique et de pierre autour de sa cour, ses terrasses, ses hautes
+  // cheminées, le donjon et son campanile
+  function saintGermainEnLaye(THREE) {
+    const A = atelier(THREE);
+    const brique = A.matiere(0xC9775A), pierre = A.matiere(0xF0E6CF), zinc = A.matiere(0xB8BFCC), ardoise = A.matiere(0x4F5D8C);
+    const anneau = [[[-53, 22], [16, -15], [22, 20], [-17, 52], [-53, 69], [-53, 22]]];
+    A.remparts(anneau, 24, 18, brique); A.remparts(anneau, 1.2, 18.6, pierre, 24); A.remparts(anneau, 1.4, 18.8, zinc, 25.2);
+    A.boites([[-50, 30], [-10, 6], [15, 0], [10, 30], [-30, 50], [-50, 55]].map(([x, z]) => [2.4, 6, 2.4, x, 25, z]), brique);
+    A.boite(14, 34, 14, -53, 0, 22, brique); A.boite(15, 1.4, 15, -53, 32.6, 22, pierre); A.cylindre(2.4, 2.4, 6, 8, -53, 34, 22, pierre); A.pyramide(2.8, 5, 8, -53, 40, 22, ardoise);
+    return A.groupe;
+  }
+
+  // l'abbatiale de Saint-Savin-sur-Gartempe (x : l'axe, le clocher-porche à l'ouest en -x) : la nef romane, le transept,
+  // l'abside et ses chapelles rayonnantes, la flèche gothique (77 m)
+  function saintSavin(THREE) {
+    const A = atelier(THREE);
+    const pierre = A.matiere(0xEFE4CB), pierreFoncee = A.matiere(0xD3C3A0), ardoise = A.matiere(0x56659A), ardoiseFoncee = A.matiere(0x3F4B78);
+    A.boite(40, 16, 24, -19, 0, 0, pierre); A.toit(24.6, 8, 40, -19, 16, 0, ardoise);
+    A.boite(10, 18, 30, 6, 0, 0, pierre); A.toit(10.6, 8, 30, 6, 18, 0, ardoise, Math.PI / 2);
+    A.boite(12, 18, 14, 17, 0, 0, pierre); A.abside(7, 18, 23, 0, 0, pierre); A.demiCone(7.5, 6, 23, 18, 0, ardoise); A.abside(14, 9, 23, 0, 0, pierreFoncee);
+    A.boite(10, 24, 10, -42, 0, 0, pierre); A.cylindre(4.4, 4.4, 8, 8, -42, 24, 0, pierre); A.pyramide(4.6, 45, 8, -42, 32, 0, pierreFoncee); A.boule(0.8, -42, 77.6, 0, ardoiseFoncee);
+    A.boite(10, 9, 3, 6, 18, 0, pierre); A.pyramide(5, 5, 4, 6, 27, 0, ardoise);
+    return A.groupe;
+  }
+
+  // la Saline royale d'Arc-et-Senans (Ledoux) : la maison du directeur et son portique de colonnes, les deux bâtiments
+  // des sels, le demi-cercle des bâtiments et la porte d'entrée ; des toits de tuiles
+  function salineRoyale(THREE) {
+    const A = atelier(THREE);
+    const pierre = A.matiere(0xEFE4CB), pierreFoncee = A.matiere(0xD3C3A0), tuile = A.matiere(0xB0644A);
+    A.boite(16, 15, 38, 3, 0, -69, pierre); A.toit(16.6, 7, 38, 3, 15, -69, tuile, Math.PI / 2);
+    A.cylindres(Array.from({ length: 6 }, (_, k) => [12, -78 + k * 3.6, 1.3, 11, 0]), pierreFoncee, 12); A.boite(4, 2, 22, 12, 11, -69, pierreFoncee); A.toit(22, 4, 4, 12, 13, -69, pierre);
+    for (const [x, l] of [[-62, 84], [65, 86]]) { A.boite(l, 10, 28, x, 0, -69, pierre); A.toit(28.6, 8, l, x, 10, -69, tuile); }
+    const segs = [18, 55, 90, 127, 162].map((a) => { const t = a * Math.PI / 180; return [Math.cos(t) * 128, -62 + Math.sin(t) * 128, -t + Math.PI / 2]; });
+    A.boites(segs.map(([x, z, r]) => [44, 8, 12, x, 0, z, r]), pierre); A.toits(segs.map(([x, z, r]) => [12.6, 5, 44, x, 8, z, r]), tuile);
+    A.boite(14, 11, 16, 0, 0, 72, pierreFoncee);
+    return A.groupe;
+  }
+
+  // l'église Saint-Eustache (x : l'axe, la façade à l'ouest en -x) : la haute nef gothique, le transept, la tour nord de la
+  // façade classique, le chevet et ses chapelles, le petit clocher de la croisée
+  const saintEustache = (THREE) => cathedrale(THREE, { F: -45.5, E: 43.5, larg: 14, mur: 33, toitH: 12, xT: -2.75, transept: 44, transeptL: 14, cote: 10, facadeH: 34, rose: 2.5,
+    tours: [{ z: -12, h: 45 }], flecheCroisee: { tour: 4, cote: 6, h: 6, r: 3.4, seg: 8 },
+    plus: (A, m) => { for (const s of [1, -1]) A.boite(80, 18, 9, 0, 0, s * 18.5, m.pierreFoncee); A.abside(23, 18, 36, 0, 0, m.pierreFoncee); A.boite(14, 34, 40, -45, 0, 0, m.pierre); } });
+
+  // le palais de Chaillot (x : vers la tour Eiffel, au sud-est) : les deux pavillons, le parvis et ses statues dorées, les
+  // deux ailes en arc de cercle
+  function chaillot(THREE) {
+    const A = atelier(THREE);
+    const pierre = A.matiere(0xEEE6D2), pierreFoncee = A.matiere(0xD4C8AC), or = A.matiere(0xFFC233, 0x7A4A00);
+    for (const z of [-53.5, 46.5]) { A.boite(60, 26, 47, -5, 0, z, pierre); A.boite(61, 1.4, 48, -5, 26, z, pierreFoncee); A.plaques(Array.from({ length: 8 }, (_, k) => [0.3, 14, 3, 25.2, 4, z - 19 + k * 5.4]), pierreFoncee); }
+    A.remparts([[[3, -77], [12, -110], [26, -140], [46, -172]]], 22, 18, pierre); A.remparts([[[3, 70], [12, 103], [26, 133], [46, 165]]], 22, 18, pierre);
+    A.boites([-1, 1].flatMap((s) => [4, 12, 20, 28].map((x) => [1.6, 1.2, 1.6, x, 0, s * 26])), pierreFoncee);
+    A.boites([-1, 1].flatMap((s) => [4, 12, 20, 28].map((x) => [0.9, 3.4, 0.9, x, 1.2, s * 26])), or);
+    return A.groupe;
+  }
+
+  // la place Stanislas de Nancy (x : le côté de l'hôtel de ville, au sud en +z) : l'hôtel de ville et les pavillons, les
+  // pavillons bas au nord, les grilles dorées de Jean Lamour aux quatre coins, la statue de Stanislas
+  function placeStanislas(THREE) {
+    const A = atelier(THREE);
+    const pierre = A.matiere(0xF2E6C8), pierreFoncee = A.matiere(0xD9C8A0), or = A.matiere(0xFFC233, 0x7A4A00), bronze = A.matiere(0x3F5B4E), eau = A.matiere(0x6DC4F0, 0x0E3A55);
+    const corps = [[94, 21, 50, -5, 77], [67, 21, 31, 86.5, -16.5], [67, 18, 29, 86.5, 27.5], [57, 16, 30, -91.5, -15], [55, 18, 24, -92.5, 30], [31, 9, 45, -32.5, -67.5], [37, 9, 45, 21.5, -67.5]];
+    for (const [lx, h, lz, x, z] of corps) { A.boite(lx, h, lz, x, 0, z, pierre); A.boite(lx + 0.6, 1.4, lz + 0.6, x, h, z, pierreFoncee); }
+    const grilles = []; for (const [x, z, sx, sz] of [[-63, -44, 1, 1], [53, -44, -1, 1], [-63, 51, 1, -1], [53, 51, -1, -1]]) { grilles.push([12, 7, 0.4, x + sx * 6, 0, z, 0]); grilles.push([0.4, 7, 12, x, 0, z + sz * 6, 0]); }
+    A.boites(grilles, or);
+    for (const [x, z] of [[-60, -40], [50, -40]]) { A.cylindre(5, 5, 0.8, 20, x, 0, z, pierre); A.cylindre(4.4, 4.4, 0.5, 20, x, 0.5, z, eau); A.boule(1.2, x, 2.6, z, or); }
+    A.boite(3, 4, 4, -5, 0, 3, pierre); A.boite(1, 3, 1, -5, 4, 3, bronze); A.boule(0.5, -5, 7.5, 3, bronze);
+    return A.groupe;
+  }
+
+  // la cathédrale de Laon (x : l'axe, la façade à l'ouest) : le chevet plat, les tours à étage octogonal (cinq tours), la
+  // tour-lanterne de la croisée
+  const laon = (THREE) => cathedrale(THREE, { F: -52, E: 60, larg: 24, mur: 24, toitH: 11, xT: 10.5, transept: 64, transeptL: 18, cote: 16, facadeH: 34, rose: 5.5, chevetPlat: true,
+    tours: [{ z: -12, h: 40, octogone: { h: 16, r: 6 } }, { z: 10, h: 40, octogone: { h: 16, r: 6 } }], flecheCroisee: { tour: 10, cote: 14, h: 4, r: 9.5, seg: 4 },
+    plus: (A, m) => { for (const x of [3, 18]) { A.boite(9, 40, 9, x, 0, -30, m.pierre); A.cylindre(4, 4, 12, 8, x, 40, -30, m.pierre); A.pyramide(4.4, 3, 8, x, 52, -30, m.pierreFoncee); } } });
+
   // les maquettes connues : le monument (identifiant de data/monuments.json), où et comment la poser, et les
   // bâtiments de l'IGN qu'elle remplace (sinon les blocs gris de la BD TOPO resteraient dedans)
   const MODELES = {
@@ -1347,6 +1439,31 @@
     Q833850: {   // Carnac : dix files de menhirs (une représentation)
       construire: carnac, centre: [-3.0797, 47.5933], orientation: 30, masquer: [],
     },
+    Q1143049: {   // Montsoreau : la Loire au nord
+      construire: montsoreau, centre: [0.0622, 47.2156], orientation: -28, masquer: ['BATIMENT0000000313837244', 'BATIMENT0000000313837243', 'BATIMENT0000000313837242'],
+    },
+    Q1520841: {   // Saint-Germain-en-Laye : le pentagone
+      construire: saintGermainEnLaye, centre: [2.0964, 48.8981], orientation: -11, masquer: ['BATIMENT0000000322098465'],
+    },
+    Q1774129: {   // Saint-Savin : le clocher-porche à l'ouest
+      construire: saintSavin, centre: [0.866, 46.5648], orientation: -14, masquer: ['BATIMENT0000000274310738', 'BATIMENT0000000274310737'],
+    },
+    Q649055: {   // la Saline royale : la maison du directeur au nord, le demi-cercle au sud
+      construire: salineRoyale, centre: [5.7778, 47.0328], orientation: 24, masquer: ['BATIMENT0000000317411888', 'BATIMENT0000000317411890', 'BATIMENT0000000317411885', 'BATIMENT0000000317411887', 'BATIMENT0000000317411886', 'BATIMENT0000000317412013', 'BATIMENT0000000317411880', 'BATIMENT0000000317411881'],
+    },
+    Q1338207: {   // Saint-Eustache : la façade à l'ouest
+      construire: saintEustache, centre: [2.345157, 48.863396], orientation: -10, masquer: ['BATIMENT0000000245185630', 'BATIMENT0000000245159798', 'BATIMENT0000000245185631', 'BATIMENT0000000245159797', 'BATIMENT0000000245159751', 'BATIMENT0000000245185336', 'BATIMENT0000000245185360'],
+    },
+    Q13360213: {   // Chaillot : face à la tour Eiffel
+      construire: chaillot, centre: [2.2881, 48.8623], orientation: -44, masquer: ['BATIMENT0000000245168717', 'BATIMENT0000000253247092', 'BATIMENT0000000253247090', 'BATIMENT0000000245168716'],
+    },
+    Q426064: {   // la place Stanislas : l'hôtel de ville au sud
+      construire: placeStanislas, centre: [6.1833, 48.6936], orientation: 24,
+      masquer: ['BATIMENT0000000334794694', 'BATIMENT0000000334794693', 'BATIMENT0000000334794159', 'BATIMENT0000000334794059', 'BATIMENT0000000334794298', 'BATIMENT0000000334794056', 'BATIMENT0000000334794300', 'BATIMENT0000000334794299', 'BATIMENT0000000334794284', 'BATIMENT0000000334794054', 'BATIMENT0000000334794281', 'BATIMENT0000000334794280', 'BATIMENT0000000334794290', 'BATIMENT0000000334794283', 'BATIMENT0000000334794282', 'BATIMENT0000000334794285', 'BATIMENT0000000334794286', 'BATIMENT0000000334794291', 'BATIMENT0000000334794295', 'BATIMENT0000000334794289', 'BATIMENT0000000334794294', 'BATIMENT0000000334794287', 'BATIMENT0000000334794288', 'BATIMENT0000000334794292', 'BATIMENT0000000334794689', 'BATIMENT0000000334794683', 'BATIMENT0000000334794687', 'BATIMENT0000000334794688', 'BATIMENT0000000334794685', 'BATIMENT0000000334794684', 'BATIMENT0000000334794681', 'BATIMENT0000000334794682', 'BATIMENT0000000334794686', 'BATIMENT0000000334794679', 'BATIMENT0000000334793456', 'BATIMENT0000000334793457', 'BATIMENT0000000334793454', 'BATIMENT0000000334793450', 'BATIMENT0000000334794678', 'BATIMENT0000000334793449', 'BATIMENT0000000334794677', 'BATIMENT0000000334794680', 'BATIMENT0000000334793448', 'BATIMENT0000000053807353', 'BATIMENT0000000334794279', 'BATIMENT0000002206377757', 'BATIMENT0000000334793451', 'BATIMENT0000000334794297', 'BATIMENT0000000053807352', 'BATIMENT0000000334794296'],
+    },
+    Q585947: {   // Laon : la façade à l'ouest, le chevet plat
+      construire: laon, centre: [3.625004, 49.564372], orientation: -2, masquer: ['BATIMENT0000000311606607', 'BATIMENT0000000311606601', 'BATIMENT0000000311606602', 'BATIMENT0000000311606605'],
+    },
   };
   const MASQUES = Object.values(MODELES).flatMap((m) => m.masquer);
 
@@ -1406,6 +1523,7 @@
     madeleine, palaisDesPapes, chenonceau, montSaintMichel, louvre, carcassonne, CARCA,
     grandPalais, pontAlexandre, pontNeuf, conciergerie, palaisRoyal, placeDesVosges, saintSulpice,
     vaux, vincennes, blois, amboise, chateauIf, notreDameDeLaGarde, viaducDeMillau,
-    bourges, nantes, vezelay, beauvais, cluny, fontenay, ronchamp, maisonCarree, theatreOrange, pontAvignon, carnac };
+    bourges, nantes, vezelay, beauvais, cluny, fontenay, ronchamp, maisonCarree, theatreOrange, pontAvignon, carnac,
+    montsoreau, saintGermainEnLaye, saintSavin, salineRoyale, saintEustache, chaillot, placeStanislas, laon };
   if (typeof module !== 'undefined' && module.exports) module.exports = api; else racine.Maquettes = api;
 })(typeof globalThis !== 'undefined' ? globalThis : this);
