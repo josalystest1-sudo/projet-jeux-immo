@@ -185,7 +185,11 @@ input.txt:focus,input.num:focus{border-color:var(--plaque)}
 h2{margin:4px 0 2px;font-size:22px}
 .sub{color:var(--gris);font-size:14px;font-weight:700;margin-bottom:10px}
 .svwrap{position:relative;margin:4px 0 12px;border-radius:18px;overflow:hidden;box-shadow:var(--ombre);background:#cfd9ea}
-.sv{width:100%;aspect-ratio:16/9;border:0;display:block;background:#cfd9ea}
+.sv{width:100%;aspect-ratio:16/9;border:0;display:block;background:#cfd9ea;pointer-events:none}
+/* la photo de la fiche ne se manipule pas : la toucher lance la promenade, avec la carte qui suit dessous (demande de Gautier,
+   4 nov.) ; avant, on se baladait dans la page de Google et la carte ne savait pas où l'on était. Couche peinte (fond presque
+   transparent, son propre calque), sinon Chrome (Android) envoie le toucher à la page de Google */
+.sv-touche{position:absolute;inset:0;cursor:pointer;touch-action:pan-y;background:rgba(23,35,63,.01);will-change:transform}
 .svwrap a.ext{position:absolute;right:8px;bottom:8px;background:rgba(23,35,63,.72);color:#fff;font-size:12px;font-weight:800;padding:6px 10px;border-radius:10px;text-decoration:none}
 .parcelle-info{color:var(--gris);font-size:11px;font-weight:700;margin-top:14px;padding-top:10px;border-top:1px solid var(--trait);line-height:1.5}
 

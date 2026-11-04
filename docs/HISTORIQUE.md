@@ -135,6 +135,7 @@ Rien d'important ne vit dans une conversation : tout est dans le dépôt ou sur 
 - Quarante-septième lot régional (PR #99) : la place d'Alliance ; `CLAUDE.md` note les outils de la nuit et ce qui reste sans maquette.
 - Quarante-huitième lot régional (PR #100) : l'amphithéâtre des Trois Gaules.
 - Quarante-neuvième lot régional (PR #101) : les forts de Douaumont et de Vaux, la chapelle du Père-Lachaise.
+- **Les retours de Gautier au réveil** (PR #102). La colonne Vendôme ne s'ouvrait pas quand on la touchait : elle est sur la place, hors de toute parcelle. Les monuments s'ouvrent maintenant d'un toucher sur leur maquette. Gautier a aussi demandé que toucher Street View dans la fiche fasse passer à la balade, la carte suivant dessous pour qu'on puisse toucher les bâtiments vus en chemin : c'est fait. Il a remarqué que les lieux marquants sont presque tous des églises et demandé si tous les lieux de culte (mosquées, synagogues…) en sont, pour éviter les polémiques. La réponse est non : seules les églises ont été téléchargées le 2 novembre. La proposition de Claude : tous les lieux de culte à égalité, plus un bouton pour signaler un lieu. Elle attend sa réponse.
 
 ## Toutes les PR
 
@@ -262,6 +263,7 @@ Puis une PR par étape, fusionnée en squash :
 | #99 | 04/11 05:57 | Graphismes : la place d'Alliance (sa fontaine), et les notes de la nuit dans CLAUDE.md |
 | #100 | 04/11 06:01 | Graphismes : l'amphithéâtre des Trois Gaules |
 | #101 | 04/11 06:05 | Graphismes : les forts de Douaumont et de Vaux, la chapelle du Père-Lachaise |
+| #102 | 04/11 08:15 | Toucher un monument ouvre sa fiche (même sur la voie publique) ; toucher la photo Street View lance la promenade |
 
 ## Les décisions de Gautier
 
@@ -301,7 +303,7 @@ Les décisions du 2 novembre (interview) sont dans `CLAUDE.md` § 4 et dans le G
   - brancher un service d'envoi d'e-mails (celui de Supabase n'écrit qu'à l'équipe Supabase) ;
   - confirmer le nom (Cadastra reste le nom de travail).
 - **Petites choses** :
-  - les autres catégories de lieux célèbres (châteaux, mairies, gares… quand Wikidata répond) ;
+  - les autres catégories de lieux célèbres (châteaux, mairies, gares…). Wikidata se joint depuis le PC. Question posée à Gautier le 4 nov. : tous les lieux de culte à égalité (mosquées, synagogues, temples, comme les églises), dans les lieux célèbres et dans les lieux bleus des packs ?
   - retirer le prototype du dépôt de l'Arena ;
   - relire les 60 monuments nationaux ;
   - valider les seuils du standing et la capacité de gestion.

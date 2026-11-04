@@ -6344,6 +6344,7 @@
       },
       render(gl, matrix) {
         const z = this.map.getZoom(); if (z < 12) return;   // de trop loin, la tour n'est qu'un point
+        this.matrice = Array.from(matrix);   // gardée pour savoir quelle maquette est sous le doigt (toucher)
         const deLoin = z < ZOOM_PRES; if (deLoin !== this.deLoin) { this.deLoin = deLoin; this.loin.forEach((o) => { o.visible = deLoin; }); this.pres.forEach((o) => { o.visible = !deLoin; }); }
         // un monument à la fois, avec sa propre matrice (carte × place du monument, en double précision) ; Three.js écarte
         // de lui-même les monuments hors de l'écran
@@ -6364,6 +6365,30 @@
         const g = p.m.construire(THREE); g.rotation.y = p.m.orientation * Math.PI / 180;
         const objet = new THREE.Group(); objet.add(g); this.scene.add(objet); objet.updateMatrixWorld(true); p.objet = objet;
         objet.traverse((o) => { if (o.userData.contour === 'loin') { this.loin.push(o); o.visible = this.deLoin; } else if (o.userData.contour === 'pres') { this.pres.push(o); o.visible = !this.deLoin; } });
+      },
+      // le monument dont la maquette est sous le doigt (x, y : pixels de la carte) et le point touché sur elle
+      // ({ id, lon, lat }), ou null. Un rayon part de l'œil, passe
+      // par le point touché et traverse les maquettes construites près de l'écran ; la plus proche gagne. Sans lui, toucher
+      // une maquette ouvrait la parcelle qui se trouve derrière elle au sol, ou rien quand le monument est sur la voie
+      // publique (la colonne Vendôme, bug du 4 nov. 2026).
+      toucher(x, y) {
+        if (!this.matrice || this.map.getZoom() < 12) return null;
+        const c = this.map.getCanvas(), nx = x / c.clientWidth * 2 - 1, ny = 1 - y / c.clientHeight * 2;
+        const carte = new THREE.Matrix4().fromArray(this.matrice), b = this.map.getBounds(), marge = 0.02;
+        const rayon = new THREE.Raycaster(), inverse = new THREE.Matrix4(), depart = new THREE.Vector3(), sens = new THREE.Vector3();
+        let mieux = null, dMin = Infinity;
+        for (const p of poses) {
+          const [lon, lat] = p.centre;
+          if (!p.objet || lon < b.getWest() - marge || lon > b.getEast() + marge || lat < b.getSouth() - marge || lat > b.getNorth() + marge) continue;
+          // de l'écran aux mètres du monument (l'inverse de carte × place, en double précision)
+          inverse.multiplyMatrices(carte, p.place).invert();
+          depart.set(nx, ny, -1).applyMatrix4(inverse); sens.set(nx, ny, 1).applyMatrix4(inverse).sub(depart).normalize();
+          rayon.set(depart, sens);
+          const t = rayon.intersectObject(p.objet, true)[0];
+          // le point touché : en mètres autour du monument (x vers l'est, z vers le sud), ramené en longitude, latitude
+          if (t && t.distance < dMin) { dMin = t.distance; mieux = { id: p.id, lon: lon + t.point.x / (111320 * Math.cos(lat * Math.PI / 180)), lat: lat - t.point.z / 110540 }; }
+        }
+        return mieux;
       },
       onRemove() { if (this.renderer) this.renderer.dispose(); },
     };
