@@ -2,7 +2,8 @@
 // PGlite (Postgres compilé pour Node) rejoue tous les fichiers SQL, puis essaie les échanges (070_echanges.sql) :
 // proposer, refuser, annuler, accepter, ce qui tombe ; les enchères (080_encheres.sql) : mise minimale, pièces
 // bloquées, surenchère, clôture (avec passage à la mise suivante) ; la caisse de travaux du Maire (090_mairie.sql) :
-// verser, part du Maire plafonnée, absence, fin de mandat annoncée une fois ; les refus attendus et les droits du jeu.
+// verser, part du Maire plafonnée, absence, fin de mandat annoncée une fois ; les classements et les saisons
+// (100_classements.sql) : patrimoine, Maires, saison figée une fois ; les refus attendus et les droits du jeu.
 // Prérequis (une fois, rien n'est ajouté au dépôt) : npm i --no-save --no-package-lock @electric-sql/pglite
 //   node tools/essai_sql.mjs            (000_comptes.sql, qui demande l'extension unaccent, est remplacé par un profil minimal)
 import { PGlite } from '@electric-sql/pglite';
@@ -164,6 +165,26 @@ ok((await part(700)) === 700 && (await part(700)) === 300 && (await part(50)) ==
 ok((await pieces(A)) === pMaire + 1000, 'le Maire a reçu ses 1 000 pièces');
 ok((await q('select public.jeu_mandat_tenir(6) as r'))[0].r === true && (await q('select public.jeu_mandat_tenir(6) as r'))[0].r === false, 'une fin de mandat ne s’annonce qu’une fois');
 
+// ---------------------------------------------------------------- les classements et les saisons (100_classements.sql)
+const POIDS = [1, 2, 4, 8, 12, 20], BONUS = [0, 1, 3, 6, 10, 12, 15];
+for (const [id, qui, niveau] of [['cl1', A, 1], ['cl2', A, 0], ['cl3', B, 0]]) await q("insert into public.lieux (id, proprietaire, type, label, lon, lat, commune, niveau) values ($1, $2, 'adresse', 'x', 0, 0, 'Classeville', $3)", [id, qui, niveau]);
+ok(Number((await q("select public.jeu_raretes(array['cl1','cl2','cl3'], array[4,1,6]::smallint[]) as n"))[0].n) === 3, 'poser la rareté de trois lieux');
+const patr = await q("select joueur, n from public.classement_patrimoine($1, $2, 'Classeville', 10)", [POIDS, BONUS]);
+ok(patr.length === 2 && patr[0].joueur === B && Number(patr[0].n) === 20 && patr[1].joueur === A && Number(patr[1].n) === (8 + 1) + 1, 'le patrimoine d’une commune : rareté plus bâtiment', patr);
+const rangA = (await q("select * from public.rang_patrimoine($1, $2, 'Classeville', $3)", [POIDS, BONUS, A]))[0];
+ok(Number(rangA.rang) === 2 && Number(rangA.n) === 10, 'la place de A dans la commune : 2e, 10 points', rangA);
+ok((await q('select count(*)::int as n from public.classement_patrimoine($1, $2, null, 100)', [POIDS, BONUS]))[0].n >= 2, 'le classement national se lit');
+ok(Number((await q("select public.jeu_mairies(12, $1::jsonb) as n", [JSON.stringify([{ commune: 'Bourg', maire: A, rivaux: 3 }, { commune: 'Classeville', maire: B, rivaux: 0 }])]))[0].n) === 2, 'garder les Maires d’un mandat');
+await q("select public.jeu_mairies(13, $1::jsonb)", [JSON.stringify([{ commune: 'Bourg', maire: B, rivaux: 2 }, { commune: 'Ailleurs', maire: A, rivaux: 1 }])]);
+const cm = await q('select joueur, n, mairies from public.classement_maires(12, 17, 10)');
+ok(cm.length === 2 && cm[0].joueur === A && Number(cm[0].n) === 4 && Number(cm[0].mairies) === 2 && cm[1].joueur === B && Number(cm[1].n) === 2, 'le classement des Maires : la somme des rivaux (une mairie sans rival ne compte pas)', cm);
+ok(Number((await q('select * from public.rang_maires(12, 17, $1)', [B]))[0].rang) === 2, 'la place de B chez les Maires : 2e');
+ok(Number((await q('select public.jeu_origine_saisons(40) as s'))[0].s) === 40 && Number((await q('select public.jeu_origine_saisons(41) as s'))[0].s) === 40, 'la première saison est posée une fois');
+ok((await q('select public.jeu_saison_tenir(40, 1) as r'))[0].r === true && (await q('select public.jeu_saison_tenir(40, 1) as r'))[0].r === false, 'une saison ne se fige qu’une fois');
+await q("select public.jeu_saison_figer(40, $1::jsonb, '[]'::jsonb, $2::jsonb, $3::jsonb)", [JSON.stringify([{ joueur: A, pseudo: 'a', n: 4, rang: 1 }]), JSON.stringify({ Bourg: { joueur: A, pseudo: 'a' } }), JSON.stringify([{ joueur: A, rm: 1, pm: 4, rp: 2, pp: 10 }, { joueur: B, rp: 1, pp: 20 }])]);
+const sa = (await q('select numero, maires, plaques from public.saisons where saison = 40'))[0], sj = await q('select joueur, rang_maires, rang_patrimoine from public.saisons_joueurs where saison = 40 order by rang_patrimoine');
+ok(sa.numero === 1 && sa.maires[0].joueur === A && sa.plaques.Bourg.joueur === A && sj.length === 2 && sj[0].joueur === B && sj[1].rang_maires === 1, 'la saison figée : podium, plaque, place de chacun', { sa, sj });
+
 // les droits : le jeu lit ses échanges, n'écrit jamais, n'appelle aucune fonction jeu_*
 await db.exec(`set role authenticated; set essai.uid = '${A}';`);
 const vus = await q('select id from public.echanges');
@@ -185,6 +206,12 @@ ok(!!(await refus("update public.parts_maire set touche = 0")), 'le jeu ne peut 
 ok(!!(await refus('select public.jeu_verser($1, 6, $2, 10, 99999)', [A, 'Bourg'])), 'le jeu ne peut pas appeler jeu_verser');
 ok(!!(await refus('select public.jeu_part_maire(6, $1, $2, 1000, 1000)', ['Bourg', A])), 'le jeu ne peut pas appeler jeu_part_maire');
 ok(!!(await refus('select * from public.mandats_tenus')), 'le jeu ne lit pas les mandats annoncés');
+ok((await q('select count(*)::int as n from public.mairies'))[0].n > 0 && (await q('select count(*)::int as n from public.saisons'))[0].n > 0, 'le jeu lit les Maires de chaque mandat et les saisons');
+ok(!!(await refus("insert into public.mairies (mandat, commune, maire, rivaux) values (99, 'x', $1, 999)", [A])), 'le jeu ne peut pas se donner une mairie');
+ok(!!(await refus("update public.saisons_joueurs set rang_maires = 1")), 'le jeu ne peut pas changer son classement');
+ok(!!(await refus("update public.lieux set rarete = 6 where id = 'cl2'")), 'le jeu ne peut pas changer la rareté d’un lieu');
+ok(!!(await refus("select public.jeu_raretes(array['cl2'], array[6]::smallint[])")), 'le jeu ne peut pas appeler jeu_raretes');
+ok(!!(await refus("select public.jeu_saison_figer(41, '[]', '[]', '{}', '[]')")), 'le jeu ne peut pas appeler jeu_saison_figer');
 await db.exec('reset role; set role anon;');
 ok((await q("select count(*)::int as n from public.caisse_communes(array['Bourg'], 6, now() - interval '7 days')"))[0].n > 0, 'sans compte aussi, on lit les caisses');
 ok((await q('select count(*)::int as n from public.encheres'))[0].n > 0, 'sans compte aussi, on lit les lots');
