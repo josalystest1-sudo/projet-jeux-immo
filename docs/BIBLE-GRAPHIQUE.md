@@ -456,3 +456,4 @@ Gautier : « c'est top ». La collection (Patrimoine) passe aux nouvelles cartes
 
 ![Les cartes de Notre-Dame, de la tour Eiffel et de Carcassonne](bible/cartes-monuments.jpg)
 
+**La face cachée jusqu'à la révélation** (4 nov. au soir, PR #122) : Gautier apercevait le modèle 3D du lieu avant la carte de France. Le voile de la révélation est désormais opaque dès que la carte se retourne : on ne voit rien du lieu avant la fin.
