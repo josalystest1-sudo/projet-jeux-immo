@@ -694,3 +694,67 @@ body.promenade #sheet .svwrap{display:none}
 @media (prefers-reduced-motion: reduce){.art .reflet,.art .eclats,.art .eclats::after,.art .holo,.r5 .fond-ciel::before,.r6 .fond-ciel::before,.ccarte.r5,.rcard.r5 .front,.rcard .back .dos-piece,.r6 .art .cadre{animation:none!important}}
 /* les cartes glissent hors du pack, une par une (phase 10.3) : elles partent de sous l'ouverture, cachées tant qu'elles y sont */
 .rcard.sortie{opacity:1;transition:none;transform:translateX(var(--x)) translateY(calc(var(--y) + 380px)) scale(var(--s))}
+
+/* ===================== la révélation habillée (phase 10.5, 4 nov. 2026 ; bible graphique § 9) =====================
+   Direction de Gautier (4 nov.) : « moins dessin animé, plus classe, stylé, impressionnant ». Une nuit profonde, des traits
+   fins dorés et lumineux (la France, le département, la commune), une lumière de la couleur de la rareté dès le départ
+   (comme le reflet de couleur d'un pack FIFA), une typographie étroite en capitales espacées, l'or en dégradé métallique. */
+#reveal{background:radial-gradient(ellipse 120% 90% at 50% 40%,#16285A 0%,#0A1430 45%,#03060F 100%)}
+#reveal::before{background:radial-gradient(circle at 50% 42%,rgba(233,199,123,.14),transparent 55%)}
+#reveal.r3::before{background:radial-gradient(circle at 50% 42%,rgba(64,140,255,.30),transparent 58%)}
+#reveal.r4::before{background:radial-gradient(circle at 50% 42%,rgba(160,90,255,.34),transparent 58%)}
+#reveal.r5::before{background:radial-gradient(circle at 50% 42%,rgba(255,150,40,.36),transparent 60%)}
+#rrayons{position:absolute;left:50%;top:42%;width:220vmax;height:220vmax;margin:-110vmax 0 0 -110vmax;pointer-events:none;
+  background:repeating-conic-gradient(from 0deg,rgba(255,236,200,.07) 0deg 1.1deg,rgba(255,236,200,0) 1.1deg 11deg);animation:rayons 140s linear infinite;
+  -webkit-mask-image:radial-gradient(circle,#000 0,rgba(0,0,0,.5) 16%,transparent 40%);mask-image:radial-gradient(circle,#000 0,rgba(0,0,0,.5) 16%,transparent 40%)}
+#reveal.r3 #rrayons{background:repeating-conic-gradient(from 0deg,rgba(120,180,255,.13) 0deg 1.2deg,rgba(120,180,255,0) 1.2deg 10deg)}
+#reveal.r4 #rrayons{background:repeating-conic-gradient(from 0deg,rgba(200,150,255,.15) 0deg 1.2deg,rgba(200,150,255,0) 1.2deg 10deg)}
+#reveal.r5 #rrayons{background:repeating-conic-gradient(from 0deg,rgba(255,200,110,.17) 0deg 1.3deg,rgba(255,200,110,0) 1.3deg 9deg);animation-duration:70s}
+#reveal.r6 #rrayons{background:repeating-conic-gradient(from 0deg,rgba(255,120,170,.16) 0deg 1.2deg,transparent 1.2deg 9deg,rgba(255,225,120,.16) 9deg 10.2deg,transparent 10.2deg 18deg,rgba(120,200,255,.16) 18deg 19.2deg,transparent 19.2deg 27deg);animation-duration:60s}
+#reveal.fast #rrayons{animation-duration:25s}
+@keyframes rayons{to{transform:rotate(360deg)}}
+#reveal .glow{fill:none;stroke:rgba(233,199,123,.22);stroke-width:10;vector-effect:non-scaling-stroke;stroke-linejoin:round}
+#reveal .sil{fill:url(#rgFrance);stroke:#E9C77B;stroke-width:1.6;vector-effect:non-scaling-stroke;stroke-linejoin:round}
+#reveal .sil.hi{fill:url(#rgDep);stroke:#F3D899;stroke-width:2}
+#reveal .sil.com{fill:url(#rgCom);stroke:#FFF1C9;stroke-width:2.2}
+#reveal .sil.loin{fill-opacity:.35;stroke-opacity:.35;transition:fill-opacity .7s ease,stroke-opacity .7s ease}
+#reveal .glow.loin{stroke-opacity:.2}
+#reveal .dot{fill:#fff;stroke:none}
+#reveal .dotglow{fill:rgba(255,226,160,.4)}
+#reveal .ring{stroke:#F3D899;stroke-width:1.5}
+#rlabels{bottom:calc(112px + env(safe-area-inset-bottom))}
+#rlabels .l{text-shadow:none}
+#rl1{display:flex;align-items:center;justify-content:center;gap:10px;font-family:var(--panneau);font-weight:600;font-size:15px;letter-spacing:.2em;text-transform:uppercase;color:#E9C77B;margin:0 0 10px;text-align:center}
+#rl1::before,#rl1::after{content:'';height:1px;width:22px;flex:none;background:linear-gradient(90deg,transparent,#E9C77B)}
+#rl1::after{background:linear-gradient(90deg,#E9C77B,transparent)}
+#rl1:empty::before,#rl1:empty::after{display:none}
+#rl2{display:grid;justify-items:center;font-family:var(--panneau);font-weight:700;font-size:35px;line-height:1.02;letter-spacing:.03em;text-transform:uppercase;margin:0 6px}
+#rl2 > span{grid-area:1/1;padding:0 8px}
+#rl2 .contour{color:transparent;text-shadow:0 0 22px rgba(255,196,90,.55),0 2px 0 rgba(0,0,0,.35)}
+#rl2 .or{background:linear-gradient(180deg,#FFF6DA 0%,#F6DC98 30%,#D9A548 58%,#FBE7A9 76%,#B9832E 100%);-webkit-background-clip:text;background-clip:text;color:transparent}
+#rl2.on{animation:rentre .9s cubic-bezier(.2,.8,.2,1) forwards}
+@keyframes rentre{0%{opacity:0;letter-spacing:.35em;filter:blur(10px)}100%{opacity:1;letter-spacing:.03em;filter:blur(0)}}
+#rlabels .l.rar{font-family:var(--panneau);font-size:14px;font-weight:600;letter-spacing:.32em;text-transform:uppercase;color:#fff;margin-top:16px;padding:6px 10px 5px 14px;border-radius:3px;
+  background:color-mix(in srgb,var(--rc,#8E9AAF) 22%,transparent);border:1px solid var(--rc,#8E9AAF);box-shadow:0 0 22px color-mix(in srgb,var(--rc,#8E9AAF) 60%,transparent),inset 0 0 12px color-mix(in srgb,var(--rc,#8E9AAF) 35%,transparent)}
+#rlabels .l.rar.r6{border-color:#FFE14D;background:linear-gradient(90deg,rgba(255,77,109,.25),rgba(255,225,77,.25),rgba(61,220,132,.25),rgba(47,155,255,.25),rgba(142,92,255,.25))}
+#rhint{color:rgba(233,199,123,.6);font-family:var(--panneau);letter-spacing:.18em;text-transform:uppercase;font-size:12px}
+@media (prefers-reduced-motion:reduce){#rrayons{animation:none!important}#rl2.on{animation:none;opacity:1}}
+/* l'explosion de lumière d'une carte Rare et au-delà (demande de Gautier, 4 nov.) : un cœur blanc, la lumière de la rareté,
+   un trait de lumière horizontal, des faisceaux fins, une onde, des grains de lumière */
+.explo{position:absolute;left:50%;top:42%;width:0;height:0;pointer-events:none;z-index:4;--c:#3D8BFF;--c2:#BFE0FF}
+.explo.r4{--c:#A35BFF;--c2:#EBD3FF}.explo.r5{--c:#FF8A1E;--c2:#FFE6A8}.explo.r6{--c:#FF4DC4;--c2:#FFF0A0}
+.explo .eclat{position:absolute;left:-65vmax;top:-65vmax;width:130vmax;height:130vmax;border-radius:50%;background:radial-gradient(circle,#fff 0,#fff 3%,var(--c2) 9%,color-mix(in srgb,var(--c) 85%,transparent) 22%,color-mix(in srgb,var(--c) 30%,transparent) 38%,transparent 60%);transform:scale(.04);opacity:0;animation:explo-eclat 1.1s cubic-bezier(.1,.8,.3,1) forwards}
+@keyframes explo-eclat{0%{transform:scale(.04);opacity:1}35%{opacity:1}100%{transform:scale(1.25);opacity:0}}
+.explo .trait{position:absolute;left:-75vw;top:-2px;width:150vw;height:4px;border-radius:2px;background:linear-gradient(90deg,transparent,var(--c) 25%,var(--c2) 42%,#fff 50%,var(--c2) 58%,var(--c) 75%,transparent);box-shadow:0 0 18px 4px color-mix(in srgb,var(--c) 70%,transparent);transform:scaleX(0);opacity:0;animation:explo-trait .9s cubic-bezier(.15,.8,.3,1) forwards}
+@keyframes explo-trait{0%{transform:scaleX(0);opacity:1}30%{transform:scaleX(1);opacity:1}100%{transform:scaleX(1.2) scaleY(.3);opacity:0}}
+.explo .rais{position:absolute;left:-80vmax;top:-80vmax;width:160vmax;height:160vmax;border-radius:50%;background:repeating-conic-gradient(from 0deg,var(--c2) 0deg .8deg,transparent .8deg 7.5deg);-webkit-mask-image:radial-gradient(circle,#000 0,rgba(0,0,0,.6) 18%,transparent 48%);mask-image:radial-gradient(circle,#000 0,rgba(0,0,0,.6) 18%,transparent 48%);opacity:0;animation:explo-rais 1.3s ease-out forwards}
+@keyframes explo-rais{0%{opacity:0;transform:scale(.3) rotate(0deg)}18%{opacity:.85}100%{opacity:0;transform:scale(1.1) rotate(14deg)}}
+.explo .onde{position:absolute;left:-40px;top:-40px;width:80px;height:80px;border-radius:50%;box-sizing:border-box;border:2px solid var(--c2);box-shadow:0 0 22px 3px var(--c),inset 0 0 14px var(--c);transform:scale(.2);opacity:0;animation:explo-onde 1s cubic-bezier(.1,.7,.3,1) forwards}
+.explo .onde.o2{animation-delay:.14s;border-width:1px}
+@keyframes explo-onde{0%{transform:scale(.2);opacity:1}100%{transform:scale(10);opacity:0}}
+.explo b{position:absolute;left:-2.5px;top:-2.5px;width:5px;height:5px;border-radius:50%;background:#fff;box-shadow:0 0 8px 3px var(--c),0 0 3px 1px var(--c2);opacity:0;animation:explo-grain var(--t) cubic-bezier(.12,.75,.3,1) .05s forwards}
+@keyframes explo-grain{0%{opacity:1;transform:rotate(var(--a)) translateY(0)}70%{opacity:.9}100%{opacity:0;transform:rotate(var(--a)) translateY(calc(var(--d) * -2.2))}}
+.explo.r6 .eclat{background:radial-gradient(circle,#fff 0,#fff 3%,#FFF0A0 9%,rgba(255,77,196,.8) 20%,rgba(142,92,255,.5) 32%,transparent 60%)}
+.explo.bis .eclat{animation-duration:1.3s}.explo.bis .trait{animation-name:explo-trait-v}
+@keyframes explo-trait-v{0%{transform:rotate(90deg) scaleX(0);opacity:1}30%{transform:rotate(90deg) scaleX(.7);opacity:1}100%{transform:rotate(90deg) scaleX(.8) scaleY(.3);opacity:0}}
+@media (prefers-reduced-motion:reduce){.explo .rais,.explo b,.explo .onde,.explo .trait{display:none}.explo .eclat{animation-duration:.4s}}

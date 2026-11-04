@@ -141,7 +141,11 @@ const VERSION='__VERSION__';
     <canvas id="pkgl" style="width:100%;height:100%;display:block;touch-action:none"></canvas>
     <div id="pkload" style="position:absolute;bottom:calc(90px + env(safe-area-inset-bottom));left:0;right:0;text-align:center;color:#fff;opacity:.8;font-size:13px">Le pack arrive…</div>
     <div class="cards" id="pkcards"></div>
-    <div id="reveal"><svg id="rsvg" preserveAspectRatio="xMidYMid meet"><g id="rg"></g></svg><div id="flash"></div><div id="rlabels"><div class="l" id="rl1"></div><div class="l big" id="rl2"></div><div class="l rar" id="rl3"></div></div><div id="rhint">Touche l’écran pour accélérer</div></div>
+    <div id="reveal"><div id="rrayons"></div><svg id="rsvg" preserveAspectRatio="xMidYMid meet"><defs>
+      <linearGradient id="rgFrance" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#FFFFFF" stop-opacity=".09"/><stop offset="1" stop-color="#FFFFFF" stop-opacity=".02"/></linearGradient>
+      <linearGradient id="rgDep" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#F3D899" stop-opacity=".30"/><stop offset="1" stop-color="#C9973F" stop-opacity=".08"/></linearGradient>
+      <linearGradient id="rgCom" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#FBE7A9" stop-opacity=".95"/><stop offset=".55" stop-color="#D9A548" stop-opacity=".9"/><stop offset="1" stop-color="#9C6A22" stop-opacity=".9"/></linearGradient>
+    </defs><g id="rg"></g></svg><div id="flash"></div><div id="rlabels"><div class="l" id="rl1"></div><div class="l big" id="rl2"></div><div class="l rar" id="rl3"></div></div><div id="rhint">Touche l’écran pour accélérer</div></div>
   </div>
   <div class="hint" id="pkhint">Glisse ton doigt sur le haut du pack pour l’ouvrir</div>
   <button class="btn" id="packdone" onclick="finPack()">Super !</button>
@@ -1329,6 +1333,8 @@ async function fetchCommune(c){ const code=c.citycode||''; if(!code) return null
     communeCache[code]={ nom: f.properties.nom_officiel||f.properties.nom||c.city, rings }; return communeCache[code]; }catch(e){ communeCache[code]=null; return null; } }
 function depOf(code){ if(!code) return null; let k=code.slice(0,2); if(k==='97') k=code.slice(0,3); if(code.startsWith('2A')||code.startsWith('2B')) k=code.slice(0,2); return GEO.deps[k] ? {code:k, ...GEO.deps[k]} : null; }
 let vbCur=null, vbAnim=0;
+// le cadre agrandi vers le bas : la forme remonte et laisse la place à la plaque et au nom du lieu
+function versLeHaut(bb){ return [bb[0], bb[1], bb[2], bb[3]*1.35]; }
 function setVB(vb){ document.getElementById('rsvg').setAttribute('viewBox', vb.join(' ')); vbCur=vb; }
 function animVB(target, ms){ cancelAnimationFrame(vbAnim); const from=vbCur.slice(); let fait=0, avant=performance.now(); return new Promise(res=>{ const step=()=>{ const n=performance.now(); fait+=(n-avant)*vitesseReveal; avant=n; const t=Math.min(1,fait/ms); const e=t<.5?2*t*t:-1+(4-2*t)*t; setVB(from.map((v,i)=>v+(target[i]-v)*e)); if(t<1) vbAnim=requestAnimationFrame(step); else res(); }; step(); }); }
 const wait=ms=>new Promise(r=>setTimeout(r,ms));
@@ -1336,32 +1342,56 @@ const wait=ms=>new Promise(r=>setTimeout(r,ms));
 let vitesseReveal=1;
 function attendreR(ms){ return new Promise(res=>{ let fait=0, avant=performance.now(); const pas=()=>{ const n=performance.now(); fait+=(n-avant)*vitesseReveal; avant=n; if(fait>=ms) res(); else setTimeout(pas, 25); }; setTimeout(pas, 25); }); } // horloge indépendante de l'affichage
 document.getElementById('reveal').addEventListener('pointerdown', (ev)=>{ ev.preventDefault(); vitesseReveal = vitesseReveal<4 ? 4 : 12; document.getElementById('reveal').classList.add('vite'); });
-function label(id, text, on){ const el=document.getElementById(id); if(text!==undefined) el.textContent=text; el.classList.toggle('on', !!on); }
+function label(id, text, on){ const el=document.getElementById(id); if(text!==undefined){ if(id==='rl2'){ const t=echapper(text); el.innerHTML=t ? `<span class="contour">${t}</span><span class="or">${t}</span>` : ''; } else el.textContent=text; } el.classList.toggle('on', !!on); }
 async function revealSequence(c){ const rv=document.getElementById('reveal'); const g=document.getElementById('rg'); g.innerHTML=''; ['rl1','rl2','rl3'].forEach(i=>label(i,'',false));
-  vitesseReveal=1; const r=rarete(c); rv.className='on'+(r>=4?' r'+r:''); const [dx,dy]=px(c.lon,c.lat); const dep=depOf(c.citycode); const comP=fetchCommune(c);
+  vitesseReveal=1; const r=rarete(c); rv.className='on'+(r>=3?' r'+r:''); const [dx,dy]=px(c.lon,c.lat); const dep=depOf(c.citycode); const comP=fetchCommune(c);
   const NS='http://www.w3.org/2000/svg'; const mk=(t,cls,d)=>{ const e=document.createElementNS(NS,t); e.setAttribute('class',cls); if(d) e.setAttribute('d',d); return e; };
-  const addSil=(rings,hi,fill)=>{ const d=ringsPath(rings); const gl=mk('path','glow',d); const p=mk('path','sil'+(hi?' hi':''),d); if(fill) p.style.fill=fill; g.appendChild(gl); g.appendChild(p); return p; };
+  // un nouveau contour passe devant ; les précédents s'estompent (on voit les rayons derrière)
+  const addSil=(rings,cls)=>{ g.querySelectorAll('.sil,.glow').forEach(e=>e.classList.add('loin')); const d=ringsPath(rings); const gl=mk('path','glow',d); const p=mk('path','sil'+(cls?' '+cls:''),d); g.appendChild(gl); g.appendChild(p); return p; };
   const dotg=mk('circle','dotglow'); const dot=mk('circle','dot'); const ring=mk('circle','ring'); [dotg,dot,ring].forEach(e=>{ e.setAttribute('cx',dx); e.setAttribute('cy',dy); });
   const setDot=(rad)=>{ dot.setAttribute('r',rad); dotg.setAttribute('r',rad*2.6); ring.setAttribute('r',rad*2); };
+  // 0. l'explosion de lumière, de la couleur de la rareté (Rare et au-delà), avant tout le reste : demande de Gautier
+  // (4 nov.), « une ouverture de pack doit être un vrai événement » ; puis les informations arrivent une à une
+  if(r>=3) await explosion(r);
   battement(1.0);
   // 1. la France
   addSil(GEO.france,false); setVB(bboxOf(GEO.france,0.08)); await attendreR(300); label('rl1','France',true); await attendreR(600);
   setDot(1.6); g.appendChild(dotg); g.appendChild(dot); g.appendChild(ring); sonTick(880); await attendreR(1000);
   // 2. le département
-  if(dep){ addSil(dep.rings,true); g.appendChild(dotg); g.appendChild(dot); g.appendChild(ring); label('rl1', dep.nom + ' · ' + dep.code, true); sonTick(990); battement(1.6);
-    const bb=bboxOf(dep.rings,0.12); setDot(bb[2]/70); await animVB(bb, 900); await attendreR(600); }
+  if(dep){ addSil(dep.rings,'hi'); g.appendChild(dotg); g.appendChild(dot); g.appendChild(ring); label('rl1', dep.nom + ' · ' + dep.code, true); sonTick(990); battement(1.6);
+    const bb=bboxOf(dep.rings,0.12); setDot(bb[2]/70); await animVB(versLeHaut(bb), 900); await attendreR(600); }
   // 3. la commune
-  const com=await comP; if(com){ addSil(com.rings,true,'#3b58b8'); g.appendChild(dotg); g.appendChild(dot); g.appendChild(ring); label('rl1', com.nom, true); sonTick(1100); battement(2.6); rv.classList.add('fast');
-    const bb=bboxOf(com.rings,0.15); setDot(Math.max(0.05,bb[2]/50)); await animVB(bb, 900); await attendreR(500); }
+  const com=await comP; if(com){ addSil(com.rings,'com'); g.appendChild(dotg); g.appendChild(dot); g.appendChild(ring); label('rl1', com.nom, true); sonTick(1100); battement(2.6); rv.classList.add('fast');
+    const bb=bboxOf(com.rings,0.15); setDot(Math.max(0.05,bb[2]/50)); await animVB(versLeHaut(bb), 900); await attendreR(500); }
   // 4. montée puis la rue
-  riser(1.1); await attendreR(1100); battement(0); boom(r); flash(); rv.classList.add('shake');
-  label('rl2', c.label, true); label('rl3', RARETES[r], true); await attendreR(1400);
+  riser(1.1); await attendreR(1100); battement(0); boom(r); flash(r); rv.classList.add('shake');
+  document.getElementById('rl3').className='l rar r'+r; label('rl2', c.label, true); label('rl3', RARETES[r], true); await attendreR(1400);
   rv.className=''; }
+// L'explosion de lumière d'une carte Rare, Épique, Légendaire (Extraordinaire) : un éclat de la couleur de la rareté,
+// deux ondes de choc, des rayons et des étincelles qui jaillissent du centre ; plus la carte est rare, plus il y en a
+// (Légendaire : une deuxième explosion). Tout en CSS sur des éléments posés puis retirés (pas de filtre, pas de boucle).
+function explosion(r){ const rv=document.getElementById('reveal');
+  const une=(bis)=>{ const ex=document.createElement('div'); ex.className='explo r'+r+(bis?' bis':''); const n = r>=5 ? 24 : (r>=4 ? 18 : 12);
+    let h='<i class="eclat"></i><i class="rais"></i><i class="trait"></i><i class="onde"></i><i class="onde o2"></i>';
+    for(let k=0;k<n;k++) h+=`<b style="--a:${Math.round(k*360/n+(k%2)*8)}deg;--d:${120+(k*53)%110}px;--t:${(0.6+(k%3)*0.14).toFixed(2)}s"></b>`;
+    ex.innerHTML=h; rv.appendChild(ex); setTimeout(()=>ex.remove(), 2200); };
+  une(false); sonExplosion(r); vibrer(r>=5?[40,30,90]:(r>=4?[30,20,60]:[40]));
+  if(r>=5) setTimeout(()=>{ une(true); sonExplosion(r, true); vibrer([50,30,120]); }, 420);
+  return attendreR(r>=5 ? 1650 : (r>=4 ? 1250 : 1000)); }
+function sonExplosion(r, bis){ const a=audio(); if(!a) return; const t0=a.currentTime;
+  // le souffle (bruit qui descend) et un accord qui monte avec la rareté
+  const n=Math.floor(a.sampleRate*0.9), b=a.createBuffer(1,n,a.sampleRate), d=b.getChannelData(0); for(let k=0;k<n;k++) d[k]=(Math.random()*2-1)*Math.pow(1-k/n,2.2);
+  const src=a.createBufferSource(); src.buffer=b; const f=a.createBiquadFilter(); f.type='bandpass'; f.Q.value=0.8; f.frequency.setValueAtTime(bis?4200:3200,t0); f.frequency.exponentialRampToValueAtTime(260,t0+0.8);
+  const gn=a.createGain(); gn.gain.value=0.55; src.connect(f); f.connect(gn); gn.connect(a.destination); src.start(t0);
+  const accord = r>=5 ? [392,523.3,659.3,784,1046.5] : (r>=4 ? [349.2,440,523.3,698.5] : [329.6,415.3,493.9]);
+  accord.forEach((fq,i)=>{ const o=a.createOscillator(), g=a.createGain(); o.type='triangle'; o.frequency.value=fq*(bis?2:1); g.gain.setValueAtTime(0.0001,t0+i*0.03); g.gain.exponentialRampToValueAtTime(0.12,t0+i*0.03+0.02); g.gain.exponentialRampToValueAtTime(0.0001,t0+i*0.03+1.1); o.connect(g); g.connect(a.destination); o.start(t0+i*0.03); o.stop(t0+i*0.03+1.2); }); }
 // rythme : battement qui accélère (0 = stop)
 let beatTimer=null; function battement(speed){ clearTimeout(beatTimer); if(!speed) return; const a=audio(); const tick=()=>{ if(a){ const o=a.createOscillator(); const gn=a.createGain(); o.type='sine'; o.frequency.setValueAtTime(110,a.currentTime); o.frequency.exponentialRampToValueAtTime(45,a.currentTime+0.12); gn.gain.setValueAtTime(0.5,a.currentTime); gn.gain.exponentialRampToValueAtTime(0.0001,a.currentTime+0.16); o.connect(gn); gn.connect(a.destination); o.start(); o.stop(a.currentTime+0.18); } vibrer(12); beatTimer=setTimeout(tick, 900/speed); }; tick(); }
 function riser(sec){ const a=audio(); if(!a) return; const n=a.sampleRate*sec; const b=a.createBuffer(1,n,a.sampleRate); const d=b.getChannelData(0); for(let i=0;i<n;i++) d[i]=(Math.random()*2-1)*(i/n); const src=a.createBufferSource(); src.buffer=b; const f=a.createBiquadFilter(); f.type='bandpass'; f.Q.value=1.2; f.frequency.setValueAtTime(200,a.currentTime); f.frequency.exponentialRampToValueAtTime(4000,a.currentTime+sec); const gn=a.createGain(); gn.gain.value=0.35; src.connect(f); f.connect(gn); gn.connect(a.destination); src.start(); }
 function boom(r){ const a=audio(); if(!a) return; const o=a.createOscillator(); const gn=a.createGain(); o.type='sine'; o.frequency.setValueAtTime(140,a.currentTime); o.frequency.exponentialRampToValueAtTime(35,a.currentTime+0.5); gn.gain.setValueAtTime(0.9,a.currentTime); gn.gain.exponentialRampToValueAtTime(0.0001,a.currentTime+0.7); o.connect(gn); gn.connect(a.destination); o.start(); o.stop(a.currentTime+0.75); vibrer(r>=4?[60,40,120]:[60]); }
-function flash(){ const f=document.getElementById('flash'); f.style.transition='none'; f.style.opacity=.9; requestAnimationFrame(()=>{ f.style.transition='opacity .6s ease'; f.style.opacity=0; }); }
+// l'éclair final : blanc, ou blanc cerné de la couleur de la rareté (Rare et au-delà)
+const COULEUR_RARETE={ 3:'#2F80ED', 4:'#9B51E0', 5:'#FF7A00', 6:'#FF4DC4' };
+function flash(r){ const f=document.getElementById('flash'); f.style.background = r>=3 ? `radial-gradient(circle at 50% 42%,#fff 0,#fff 25%,${COULEUR_RARETE[r]} 75%)` : '#fff'; f.style.transition='none'; f.style.opacity=.9; requestAnimationFrame(()=>{ f.style.transition='opacity .6s ease'; f.style.opacity=0; }); }
 function sonTick(fq){ const a=audio(); if(!a) return; const o=a.createOscillator(); const gn=a.createGain(); o.type='triangle'; o.frequency.value=fq||880; gn.gain.setValueAtTime(0.0001,a.currentTime); gn.gain.exponentialRampToValueAtTime(0.18,a.currentTime+0.01); gn.gain.exponentialRampToValueAtTime(0.0001,a.currentTime+0.18); o.connect(gn); gn.connect(a.destination); o.start(); o.stop(a.currentTime+0.2); }
 let revealing=false;
 let packCards=null, packTorn=false;
