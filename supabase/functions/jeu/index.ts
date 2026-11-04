@@ -55,7 +55,7 @@ function lieuDe(l: Ligne) {
   if (l.cat) a.cat = l.cat;
   if (l.qid) a.qid = l.qid;
   if (l.idu) a.idu = l.idu;
-  if (l.prix_vente != null) { a.enVente = true; a.prixVente = Number(l.prix_vente); }
+  if (l.prix_vente != null) { a.enVente = true; a.prixVente = Number(l.prix_vente); a.deviseVente = l.devise_vente || 'pieces'; }
   return a;
 }
 async function joueur(j: string) {
@@ -133,13 +133,13 @@ async function etatDe(j: string) {
 }
 // mes offres reçues et envoyées (en attente, et les dernières réglées), avec le lieu et l'autre joueur
 async function mesOffres(j: string) {
-  const { data, error } = await admin.from('offres').select('id, lieu, acheteur, vendeur, prix, statut, cree_le, maj, lieux(label, lon, lat, citycode, city, type, notoriete, cat, qid, niveau)')
+  const { data, error } = await admin.from('offres').select('id, lieu, acheteur, vendeur, prix, devise, statut, cree_le, maj, lieux(label, lon, lat, citycode, city, type, notoriete, cat, qid, niveau)')
     .or(`acheteur.eq.${j},vendeur.eq.${j}`).order('maj', { ascending: false }).limit(60);
   if (error) throw error;
   const noms = await pseudos((data || []).flatMap((o: Ligne) => [o.acheteur, o.vendeur]));
   const recues: Ligne[] = [], envoyees: Ligne[] = [];
   for (const o of data || []) {
-    const base = { id: String(o.id), addrId: o.lieu, price: Number(o.prix), status: o.statut, ts: ms(o.cree_le) };
+    const base = { id: String(o.id), addrId: o.lieu, price: Number(o.prix), devise: o.devise || 'pieces', status: o.statut, ts: ms(o.cree_le) };
     if (o.vendeur === j) recues.push({ ...base, from: noms[o.acheteur] || 'Un joueur' });
     else envoyees.push({ ...base, to: noms[o.vendeur] || 'Un joueur', addr: o.lieux ? { id: o.lieu, ...o.lieux } : { id: o.lieu, label: 'un lieu' } });
   }
@@ -197,6 +197,7 @@ const ACTIONS: Record<string, (j: string, corps: Ligne) => Promise<Ligne>> = {
 // ---------------------------------------------------------------- le marché : vente à prix libre, achat, offres
 const nb = (n: number) => Math.round(n).toLocaleString('fr-FR').replace(/\u202f/g, '\u00a0');
 const fmt = (n: number) => `${nb(n)} 🪙`;
+const fmtD = (n: number, d: string) => (d === 'gemmes' ? `${nb(n)} 💎` : fmt(n));   // un montant en pièces ou en gemmes
 const notifier = (j: string, type: string, texte: string, donnees: Ligne = {}) => rpc('jeu_notifier', { j, type, texte, donnees });
 async function lieuEnBase(id: string) { const { data, error } = await admin.from('lieux').select('*').eq('id', id).maybeSingle(); if (error) throw error; return data; }
 function prixLu(p: unknown) { const r = R.lirePrix(String(p ?? '')); if (!r.ok) throw new Refus('prix', 'Tape un prix en pièces (un nombre entier).'); return r.prix as number; }
@@ -206,58 +207,61 @@ async function prevenirCaduques(avant: Ligne[], garder: string | null, label: st
   for (const o of avant) if (String(o.id) !== garder) await notifier(o.acheteur, 'offre', `${label} a été vendu à quelqu’un d’autre : ton offre est annulée.`, { lieu: null });
 }
 // le changement de propriétaire : les loyers de chacun sont encaissés avant (personne ne perd ce qui a poussé)
-async function transferer(l: Ligne, acheteur: string, prix: number, prixAttendu: number | null, offre: string | null) {
+async function transferer(l: Ligne, acheteur: string, prix: number, prixAttendu: number | null, offre: string | null, devise = 'pieces') {
   await recolter(acheteur); await recolter(l.proprietaire);
   const autres = await offresEnAttente(l.id);
-  const pieces = await rpc('jeu_transferer', { l: l.id, vendeur: l.proprietaire, acheteur, prix, prix_attendu: prixAttendu, offre: offre ? Number(offre) : null, valeur_ref: R.valeur(lieuDe(l)) });
+  const pieces = await rpc('jeu_transferer', { l: l.id, vendeur: l.proprietaire, acheteur, prix, prix_attendu: prixAttendu, offre: offre ? Number(offre) : null, valeur_ref: R.valeur(lieuDe(l)), devise: BOU.devise(devise) });
   await prevenirCaduques(autres, offre, l.label);
   return Number(pieces);
 }
 
-ACTIONS.vendre = async (j, corps) => { await rpc('jeu_vendre', { j, l: String(corps.id || ''), prix: prixLu(corps.prix) }); return {}; };
-ACTIONS.retirer = async (j, corps) => { await rpc('jeu_vendre', { j, l: String(corps.id || ''), prix: null }); return {}; };
+ACTIONS.vendre = async (j, corps) => { await rpc('jeu_vendre', { j, l: String(corps.id || ''), prix: prixLu(corps.prix), devise: BOU.devise(corps.devise) }); return {}; };
+ACTIONS.retirer = async (j, corps) => { await rpc('jeu_vendre', { j, l: String(corps.id || ''), prix: null, devise: 'pieces' }); return {}; };
 // acheter un lieu en vente, au prix affiché (si le vendeur l'a changé entre-temps : refus, on montre le nouveau)
 ACTIONS.acheter = async (j, corps) => {
   const l = await lieuEnBase(String(corps.id || ''));
   if (!l) throw new Refus('libre', 'Ce lieu n’est à personne : il ne sort que des packs.');
   if (l.proprietaire === j) throw new Refus('soi_meme', 'Ce lieu est déjà à toi.');
   if (l.prix_vente == null) throw new Refus('pas_en_vente', 'Ce lieu n’est plus en vente : fais une offre à son propriétaire.');
-  const prix = Number(l.prix_vente), noms = await pseudos([j, l.proprietaire]);
-  const pieces = await transferer(l, j, prix, corps.prix != null ? prixLu(corps.prix) : prix, null);
-  await notifier(l.proprietaire, 'vente', `${noms[j] || 'Un joueur'} a acheté ${l.label} pour ${fmt(prix)}.`, { lieu: l.id });
-  return { pieces, prix, label: l.label, vendeur: noms[l.proprietaire] || 'Un joueur' };
+  const prix = Number(l.prix_vente), devise = BOU.devise(l.devise_vente), noms = await pseudos([j, l.proprietaire]);
+  const pieces = await transferer(l, j, prix, corps.prix != null ? prixLu(corps.prix) : prix, null, devise);
+  await notifier(l.proprietaire, 'vente', `${noms[j] || 'Un joueur'} a acheté ${l.label} pour ${fmtD(prix, devise)}.`, { lieu: l.id });
+  return { pieces, prix, devise, label: l.label, vendeur: noms[l.proprietaire] || 'Un joueur' };
 };
 // faire une offre sur le lieu d'un autre (une seule en attente par lieu : la refaire change son prix)
 ACTIONS.offrir = async (j, corps) => {
   const prix = prixLu(corps.prix), l = await lieuEnBase(String(corps.id || ''));
   if (!l) throw new Refus('libre', 'Ce lieu n’est à personne : il ne sort que des packs.');
   if (l.proprietaire === j) throw new Refus('soi_meme', 'Ce lieu est déjà à toi.');
-  const jr = await joueur(j); if (Number(jr.pieces) < prix) throw new Refus('fonds', 'Tu n’as pas assez de pièces pour cette offre.');
-  const offre = await rpc('jeu_offrir', { j, l: l.id, prix }), noms = await pseudos([j, l.proprietaire]);
-  await notifier(l.proprietaire, 'offre', `${noms[j] || 'Un joueur'} te propose ${fmt(prix)} pour ${l.label}.`, { offre, lieu: l.id });
-  return { offre: String(offre), vendeur: noms[l.proprietaire] || 'Un joueur', prix };
+  // en vente : dans la monnaie demandée par le vendeur ; sinon, dans celle choisie par l'acheteur (GDD § 9)
+  const devise = BOU.deviseOffre(l.prix_vente != null ? l.devise_vente : null, corps.devise), jr = await joueur(j);
+  if (!BOU.assez(prix, devise, Number(jr.pieces), Number(jr.gemmes || 0))) throw new Refus(devise === 'gemmes' ? 'gemmes' : 'fonds', devise === 'gemmes' ? 'Tu n’as pas assez de gemmes pour cette offre.' : 'Tu n’as pas assez de pièces pour cette offre.');
+  const offre = await rpc('jeu_offrir', { j, l: l.id, prix, devise }), noms = await pseudos([j, l.proprietaire]);
+  await notifier(l.proprietaire, 'offre', `${noms[j] || 'Un joueur'} te propose ${fmtD(prix, devise)} pour ${l.label}.`, { offre, lieu: l.id });
+  return { offre: String(offre), vendeur: noms[l.proprietaire] || 'Un joueur', prix, devise };
 };
 ACTIONS.annuler_offre = async (j, corps) => { await rpc('jeu_offre_statut', { o: Number(corps.offre), qui: j, statut: 'annulee' }); return {}; };
 // accepter (le lieu change de main, si l'acheteur a toujours les pièces) ou refuser une offre reçue
 ACTIONS.repondre_offre = async (j, corps) => {
   const { data: o } = await admin.from('offres').select('*').eq('id', Number(corps.offre)).maybeSingle();
   if (!o || o.vendeur !== j || o.statut !== 'attente') throw new Refus('offre', 'Cette offre n’est plus valable.');
-  const l = await lieuEnBase(o.lieu), noms = await pseudos([j, o.acheteur]), prix = Number(o.prix);
+  const l = await lieuEnBase(o.lieu), noms = await pseudos([j, o.acheteur]), prix = Number(o.prix), devise = BOU.devise(o.devise);
   if (!l || l.proprietaire !== j) { await rpc('jeu_offre_statut', { o: o.id, qui: j, statut: 'caduque' }); throw new Refus('plus_a_lui', 'Ce lieu n’est plus à toi : l’offre est annulée.'); }
   if (!corps.accepter) {
     await rpc('jeu_offre_statut', { o: o.id, qui: j, statut: 'refusee' });
-    await notifier(o.acheteur, 'offre', `${noms[j] || 'Un joueur'} a refusé ton offre de ${fmt(prix)} pour ${l.label}.`, { lieu: l.id });
+    await notifier(o.acheteur, 'offre', `${noms[j] || 'Un joueur'} a refusé ton offre de ${fmtD(prix, devise)} pour ${l.label}.`, { lieu: l.id });
     return { accepte: false };
   }
-  try { await transferer(l, o.acheteur, prix, null, String(o.id)); }
+  try { await transferer(l, o.acheteur, prix, null, String(o.id), devise); }
   catch (e) {
-    if (!(e instanceof Refus) || e.code !== 'fonds') throw e;
+    if (!(e instanceof Refus) || (e.code !== 'fonds' && e.code !== 'gemmes')) throw e;
+    const quoi = devise === 'gemmes' ? 'de gemmes' : 'de pièces';
     await rpc('jeu_offre_statut', { o: o.id, qui: j, statut: 'caduque' });
-    await notifier(o.acheteur, 'offre', `Ton offre de ${fmt(prix)} pour ${l.label} n’a pas abouti : tu n’avais plus assez de pièces.`, { lieu: l.id });
-    throw new Refus('fonds', `${noms[o.acheteur] || 'L’acheteur'} n’a plus assez de pièces : l’offre est annulée.`);
+    await notifier(o.acheteur, 'offre', `Ton offre de ${fmtD(prix, devise)} pour ${l.label} n’a pas abouti : tu n’avais plus assez ${quoi}.`, { lieu: l.id });
+    throw new Refus('fonds', `${noms[o.acheteur] || 'L’acheteur'} n’a plus assez ${quoi} : l’offre est annulée.`);
   }
-  await notifier(o.acheteur, 'offre', `${noms[j] || 'Un joueur'} a accepté ton offre : ${l.label} est à toi pour ${fmt(prix)} !`, { lieu: l.id });
-  return { accepte: true, prix, label: l.label, acheteur: noms[o.acheteur] || 'Un joueur' };
+  await notifier(o.acheteur, 'offre', `${noms[j] || 'Un joueur'} a accepté ton offre : ${l.label} est à toi pour ${fmtD(prix, devise)} !`, { lieu: l.id });
+  return { accepte: true, prix, devise, label: l.label, acheteur: noms[o.acheteur] || 'Un joueur' };
 };
 ACTIONS.notifs_lues = async (j) => { await rpc('jeu_notifs_lues', { j }); return {}; };
 
@@ -741,7 +745,7 @@ async function robotsTour() {
       }
       // 2. répondre aux offres reçues depuis 20 s : oui à partir de 110 % de la valeur, sinon non
       const { data: recues } = await admin.from('offres').select('*').eq('vendeur', j).eq('statut', 'attente').lt('cree_le', new Date(Date.now() - 20_000).toISOString());
-      for (const o of recues || []) await ACTIONS.repondre_offre(j, { offre: o.id, accepter: (() => { const l = mes.find((x: Ligne) => x.id === o.lieu); return !!l && Number(o.prix) >= valeurM(l) * 1.1; })() }).catch(() => {});
+      for (const o of recues || []) await ACTIONS.repondre_offre(j, { offre: o.id, accepter: (() => { const l = mes.find((x: Ligne) => x.id === o.lieu); return !!l && Number(o.prix) * ((o.devise || 'pieces') === 'gemmes' ? 50 : 1) >= valeurM(l) * 1.1; })() }).catch(() => {});
       // 2 bis. répondre aux échanges reçus depuis 20 s : oui si on leur donne au moins 110 % de ce qu'ils cèdent
       const { data: echRecus } = await admin.from('echanges').select('*').eq('destinataire', j).eq('statut', 'attente').lt('cree_le', new Date(Date.now() - 20_000).toISOString());
       for (const x of echRecus || []) {
@@ -765,7 +769,7 @@ async function robotsTour() {
       }
       // 4. acheter un lieu mis en vente par un vrai joueur, s'il n'est pas trop cher (jusqu'à 150 % de sa valeur) :
       // une fois sur deux par robot et par tour (« personne ne m'achète », Gautier, 3 nov.)
-      const enVente = aVendre.filter((l: Ligne) => Number(l.prix_vente) <= valeurM(l) * 1.5 && Number(l.prix_vente) <= pieces);
+      const enVente = aVendre.filter((l: Ligne) => (l.devise_vente || 'pieces') === 'pieces' && Number(l.prix_vente) <= valeurM(l) * 1.5 && Number(l.prix_vente) <= pieces);
       if (enVente.length && Math.random() < 0.5) { const l = hasard(enVente); await ACTIONS.acheter(j, { id: l.id, prix: Number(l.prix_vente) }).then(() => { pieces -= Number(l.prix_vente); }).catch(() => {}); aVendre.splice(aVendre.indexOf(l), 1); }
       // 5. mettre un de ses lieux en vente (110 à 150 % de sa valeur), deux au plus à la fois
       if (mes.length && mes.filter((l: Ligne) => l.prix_vente != null).length < 2 && Math.random() < 0.3) {

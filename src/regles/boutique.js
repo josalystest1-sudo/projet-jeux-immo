@@ -24,9 +24,15 @@
       if (!lieu || lieu.type !== 'adresse' || rarete > B.bon_rarete_max) return { ok: false, raison: 'rarete' };
       return { ok: true };
     }
+    // Les ventes entre joueurs (GDD § 9) : le vendeur choisit d'être payé en pièces ou en gemmes ; une offre sur un lieu en
+    // vente se fait dans la monnaie qu'il demande, sinon dans celle que choisit l'acheteur. Les gemmes passent d'un joueur à
+    // l'autre sans commission (V1). Jamais de conversion entre pièces et gemmes.
+    const devise = (d) => (d === 'gemmes' ? 'gemmes' : 'pieces');
+    const deviseOffre = (deviseVente, choisie) => devise(deviseVente || choisie);
+    const assez = (montant, d, pieces, gemmes) => (devise(d) === 'gemmes' ? (gemmes || 0) : (pieces || 0)) >= montant;
     // les chances de chaque rareté, par carte (affichées dans la boutique : obligation des « loot boxes »)
     const probabilites = () => Object.entries(eco.pack.chances).map(([r, p]) => ({ r: Number(r), pct: p }));
-    return { prix, peutPayer, passActif, acheterPass, bonsUtilisables, cartesDuJour, bonPermis, probabilites, B };
+    return { prix, peutPayer, passActif, acheterPass, bonsUtilisables, cartesDuJour, bonPermis, probabilites, devise, deviseOffre, assez, B };
   }
   const api = { creer };
   if (typeof module !== 'undefined' && module.exports) module.exports = api; else racine.Boutique = api;

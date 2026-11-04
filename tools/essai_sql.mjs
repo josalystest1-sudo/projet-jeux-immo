@@ -5,7 +5,7 @@
 // verser, part du Maire plafonnée, absence, fin de mandat annoncée une fois ; les classements et les saisons
 // (100_classements.sql) : patrimoine, Maires, saison figée une fois ; les monuments (110_monuments.sql) : entretien,
 // reprise (lot de reprise, alerte, échanges qui tombent) ; la boutique (120_boutique.sql) : gemmes d'essai, pack acheté,
-// Pass, bon ; les refus attendus et les droits du jeu.
+// Pass, bon ; les ventes et offres en gemmes ; les refus attendus et les droits du jeu.
 // Prérequis (une fois, rien n'est ajouté au dépôt) : npm i --no-save --no-package-lock @electric-sql/pglite
 //   node tools/essai_sql.mjs            (000_comptes.sql, qui demande l'extension unaccent, est remplacé par un profil minimal)
 import { PGlite } from '@electric-sql/pglite';
@@ -43,7 +43,7 @@ const echanger = (j, l, dons, sup = 0) => q('select public.jeu_echanger($1, $2, 
 const echangerRefus = (j, l, dons, sup = 0) => refus('select public.jeu_echanger($1, $2, $3, $4, $5)', [j, l, dons, sup, '{}']);
 
 // proposer
-const offreC = Number((await q("select public.jeu_offrir($1, 'a1', 300) as o", [C]))[0].o);
+const offreC = Number((await q("select public.jeu_offrir($1, 'a1', 300, 'pieces') as o", [C]))[0].o);
 const e1 = await echanger(A, 'b1', ['a1', 'a2', 'a1'], 100);
 ok(e1 > 0, 'A propose a1 + a2 + 100 pièces contre b1');
 const ligne = (await q('select * from public.echanges where id = $1', [e1]))[0];
@@ -58,7 +58,7 @@ ok((await echangerRefus(A, 'b2', ['a3'], 999999)) === 'fonds', 'plus de pièces 
 ok((await echangerRefus(A, 'b2', ['a3'], -5)) === 'prix', 'des pièces négatives : refusé');
 const e2 = await echanger(C, 'a1', ['c1']);
 ok(e2 > 0, 'C propose c1 contre a1 (déjà proposé par A ailleurs : permis, c’est le lieu de A)');
-await q("select public.jeu_vendre($1, 'b1', 5000)", [B]);
+await q("select public.jeu_vendre($1, 'b1', 5000, 'pieces')", [B]);
 const eAutre = await echanger(B, 'c2', ['b1']);
 ok(eAutre > 0, 'B propose de son côté b1 contre c2');
 
@@ -232,6 +232,22 @@ ok((await q('select count(*)::int as n from public.gemmes_journal where joueur =
 await q("update public.reglages set valeur = '86400' where cle = 'jour_secondes'");
 ok((await refus('select public.jeu_gemmes_essai($1, 1000)', [C])) === 'essai', 'pas de gemmes d’essai sur le vrai jeu (24 h)');
 await q("update public.reglages set valeur = '60' where cle = 'jour_secondes'");
+
+// ---------------------------------------------------------------- vendre et offrir en gemmes (GDD § 9)
+await q("select public.jeu_vendre($1, 'bq2', 120, 'gemmes')", [C]);
+ok((await q("select devise_vente from public.lieux where id = 'bq2'"))[0].devise_vente === 'gemmes', 'mettre en vente en gemmes');
+ok(!!(await refus("select public.jeu_vendre($1, 'bq2', 120, 'dollars')", [C])), 'une monnaie inconnue : refusé');
+const transf = (acheteur, attendu, devise) => q("select public.jeu_transferer('bq2', $1, $2, 120, $3, null, 1000, $4) as p", [C, acheteur, attendu, devise]);
+await q('update public.joueurs set gemmes = 10 where id = $1', [A]);
+ok((await refus("select public.jeu_transferer('bq2', $1, $2, 120, 120, null, 1000, 'gemmes')", [C, A])) === 'gemmes', 'acheter en gemmes sans assez de gemmes : refusé');
+ok((await refus("select public.jeu_transferer('bq2', $1, $2, 120, 120, null, 1000, 'pieces')", [C, A])) === 'prix_change', 'payer en pièces une vente en gemmes : refusé');
+await q('update public.joueurs set gemmes = 200 where id = $1', [A]);
+const gC0 = await gemmes(C), piecesA0 = await pieces(A); await transf(A, 120, 'gemmes');
+ok((await gemmes(A)) === 80 && (await gemmes(C)) === gC0 + 120 && (await pieces(A)) === piecesA0 && (await q("select proprietaire from public.lieux where id = 'bq2'"))[0].proprietaire === A, 'acheter en gemmes : les gemmes passent, pas les pièces, le lieu change de main');
+ok((await q("select devise from public.ventes where lieu = 'bq2' order by le desc limit 1"))[0].devise === 'gemmes' && (await q("select count(*)::int as n from public.marche_communes(array['Tours'], now() - interval '1 day')"))[0].n === 0, 'une vente en gemmes ne compte pas dans le marché de la commune');
+ok((await q("select count(*)::int as n from public.gemmes_journal where motif in ('achat_lieu', 'vente_lieu')"))[0].n === 2, 'les gemmes d’une vente sont journalisées');
+const offreG = Number((await q("select public.jeu_offrir($1, 'bq1', 30, 'gemmes') as o", [A]))[0].o);
+ok((await q('select devise, prix from public.offres where id = $1', [offreG]))[0].devise === 'gemmes', 'une offre en gemmes');
 
 // les droits : le jeu lit ses échanges, n'écrit jamais, n'appelle aucune fonction jeu_*
 await db.exec(`set role authenticated; set essai.uid = '${A}';`);

@@ -231,6 +231,26 @@ async function nouveauJoueur(publique, secrete) {
     const reg = await jeu({ action: 'acheter_pack', article: 'pack_regional', region: 'Bretagne' });
     const bzh = require('../src/regles/regions.js').REGIONS.Bretagne, dep = (c) => (String(c).startsWith('97') ? String(c).slice(0, 3) : String(c).slice(0, 2));
     verifier(reg.corps && reg.corps.ok && reg.corps.cartes.length >= 1 && reg.corps.cartes.every((c) => bzh.includes(dep(c.citycode))) && reg.corps.etat.gemmes === g0.corps.gemmes - 800, `un pack régional : ${reg.corps && reg.corps.cartes && reg.corps.cartes.length} lieux, tous en Bretagne`, reg.corps && reg.corps.cartes && reg.corps.cartes.map((c) => c.citycode));
+    // vendre et offrir en gemmes (GDD § 9), avec un autre joueur d'essai
+    if (nat.corps && nat.corps.ok && nat.corps.cartes.length >= 2) {
+      const C = await nouveauJoueur(publique, secrete);
+      try {
+        const Lg = nat.corps.cartes[0], Mg = nat.corps.cartes[1];
+        const vg = await jeu({ action: 'vendre', id: Lg.id, prix: '40', devise: 'gemmes' });
+        verifier(vg.corps && vg.corps.ok && (vg.corps.etat.lieux.find((x) => x.id === Lg.id) || {}).deviseVente === 'gemmes', 'mettre en vente en gemmes', vg.corps && vg.corps.etat && vg.corps.etat.lieux.find((x) => x.id === Lg.id));
+        const sansG = await C.jeu({ action: 'acheter', id: Lg.id, prix: 40 });
+        verifier(sansG.corps && sansG.corps.ok === false && sansG.corps.code === 'gemmes', 'l’acheter sans gemmes : refusé', sansG.corps);
+        await C.jeu({ action: 'gemmes_essai' });
+        const avantG = (await jeu({ action: 'etat' })).corps.gemmes;
+        const ag = await C.jeu({ action: 'acheter', id: Lg.id, prix: 40 });
+        verifier(ag.corps && ag.corps.ok && ag.corps.devise === 'gemmes' && ag.corps.etat.gemmes === 1000 - 40 && ag.corps.etat.lieux.some((x) => x.id === Lg.id), 'un autre joueur l’achète en gemmes : 40 gemmes', ag.corps && { d: ag.corps.devise, g: ag.corps.etat && ag.corps.etat.gemmes });
+        const apresG = (await jeu({ action: 'etat' })).corps;
+        verifier(apresG.gemmes === avantG + 40 && !apresG.lieux.some((x) => x.id === Lg.id), 'le vendeur reçoit les 40 gemmes', { avant: avantG, apres: apresG.gemmes });
+        const og = await C.jeu({ action: 'offrir', id: Mg.id, prix: 25, devise: 'gemmes' });
+        const recG = og.corps && og.corps.ok ? (await jeu({ action: 'etat' })).corps.offresRecues.find((o) => o.id === og.corps.offre) : null;
+        verifier(recG && recG.devise === 'gemmes' && recG.price === 25, 'une offre en gemmes arrive au propriétaire', recG || og.corps);
+      } finally { await C.supprimer(); }
+    }
     const trop = await jeu({ action: 'acheter_pass' });
     verifier(trop.corps && trop.corps.ok === false && trop.corps.code === 'gemmes', 'un Pass sans assez de gemmes : refusé', trop.corps);
     const faux = await jeu({ action: 'prendre_bon', id: 'adresse-inventee', lon: 2.35, lat: 48.85 });
