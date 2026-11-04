@@ -1254,6 +1254,140 @@
     tours: [{ z: -12, h: 40, octogone: { h: 16, r: 6 } }, { z: 10, h: 40, octogone: { h: 16, r: 6 } }], flecheCroisee: { tour: 10, cote: 14, h: 4, r: 9.5, seg: 4 },
     plus: (A, m) => { for (const x of [3, 18]) { A.boite(9, 40, 9, x, 0, -30, m.pierre); A.cylindre(4, 4, 12, 8, x, 40, -30, m.pierre); A.pyramide(4.4, 3, 8, x, 52, -30, m.pierreFoncee); } } });
 
+  // l'abbaye de Fontevraud (x : l'axe de l'abbatiale, le chœur à l'est) : l'abbatiale et ses coupoles, le transept, le chevet,
+  // le grand cloître, les cuisines romanes et leurs cheminées coniques
+  function fontevraud(THREE) {
+    const A = atelier(THREE);
+    const tuffeau = A.matiere(0xF4EEDC), tuffeauOmbre = A.matiere(0xDDD2B6), ardoise = A.matiere(0x4F5D8C), pierre = A.matiere(0xD9CDB0);
+    A.boite(56, 16, 16, 12, 0, -14, tuffeau); A.toit(16.6, 6, 56, 12, 16, -14, ardoise);
+    for (const x of [-10, 4, 18, 32]) A.dome(5, 0.7, x, 18, -14, ardoise);
+    A.boite(14, 18, 34, 48, 0, -14, tuffeau); A.toit(14.6, 6, 34, 48, 18, -14, ardoise, Math.PI / 2);
+    A.boite(10, 18, 14, 60, 0, -14, tuffeau); A.abside(7, 18, 65, 0, -14, tuffeau); A.demiCone(7.5, 5, 65, 18, -14, ardoise); A.abside(12, 9, 65, 0, -14, tuffeauOmbre);
+    A.boite(9, 26, 9, 48, 0, -14, tuffeau); A.pyramide(6.6, 8, 4, 48, 26, -14, ardoise);
+    const cl = [[46, 12, 10, 13, 5], [46, 12, 10, 13, 40], [10, 12, 25, -5, 22.5], [10, 12, 25, 31, 22.5]];
+    A.boites(cl.map(([lx, h, lz, x, z]) => [lx, h, lz, x, 0, z]), tuffeau);
+    A.toits(cl.map(([lx, h, lz, x, z]) => (lx > lz ? [lz + 0.6, 5, lx, x, h, z, 0] : [lx + 0.6, 5, lz, x, h, z, Math.PI / 2])), ardoise);
+    A.cylindre(8, 8, 10, 8, -30, 0, 60, pierre); A.cylindres(Array.from({ length: 6 }, (_, k) => { const a = k * Math.PI / 3 + 0.3; return [-30 + Math.cos(a) * 8.5, 60 + Math.sin(a) * 8.5, 3, 7, 0]; }), pierre, 12);
+    A.cones(Array.from({ length: 6 }, (_, k) => { const a = k * Math.PI / 3 + 0.3; return [-30 + Math.cos(a) * 8.5, 60 + Math.sin(a) * 8.5, 3.3, 7, 4]; }), pierre, 12);
+    A.pyramide(8.4, 12, 8, -30, 10, 60, pierre); A.cones([[-30, 60, 1.6, 22, 5], [-34, 57, 1, 17, 4], [-26, 57, 1, 17, 4], [-30, 64, 1, 17, 4]], pierre, 10);
+    return A.groupe;
+  }
+
+  // le palais du Tau à Reims (x : vers le nord-est) : l'aile classique, la grande salle du Tau et son haut toit, la chapelle
+  function palaisTau(THREE) {
+    const A = atelier(THREE);
+    const pierre = A.matiere(0xEFE5CF), ardoise = A.matiere(0x56659A);
+    A.boite(95, 13, 13, -15.5, 0, -6, pierre); A.toit(13.6, 7, 95, -15.5, 13, -6, ardoise);
+    A.boite(24, 16, 57, 44, 0, -19.5, pierre); A.toit(24.6, 13, 57, 44, 16, -19.5, ardoise, Math.PI / 2);
+    A.boite(18, 20, 9, 58, 0, -38.5, pierre); A.abside(4.5, 20, 67, 0, -38.5, pierre); A.toit(9.6, 7, 18, 58, 20, -38.5, ardoise); A.demiCone(5, 6, 67, 20, -38.5, ardoise);
+    return A.groupe;
+  }
+
+  // le château d'Azay-le-Rideau (sur l'Indre) : le corps de logis et l'aile en équerre, leurs hauts toits et leurs lucarnes,
+  // les tourelles d'angle, le grand escalier et son pignon
+  function azayLeRideau(THREE) {
+    const A = atelier(THREE);
+    const tuffeau = A.matiere(0xF6F0E0), ardoise = A.matiere(0x4F5D8C);
+    A.boite(44, 15, 13, 8, 0, 0.5, tuffeau); A.toit(13.6, 10, 44, 8, 15, 0.5, ardoise);
+    A.boite(11, 15, 37, -8.5, 0, -11.5, tuffeau); A.toit(11.6, 9, 37, -8.5, 15, -11.5, ardoise, Math.PI / 2);
+    const luc = [0, 14, 22].map((x) => [2, 4, 2, x, 14, -6.6]).concat([-20, -8].map((z) => [2, 4, 2, -3.4, 14, z]));
+    A.boites(luc, tuffeau); A.toits(luc.map(([, , , x, , z]) => [2.8, 2.6, 2.4, x, 18, z, Math.PI / 2]), ardoise);
+    const tours = [[-13, 5], [-13, -28], [0, -29], [29, -6], [29, 7]];
+    A.cylindres(tours.map(([x, z]) => [x, z, 2.5, 13, 4]), tuffeau, 14); A.cones(tours.map(([x, z]) => [x, z, 2.8, 17, 7]), ardoise, 14);
+    A.boite(7, 21, 4, 8, 0, -6.5, tuffeau); A.toit(7, 4, 4, 8, 21, -6.5, tuffeau, Math.PI / 2);
+    return A.groupe;
+  }
+
+  // le phare de Cordouan (en mer, sur son plateau) : le socle rond, les étages de la Renaissance, la chapelle et sa coupole,
+  // la haute tour du XVIIIe siècle, la lanterne
+  function cordouan(THREE) {
+    const A = atelier(THREE);
+    const pierre = A.matiere(0xF2ECDC), pierreFoncee = A.matiere(0xD8CDB2), plomb = A.matiere(0x7B88B0), lanterne = A.matiere(0xFFE27A, 0x806000), or = A.matiere(0xFFC233, 0x7A4A00);
+    A.cylindre(21, 22, 5, 32, 0, 0, 0, pierreFoncee); A.cylindre(20, 20, 2, 32, 0, 5, 0, pierre);
+    A.cylindre(10, 11, 13, 24, 0, 5, 0, pierre); A.cylindre(11.4, 11.4, 1.2, 24, 0, 18, 0, pierreFoncee);
+    A.cylindre(8, 8.6, 10, 20, 0, 19.2, 0, pierre); A.cylindre(9, 9, 1, 20, 0, 29, 0, pierreFoncee);
+    A.cylindre(4.4, 6.4, 26, 16, 0, 30, 0, pierre); A.cylindre(5.2, 5.2, 1, 16, 0, 56, 0, pierreFoncee);
+    A.cylindre(3, 3, 5, 12, 0, 57, 0, lanterne); A.dome(3.3, 1, 0, 62, 0, plomb); A.boule(0.7, 0, 66, 0, or);
+    return A.groupe;
+  }
+
+  // le château de Villandry : les trois ailes autour de la cour ouverte au nord, leurs hauts toits et leurs lucarnes, le
+  // donjon carré médiéval
+  function villandry(THREE) {
+    const A = atelier(THREE);
+    const tuffeau = A.matiere(0xF4EEDC), ardoise = A.matiere(0x4F5D8C), pierre = A.matiere(0xE2D7BD);
+    const ailes = [[40, 11, 16, -2, 0], [11, 11, 33, -16.5, -16.5], [9, 11, 33, 12.5, -16.5]];
+    A.boites(ailes.map(([lx, h, lz, x, z]) => [lx, h, lz, x, 0, z]), tuffeau);
+    A.toits(ailes.map(([lx, h, lz, x, z]) => (lx > lz ? [lz + 0.6, 8, lx, x, h, z, 0] : [lx + 0.6, 7, lz, x, h, z, Math.PI / 2])), ardoise);
+    const luc = [-14, -4, 6].map((x) => [2, 3.4, 2, x, 10, -8.6]);
+    A.boites(luc, tuffeau); A.toits(luc.map(([, , , x, , z]) => [2.8, 2.2, 2.4, x, 13.4, z, Math.PI / 2]), ardoise);
+    A.boite(11, 22, 11, -17, 0, 7, pierre); A.creneaux([A.tourDe(11, 11, -17, 7)], 22, 0.8, pierre);
+    return A.groupe;
+  }
+
+  // la grande coupole de l'observatoire de Nice (Garnier et Eiffel) : le tambour de pierre, la coupole de métal et sa fente
+  function observatoireNice(THREE) {
+    const A = atelier(THREE);
+    const pierre = A.matiere(0xF2ECDC), pierreFoncee = A.matiere(0xD8CDB2), metal = A.matiere(0xA9BDB6), fente = A.matiere(0x2E3550);
+    A.boite(30, 4, 30, 0, 0, 0, pierreFoncee); A.cylindre(13.5, 13.5, 10, 32, 0, 4, 0, pierre); A.cylindre(14.2, 14.2, 1, 32, 0, 13.6, 0, pierreFoncee);
+    A.dome(13.2, 1, 0, 14.6, 0, metal);
+    A.piece(() => new THREE.TorusGeometry(13.3, 0.9, 4, 20, Math.PI * 0.55).rotateY(Math.PI / 2), fente, A.V(0, 14.6, 0), null, true);
+    return A.groupe;
+  }
+
+  // la cathédrale Sainte-Cécile d'Albi (x : l'axe, le clocher-donjon à l'ouest) : la forteresse de brique, ses contreforts
+  // ronds, le chevet, le clocher de 78 m et ses tourelles, le baldaquin de pierre blanche au sud
+  function albi(THREE) {
+    const A = atelier(THREE), Z = 2.7;
+    const brique = A.matiere(0xC66A3E), briqueFoncee = A.matiere(0xA9532F), tuile = A.matiere(0xC8704A), blanc = A.matiere(0xF2EEE4);
+    A.boite(95, 34, 32, 0, 0, Z, brique); A.toit(33, 5, 95, 0, 34, Z, tuile);
+    const contreforts = []; for (let x = -44; x <= 44; x += 8) for (const s of [1, -1]) contreforts.push([x, Z + s * 16.4, 2.6, 34, 0]);
+    for (let k = 0; k < 5; k++) { const a = -Math.PI / 2 + (k + 0.5) * Math.PI / 5; contreforts.push([47 + Math.cos(a) * 16.4, Z + Math.sin(a) * 16.4, 2.6, 34, 0]); }
+    A.cylindres(contreforts, brique, 14);
+    A.abside(16, 34, 47, 0, Z, brique); A.demiCone(16.5, 5, 47, 34, Z, tuile);
+    A.boite(16, 40, 22, -50, 0, Z, brique); A.cylindres([[-57, Z - 10, 3, 62, 0], [-57, Z + 10, 3, 62, 0], [-43, Z - 10, 3, 62, 0], [-43, Z + 10, 3, 62, 0]], briqueFoncee, 14);
+    A.boite(12, 18, 16, -50, 40, Z, brique); A.boite(10, 14, 13, -50, 58, Z, brique); A.creneaux([A.tourDe(10, 13, -50, Z)], 72, 0.8, briqueFoncee);
+    A.cones([[-57, Z - 10, 3.2, 62, 4], [-57, Z + 10, 3.2, 62, 4], [-43, Z - 10, 3.2, 62, 4], [-43, Z + 10, 3.2, 62, 4]], briqueFoncee, 14);
+    A.boite(12, 14, 6, -10, 0, Z + 19, blanc); A.toit(6.6, 4, 12, -10, 14, Z + 19, blanc); A.cones([[-15, Z + 21.5, 0.7, 14, 5], [-5, Z + 21.5, 0.7, 14, 5]], blanc, 8);
+    return A.groupe;
+  }
+
+  // l'École militaire (x : vers le sud-est ; la façade sur le Champ-de-Mars en -x) : la longue façade, le pavillon central,
+  // son portique, son fronton et son dôme carré, les ailes de la cour d'honneur
+  function ecoleMilitaire(THREE) {
+    const A = atelier(THREE);
+    const pierre = A.matiere(0xEFE6D0), pierreFoncee = A.matiere(0xD6C8A8), ardoise = A.matiere(0x56659A), or = A.matiere(0xFFC233, 0x7A4A00);
+    A.boite(18, 16, 160, -20, 0, 5, pierre); A.toit(18.6, 7, 160, -20, 16, 5, ardoise, Math.PI / 2);
+    A.boite(26, 22, 22, -19, 0, 7.5, pierre); A.cylindres(Array.from({ length: 8 }, (_, k) => [-32.8, -3 + k * 3, 0.8, 16, 2]), pierre, 12);
+    A.boite(3, 2, 24, -32.8, 18, 7.5, pierreFoncee); A.toit(24, 5, 3, -32.8, 20, 7.5, pierre);
+    A.domeCarre(20, 12, 20, -19, 22, 7.5, ardoise); A.boule(0.9, -19, 34.6, 7.5, or);
+    for (const z of [-40, 50]) { A.boite(80, 14, 16, 30, 0, z, pierre); A.toit(16.6, 6, 80, 30, 14, z, ardoise); }
+    return A.groupe;
+  }
+
+  // le théâtre des Champs-Élysées (Perret) : le bloc de marbre blanc, le dernier étage en retrait, les bas-reliefs de
+  // Bourdelle sur les façades
+  function theatreChampsElysees(THREE) {
+    const A = atelier(THREE);
+    const marbre = A.matiere(0xF4F2EC), marbreOmbre = A.matiere(0xDCD8CE), relief = A.matiere(0xD9C7A0);
+    A.boite(38, 22, 88, 0, 0, 0, marbre); A.boite(32, 5, 82, 0, 22, 0, marbreOmbre); A.boite(39, 1.2, 89, 0, 21, 0, marbreOmbre);
+    for (const s of [1, -1]) A.plaques([-12, -4, 4, 12].map((x) => [5, 6, 0.3, x, 13, s * 44.2]), relief);
+    return A.groupe;
+  }
+
+  // le Clos Lucé (la maison de Léonard de Vinci) : le manoir de brique rose et de pierre, son haut toit, ses lucarnes, la
+  // tourelle d'escalier octogonale
+  function closLuce(THREE) {
+    const A = atelier(THREE);
+    const brique = A.matiere(0xD08A72), pierre = A.matiere(0xF2EAD6), ardoise = A.matiere(0x4F5D8C);
+    A.boite(13, 11, 46, 0, 0, 0, brique); A.toit(13.6, 9, 46, 0, 11, 0, ardoise, Math.PI / 2);
+    A.boites([-20, -8, 4, 16].map((z) => [0.8, 11, 1, -6.6, 0, z]).concat([-20, -8, 4, 16].map((z) => [0.8, 11, 1, 6.6, 0, z])), pierre);
+    const luc = [-14, -2, 10].map((z) => [2, 3.2, 2, -6, 10, z]);
+    A.boites(luc, pierre); A.toits(luc.map(([, , , x, , z]) => [2.8, 2.2, 2.4, x, 13.2, z]), ardoise);
+    A.cylindre(3, 3, 16, 8, -7, 0, 2, pierre); A.pyramide(3.4, 6, 8, -7, 16, 2, ardoise);
+    return A.groupe;
+  }
+
   // les maquettes connues : le monument (identifiant de data/monuments.json), où et comment la poser, et les
   // bâtiments de l'IGN qu'elle remplace (sinon les blocs gris de la BD TOPO resteraient dedans)
   const MODELES = {
@@ -1464,6 +1598,36 @@
     Q585947: {   // Laon : la façade à l'ouest, le chevet plat
       construire: laon, centre: [3.625004, 49.564372], orientation: -2, masquer: ['BATIMENT0000000311606607', 'BATIMENT0000000311606601', 'BATIMENT0000000311606602', 'BATIMENT0000000311606605'],
     },
+    Q283254: {   // Fontevraud : l'abbatiale au nord, le grand cloître, les cuisines
+      construire: fontevraud, centre: [0.0517, 47.1814], orientation: -19, masquer: ['BATIMENT0000000313839615', 'BATIMENT0000000313839617', 'BATIMENT0000000313839616'],
+    },
+    Q578771: {   // le palais du Tau, à côté de la cathédrale
+      construire: palaisTau, centre: [4.0344, 49.2531], orientation: 29, masquer: ['BATIMENT0000002223520857', 'BATIMENT0000002223520856'],
+    },
+    Q113389: {   // Azay-le-Rideau : le logis en équerre
+      construire: azayLeRideau, centre: [0.4658, 47.259], orientation: -26, masquer: ['BATIMENT0000000322812646'],
+    },
+    Q199234: {   // le phare de Cordouan, en mer
+      construire: cordouan, centre: [-1.1733, 45.5863], orientation: 0, masquer: ['BATIMENT0000002276245250'],
+    },
+    Q477613: {   // Villandry : la cour ouverte au nord
+      construire: villandry, centre: [0.5145, 47.3405], orientation: 35, masquer: ['BATIMENT0000000322958085'],
+    },
+    Q508362: {   // la grande coupole de l'observatoire de Nice
+      construire: observatoireNice, centre: [7.299059, 43.727429], orientation: 0, masquer: ['BATIMENT0000000328089519'],
+    },
+    Q94744: {   // Albi : le clocher à l'ouest
+      construire: albi, centre: [2.1426, 43.9285], orientation: 0, masquer: ['BATIMENT0000000339387174', 'BATIMENT0000000339384977', 'BATIMENT0000000339384981', 'BATIMENT0000000339384980'],
+    },
+    Q273480: {   // l'École militaire : la façade sur le Champ-de-Mars
+      construire: ecoleMilitaire, centre: [2.3036, 48.8525], orientation: -43, masquer: ['BATIMENT0000000241924833', 'BATIMENT0000000241924834', 'BATIMENT0000000241924835'],
+    },
+    Q726531: {   // le théâtre des Champs-Élysées
+      construire: theatreChampsElysees, centre: [2.302785, 48.865922], orientation: 41, masquer: ['BATIMENT0000000245166341'],
+    },
+    Q1122731: {   // le Clos Lucé
+      construire: closLuce, centre: [0.991958, 47.410324], orientation: 33, masquer: ['BATIMENT0000000322878440', 'BATIMENT0000000322878441'],
+    },
   };
   const MASQUES = Object.values(MODELES).flatMap((m) => m.masquer);
 
@@ -1524,6 +1688,7 @@
     grandPalais, pontAlexandre, pontNeuf, conciergerie, palaisRoyal, placeDesVosges, saintSulpice,
     vaux, vincennes, blois, amboise, chateauIf, notreDameDeLaGarde, viaducDeMillau,
     bourges, nantes, vezelay, beauvais, cluny, fontenay, ronchamp, maisonCarree, theatreOrange, pontAvignon, carnac,
-    montsoreau, saintGermainEnLaye, saintSavin, salineRoyale, saintEustache, chaillot, placeStanislas, laon };
+    montsoreau, saintGermainEnLaye, saintSavin, salineRoyale, saintEustache, chaillot, placeStanislas, laon,
+    fontevraud, palaisTau, azayLeRideau, cordouan, villandry, observatoireNice, albi, ecoleMilitaire, theatreChampsElysees, closLuce };
   if (typeof module !== 'undefined' && module.exports) module.exports = api; else racine.Maquettes = api;
 })(typeof globalThis !== 'undefined' ? globalThis : this);
