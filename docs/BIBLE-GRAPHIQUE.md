@@ -230,3 +230,6 @@ Où c'est dans le code : la pochette est dessinée par `makeArt()` (`index.html`
 - **Trois monuments régionaux de plus** (nuit du 4 nov.) : **la chapelle de la Médaille miraculeuse** (rue du Bac), **l'hôtel de Matignon** (le corps de logis, les ailes, le portail), **la maison La Roche** de Le Corbusier (les volumes blancs, la galerie courbe sur pilotis).
 
 ![La chapelle de la Médaille miraculeuse, l'hôtel de Matignon et la maison La Roche](bible/monuments-40.jpg)
+- **Trois grands châteaux de plus** (nuit du 4 nov.), montés sur l'emprise exacte de leurs bâtiments dans l'IGN (nouvel outil `emprise` de `src/maquettes.js`, pour les plans trop compliqués à refaire en boîtes) : **le château fort de Sedan** (crénelé), **le château de Brest** (ses remparts, son donjon, ses grosses tours), **le château de Lunéville** (ses toits d'ardoise).
+
+![Le château fort de Sedan, le château de Brest et le château de Lunéville](bible/monuments-41.jpg)
