@@ -4889,6 +4889,16 @@
     return A.groupe;
   }
 
+  // le jardin des Tuileries : l'Orangerie (les Nymphéas, sa verrière) et le Jeu de Paume, les deux pavillons au bout du
+  // jardin, côté Concorde
+  function tuileries(THREE) {
+    const A = atelier(THREE);
+    const pierre = A.matiere(0xF2EEE4), pierreFoncee = A.matiere(0xD6CFC0), verre = A.matiere(0x9FD3E8, 0x1D4A5C), zinc = A.matiere(0x8E9AB0);
+    pave(A, [[-90, 85.5], [0.5, 130], [-6, 143.5], [-96.5, 98.5]], 11, pierre, verre, 2, pierreFoncee);
+    pave(A, [[23, -136.5], [96, -100], [89.5, -89], [17, -127]], 12, pierre, zinc, 2.5, pierreFoncee);
+    return A.groupe;
+  }
+
   // les maquettes connues : le monument (identifiant de data/monuments.json), où et comment la poser, et les
   // bâtiments de l'IGN qu'elle remplace (sinon les blocs gris de la BD TOPO resteraient dedans)
   const MODELES = {
@@ -6111,6 +6121,9 @@
     Q1414059: {   // le parc Monceau : la Rotonde (le bâtiment « monument » de l'IGN)
       construire: rotondeMonceau, centre: [2.30908, 48.880255], orientation: 0, masquer: ['BATIMENT0000000245173441'],
     },
+    Q818517: {   // le jardin des Tuileries : l'Orangerie et le Jeu de Paume (les emprises de l'IGN, simplifiées)
+      construire: tuileries, centre: [2.323314, 48.8648], orientation: 0, masquer: ['BATIMENT0000000245159970', 'BATIMENT0000000245198949'],
+    },
   };
   const MASQUES = Object.values(MODELES).flatMap((m) => m.masquer);
 
@@ -6218,6 +6231,7 @@
     manufactureSevres,  citadelleBesancon,
     alyscamps,  templeDonon,  templeDiane,
     royaumont,  maubuisson,  saintWandrille,  maisonBalzac,
-    jardinDesPlantes,  rotondeMonceau };
+    jardinDesPlantes,  rotondeMonceau,
+    tuileries };
   if (typeof module !== 'undefined' && module.exports) module.exports = api; else racine.Maquettes = api;
 })(typeof globalThis !== 'undefined' ? globalThis : this);

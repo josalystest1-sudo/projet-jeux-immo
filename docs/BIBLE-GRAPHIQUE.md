@@ -254,3 +254,6 @@ Où c'est dans le code : la pochette est dessinée par `makeArt()` (`index.html`
 - **Deux monuments régionaux de plus** (nuit du 4 nov.), deux « jardins » qui ont un bâtiment célèbre : **le Jardin des plantes** (la Grande Galerie de l'Évolution et sa verrière, les grandes serres), **le parc Monceau** (la Rotonde de Ledoux, sa colonnade et sa coupole).
 
 ![Le Jardin des plantes et la Rotonde du parc Monceau](bible/monuments-48.jpg)
+- **Le jardin des Tuileries** (nuit du 4 nov.) : ses deux pavillons côté Concorde, **l'Orangerie** (sa verrière, les Nymphéas) et **le Jeu de Paume**, sur leur emprise de l'IGN.
+
+![L'Orangerie et le Jeu de Paume, au bout du jardin des Tuileries](bible/monuments-49.jpg)
