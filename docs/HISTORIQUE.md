@@ -104,6 +104,7 @@ Rien d'important ne vit dans une conversation : tout est dans le dépôt ou sur 
 - Seizième lot régional (PR #68) : la Légion d'honneur, le Grand-Théâtre de Bordeaux, la cathédrale russe de Nice, le palais Rohan, l'hôtel de ville de Lyon, Saint-Nicolas-des-Champs, La Tourette, Arras, Évreux, Perpignan, Moulins, Langres.
 - Dix-septième lot régional (PR #69) : Saint-Quentin, les cathédrales de Nancy, Lisieux, Montauban, Agen, Cambrai, Saint-Brieuc, Sées, Saint-Malo et Agde, Tournus, Saint-Pierre de Caen.
 - Dix-huitième lot régional (PR #70) : le musée d'Orsay, Thiepval, le Gros-Horloge, la porte des Allemands, Tarascon, Salses, Josselin, Hautefort, Annecy, le fort la Latte, La Rochelle, Vienne.
+- Dix-neuvième lot régional (PR #71) : Saint-Paul de Strasbourg, Colmar, Notre-Dame de Dijon, Vendôme, Verdun, Saint-Nicolas-de-Port, Bonaguil, Montreuil-Bellay, Maintenon, Sceaux, le temple du Marais, le théâtre antique de Lyon.
 
 ## Toutes les PR
 
@@ -200,6 +201,7 @@ Puis une PR par étape, fusionnée en squash :
 | #68 | 04/11 03:11 | Graphismes : douze monuments régionaux de plus (le palais de la Légion d'honneur, le Grand-Théâtre de Bordeaux, la cathédrale russe de Nice, le palais Rohan, l'hôtel de ville de Lyon, Saint-Nicolas-des-Champs, La Tourette, les cathédrales d'Arras, Évreux, Perpignan, Moulins et Langres) |
 | #69 | 04/11 03:17 | Graphismes : douze monuments régionaux de plus (la basilique de Saint-Quentin, les cathédrales de Nancy, Lisieux, Montauban, Agen, Cambrai, Saint-Brieuc, Sées, Saint-Malo et Agde, Tournus, Saint-Pierre de Caen) |
 | #70 | 04/11 03:23 | Graphismes : douze monuments régionaux de plus (le musée d'Orsay, le mémorial de Thiepval, le Gros-Horloge, la porte des Allemands, Tarascon, Salses, Josselin, Hautefort, le château d'Annecy, le fort la Latte, les cathédrales de La Rochelle et de Vienne) |
+| #71 | 04/11 03:29 | Graphismes : douze monuments régionaux de plus (Saint-Paul de Strasbourg, la collégiale de Colmar, Notre-Dame de Dijon, la Trinité de Vendôme, Verdun, Saint-Nicolas-de-Port, Bonaguil, Montreuil-Bellay, Maintenon, Sceaux, le temple du Marais, le théâtre antique de Lyon) |
 
 ## Les décisions de Gautier
 
@@ -230,7 +232,7 @@ Les décisions du 2 novembre (interview) sont dans `CLAUDE.md` § 4 et dans le G
 - **Le serveur, suite** (phase 8) :
   - 8.2 : le mode serveur par défaut, la fin des joueurs simulés, l'inscription des amis. Question posée à Gautier, sans réponse : couper la confirmation par e-mail pendant les essais ?
   - 8.3 : l'anti-triche.
-- **Les graphismes** (phase 10, avant 8.2 : décision de Gautier) : la preuve, l'ouverture, les monuments nationaux et 193 monuments régionaux en 3D (246 maquettes) ; ensuite les autres régionaux, l'habillage de la révélation, l'icône et le logo (`docs/BIBLE-GRAPHIQUE.md`).
+- **Les graphismes** (phase 10, avant 8.2 : décision de Gautier) : la preuve, l'ouverture, les monuments nationaux et 205 monuments régionaux en 3D (258 maquettes) ; ensuite les autres régionaux, l'habillage de la révélation, l'icône et le logo (`docs/BIBLE-GRAPHIQUE.md`).
 - **La boutique** (phase 9) : Stripe, packs et Pass mensuel (pack de 8 cartes, bon mensuel : GDD § 3), probabilités affichées, blocage Belgique et Pays-Bas, CGU, confidentialité, mentions légales.
 - **Ensuite** : les graphismes (phase 10), l'équilibrage et le lancement (phase 11).
 - **Au lancement** :
