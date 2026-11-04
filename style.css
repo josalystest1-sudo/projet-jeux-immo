@@ -994,3 +994,18 @@ body.promenade #sheet .svwrap{display:none}
 .c3d.r1.annonce .c3d-dos{box-shadow:inset 0 0 0 2px #FFF1C9,inset 0 0 50px rgba(255,236,190,.45)}
 .rev-plan canvas{position:absolute;left:0;top:0;width:100%;height:100%}
 .rev-case{opacity:0;transition:opacity .09s linear}.rev-case.on{opacity:1}
+
+/* ===================== la collection aux nouvelles cartes (4 nov. au soir) =====================
+   La grille du Patrimoine montre les mêmes badges que le pack, à l'échelle de la colonne (--k) ; la carte touchée s'ouvre en
+   grand en haut de sa fiche : on l'incline au doigt, sa maquette tourne. */
+.collection{gap:12px 10px}
+.ccl{position:relative;aspect-ratio:240/350;cursor:pointer;border-radius:calc(14px * var(--k,.7));box-shadow:0 6px 16px rgba(5,11,30,.35);-webkit-tap-highlight-color:transparent}
+.ccl:active{transform:translateY(2px)}
+.ccl-in{position:absolute;left:0;top:0;width:240px;height:350px;transform-origin:0 0;transform:scale(var(--k,.7))}
+.ccl .niv{position:absolute;right:6%;top:9%;z-index:6;width:26px;height:26px;border-radius:50%;background:#0B1738;border:1.5px solid #E9C77B;display:flex;align-items:center;justify-content:center;font-size:14px;box-shadow:0 2px 6px rgba(0,0,0,.4)}
+.ccl .vente{position:absolute;z-index:6;left:-6px;top:38%;background:#E4573D;color:#fff;font-family:var(--panneau);font-weight:700;font-size:12px;letter-spacing:.12em;text-transform:uppercase;padding:3px 10px;border-radius:0 6px 6px 0;box-shadow:0 2px 6px rgba(0,0,0,.4)}
+.cl-grand{display:flex;justify-content:center;perspective:900px;margin:-4px 0 14px;touch-action:none}
+.cl-grand-in{position:relative;width:240px;height:350px;transform:rotateX(var(--rx,0deg)) rotateY(var(--ry,0deg));transition:transform .5s cubic-bezier(.2,.9,.3,1.2);border-radius:14px;box-shadow:0 16px 34px rgba(5,11,30,.45)}
+.cl-grand-in.libre{transition:transform .06s linear}
+.cl-grand-lumiere{position:absolute;inset:0;border-radius:14px;pointer-events:none;background:radial-gradient(circle at var(--mx,50%) var(--my,30%),rgba(255,255,255,.2),rgba(255,255,255,.05) 30%,transparent 65%)}
+@media (max-width:360px){.cl-grand-in{transform:scale(.9) rotateX(var(--rx,0deg)) rotateY(var(--ry,0deg))}}

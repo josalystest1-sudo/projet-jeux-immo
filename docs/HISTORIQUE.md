@@ -147,6 +147,7 @@ Rien d'important ne vit dans une conversation : tout est dans le dépôt ou sur 
 - **La fluidité** (PR #111). Gautier : l'ouverture « lag trop » pour qu'il puisse juger, et les noms sont peu visibles. Claude mesure au téléphone simulé et trouve les causes : couches 3D trop nombreuses, effets coûteux, calculs au mauvais moment. La révélation passe d'environ 2,5 à 40 images par seconde. Pendant ce travail, Gautier annonce le nouveau nom du jeu : **CityDeck**.
 - **Le nom : CityDeck** (PR #112). Le nom se voit dans le titre, sur la pochette, au dos des cartes, sur l'écran d'accueil et de connexion, et à l'installation sur le téléphone. Cadastra reste dans le code et les clés internes, pour ne perdre aucune partie.
 - **Les coins, le dos, la tension** (PR #113). Gautier trouve l'ensemble « pas mal » et demande des réglages : les coins coupés font « rognés », le dos est « pas premium », et on voit le lieu avant le zoom. Réponses : coins arrondis et angles ouvragés, un dos premium (médaillon, rosace, filigrane), plus de point avant la fin, et une roulette des régions puis des départements.
+- **La collection aux nouvelles cartes** (PR #114). Gautier trouve l'ouverture « top ». La collection prend les mêmes cartes, en grille, et une carte touchée s'ouvre en grand, inclinable, maquette qui tourne.
 
 ## Toutes les PR
 
@@ -286,6 +287,7 @@ Puis une PR par étape, fusionnée en squash :
 | #111 | 04/11 11:38 | Fluidité de l'ouverture (mesurée : révélation de 2,5 à environ 40 images/s) ; noms lisibles |
 | #112 | 04/11 11:45 | Le jeu s'appelle CityDeck (titre, pochette, dos des cartes, écran d'accueil, installation) |
 | #113 | 04/11 12:00 | Coins arrondis, dos de carte premium, roulette des régions et départements (le lieu n'apparaît qu'à la fin) |
+| #114 | 04/11 12:11 | La collection (Patrimoine) aux nouvelles cartes ; une carte touchée s'ouvre en grand, inclinable |
 
 ## Les décisions de Gautier
 
@@ -335,7 +337,7 @@ Les décisions du 2 novembre (interview) sont dans `CLAUDE.md` § 4 et dans le G
   - le nom est décidé : **CityDeck** (4 nov.) ; vérifier qu'il est libre (marque, nom de domaine, magasins d'applications) avant le lancement.
 - **Petites choses** :
   - les autres catégories de lieux célèbres (châteaux, mairies, gares…). Wikidata se joint depuis le PC. Les lieux de culte de toutes les religions y sont depuis la PR #104 ;
-  - la collection (Patrimoine) dans le style des nouvelles cartes (grille de badges, décision de l'interview), après validation des cartes par Gautier ;
+  - sur les cartes des monuments, montrer leur maquette 3D (aujourd'hui, le bâtiment de l'IGN) ;
   - retirer le prototype du dépôt de l'Arena ;
   - relire les 60 monuments nationaux ;
   - valider les seuils du standing et la capacité de gestion.

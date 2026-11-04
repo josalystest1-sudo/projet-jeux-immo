@@ -438,3 +438,13 @@ Les réponses :
 
 ![Le paquet, l'annonce, la roulette des régions, la région, la roulette des départements, la commune, la rue avec le point, la carte](bible/revelation-tension.jpg)
 
+### La collection (4 nov. au soir)
+
+Gautier : « c'est top ». La collection (Patrimoine) passe aux nouvelles cartes, comme décidé à l'interview (une grille de badges) :
+- **la grille** montre les mêmes cartes que le pack, à l'échelle de la colonne : plan d'or, maquette de porcelaine qui tourne, plaque émaillée, chiffres, avec un petit rond pour le niveau construit et un bandeau « En vente » ;
+- **les maquettes** ne sont préparées que pour les cartes à l'écran, et libérées quand elles s'en éloignent ; leur plan est peint plus petit ;
+- **les cartes visibles** sont dessinées à tour de rôle, une par image, pour rester fluide (mesuré : environ 24 images par seconde au défilement sur le téléphone simulé, avec 42 cartes) ;
+- **une carte touchée** s'ouvre en grand en haut de sa fiche : on l'incline au doigt (au repos, elle se balance), sa maquette tourne, et le reste de la fiche (construire, vendre…) suit dessous.
+
+![La collection, et une carte ouverte](bible/collection.jpg)
+
