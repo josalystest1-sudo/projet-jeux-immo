@@ -48,6 +48,8 @@ AJOUTS = [
     ('manuel-tour-eiffel', 'tour Eiffel', 2.2945, 48.8584, '75107', 200),
     ('manuel-notre-dame-de-la-garde', 'basilique Notre-Dame-de-la-Garde', 5.3713, 43.2840, '13206', 40),
     ('manuel-viaduc-de-millau', 'viaduc de Millau', 3.0225, 44.0775, '12145', 40),
+    # demande de Gautier (4 nov. 2026) ; nombre d'articles lu dans Wikidata (celebres_wikidata.txt) : classée comme les autres
+    ('Q392564', 'Grande Mosquée de Paris', 2.3550, 48.8419, '75105', 47),
 ]
 NATIONAUX = 60  # les 60 plus connus : légendaires nationaux ; les suivants : régionaux
 # Corrections du classement automatique (le nombre d'articles Wikipédia a des biais) : [Proposé], Gautier tranchera.

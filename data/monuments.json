@@ -320,6 +320,16 @@
   "articles": 47
  },
  {
+  "id": "Q392564",
+  "nom": "Grande Mosquée de Paris",
+  "lon": 2.355,
+  "lat": 48.8419,
+  "insee": "75105",
+  "ville": "Paris 5e",
+  "palier": "national",
+  "articles": 47
+ },
+ {
   "id": "Q143463",
   "nom": "Palais des papes",
   "lon": 4.8075,
@@ -596,7 +606,7 @@
   "lat": 47.2184,
   "insee": "44109",
   "ville": "Nantes",
-  "palier": "national",
+  "palier": "regional",
   "articles": 36
  },
  {

@@ -278,3 +278,6 @@ Où c'est dans le code : la pochette est dessinée par `makeArt()` (`index.html`
 - **Trois monuments de plus** (nuit du 4 nov.), sobres : **les forts de Douaumont et de Vaux** (les casemates et tourelles de béton qui affleurent, d'après l'IGN), **le cimetière du Père-Lachaise** (sa chapelle en haut de l'allée principale).
 
 ![Le fort de Douaumont, le fort de Vaux et la chapelle du Père-Lachaise](bible/monuments-56.jpg)
+- **La Grande Mosquée de Paris** (4 nov., ajoutée aux monuments à la demande de Gautier) : les bâtiments blancs autour du jardin, du patio et des petites cours (l'emprise de l'IGN, cours ouvertes), les toits de tuiles vertes, le minaret carré, son lanternon vert et sa boule dorée.
+
+![La Grande Mosquée de Paris](bible/monuments-57.jpg)
