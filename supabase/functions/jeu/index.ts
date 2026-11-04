@@ -3,13 +3,14 @@
 // que le jeu (src/regles, recopiées dans _genere/ par tools/serveur_prepare.js), puis écrit par les fonctions SQL
 // jeu_* (supabase/sql/010_jeu.sql), chacune atomique. Réponse : { ok: true, ... } ou { ok: false, code, message }.
 import { createClient } from '@supabase/supabase-js';
-import { Regles, Pack, Celebres, Tirage, Encheres, Mairie, Classements, Monuments } from './_genere/regles.mjs';
-import { ECO, STANDING, FRANCE, DEPARTEMENTS, CELEBRES, MONUMENTS } from './_genere/donnees.mjs';
+import { Regles, Pack, Celebres, Tirage, Encheres, Mairie, Classements, Monuments, Regions, Boutique } from './_genere/regles.mjs';
+import { ECO, STANDING, FRANCE, DEPARTEMENTS, CONTOURS, CELEBRES, MONUMENTS } from './_genere/donnees.mjs';
 
 const R = Regles.creer(ECO, STANDING);
 const MAI = Mairie.creer(ECO);   // le Maire par caisse de travaux (src/regles/mairie.js, GDD § 5)
 const CLA = Classements.creer(ECO);   // les classements et les saisons (src/regles/classements.js, GDD § 5 bis)
 const MON = Monuments.creer(ECO);     // les monuments : entretien, impayés, absence (src/regles/monuments.js, GDD § 5 ter)
+const BOU = Boutique.creer(ECO);      // la boutique et les gemmes (src/regles/boutique.js, GDD § 3 et § 9)
 
 // la clé secrète du projet est donnée par Supabase à la fonction (jamais écrite dans le dépôt)
 function cleSecrete(): string {
@@ -59,7 +60,7 @@ function lieuDe(l: Ligne) {
 }
 async function joueur(j: string) {
   await rpc('jeu_nouveau_joueur', { j, depart: ECO.solde_depart });
-  const { data, error } = await admin.from('joueurs').select('pieces, encaisse, dernier_jour, dette, impaye_depuis').eq('id', j).single();
+  const { data, error } = await admin.from('joueurs').select('pieces, encaisse, dernier_jour, dette, impaye_depuis, gemmes, pass_fin, bons').eq('id', j).single();
   if (error || !data) throw error || new Error('joueur introuvable');
   return data;
 }
@@ -79,6 +80,9 @@ const REFUS_SQL: Record<string, string> = {
   rien: 'Choisis au moins un de tes lieux.', trop: 'Trente lieux au plus dans un échange.',
   lot: 'Cette enchère n’existe pas.', close: 'Cette enchère est close.', min: 'Ta mise est trop basse.',
   sans_lieu: 'Il te faut un lieu dans la commune pour verser à sa caisse.',
+  gemmes: 'Pas assez de gemmes : la boutique en vend.', vide: 'Pack impossible à tirer pour l’instant : réessaie dans un instant.',
+  essai: 'Les gemmes d’essai ne sont données que sur le serveur d’essai.', bon: 'Il te faut un bon : le Pass 15 jours en donne un.',
+  pris: 'Cette adresse est déjà à quelqu’un : fais-lui une offre.',
 };
 async function rpc(nom: string, args: Ligne) {
   const { data, error } = await admin.rpc(nom, args);
@@ -113,7 +117,7 @@ async function estLibre(c: Ligne) {
 }
 const TIRAGE = Tirage.creer({
   geoJSON, celebres: async (dep: string) => (CELEBRES as Ligne)[dep] || [], france: FRANCE, deps: DEPARTEMENTS, standing: STANDING,
-  Celebres, Pack, rarete: (l: Ligne) => R.rarete(l), estLibre,
+  Celebres, Pack, rarete: (l: Ligne) => R.rarete(l), estLibre, contours: CONTOURS,
 });
 
 // ma partie : pièces, lieux, ce qui attend d'être récolté (rendue aussi après chaque action : le jeu se recale dessus)
@@ -124,6 +128,7 @@ async function etatDe(j: string) {
     pieces: Number(jr.pieces), encaisse: ms(jr.encaisse), dernierJour: jr.dernier_jour == null ? null : Number(jr.dernier_jour), jour: Regles.jourDuJeu(maintenant, jm),
     lieux, maintenant, aRecolter: R.aEncaisser(lieux, ms(jr.encaisse), maintenant, jm), jourMs: jm, ...offres, ...echanges, notifs, ...encheres,
     entretien: { dette: Number(jr.dette || 0), impayeDepuis: jr.impaye_depuis ? ms(jr.impaye_depuis) : null },
+    gemmes: Number(jr.gemmes || 0), pass: { fin: jr.pass_fin ? ms(jr.pass_fin) : null, bons: Number(jr.bons || 0) },
   };
 }
 // mes offres reçues et envoyées (en attente, et les dernières réglées), avec le lieu et l'autre joueur
@@ -623,11 +628,47 @@ async function tenirMonuments() {
   }
 }
 
+// ---------------------------------------------------------------- la boutique (GDD § 3 et § 9)
+// Les gemmes achètent les packs (national, régional : les cartes tirées dans la région) et le Pass 15 jours (8 cartes au
+// pack du jour, un bon d'adresse). Le paiement par carte viendra ; en attendant, des gemmes d'essai sur le serveur d'essai.
+ACTIONS.acheter_pack = async (j, corps) => {
+  const article = corps.article === 'pack_regional' ? 'pack_regional' : 'pack_national', jr = await joueur(j);
+  if (!BOU.peutPayer(article, Number(jr.gemmes || 0))) throw new Refus('gemmes', REFUS_SQL.gemmes);
+  let zone = null;
+  if (article === 'pack_regional') { const deps = (Regions.REGIONS as Record<string, string[]>)[String(corps.region || '')]; if (!deps) throw new Refus('region', 'Choisis une région.'); zone = { deps }; }
+  const cartes = await TIRAGE.tirerPack(crypto.randomUUID(), ECO.pack.chances, BOU.B.pack_cartes, zone);
+  if (!cartes.length) throw new Refus('vide', REFUS_SQL.vide);
+  const lignes = cartes.map((c: Ligne) => ({ ...c, commune: Regles.nomCommune(c.citycode, c.city), rarete: R.rarete(c) }));
+  const gagnes: string[] = await rpc('jeu_pack_achete', { j, article, prix: BOU.prix(article), cartes: lignes });
+  const maintenant = Date.now();
+  return { cartes: cartes.filter((c: Ligne) => gagnes.includes(c.id)).map((c: Ligne) => ({ ...c, niveau: 0, depuis: maintenant })), article };
+};
+ACTIONS.acheter_pass = async (j) => {
+  const jm = await jourMs(), jr = await joueur(j);
+  if (!BOU.peutPayer('pass', Number(jr.gemmes || 0))) throw new Refus('gemmes', REFUS_SQL.gemmes);
+  const p = BOU.acheterPass({ fin: jr.pass_fin ? ms(jr.pass_fin) : null, bons: Number(jr.bons || 0) }, Date.now(), jm);
+  await rpc('jeu_pass', { j, prix: BOU.prix('pass'), avant: jr.pass_fin, fin: new Date(p.fin).toISOString(), nbons: p.bons });
+  return { pass: p };
+};
+// le bon : l'adresse est vérifiée auprès de la Base Adresse Nationale (son point redonne la même adresse) ; le serveur
+// garde sa version, pas celle envoyée par le jeu
+ACTIONS.prendre_bon = async (j, corps) => {
+  const id = String(corps.id || ''), lon = Number(corps.lon), lat = Number(corps.lat);
+  if (!id || !Number.isFinite(lon) || !Number.isFinite(lat)) throw new Refus('lieu', 'Adresse inconnue.');
+  const a = await TIRAGE.adresseProche(lon, lat);
+  if (!a || a.id !== id) throw new Refus('lieu', 'Cette adresse n’a pas été retrouvée : touche-la sur la carte.');
+  const r = R.rarete(a), v = BOU.bonPermis(a, r, await estLibre(a));
+  if (!v.ok) throw new Refus(v.raison, v.raison === 'pris' ? REFUS_SQL.pris : 'Un bon prend une adresse, jusqu’à Épique.');
+  await rpc('jeu_bon', { j, lieu: { ...a, commune: Regles.nomCommune(a.citycode, a.city), rarete: r } });
+  return { lieu: { ...a, niveau: 0, depuis: Date.now() } };
+};
+ACTIONS.gemmes_essai = async (j) => ({ gemmes: Number(await rpc('jeu_gemmes_essai', { j, n: BOU.B.gemmes_essai })) });
+
 // ouvrir le pack du jour : le serveur tire au hasard (graine secrète), une fois par jour
 ACTIONS.pack = async (j) => {
   const jm = await jourMs(), jour = Regles.jourDuJeu(Date.now(), jm), jr = await joueur(j);
   if (jr.dernier_jour != null && Number(jr.dernier_jour) >= jour) throw new Refus('deja', REFUS_SQL.deja);
-  const cartes = await TIRAGE.tirerPack(crypto.randomUUID() + ':' + jour, ECO.pack.chances, ECO.pack.cartes);
+  const cartes = await TIRAGE.tirerPack(crypto.randomUUID() + ':' + jour, ECO.pack.chances, BOU.cartesDuJour({ fin: jr.pass_fin ? ms(jr.pass_fin) : null }, Date.now()));
   if (!cartes.length) throw new Refus('reseau', 'Pack impossible à tirer pour l’instant : réessaie dans un instant.');
   await recolter(j);   // les loyers d'avant sont encaissés : les nouveaux lieux comptent à partir de maintenant
   const lignes = cartes.map((c: Ligne) => ({ ...c, commune: Regles.nomCommune(c.citycode, c.city) }));

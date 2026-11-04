@@ -967,7 +967,7 @@ function addrRow(a, withBuild){
   // un lieu libre ne s'achète pas : il ne s'obtient que dans un pack (décision de Gautier, 3 nov.)
   else { const bons=BOU.bonsUtilisables(state.pass, now());
     if(bons>0 && BOU.bonPermis(a, r, true).ok){ const b=document.createElement('button'); b.className='btn'; b.innerHTML=`🎟️ Prendre avec mon bon <small>(${bons})</small>`; b.onclick=()=>prendreAvecBon(a); actions.appendChild(b); }
-    const t=document.createElement('div'); t.className='libre-info'; t.innerHTML='🎁 <span><b>Lieu libre</b> : il n’appartient à personne et ne s’achète pas. Il peut sortir dans un pack'+(bons>0?', ou se prendre avec le bon du Pass (jusqu’à Épique).':'.')+'</span>'; actions.appendChild(t); row.appendChild(actions); }
+    const t=document.createElement('div'); t.className='libre-info'; t.innerHTML='🎁 <span><b>Lieu libre</b> : il n’appartient à personne et ne s’achète pas. Il peut sortir dans un pack'+(bons>0?', ou se prendre avec le bon du Pass (une adresse, jusqu’à Épique).':'.')+'</span>'; actions.appendChild(t); row.appendChild(actions); }
   return row; }
 async function retirerVente(id){ const a=state.owned[id]; if(!a) return; if(MODE_SERVEUR){ const r=await agir('retirer', {id}); if(r){ setBadge(a,0); toast('Retiré de la vente'); apresAction(); } return; } a.enVente=false; save(); setBadge(a, a.niveau||0); toast('Retiré de la vente'); apresAction(); }
 // le prix demandé : celui que le joueur a fixé (sinon la valeur du lieu)
@@ -1686,7 +1686,7 @@ async function appelServeur(action, corps){
     return data; }
   catch(e){ return { ok:false, code:'reseau', message:'Serveur injoignable : vérifie ta connexion et réessaie.' }; } }
 // ma partie, telle que le serveur la donne : pièces, dernière récolte, pack du jour, lieux
-function appliquerEtat(e){ if(!e) return; state.wallet=e.pieces; if(e.entretien) state.entretien=Object.assign({}, state.entretien, e.entretien); state.encaisse=e.encaisse; state.dernierJour = e.dernierJour==null ? null : e.dernierJour;
+function appliquerEtat(e){ if(!e) return; state.wallet=e.pieces; if(e.gemmes!=null) state.gemmes=e.gemmes; if(e.pass) state.pass=e.pass; if(e.entretien) state.entretien=Object.assign({}, state.entretien, e.entretien); state.encaisse=e.encaisse; state.dernierJour = e.dernierJour==null ? null : e.dernierJour;
   if(e.jourMs){ state.jourMs=e.jourMs; JOUR=e.jourMs; SEMAINE=7*JOUR; }
   if(e.offresRecues) state.offersIn=e.offresRecues; if(e.offresEnvoyees) state.offersOut=e.offresEnvoyees; if(e.notifs) state.notifs=e.notifs;
   if(e.echangesRecus) state.echangesIn=e.echangesRecus; if(e.echangesEnvoyes) state.echangesOut=e.echangesEnvoyes;
@@ -1771,12 +1771,12 @@ const TIRAGE = Tirage.creer({ geoJSON, celebres:chargerCelebres, france:GEO.fran
 async function ouvrirPack(opts){ opts=opts||{}; const payant=opts.payant; const sc0=document.getElementById('packscene');
   // un seul pack à la fois : un deuxième toucher (ou l'ouverture automatique) pendant que le serveur tire refermait la scène
   if(document.getElementById('packbtn').dataset.ouverture || sc0.classList.contains('on')) return;
-  if(payant){ if(MODE_SERVEUR) return bientot(); if(!BOU.peutPayer(payant, state.gemmes)) return toast(`Il te manque ${nb(BOU.prix(payant)-(state.gemmes||0))} 💎 : la boutique en vend`); closeModal(); }
+  if(payant){ if(!BOU.peutPayer(payant, state.gemmes)) return toast(`Il te manque ${nb(BOU.prix(payant)-(state.gemmes||0))} 💎 : la boutique en vend`); closeModal(); }
   else if(!packDispo()){ const s=secondesAvantPack(); return toast(enVraisJours() ? `Prochain pack à minuit (dans ${dureeCourte(s)})` : `Prochain pack dans ${dureeCourte(s)} (${MODE_SERVEUR ? 'serveur d’essai' : 'démo'} : un jour = ${Math.round(JOUR/60000)} min)`); } const btn=document.getElementById('packbtn'); btn.dataset.ouverture='1'; document.getElementById('packt').textContent='…'; openScene();
   // les cartes sont tirées en parallèle ; une carte manquante (réseau capricieux) est complétée par une Commune
   // (mode serveur : le serveur tire, avec une graine secrète, et les lieux sont à toi dès qu'il répond)
   let cards;
-  if(MODE_SERVEUR){ const r=await agir('pack'); cards = r ? r.cartes : []; if(!r){ delete btn.dataset.ouverture; refreshPack(); finPack(); return; } }
+  if(MODE_SERVEUR){ const r = payant ? await agir('acheter_pack', { article:payant, region:opts.region||null }) : await agir('pack'); cards = r ? r.cartes : []; if(!r){ delete btn.dataset.ouverture; refreshPack(); finPack(); return; } }
   else if(payant){ const prix=BOU.prix(payant); state.gemmes-=prix; save(); refreshTop();
     cards=await TIRAGE.tirerPack((state.pseudo||'?')+':achat:'+now(), ECO.pack.chances, BOU.B.pack_cartes, opts.region ? { deps:REGIONS[opts.region] } : null);
     if(!cards.length){ state.gemmes+=prix; save(); refreshTop(); } }   // rien de tiré : les gemmes sont rendues
@@ -1799,7 +1799,7 @@ function ouvrirBoutique(){ const box=document.getElementById('modalbox'), t=now(
     <div class="article"><div class="t">🎁 Pack national</div><div class="m">${BOU.B.pack_cartes} lieux tirés dans toute la France.</div>${acheter('pack_national','Ouvrir')}</div>
     <div class="article"><div class="t">🗺️ Pack régional</div><div class="m">${BOU.B.pack_cartes} lieux tirés dans la région de ton choix : moins de hasard, un peu plus cher.</div>
       <select class="txt" id="bq-region">${Object.keys(REGIONS).sort((a,b)=>a.localeCompare(b,'fr')).map(r=>`<option${r===maRegion()?' selected':''}>${echapper(r)}</option>`).join('')}</select>${acheter('pack_regional','Ouvrir')}</div>
-    <div class="article pass"><div class="t">⭐ Pass 15 jours</div><div class="m">Ton pack du jour a <b>${BOU.B.pass_cartes} cartes</b> au lieu de ${ECO.pack.cartes}, et un <b>bon</b> pour prendre l’adresse libre de ton choix (jusqu’à Épique, pas les monuments) : « Prendre avec mon bon » sur sa fiche.</div>
+    <div class="article pass"><div class="t">⭐ Pass 15 jours</div><div class="m">Ton pack du jour a <b>${BOU.B.pass_cartes} cartes</b> au lieu de ${ECO.pack.cartes}, et un <b>bon</b> pour prendre l’adresse libre de ton choix (jusqu’à Épique) : « Prendre avec mon bon » sur sa fiche.</div>
       ${actif ? `<div class="m pass-actif">Actif encore ${dureeTexte(pass.fin-t)} · ${bons} bon${bons>1?'s':''} (${BOU.B.bons_max} au plus)</div>` : ''}${acheter('pass', actif ? 'Prolonger de 15 jours' : 'Prendre le Pass')}</div>
     <div class="article"><div class="t">💎 Gemmes</div><div class="gemmes-offres">${BOU.B.gemmes.map(o=>`<button class="offre-gemmes" data-gemmes="${o.id}"><b>💎 ${nb(o.gemmes)}</b><small>${o.euros.toFixed(2).replace('.',',')} €</small></button>`).join('')}</div>
       <div class="m petit">Le paiement par carte arrive bientôt. Les gemmes ne se revendent pas et ne s’échangent pas contre des pièces.</div></div>
@@ -1812,15 +1812,19 @@ function ouvrirBoutique(){ const box=document.getElementById('modalbox'), t=now(
     ouvrirPack({ payant:a, region: a==='pack_regional' ? box.querySelector('#bq-region').value : null }); });
   box.querySelectorAll('[data-gemmes]').forEach(b=>b.onclick=()=>toast('💳 Le paiement par carte arrive bientôt'));
   vibrer(8); }
-function acheterPass(){ if(MODE_SERVEUR) return bientot(); if(!BOU.peutPayer('pass', state.gemmes||0)) return;
+async function acheterPass(){ if(!BOU.peutPayer('pass', state.gemmes||0)) return;
+  if(MODE_SERVEUR){ const r=await agir('acheter_pass'); if(!r) return; refreshTop(); fete(14); toast(`⭐ Pass actif pour 15 jours : ${BOU.B.pass_cartes} cartes au pack du jour, et un bon d’adresse`); return ouvrirBoutique(); }
   state.gemmes-=BOU.prix('pass'); state.pass=BOU.acheterPass(state.pass, now(), JOUR); save(); refreshTop(); fete(14);
   toast(`⭐ Pass actif pour 15 jours : ${BOU.B.pass_cartes} cartes au pack du jour, et un bon d’adresse`); ouvrirBoutique(); }
-function gemmesEssai(){ if(MODE_SERVEUR) return bientot(); state.gemmes=(state.gemmes||0)+BOU.B.gemmes_essai; save(); refreshTop(); fete(10); toast(`💎 +${nb(BOU.B.gemmes_essai)} gemmes d’essai`); }
+async function gemmesEssai(){ if(MODE_SERVEUR){ const r=await agir('gemmes_essai'); if(!r) return; refreshTop(); fete(10); return toast(`💎 +${nb(BOU.B.gemmes_essai)} gemmes d’essai`); }
+  state.gemmes=(state.gemmes||0)+BOU.B.gemmes_essai; save(); refreshTop(); fete(10); toast(`💎 +${nb(BOU.B.gemmes_essai)} gemmes d’essai`); }
 // le bon du Pass : prendre une adresse libre (jusqu'à Épique, pas un monument)
-function prendreAvecBon(a){ if(MODE_SERVEUR) return bientot(); const r=rarete(a), v=BOU.bonPermis(a, r, !ownerOf(a));
-  if(!v.ok) return toast(v.raison==='pris' ? 'Ce lieu est déjà à quelqu’un : fais-lui une offre' : 'Un bon prend une adresse jusqu’à Épique, pas un monument');
+async function prendreAvecBon(a){ const r=rarete(a), v=BOU.bonPermis(a, r, !ownerOf(a));
+  if(!v.ok) return toast(v.raison==='pris' ? 'Ce lieu est déjà à quelqu’un : fais-lui une offre' : 'Un bon prend une adresse (pas un lieu nommé ni un monument), jusqu’à Épique');
   if(BOU.bonsUtilisables(state.pass, now())<1) return toast('Il te faut un bon : le Pass 15 jours en donne un');
-  state.owned[a.id]=Object.assign({}, a, { niveau:0, depuis:now() }); state.pass.bons-=1; state.seen[a.id]='libre'; setBadge(a,0); save();
+  if(MODE_SERVEUR){ const res=await agir('prendre_bon', { id:a.id, lon:a.lon, lat:a.lat }); if(!res) return; }
+  else { state.owned[a.id]=Object.assign({}, a, { niveau:0, depuis:now() }); state.pass.bons-=1; }
+  state.seen[a.id]='libre'; setBadge(a,0); save();
   fete(14); toast(`🎟️ ${a.label} est à toi !`); apresAction(); }
 // Le pack d'essai (demande de Gautier, 4 nov. : « je ne dois compter que sur ma chance » pour voir une Légendaire) : il
 // s'ouvre comme un vrai pack, avec les raretés choisies, mais ne compte pas comme le pack du jour, ne passe jamais par le

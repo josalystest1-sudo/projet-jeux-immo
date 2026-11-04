@@ -18,10 +18,10 @@
     const bonsUtilisables = (pass, maintenant) => (pass && passActif(pass.fin, maintenant) ? (pass.bons || 0) : 0);
     // le pack du jour : 8 cartes avec un Pass actif, sinon 5
     const cartesDuJour = (pass, maintenant) => (pass && passActif(pass.fin, maintenant) ? B.pass_cartes : eco.pack.cartes);
-    // un lieu qu'un bon peut prendre : libre, pas un monument, jusqu'à Épique
+    // un lieu qu'un bon peut prendre : une adresse (« l'adresse libre de son choix », GDD § 3) libre, jusqu'à Épique
     function bonPermis(lieu, rarete, libre) {
       if (!libre) return { ok: false, raison: 'pris' };
-      if (!lieu || lieu.type === 'monument' || rarete > B.bon_rarete_max) return { ok: false, raison: 'rarete' };
+      if (!lieu || lieu.type !== 'adresse' || rarete > B.bon_rarete_max) return { ok: false, raison: 'rarete' };
       return { ok: true };
     }
     // les chances de chaque rareté, par carte (affichées dans la boutique : obligation des « loot boxes »)
