@@ -115,20 +115,20 @@ La liste (`data/monuments.json`, 2 nov. 2026) : 458 monuments tirés de Wikidata
   Salaire : 200 ₳/jour. Valeur de base : standing 1 = 500, 2 = 1 500, 3 = 4 000 ; lieu Connu ×2, Célèbre ×4, monument ×10.
 - Garde-fous contre « packs → revente → ₳ » : pas de vente à la banque (un stock invendu ne vaut rien), et la **capacité de gestion** : un compte gère au plus N lieux, N monte avec le niveau de joueur (gagné en jouant : connexion quotidienne, constructions, collections). Quand on est plein, un pack propose de remplacer un lieu par le nouveau. **[Proposé]** — Gautier préfère éviter les limites ; à valider après la simulation.
 
-## 5. Le Maire **[Décidé par Gautier le 4 nov. 2026 ; remplace « le plus de lieux »]**
+## 5. Le Maire **[Décidé par Gautier le 4 nov. 2026 ; remplace « le plus de lieux » ; mandat de 2 semaines décidé le 4 nov. au soir]**
 
-Pourquoi le changement : un titre fondé sur un **stock** (le plus de lieux, ou la plus grande valeur) se fige dès que la commune est pleine : le Maire le reste « jusqu'à la mort » s'il ne vend rien. Le titre doit donc dépendre d'un **flux**, remis à zéro chaque mois.
+Pourquoi le changement : un titre fondé sur un **stock** (le plus de lieux, ou la plus grande valeur) se fige dès que la commune est pleine : le Maire le reste « jusqu'à la mort » s'il ne vend rien. Le titre doit donc dépendre d'un **flux**, remis à zéro **toutes les 2 semaines** (Gautier, 4 nov. au soir : « le maire change toutes les 2 semaines, pas tous les mois »).
 
 - Chaque commune (arrondissement à Paris/Lyon/Marseille) a une **caisse de travaux**. Tout propriétaire d'au moins un lieu dans la commune peut y verser des pièces quand il veut (« financer la rénovation de la place »). La caisse et les contributions sont **publiques en temps réel** (qui mène, de combien).
-- **Le 1er du mois à minuit (heure de Paris)** : le plus gros contributeur du mois civil devient **Maire**, la caisse est vidée, les compteurs repartent à zéro. Égalité = co-Maires.
-- **Ce que le Maire gagne** : **5 % des loyers générés dans la commune** pendant son mandat par les lieux **des autres joueurs** (jamais sur ses propres lieux), **plafonnés à 2 000 pièces par mois et par mairie** ; une plaque sur la fiche de la commune, un écusson sur ses lieux et son profil.
+- **Toutes les 2 semaines** : le plus gros contributeur de la quinzaine devient **Maire**, la caisse est vidée, les compteurs repartent à zéro. Égalité = co-Maires. **[Décidé]** Le moment exact **[Proposé]** : un lundi sur deux à minuit (heure de Paris), calé sur les semaines du jeu (celles des enchères) : la quinzaine n couvre les semaines 2n et 2n+1.
+- **Ce que le Maire gagne** : **5 % des loyers générés dans la commune** pendant son mandat par les lieux **des autres joueurs** (jamais sur ses propres lieux), **plafonnés à 1 000 pièces par mandat et par mairie** (autant qu'avant sur un mois ; **[Proposé]**) ; une plaque sur la fiche de la commune, un écusson sur ses lieux et son profil.
 - La caisse fait monter le **niveau visuel de la commune** (lampadaires, fontaine… jusqu'au niveau 5), visible de tous sur la carte : même ceux qui ne visent pas le titre ont une raison de verser. **[Proposé]**
-- **Perte du titre** : à la fin du mois, ou après **14 jours sans connexion** (le titre passe au 2e contributeur du mois précédent). Les lieux ne sont jamais retirés.
-- **Classement des Maires** : nombre de mairies détenues, **pondéré par le nombre de rivaux** ayant versé au moins 100 pièces dans la commune ce mois-là (une mairie gagnée contre 10 joueurs vaut 10, contre personne vaut 0). Figé à chaque fin de saison (§ 5 bis).
+- **Perte du titre** : à la fin du mandat, ou après **7 jours sans connexion** (le titre passe au 2e contributeur de la quinzaine précédente). Les lieux ne sont jamais retirés. (Avant : 14 jours, soit tout un mandat désormais ; **[Proposé]**.)
+- **Classement des Maires** : nombre de mairies détenues, **pondéré par le nombre de rivaux** ayant versé au moins 100 pièces dans la commune pendant la quinzaine (une mairie gagnée contre 10 joueurs vaut 10, contre personne vaut 0). Figé à chaque fin de saison (§ 5 bis).
 
 Garde-fous (Claude, 4 nov.) **[Proposé]** :
-- **seuil de 100 pièces** pour être élu, sinon « pas de Maire ce mois-ci » (commune fantôme) ;
-- un versement dans la **dernière heure du mois compte à 50 %** (snipe de 23 h 59) ;
+- **seuil de 100 pièces** pour être élu, sinon « pas de Maire cette quinzaine » (commune fantôme) ;
+- un versement dans la **dernière heure de la quinzaine compte à 50 %** (snipe de 23 h 59) ;
 - les pièces **ne s'achètent jamais** en gemmes (§ 9) : c'est le verrou qui empêche le titre de devenir une enchère en euros ; l'avantage du payeur reste indirect (plus de lieux → plus de loyers) ;
 - l'alternance arrangée entre deux joueurs est tolérée (ils dépensent quand même, un troisième peut la casser) ;
 - si la simulation montre que la campagne concurrence trop la construction : +10 % de poids en caisse par Tour possédée dans la commune.
@@ -138,7 +138,7 @@ Garde-fous (Claude, 4 nov.) **[Proposé]** :
 Périmètre V1 (décision de Gautier, 4 nov.) : **la collection, le classement des Maires et le classement de patrimoine.** Pas de combat, pas d'événements (V2, § 14).
 
 - **Patrimoine** d'un joueur = somme de ses lieux pondérés par rareté (Commun 1, Peu commun 2, Rare 4, Épique 8, Légendaire 12, monument 20) plus les constructions (Maison +1, Immeuble +3, Tour +6, Gratte-ciel +10, Palace +12, Prestige +15). Classement national et par commune.
-- **Saisons de 3 mois** : à la fin de chaque saison, les deux classements sont figés (podium, plaques gravées sur les fiches de commune : « Maire de la saison 1 »), puis le classement des Maires repart à zéro ; le patrimoine et les lieux restent. C'est la ligne d'arrivée qui revient, pour qu'un nouveau joueur ait sa chance à chaque saison et que personne ne « finisse » le jeu.
+- **Saisons de 3 mois**, soit **6 mandats de Maire** (12 semaines, **[Proposé]** pour que la saison tombe en fin de mandat) : à la fin de chaque saison, les deux classements sont figés (podium, plaques gravées sur les fiches de commune : « Maire de la saison 1 »), puis le classement des Maires repart à zéro ; le patrimoine et les lieux restent. C'est la ligne d'arrivée qui revient, pour qu'un nouveau joueur ait sa chance à chaque saison et que personne ne « finisse » le jeu.
 
 ## 5 ter. Les monuments : prestige, pas revenu **[Décidé par Gautier le 4 nov. ; chiffres Proposés]**
 
@@ -198,7 +198,7 @@ Règles : jamais de nom de personne, jamais de lien adresse ↔ identité, le do
 
 Deux monnaies, deux rôles :
 - **Les pièces** (gratuites : salaire, loyers) : construire, acheter des lieux aux joueurs, offres, échanges, enchères de monuments, caisse de travaux. **Elles ne s'achètent jamais.**
-- **Les gemmes** (nom provisoire, à choisir ; monnaie premium) : **euros → gemmes, à sens unique**. Jamais gemmes → euros, jamais gemmes → pièces (sinon on crée un cours de change et un marché noir). Les gemmes achètent :
+- **Les gemmes** (monnaie premium ; le nom est décidé par Gautier le 4 nov. au soir : « la monnaie premium, c'est des gemmes ») : **euros → gemmes, à sens unique**. Jamais gemmes → euros, jamais gemmes → pièces (sinon on crée un cours de change et un marché noir). Les gemmes achètent :
   1. des **packs** nationaux et des **packs régionaux** ;
   2. le **Pass 15 jours** (§ 3) ;
   3. des **offres sur les lieux d'autres joueurs** : le vendeur choisit s'il vend en pièces ou en gemmes, l'acheteur paie dans la monnaie demandée. Les gemmes passent d'un joueur à l'autre **sans commission en V1** (chaque gemme a déjà été payée une fois ; une commission de 10 % pourra venir plus tard si trop de gemmes dorment).
@@ -245,7 +245,6 @@ Tout le game design d'abord (fonctions complètes, serveur simulé → vrai serv
 - Visuel de la carte d'un lieu : V1 = photo aérienne IGN du bâtiment avec sa parcelle + cadre de rareté ; V2 = rendu 3D stylisé. **[Proposé]**
 - Calendrier des monuments.
 - Capacité de gestion (§ 4) : à valider ou remplacer après simulation.
-- Nom de la monnaie premium (« gemmes » provisoire).
 - **Le joueur « village »** (souci de Gautier, 4 nov.) : un joueur qui se concentre sur son village réel (adresses Communes et Peu communes) doit pouvoir rivaliser avec les villes. La mairie par caisse de travaux y répond en partie (un village se gagne pour quelques centaines de pièces). Pistes proposées par Claude, non tranchées : pas de plafond de construction par rareté (la rareté = un point de départ, pas un plafond) ; **bonus de rue** (toutes les adresses d'une rue : +25 % de loyer) et **Seigneur du village** (plus de 50 % des adresses d'une commune) ; standing qui monte avec les constructions de la commune. **[Proposé, à trancher avant l'équilibrage]**
 
 ## 14. Pistes examinées le 4 nov. 2026 (après-midi) — V2 ou écartées
