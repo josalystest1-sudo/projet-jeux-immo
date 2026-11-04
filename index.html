@@ -141,7 +141,7 @@ const VERSION='__VERSION__';
   <div class="stage">
     <canvas id="pkgl" style="width:100%;height:100%;display:block;touch-action:none"></canvas>
     <div id="pkload" style="position:absolute;bottom:calc(90px + env(safe-area-inset-bottom));left:0;right:0;text-align:center;color:#fff;opacity:.8;font-size:13px">Le pack arrive…</div>
-    <div class="cards" id="pkcards"></div>
+    <div id="pkfond"></div><div class="cards" id="pkcards"></div>
     <div id="reveal"><div id="rrayons"></div><svg id="rsvg" preserveAspectRatio="xMidYMid meet"><defs>
       <linearGradient id="rgFrance" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#FFFFFF" stop-opacity=".09"/><stop offset="1" stop-color="#FFFFFF" stop-opacity=".02"/></linearGradient>
       <linearGradient id="rgDep" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#F3D899" stop-opacity=".30"/><stop offset="1" stop-color="#C9973F" stop-opacity=".08"/></linearGradient>
@@ -1375,57 +1375,62 @@ function regionDe(dep){ if(!dep) return null; for(const [nom,ds] of Object.entri
 // un point de la carte de la révélation (unités du dessin) → l'écran (pixels, dans #reveal)
 function versEcran(x, y){ const svg=document.getElementById('rsvg'), m=svg.getScreenCTM(), b=document.getElementById('reveal').getBoundingClientRect(); if(!m) return [b.width/2, b.height*0.42];
   const p=svg.createSVGPoint(); p.x=x; p.y=y; const q=p.matrixTransform(m); return [q.x-b.left, q.y-b.top]; }
-// La révélation d'une carte (refaite le 4 nov. d'après l'interview de Gautier) : environ 10 secondes ; un toucher passe à
-// l'étape suivante.
-//   0. la rareté d'abord : toute la lumière prend sa couleur, une comète de cette couleur tombe sur la France et explose à
-//      l'impact ; Épique et au-delà : l'alerte (l'écran tremble, le bandeau de la rareté, qui reste ensuite en haut) ;
-//   1-4. les indices un par un, chacun avec un choc : la France, la région, le département, la commune ;
-//   5. la rue : les rues et les bâtiments tracés en or (IGN), le bâtiment visé ;
-//   6. le cœur qui battait de plus en plus vite s'arrête, un silence, puis le boum : le nom et la rareté.
-// La carte se dessine ensuite en lumière dans la main (revelerCarte). Une lumière élégante, dans les couleurs du jeu.
-async function revealSequence(c){ const rv=document.getElementById('reveal'), g=document.getElementById('rg'); g.innerHTML=''; ['rl1','rl2','rl3'].forEach(i=>label(i,'',false));
-  const r=rarete(c); rv.className='on r'+r; REV.passer=false; const [dx,dy]=px(c.lon,c.lat); const dep=depOf(c.citycode), reg=regionDe(dep); const comP=fetchCommune(c);
-  const planP = window.CarteLieu ? CarteLieu.donnees(c).catch(()=>null) : Promise.resolve(null);
-  const NS='http://www.w3.org/2000/svg'; const mk=(t,cls,d)=>{ const e=document.createElementNS(NS,t); e.setAttribute('class',cls); if(d) e.setAttribute('d',d); return e; };
-  // un nouveau contour passe devant ; les précédents s'estompent
-  const addSil=(rings,cls)=>{ g.querySelectorAll('.sil,.glow,.rue,.bati,.parcelle').forEach(e=>e.classList.add('loin')); const d=ringsPath(rings); const gl=mk('path','glow',d); const p=mk('path','sil'+(cls?' '+cls:''),d); g.appendChild(gl); g.appendChild(p); return p; };
-  const dotg=mk('circle','dotglow'), dot=mk('circle','dot'), ring=mk('circle','ring'); [dotg,dot,ring].forEach(e=>{ e.setAttribute('cx',dx); e.setAttribute('cy',dy); });
-  const setDot=(rad)=>{ dot.setAttribute('r',rad); dotg.setAttribute('r',rad*2.6); ring.setAttribute('r',rad*2); }; const dessus=()=>{ g.appendChild(dotg); g.appendChild(dot); g.appendChild(ring); };
-  // 0. la rareté d'abord
-  etapeR(); setVB(bboxOf(GEO.france,0.08)); setDot(1.6); coeur(0.8);
-  const [ix,iy]=versEcran(dx,dy); await comete(r, ix, iy);
-  addSil(GEO.france); dessus(); choc(r, true); if(r>=3) explosion(r, ix, iy); if(r>=4) alerteRarete(r);
-  label('rl1','France',true); await pauseR(r>=4 ? 2000 : 1300);
-  // 1. la région
-  etapeR(); if(reg){ addSil(reg.rings,'reg'); dessus(); label('rl1',reg.nom,true); choc(r); coeur(1.15); const bb=bboxOf(reg.rings,0.12); setDot(bb[2]/90); await animVB(versLeHaut(bb),850); await pauseR(1000); }
-  // 2. le département
-  etapeR(); if(dep){ addSil(dep.rings,'hi'); dessus(); label('rl1',dep.nom+' · '+dep.code,true); choc(r); coeur(1.5); const bb=bboxOf(dep.rings,0.12); setDot(bb[2]/70); await animVB(versLeHaut(bb),850); await pauseR(1000); }
-  // 3. la commune
-  etapeR(); const com=await comP; if(com){ addSil(com.rings,'com'); dessus(); label('rl1',com.nom,true); choc(r); coeur(2.0); rv.classList.add('fast'); const bb=bboxOf(com.rings,0.15); setDot(Math.max(0.05,bb[2]/50)); await animVB(versLeHaut(bb),850); await pauseR(1000); }
-  // 4. la rue
-  etapeR(); const plan=await planP; if(plan && (plan.routes.length || plan.batiments.length)){ dessinerRue(g, c, plan); dessus(); const voie = estAdresse(c) ? (Regles.numeroEtVoie(c.label).voie||'') : '';
-    if(voie) label('rl1',voie,true); choc(r); coeur(2.8); const bb=cadreRue(c, 105); setDot(bb[2]/70); rv.classList.add('rue'); await animVB(versLeHaut(bb),950); await pauseR(1300); }
-  // 5. le silence, puis le boum
-  etapeR(); coeur(0); rv.classList.add('silence'); await pauseR(650); rv.classList.remove('silence');
-  boom(r); flash(r); rv.classList.add('shake'); label('rl2', c.label, true); document.getElementById('rl3').className='l rar r'+r; label('rl3', RARETES[r], true);
-  document.getElementById('ralerte').classList.remove('on','haut'); await pauseR(1400);
-  rv.className=''; }
-// le cadre de l'étape « rue » : un carré de d mètres de demi-côté autour du lieu (unités du dessin)
-function cadreRue(c, d){ const kx=111320*Math.cos(c.lat*Math.PI/180), ky=110574; const [x0,y0]=px(c.lon-d/kx, c.lat+d/ky), [x1,y1]=px(c.lon+d/kx, c.lat-d/ky); return [x0, y0, x1-x0, y1-y0]; }
-// les rues (rubans d'or à leur largeur), les bâtiments (contours d'or), la parcelle et le bâtiment visé (lumineux)
-function dessinerRue(g, c, plan){ const NS='http://www.w3.org/2000/svg', kx=111320*Math.cos(c.lat*Math.PI/180), ky=110574, pm=([x,y])=>px(c.lon+x/kx, c.lat+y/ky), u=px(c.lon,c.lat+1/ky)[1]-px(c.lon,c.lat)[1];
-  g.querySelectorAll('.sil,.glow').forEach(e=>e.classList.add('loin'));
-  const chemin=(pts,ferme)=>'M'+pts.map(q=>pm(q).map(v=>v.toFixed(5)).join(' ')).join('L')+(ferme?'Z':'');
-  const ajoute=(cls,d,larg)=>{ const e=document.createElementNS(NS,'path'); e.setAttribute('class',cls); e.setAttribute('d',d); if(larg) e.setAttribute('stroke-width',(Math.abs(u)*larg).toFixed(6)); g.appendChild(e); };
-  for(const rt of plan.routes) ajoute('rue', chemin(rt.p,false), rt.larg);
-  if(plan.parcelle) ajoute('parcelle', chemin(plan.parcelle,true));
-  for(const b of plan.batiments) ajoute('bati'+(b.cible?' cible':''), chemin(b.r,true)); }
-// la comète : une lumière de la couleur de la rareté tombe du ciel sur le lieu (plus c'est rare, plus elle est grosse)
-function comete(r, x, y){ const rv=document.getElementById('reveal'), el=document.createElement('div'); el.className='comete r'+r; const W=rv.clientWidth, x0=x+W*0.9, y0=y-W*1.1, a=Math.atan2(y-y0, x-x0)*180/Math.PI;
-  el.style.setProperty('--x0',x0+'px'); el.style.setProperty('--y0',y0+'px'); el.style.setProperty('--x',x+'px'); el.style.setProperty('--y',y+'px'); el.style.setProperty('--a',a+'deg'); el.style.setProperty('--t', (r>=5?1.05:0.85)+'s');
-  rv.appendChild(el); sonComete(r); setTimeout(()=>el.remove(), 1600); return pauseR(r>=5 ? 1050 : 850); }
-function sonComete(r){ const a=audio(); if(!a) return; const t0=a.currentTime, d=r>=5?1.05:0.85, n=Math.floor(a.sampleRate*d), b=a.createBuffer(1,n,a.sampleRate), x=b.getChannelData(0); for(let k=0;k<n;k++) x[k]=(Math.random()*2-1)*Math.pow(k/n,1.6);
-  const src=a.createBufferSource(); src.buffer=b; const f=a.createBiquadFilter(); f.type='bandpass'; f.Q.value=1.1; f.frequency.setValueAtTime(5200,t0); f.frequency.exponentialRampToValueAtTime(700,t0+d); const gn=a.createGain(); gn.gain.value=0.35; src.connect(f); f.connect(gn); gn.connect(a.destination); src.start(t0); }
+// La révélation sur la face de la carte (refaite le 4 nov. au soir, retours de Gautier) : la carte de dos s'illumine de
+// la couleur de sa rareté et tremble, puis se retourne en grandissant ; sur sa face défilent la France, la région, le
+// département, la commune et la rue ; chaque nom « claque » au centre puis se range en haut ; un toucher passe à l'étape
+// suivante. Fluidité : chaque étape est peinte une seule fois dans un canevas ; d'une étape à l'autre, l'image se zoome
+// vers la suivante par des transformations CSS (la carte de France n'est plus redessinée à chaque image : saccades et
+// écran noir, sur téléphone, avant).
+const ETAPE_MS=900;
+// un cadre (unités du dessin) aux proportions de la scène (largeur / hauteur = ratio), autour du même centre
+function cadreAspect(bb, ratio){ let [x,y,w,h]=bb; if(w/h<ratio){ const w2=h*ratio; x-=(w2-w)/2; w=w2; } else { const h2=w/ratio; y-=(h2-h)/2; h=h2; } return [x,y,w,h]; }
+// peindre une étape : des couches d'anneaux (lon, lat) et, pour la rue, le plan de l'IGN ; k = pixels du canevas par pixel CSS
+function peindreEtape(cv, vue, couches, k, c, plan){ const g=cv.getContext('2d'), s=cv.width/vue[2];
+  g.setTransform(s,0,0,s,-vue[0]*s,-vue[1]*s); g.lineJoin='round'; g.lineCap='round'; const L=(px_)=>px_*k/s;
+  const trace=(rings)=>{ g.beginPath(); for(const r of rings){ r.forEach(([lo,la],i)=>{ const [x,y]=px(lo,la); i?g.lineTo(x,y):g.moveTo(x,y); }); g.closePath(); } };
+  for(const cc of couches){ trace(cc.rings);
+    if(cc.style==='fond'){ g.fillStyle='rgba(233,199,123,.05)'; g.fill(); g.strokeStyle='rgba(233,199,123,.4)'; g.lineWidth=L(1.3); g.stroke(); }
+    else if(cc.style==='zone'){ g.fillStyle='rgba(233,199,123,.17)'; g.fill(); g.save(); g.shadowColor='rgba(255,200,110,.75)'; g.shadowBlur=12*k; g.strokeStyle='#F3D899'; g.lineWidth=L(2.6); g.stroke(); g.restore(); }
+    else if(cc.style==='cible'){ const gr=g.createLinearGradient(vue[0],vue[1],vue[0]+vue[2],vue[1]+vue[3]); gr.addColorStop(0,'rgba(251,231,169,.95)'); gr.addColorStop(1,'rgba(201,151,63,.92)'); g.fillStyle=gr; g.fill();
+      g.save(); g.shadowColor='rgba(255,210,120,.9)'; g.shadowBlur=16*k; g.strokeStyle='#FFF1C9'; g.lineWidth=L(2.8); g.stroke(); g.restore(); } }
+  if(plan){ const kx=111320*Math.cos(c.lat*Math.PI/180), ky=110574, pm=([x,y])=>px(c.lon+x/kx, c.lat+y/ky), u=Math.abs(px(c.lon,c.lat+1/ky)[1]-px(c.lon,c.lat)[1]);
+    const chemin=(pts,ferme)=>{ g.beginPath(); pts.forEach((q,i)=>{ const [x,y]=pm(q); i?g.lineTo(x,y):g.moveTo(x,y); }); if(ferme) g.closePath(); };
+    g.strokeStyle='rgba(233,199,123,.3)'; for(const rt of plan.routes){ chemin(rt.p,false); g.lineWidth=rt.larg*u; g.stroke(); }
+    for(const b of plan.batiments){ if(b.cible) continue; chemin(b.r,true); g.fillStyle='rgba(233,199,123,.08)'; g.fill(); g.strokeStyle='rgba(233,199,123,.85)'; g.lineWidth=L(1.6); g.stroke(); }
+    if(plan.parcelle){ chemin(plan.parcelle,true); g.fillStyle='rgba(233,199,123,.22)'; g.fill(); g.strokeStyle='#FFF1C9'; g.lineWidth=L(2.4); g.stroke(); }
+    for(const b of plan.batiments){ if(!b.cible) continue; chemin(b.r,true); g.save(); g.shadowColor='rgba(255,236,190,.95)'; g.shadowBlur=14*k; g.fillStyle='rgba(255,248,230,.85)'; g.fill(); g.strokeStyle='#fff'; g.lineWidth=L(2.2); g.stroke(); g.restore(); } }
+  // le lieu : un point blanc et son halo
+  const [dx,dy]=px(c.lon,c.lat); g.save(); g.shadowColor='rgba(255,236,190,1)'; g.shadowBlur=14*k; g.fillStyle='#fff'; g.beginPath(); g.arc(dx,dy,L(4.5),0,Math.PI*2); g.fill(); g.restore();
+  g.strokeStyle='rgba(255,241,201,.85)'; g.lineWidth=L(1.6); g.beginPath(); g.arc(dx,dy,L(11),0,Math.PI*2); g.stroke(); }
+// un nom « claque » au centre de la carte (grand, avec un choc), puis se range en haut
+function claque(scene, nom){ const el=scene.querySelector('.rev-nom'), fil=scene.querySelector('.rev-fil'); el.textContent=nom; el.classList.remove('claque'); void el.offsetWidth; el.classList.add('claque');
+  clearTimeout(el._t); el._t=setTimeout(()=>{ fil.textContent=nom; fil.classList.remove('arrive'); void fil.offsetWidth; fil.classList.add('arrive'); }, 720); }
+async function revelationSurCarte(scene, c, r){ scene.innerHTML='<div class="rev-fil"></div><div class="rev-nom"></div><i class="rev-vignette"></i>'; scene.classList.remove('fin');
+  const W=scene.clientWidth, H=scene.clientHeight, ratio=W/H, k=Math.min(3, (devicePixelRatio||1)*(PK.grand||1.4)); const dep=depOf(c.citycode), reg=regionDe(dep);
+  const comP=fetchCommune(c), planP=window.CarteLieu ? CarteLieu.donnees(c).catch(()=>null) : Promise.resolve(null);
+  const autour=(bb,pad)=>{ const [x,y,w,h]=bb; return [x-w*pad, y-h*pad*1.6, w*(1+2*pad), h*(1+3.2*pad)]; };   // un peu plus de place en haut (le nom rangé)
+  const etapes=[ { nom:'France', vue:()=>autour(bboxOf(GEO.france,0),0.05), couches:()=>[{ rings:GEO.france, style:'zone' }] } ];
+  if(reg) etapes.push({ nom:reg.nom, vue:()=>autour(bboxOf(reg.rings,0),0.12), couches:()=>[{ rings:GEO.france, style:'fond' }, { rings:reg.rings, style:'zone' }] });
+  if(dep) etapes.push({ nom:dep.nom+' · '+dep.code, vue:()=>autour(bboxOf(dep.rings,0),0.14), couches:()=>[{ rings:reg?reg.rings:GEO.france, style:'fond' }, { rings:dep.rings, style:'zone' }] });
+  etapes.push({ nom:null, attendre:comP, vue:(com)=>autour(bboxOf(com.rings,0),0.18), couches:(com)=>[{ rings:dep?dep.rings:[], style:'fond' }, { rings:com.rings, style:'cible' }] });
+  etapes.push({ nom:null, rue:true, attendre:planP, vue:()=>{ const kx=111320*Math.cos(c.lat*Math.PI/180), ky=110574, d=95; const [x0,y0]=px(c.lon-d/kx,c.lat+d/ky), [x1,y1]=px(c.lon+d/kx,c.lat-d/ky); return [x0,y0,x1-x0,y1-y0]; } });
+  let prec=null, vuePrec=null, com=null;
+  for(let i=0;i<etapes.length;i++){ const e=etapes[i]; etapeR();
+    let donnee=null; if(e.attendre){ donnee=await e.attendre; if(!donnee || (e.rue && !(donnee.routes.length || donnee.batiments.length))) continue; }
+    if(!e.rue && donnee) com=donnee;
+    const nom = e.nom || (e.rue ? (estAdresse(c) ? (Regles.numeroEtVoie(c.label).voie||'') : '') : (com && com.nom));
+    const vue=cadreAspect(e.vue(donnee), ratio); const cv=document.createElement('canvas'); cv.className='rev-plan'; cv.width=Math.round(W*k); cv.height=Math.round(H*k);
+    peindreEtape(cv, vue, e.rue ? [{ rings:com?com.rings:[], style:'fond' }] : e.couches(donnee), k, c, e.rue ? donnee : null);
+    scene.insertBefore(cv, scene.querySelector('.rev-fil'));
+    if(prec){ const [x0,y0,w0,h0]=vuePrec, rx=(vue[0]-x0)/w0*W, ry=(vue[1]-y0)/h0*H, z=w0/vue[2], p=prec;
+      // la nouvelle image part de l'endroit qu'elle occupe dans l'ancienne et s'agrandit ; l'ancienne s'agrandit au-delà et s'efface
+      cv.style.transform=`translate(${rx}px,${ry}px) scale(${1/z})`; cv.style.opacity='0'; void cv.offsetWidth;
+      cv.classList.add('entre'); p.classList.add('sort'); cv.style.transform='none'; cv.style.opacity='1';
+      p.style.transform=`translate(${-rx*z}px,${-ry*z}px) scale(${z})`; p.style.opacity='0'; setTimeout(()=>p.remove(), 1200); }
+    else { cv.classList.add('premiere'); }
+    prec=cv; vuePrec=vue; if(nom) claque(scene, nom); choc(r, i===0); coeur(1+i*0.5);
+    await pauseR(ETAPE_MS+(i===0?500:550)); }
+  return true; }
 // l'alerte d'une carte Épique et au-delà : l'écran tremble, un double signal, le bandeau de la rareté au milieu, qui monte ensuite en haut
 function alerteRarete(r){ const al=document.getElementById('ralerte'), rv=document.getElementById('reveal'); al.className='r'+r; al.querySelector('span').textContent=RARETES[r]; void al.offsetWidth; al.classList.add('on');
   rv.classList.remove('shake'); void rv.offsetWidth; rv.classList.add('shake'); vibrer([60,40,60,40,120]);
@@ -1458,7 +1463,7 @@ function battement(v){ coeur(v); }
 function riser(sec){ const a=audio(); if(!a) return; const n=a.sampleRate*sec; const b=a.createBuffer(1,n,a.sampleRate); const d=b.getChannelData(0); for(let i=0;i<n;i++) d[i]=(Math.random()*2-1)*(i/n); const src=a.createBufferSource(); src.buffer=b; const f=a.createBiquadFilter(); f.type='bandpass'; f.Q.value=1.2; f.frequency.setValueAtTime(200,a.currentTime); f.frequency.exponentialRampToValueAtTime(4000,a.currentTime+sec); const gn=a.createGain(); gn.gain.value=0.35; src.connect(f); f.connect(gn); gn.connect(a.destination); src.start(); }
 function boom(r){ const a=audio(); if(!a) return; const o=a.createOscillator(); const gn=a.createGain(); o.type='sine'; o.frequency.setValueAtTime(150,a.currentTime); o.frequency.exponentialRampToValueAtTime(32,a.currentTime+0.6); gn.gain.setValueAtTime(1,a.currentTime); gn.gain.exponentialRampToValueAtTime(0.0001,a.currentTime+0.85); o.connect(gn); gn.connect(a.destination); o.start(); o.stop(a.currentTime+0.9); vibrer(r>=4?[90,40,160]:[80]); }
 // l'éclair final : blanc, ou blanc cerné de la couleur de la rareté (Rare et au-delà)
-const COULEUR_RARETE={ 3:'#2F80ED', 4:'#9B51E0', 5:'#FF7A00', 6:'#FF4DC4' };
+const COULEUR_RARETE={ 1:'#E9C77B', 2:'#2FB36D', 3:'#2F80ED', 4:'#9B51E0', 5:'#FF7A00', 6:'#FF4DC4' };
 function flash(r){ const f=document.getElementById('flash'); f.style.background = r>=3 ? `radial-gradient(circle at 50% 42%,#fff 0,#fff 25%,${COULEUR_RARETE[r]} 75%)` : '#fff'; f.style.transition='none'; f.style.opacity=.9; requestAnimationFrame(()=>{ f.style.transition='opacity .6s ease'; f.style.opacity=0; }); }
 function sonTick(fq){ const a=audio(); if(!a) return; const o=a.createOscillator(); const gn=a.createGain(); o.type='triangle'; o.frequency.value=fq||880; gn.gain.setValueAtTime(0.0001,a.currentTime); gn.gain.exponentialRampToValueAtTime(0.18,a.currentTime+0.01); gn.gain.exponentialRampToValueAtTime(0.0001,a.currentTime+0.18); o.connect(gn); gn.connect(a.destination); o.start(); o.stop(a.currentTime+0.2); }
 let revealing=false;
@@ -1492,7 +1497,7 @@ function sortirCartes(){ const wrap=document.getElementById('pkcards'); wrap.inn
     setTimeout(()=>{ wrap.style.transition='clip-path .55s ease-in'; wrap.style.clipPath='inset(0 0 0px 0)'; }, 670);
     setTimeout(()=>{ wrap.style.transition=''; wrap.style.clipPath=''; }, 1300); }
   packCards.forEach((c,i)=>{ const r=rarete(c); const el=document.createElement('div'); el.className='c3d r'+r+(sortie?' sortie':'');
-    el.innerHTML=`<div class="c3d-corps"><div class="c3d-face c3d-dos"><i class="pc c3d-embleme"></i><span class="c3d-nom">Cadastra</span></div><div class="c3d-face c3d-avant">${faceCarte(c, r)}<i class="c3d-holo"></i><i class="c3d-brillance"></i></div></div>`;
+    el.innerHTML=`<i class="c3d-aura"></i><div class="c3d-corps">${[-2.5,-1.5,-0.5,0.5,1.5,2.5].map(z=>`<i class="c3d-tranche" style="--z:${z}px"></i>`).join('')}<div class="c3d-face c3d-dos"><i class="pc c3d-embleme"></i><span class="c3d-nom">Cadastra</span></div><div class="c3d-face c3d-avant">${faceCarte(c, r)}<div class="rev-scene"></div><i class="c3d-brillance"></i></div></div>`;
     wrap.appendChild(el); PK.cartes.push({ el, c, r });
     setTimeout(()=>{ el.classList.remove('sortie'); if(sortie) sonGlisse(i); }, sortie ? 90+i*70 : 60+i*90); });
   document.getElementById('pkhint').textContent='Touche la carte pour la révéler';
@@ -1503,21 +1508,33 @@ function dispoPack(){ const sc=document.getElementById('packscene'); if(!sc.clas
   const s0=Math.min(1.05, (H-260)/350, (W-48)/240);
   if(PK.etat==='fini'){ const s=Math.max(.34, Math.min(.58, (W-36)/(240*(1+(n-1)*0.6)))), dx=240*s*0.6;
     PK.cartes.forEach((k,j)=>{ const d=j-(n-1)/2; if(j===PK.zoom) pose(k.el,0,-30,0,s0,60); else pose(k.el,d*dx,-40+Math.abs(d)*12,d*6,s,j); }); return; }
-  const pas=Math.min(46, (W-70)/Math.max(1,n));
+  const pas=Math.min(46, (W-70)/Math.max(1,n)); PK.grand=Math.min(1.55, (W-22)/240, (H-130)/350);
   PK.cartes.forEach((k,j)=>{ if(j<PK.i) pose(k.el,(j-(n-1)/2)*pas,H/2-150,(j-(n-1)/2)*4,.22,j);   // déjà vues : rangées en bas
-    else { const p=j-PK.i; pose(k.el,p*1.5,-30-p*5,p===0?0:(p%2?2.5:-2),s0*(1-p*0.025),100-p); } }); }
+    else if(j===PK.i && (PK.etat==='revele')) pose(k.el,0,k.el.classList.contains('grande')?-8:-30,0,k.el.classList.contains('grande')?PK.grand:s0*1.04,120);
+    else { const p=j-PK.i; pose(k.el,(p%2?-1:1)*Math.min(p,1)*3,-30+p*7,p===0?0:(p%2?-3:2.5),s0,100-p); } }); }
 window.addEventListener('resize', ()=>dispoPack());
 // les reflets suivent l'inclinaison (fx, fy : de 0 à 1 sur la carte)
 function reflets(el, fx, fy){ el.style.setProperty('--mx',(fx*100).toFixed(1)+'%'); el.style.setProperty('--my',(fy*100).toFixed(1)+'%');
   el.style.setProperty('--hx',(100-fx*100).toFixed(1)+'%'); el.style.setProperty('--hy',(100-fy*100).toFixed(1)+'%'); }
-async function revelerCarte(k){ if(revealing) return; revealing=true; PK.etat='revele'; document.getElementById('pkhint').textContent='';
-  try{ await revealSequence(k.c); }catch(e){}
-  revealing=false; const el=k.el; el.classList.add('vue','materialise'); el.style.setProperty('--flip','0deg'); sonCarte(k.r); vibrer(k.r>=4?[20,30,60]:15);
-  // la carte se dessine en lumière, puis la maquette monte du plan
-  CarteLieu.animer(el.querySelector('.cl'), k.c, k.r).then(sc=>{ k.scene=sc; if(sc && sc.monter) sc.monter(); });
-  if(k.r>=3){ el.classList.remove('eclair'); void el.offsetWidth; el.classList.add('eclair'); }
-  PK.etat='main'; const der=PK.i>=PK.cartes.length-1;
-  document.getElementById('pkhint').textContent = der ? 'Incline la carte · glisse-la pour finir' : 'Incline la carte · glisse-la pour la suivante';
+async function revelerCarte(k){ if(revealing) return; revealing=true; PK.etat='revele'; const el=k.el, r=k.r, rv=document.getElementById('reveal'), sc=document.getElementById('packscene'), hint=document.getElementById('pkhint');
+  hint.textContent=''; cancelAnimationFrame(PK.anim); REV.passer=false; rv.className='on surcarte r'+r; sc.classList.add('revele'); sc.dataset.r=r;
+  // 1. l'annonce : la carte de dos vient au centre, s'illumine de la couleur de sa rareté et tremble (plus fort si c'est rare)
+  etapeR(); el.classList.add('annonce'); dispoPack(); coeur(0.9); if(r>=4) alerteRarete(r); else vibrer([15]);
+  await pauseR(r>=4 ? 1900 : (r>=3 ? 1450 : 1100));
+  // 2. elle se retourne en grandissant : la révélation se joue sur sa face
+  etapeR(); el.classList.remove('annonce'); el.classList.add('grande','enscene'); dispoPack(); el.style.setProperty('--flip','0deg'); sonGlisse(1);
+  const scene=el.querySelector('.rev-scene'); await pauseR(450); etapeR();
+  try{ await revelationSurCarte(scene, k.c, r); }catch(e){ dsay && dsay('révélation : '+(e&&e.message||e)); }
+  // 3. le silence, puis le boum : la carte se remplit (le plan d'or, la maquette qui monte)
+  etapeR(); coeur(0); el.classList.add('silence'); await pauseR(650); el.classList.remove('silence');
+  boom(r); flash(r); { const b=el.getBoundingClientRect(), rb=rv.getBoundingClientRect(); if(r>=3) explosion(r, b.left+b.width/2-rb.left, b.top+b.height/2-rb.top); }
+  document.getElementById('ralerte').classList.remove('on','haut');
+  scene.classList.add('fin'); el.classList.add('vue','materialise'); el.classList.remove('enscene'); sonCarte(r); vibrer(r>=4?[20,30,60]:15);
+  CarteLieu.animer(el.querySelector('.cl'), k.c, r).then(s2=>{ k.scene=s2; if(s2){ s2.focus=true; s2.monter(); } });
+  if(r>=3){ el.classList.remove('eclair'); void el.offsetWidth; el.classList.add('eclair'); }
+  await pauseR(1500);
+  rv.className=''; sc.classList.remove('revele'); el.classList.remove('grande'); revealing=false; PK.etat='main'; dispoPack(); setTimeout(()=>{ scene.innerHTML=''; }, 700);
+  const der=PK.i>=PK.cartes.length-1; hint.textContent = der ? 'Incline la carte · glisse-la pour finir' : 'Incline la carte · glisse-la pour la suivante';
   setTimeout(()=>{ if(PK.etat==='main' && PK.cartes[PK.i]===k) balancer(k.el); }, 950); }
 // la carte en main se balance doucement (ou suit le téléphone penché) : les reflets bougent
 function balancer(el){ cancelAnimationFrame(PK.anim); if(reduitMouvement()) return; el.classList.add('suit'); const t0=performance.now();
@@ -1526,7 +1543,7 @@ function balancer(el){ cancelAnimationFrame(PK.anim); if(reduitMouvement()) retu
     const gx = gyroOn ? GL.target.x : Math.sin(t*0.9)*0.4, gy = gyroOn ? GL.target.y : Math.cos(t*0.7)*0.3;
     el.style.setProperty('--ry',(gx*16).toFixed(2)+'deg'); el.style.setProperty('--rx',(-gy*12).toFixed(2)+'deg'); reflets(el, 0.5+gx*0.45, 0.45+gy*0.45); };
   PK.anim=requestAnimationFrame(pas); }
-function carteSuivante(k, sens){ const el=k.el; cancelAnimationFrame(PK.anim); el.classList.remove('suit','eclair'); vibrer(10); sonGlisse(PK.i);
+function carteSuivante(k, sens){ const el=k.el; cancelAnimationFrame(PK.anim); if(k.scene) k.scene.focus=false; el.classList.remove('suit','eclair'); vibrer(10); sonGlisse(PK.i);
   el.style.setProperty('--x',(sens*innerWidth*0.95)+'px'); el.style.setProperty('--r',(sens*26)+'deg'); el.style.setProperty('--rx','0deg'); el.style.setProperty('--ry','0deg');
   PK.i++; const fini=PK.i>=PK.cartes.length;
   setTimeout(()=>{ const sc=document.getElementById('packscene');

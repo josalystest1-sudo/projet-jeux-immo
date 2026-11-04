@@ -894,3 +894,70 @@ body.promenade #sheet .svwrap{display:none}
 .essais{margin-top:12px;padding:10px 12px;border-radius:14px;background:var(--ciel)}
 .essais b{font-family:var(--titre);font-size:15px}.essais small{display:block;color:var(--gris);font-size:12px;margin:2px 0 8px}
 .essais .liste-btn{display:flex;flex-wrap:wrap;gap:6px}.essais .btn{flex:1 1 auto;font-size:14px;padding:8px 10px 6px}
+
+/* ===================== la révélation sur la carte (4 nov. au soir, retours de Gautier) =====================
+   La carte a une épaisseur (une tranche dorée) ; la pile ressemble à un paquet ; l'annonce (la carte de dos s'illumine et
+   tremble) ; la révélation se joue sur sa face, étape par étape, avec des zooms fluides ; les noms claquent. */
+.c3d-avant{transform:translateZ(3px)}.c3d-dos{transform:rotateY(180deg) translateZ(3px)}
+.c3d-tranche{position:absolute;inset:0;transform:translateZ(var(--z));background:linear-gradient(90deg,#6B4E1C,#E9C77B 50%,#6B4E1C);
+  clip-path:polygon(16px 0,calc(100% - 16px) 0,100% 16px,100% calc(100% - 16px),calc(100% - 16px) 100%,16px 100%,0 calc(100% - 16px),0 16px)}
+.c3d::after{bottom:-16px;height:22px;background:radial-gradient(closest-side,rgba(0,0,0,.65),transparent)}
+/* l'annonce : le halo de la rareté derrière la carte, et la carte qui tremble (plus fort si c'est rare) */
+.c3d-aura{position:absolute;left:-55%;top:-40%;width:210%;height:180%;pointer-events:none;opacity:0;transition:opacity .5s;z-index:-1;
+  background:radial-gradient(closest-side,color-mix(in srgb,var(--rc) 85%,#fff) 0%,color-mix(in srgb,var(--rc) 55%,transparent) 35%,transparent 72%)}
+.c3d.r1 .c3d-aura{background:radial-gradient(closest-side,rgba(255,241,201,.85) 0%,rgba(233,199,123,.4) 35%,transparent 72%)}
+.c3d.annonce .c3d-aura{opacity:1;animation:aura .9s ease-in-out infinite}
+.c3d.enscene .c3d-aura{opacity:.55}
+@keyframes aura{0%,100%{transform:scale(.92)}50%{transform:scale(1.08)}}
+.c3d.annonce{--amp:1px;animation:tremble .11s linear infinite}
+.c3d.annonce.r3{--amp:2.2px}.c3d.annonce.r4{--amp:3.2px}.c3d.annonce.r5,.c3d.annonce.r6{--amp:4.5px}
+@keyframes tremble{0%{translate:0 0}25%{translate:calc(var(--amp) * -1) calc(var(--amp) * .6)}50%{translate:var(--amp) calc(var(--amp) * -.5)}75%{translate:calc(var(--amp) * -.6) calc(var(--amp) * -.8)}100%{translate:0 0}}
+.c3d.annonce .c3d-dos{box-shadow:inset 0 0 0 3px #08112B,inset 0 0 0 5px var(--rc),inset 0 0 0 9px #08112B,inset 0 0 0 10px color-mix(in srgb,var(--rc) 70%,#fff),inset 0 0 60px color-mix(in srgb,var(--rc) 55%,transparent)}
+.c3d.r1.annonce .c3d-dos{box-shadow:inset 0 0 0 3px #08112B,inset 0 0 0 5px #E9C77B,inset 0 0 0 9px #08112B,inset 0 0 0 10px #FFF1C9,inset 0 0 60px rgba(255,236,190,.45)}
+/* le fond de la scène : la lumière de la rareté derrière la carte, les bords qui s'assombrissent */
+#pkfond{position:absolute;inset:0;pointer-events:none;opacity:0;transition:opacity .7s ease;
+  background:radial-gradient(circle at 50% 46%,var(--lum,rgba(255,236,190,.3)) 0%,transparent 55%),radial-gradient(ellipse 75% 60% at 50% 46%,transparent 55%,rgba(0,0,0,.72) 100%)}
+#packscene.revele #pkfond{opacity:1}
+#packscene[data-r="2"]{--lum:rgba(47,179,109,.38)}#packscene[data-r="3"]{--lum:rgba(61,139,255,.42)}#packscene[data-r="4"]{--lum:rgba(163,91,255,.46)}#packscene[data-r="5"]{--lum:rgba(255,138,30,.5)}#packscene[data-r="6"]{--lum:rgba(255,77,196,.5)}
+/* la couche des effets et des touchers par-dessus la carte (la révélation ne se joue plus en plein écran) */
+#reveal.surcarte{background:transparent}#reveal.surcarte::before,#reveal.surcarte #rsvg,#reveal.surcarte #rrayons,#reveal.surcarte #rlabels{display:none}
+#reveal.surcarte #rhint{bottom:calc(30px + env(safe-area-inset-bottom))}
+/* la scène de la révélation, sur la face de la carte */
+.rev-scene{position:absolute;inset:0;z-index:8;overflow:hidden;opacity:0;pointer-events:none;transition:opacity .5s ease;
+  background:radial-gradient(ellipse 90% 70% at 50% 46%,#16306A 0%,#0A1636 60%,#050B1E 100%);
+  clip-path:polygon(16px 0,calc(100% - 16px) 0,100% 16px,100% calc(100% - 16px),calc(100% - 16px) 100%,16px 100%,0 calc(100% - 16px),0 16px)}
+.c3d.enscene .rev-scene{opacity:1}
+.rev-scene.fin{opacity:0;transition:opacity .9s ease .1s}
+.rev-plan{position:absolute;left:0;top:0;width:100%;height:100%;transform-origin:0 0;will-change:transform,opacity}
+.rev-plan.premiere{animation:rev-premiere .7s ease-out}
+@keyframes rev-premiere{from{opacity:0;transform:scale(.86)}to{opacity:1;transform:none}}
+.rev-plan.entre{transition:transform .9s cubic-bezier(.55,.06,.22,1),opacity .4s ease}
+.rev-plan.sort{transition:transform .9s cubic-bezier(.55,.06,.22,1),opacity .5s ease .4s}
+.rev-vignette{position:absolute;inset:0;z-index:2;pointer-events:none;box-shadow:inset 0 0 0 2px rgba(233,199,123,.7),inset 0 0 40px rgba(0,0,0,.6)}
+.rev-nom{position:absolute;left:8px;right:8px;top:44%;z-index:3;text-align:center;transform:translateY(-50%);opacity:0;pointer-events:none;
+  font-family:var(--panneau);font-weight:700;font-size:30px;line-height:1.02;letter-spacing:.05em;text-transform:uppercase;
+  background:linear-gradient(180deg,#FFF6DA 0%,#F6DC98 35%,#D9A548 62%,#FBE7A9 100%);-webkit-background-clip:text;background-clip:text;color:transparent;filter:drop-shadow(0 2px 6px rgba(0,0,0,.8))}
+.rev-nom.claque{animation:claque .95s cubic-bezier(.2,.8,.3,1) forwards}
+@keyframes claque{0%{opacity:0;transform:translateY(-50%) scale(2.3)}16%{opacity:1;transform:translateY(-50%) scale(.94)}24%{transform:translateY(-50%) scale(1.03)}32%{transform:translateY(-50%) scale(1)}74%{opacity:1;transform:translateY(-50%) scale(1)}100%{opacity:0;transform:translateY(-260%) scale(.5)}}
+.rev-fil{position:absolute;left:10px;right:10px;top:13px;z-index:3;text-align:center;font-family:var(--panneau);font-weight:600;font-size:12px;letter-spacing:.24em;text-transform:uppercase;color:#F3D899;opacity:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rev-fil.arrive{animation:fil .35s ease-out forwards}
+@keyframes fil{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+.c3d.silence .rev-scene{filter:brightness(.55);transition:filter .5s}
+.c3d.enscene{transition:transform .75s cubic-bezier(.2,.9,.25,1.05)}
+@media (prefers-reduced-motion:reduce){.c3d.annonce{animation:none}.rev-plan.entre,.rev-plan.sort{transition:opacity .3s}.rev-nom.claque{animation:none;opacity:1}}
+
+/* la carte plus marquée et plus riche (retours de Gautier, 4 nov. au soir : « traits trop fins », « pas assez riche ») */
+.cl-trait{stroke-width:2.4}.cl-trait.epais{stroke-width:3.4}.cl-trait.fin{stroke-width:1.8}
+.cl-trait.vif{filter:drop-shadow(0 0 4px var(--c2))}
+.cl-rar{top:12px;display:flex;align-items:center;justify-content:center;gap:8px;font-size:12px;font-weight:700}
+.cl-rar::before,.cl-rar::after{content:'';width:22px;height:1.5px;background:linear-gradient(90deg,transparent,var(--c2))}.cl-rar::after{background:linear-gradient(90deg,var(--c2),transparent)}
+.cl.r1 .cl-rar::before,.cl.r1 .cl-rar::after{background:linear-gradient(90deg,transparent,#E9C77B)}
+/* la fenêtre du plan : un filet d'or gradué, comme le cadre d'une carte ancienne */
+.cl-fenetre{position:absolute;left:14px;right:14px;top:30px;height:166px;z-index:2;pointer-events:none;border:1.5px solid rgba(233,199,123,.55);
+  background:repeating-linear-gradient(90deg,rgba(233,199,123,.7) 0 1px,transparent 1px 12px) top/100% 5px no-repeat,repeating-linear-gradient(90deg,rgba(233,199,123,.7) 0 1px,transparent 1px 12px) bottom/100% 5px no-repeat,
+    repeating-linear-gradient(0deg,rgba(233,199,123,.7) 0 1px,transparent 1px 12px) left/5px 100% no-repeat,repeating-linear-gradient(0deg,rgba(233,199,123,.7) 0 1px,transparent 1px 12px) right/5px 100% no-repeat}
+.cl-vue{top:31px;left:15px;right:15px;width:calc(100% - 30px);height:164px}
+.cl-rose{position:absolute;right:20px;top:36px;width:24px;height:24px;z-index:3;pointer-events:none}
+.cl-rose path{fill:rgba(233,199,123,.55)}.cl-rose path.n{fill:#FFF1C9}.cl-rose circle{fill:#E9C77B}
+.cl-stats{border-top:1.5px solid rgba(233,199,123,.5)}
+.cl-stats b{font-size:21px}.cl-stats i{font-size:9.5px;color:rgba(243,227,188,.75)}

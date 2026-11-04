@@ -54,9 +54,11 @@
   // canevas de la carte. La boucle s'arrête quand plus aucune carte n'est à l'écran.
   const SCENES = new Set(); let moteur = null, boucle = 0;
   function lancer() { if (!boucle) boucle = requestAnimationFrame(dessinerTout); }
+  let cadence = 0;
   function dessinerTout(t) {
-    boucle = 0; const vues = [...SCENES].filter((s) => s.cv.isConnected && visible(s.cv)); if (!vues.length) return;
-    for (const s of vues) s.dessiner(t / 1000);
+    boucle = 0; const vues = [...SCENES].filter((s) => s.cv.isConnected && visible(s.cv)); if (!vues.length) return; cadence++;
+    // la carte au premier plan (en main, agrandie) à chaque image ; les autres une image sur six, à tour de rôle
+    vues.forEach((s, i) => { if (s.focus || vues.length === 1 || cadence % 6 === i % 6) s.dessiner(t / 1000); });
     boucle = requestAnimationFrame(dessinerTout);
   }
   function visible(el) { const b = el.getBoundingClientRect(); return b.width > 0 && b.bottom > 0 && b.right > 0 && b.top < innerHeight && b.left < innerWidth && getComputedStyle(el).visibility !== 'hidden'; }
@@ -66,22 +68,21 @@
     const THREE = racine.THREE; const [clair, vif] = COULEURS[r] || COULEURS[1];
     const sc = new THREE.Scene(), cam = new THREE.PerspectiveCamera(30, 1, 1, 5000);
     const RAYON = 85;
-    const fondu = `float fondu(vec2 p){ return smoothstep(${RAYON.toFixed(1)}, ${(RAYON * 0.45).toFixed(1)}, length(p)); }`;
-    const sol = (couleur, alpha) => new THREE.ShaderMaterial({ transparent: true, depthWrite: false, side: THREE.DoubleSide, uniforms: { c: { value: new THREE.Color(couleur) }, a: { value: alpha } },
-      vertexShader: 'varying vec2 vP; void main(){ vP=position.xz; gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0); }',
-      fragmentShader: `uniform vec3 c; uniform float a; varying vec2 vP; ${fondu} void main(){ gl_FragColor=vec4(c, a*fondu(vP)); }` });
-    const OR = 0xE9C77B;
-    const P = ([x, y]) => new THREE.Vector3(x, 0, -y);
-    // les rues : des rubans d'or pâle
-    { const pos = []; for (const rt of d.routes) for (let i = 0; i < rt.p.length - 1; i++) { const a = rt.p[i], b = rt.p[i + 1], dx = b[0] - a[0], dy = b[1] - a[1], L = Math.hypot(dx, dy); if (!L) continue; const nx = -dy / L * rt.larg / 2, ny = dx / L * rt.larg / 2;
-        const q = [[a[0] + nx, a[1] + ny], [b[0] + nx, b[1] + ny], [b[0] - nx, b[1] - ny], [a[0] - nx, a[1] - ny]].map(([x, y]) => [x, 0.02, -y]); pos.push(...q[0], ...q[1], ...q[2], ...q[0], ...q[2], ...q[3]); }
-      const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); sc.add(new THREE.Mesh(g, sol(OR, 0.13))); }
-    // les bâtiments voisins : leur contour d'or, à plat (le plan cadastral)
-    { const pos = []; for (const b of d.batiments) { if (b.cible) continue; for (let i = 0; i < b.r.length - 1; i++) { pos.push(b.r[i][0], 0.05, -b.r[i][1], b.r[i + 1][0], 0.05, -b.r[i + 1][1]); } }
-      const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); sc.add(new THREE.LineSegments(g, sol(OR, 0.6))); }
-    // la parcelle : un voile d'or et un trait plus vif
-    if (d.parcelle) { const f = new THREE.Shape(d.parcelle.map(([x, y]) => new THREE.Vector2(x, y))); const g = new THREE.ShapeGeometry(f).rotateX(-Math.PI / 2); g.translate(0, 0.08, 0); sc.add(new THREE.Mesh(g, sol(OR, 0.2)));
-      const l = new THREE.BufferGeometry().setFromPoints(d.parcelle.map(P).map((v) => v.setY(0.1))); sc.add(new THREE.Line(l, sol(0xFFF1C9, 0.95))); }
+    // le plan d'or (rues, bâtiments voisins, parcelle), peint une fois dans une image posée au sol : des traits épais et
+    // nets (remarque de Gautier : « traits trop fins »), qui s'effacent doucement vers les bords
+    { const T = 1024, c2 = document.createElement('canvas'); c2.width = c2.height = T; const g = c2.getContext('2d'), m = T / (2 * RAYON), q = ([x, y]) => [T / 2 + x * m, T / 2 - y * m];
+      g.lineJoin = g.lineCap = 'round';
+      const chemin = (pts, ferme) => { g.beginPath(); pts.forEach((pt, i) => { const [a, b] = q(pt); i ? g.lineTo(a, b) : g.moveTo(a, b); }); if (ferme) g.closePath(); };
+      g.strokeStyle = 'rgba(233,199,123,.30)'; for (const rt of d.routes) { chemin(rt.p, false); g.lineWidth = rt.larg * m; g.stroke(); }
+      g.strokeStyle = 'rgba(233,199,123,.55)'; for (const rt of d.routes) { chemin(rt.p, false); g.lineWidth = 1.5; g.stroke(); }
+      for (const b of d.batiments) { if (b.cible) continue; chemin(b.r, true); g.fillStyle = 'rgba(233,199,123,.10)'; g.fill(); g.strokeStyle = 'rgba(240,210,140,.95)'; g.lineWidth = 4; g.stroke(); }
+      if (d.parcelle) { chemin(d.parcelle, true); g.fillStyle = 'rgba(233,199,123,.26)'; g.fill(); g.setLineDash([14, 8]); g.strokeStyle = '#FFF1C9'; g.lineWidth = 5; g.stroke(); g.setLineDash([]); }
+      for (const b of d.batiments) { if (!b.cible) continue; chemin(b.r, true); g.fillStyle = 'rgba(255,248,230,.35)'; g.fill(); }
+      // le fondu vers les bords
+      g.globalCompositeOperation = 'destination-in'; const fondu = g.createRadialGradient(T / 2, T / 2, T * 0.18, T / 2, T / 2, T / 2); fondu.addColorStop(0, '#000'); fondu.addColorStop(1, 'rgba(0,0,0,0)'); g.fillStyle = fondu; g.fillRect(0, 0, T, T);
+      const tex = new THREE.CanvasTexture(c2); tex.anisotropy = 4;
+      const sol = new THREE.Mesh(new THREE.PlaneGeometry(2 * RAYON, 2 * RAYON).rotateX(-Math.PI / 2), new THREE.MeshBasicMaterial({ map: tex, transparent: true, depthWrite: false }));
+      sol.position.y = 0.05; sc.add(sol); }
     // le bâtiment : une maquette d'architecte en porcelaine blanche, éclairée par le soleil (en haut à gauche), arêtes d'or ;
     // la couleur de la rareté n'est que dans la lumière autour (Gautier, 4 nov. : l'« hologramme » faisait encore science-fiction)
     const verre = new THREE.MeshStandardMaterial({ color: 0xF6F0E4, roughness: 0.55, metalness: 0.05, transparent: true, opacity: 0.97 });
@@ -110,12 +111,12 @@
       grains = { pts: new THREE.Points(g, new THREE.PointsMaterial({ color: 0xFFE7B0, size: Math.max(0.45, taille / 70), transparent: true, opacity: 0.6, blending: THREE.AdditiveBlending, depthWrite: false })), dep, N };
       sc.add(grains.pts); }
     const s = {
-      cv, dessiner(t) {
-        const W = cv.clientWidth, H = cv.clientHeight; if (!W || !H) return; const ren = moteurPartage(THREE); const k = Math.min(2, devicePixelRatio || 1);
+      cv, focus: false, rose: cv.parentElement && cv.parentElement.querySelector('.cl-rose'), dessiner(t) {
+        const W = cv.clientWidth, H = cv.clientHeight; if (!W || !H) return; const ren = moteurPartage(THREE); const k = Math.min(s.focus ? 2 : 1.25, devicePixelRatio || 1);
         if (cv.width !== Math.round(W * k) || cv.height !== Math.round(H * k)) { cv.width = Math.round(W * k); cv.height = Math.round(H * k); }
         if (ren.domElement.width !== cv.width || ren.domElement.height !== cv.height) ren.setSize(cv.width, cv.height, false);
         cam.aspect = W / H; cam.updateProjectionMatrix();
-        const a = t * 0.22, dist = taille * 2.7 + hmax * 0.8, el = 0.62; cam.position.set(cx + Math.cos(a) * dist * Math.cos(el), hmax * 0.45 + dist * Math.sin(el), cz + Math.sin(a) * dist * Math.cos(el)); cam.lookAt(cx, hmax * 0.4, cz);
+        const a = t * 0.22, dist = taille * 2.7 + hmax * 0.8, el = 0.62; if (s.rose) s.rose.style.transform = `rotate(${(a * 180 / Math.PI + 90).toFixed(1)}deg)`; cam.position.set(cx + Math.cos(a) * dist * Math.cos(el), hmax * 0.45 + dist * Math.sin(el), cz + Math.sin(a) * dist * Math.cos(el)); cam.lookAt(cx, hmax * 0.4, cz);
         // la maquette monte du plan quand la carte se dessine
         if (s.depart != null) { if (s.depart < 0) s.depart = t; const m = Math.min(1, (t - s.depart) / 1.3), e = 1 - Math.pow(1 - m, 3); maquette.scale.y = Math.max(0.001, e); maquette.position.y = 0.6 * e; if (m >= 1) s.depart = null; }
         if (grains) { const p = grains.pts.geometry.attributes.position; for (let i = 0; i < grains.N; i++) { const [x, z, o] = grains.dep[i]; const y = ((t * 0.07 + o) % 1); p.setXYZ(i, x, y * hmax * 1.6, z); } p.needsUpdate = true; }
@@ -133,9 +134,11 @@
   function cadre(r) {
     const C = 16, W = 240, H = 350, poly = (i, c) => `M${c + i},${i} L${W - c - i},${i} L${W - i},${c + i} L${W - i},${H - c - i} L${W - c - i},${H - i} L${c + i},${H - i} L${i},${H - c - i} L${i},${c + i} Z`;
     let s = `<path class="cl-trait or" d="${poly(1.5, C)}"/><path class="cl-trait vif" d="${poly(6.5, C - 3)}"/>`;
+    // de petites équerres d'or aux coins, pour toutes les raretés
+    for (const [x, y, sx, sy] of [[14, 14, 1, 1], [226, 14, -1, 1], [14, 336, 1, -1], [226, 336, -1, -1]]) s += `<path class="cl-trait or fin" d="M${x},${y + sy * 9} L${x},${y} L${x + sx * 9},${y}"/>`;
     // les encoches de chaque côté, à la hauteur des chiffres
     s += `<path class="cl-trait or" d="M1.5,262 L8,268 L1.5,274"/><path class="cl-trait or" d="M238.5,262 L232,268 L238.5,274"/>`;
-    if (r >= 3) for (const [x, y, sx, sy] of [[12, 12, 1, 1], [228, 12, -1, 1], [12, 338, 1, -1], [228, 338, -1, -1]]) s += `<path class="cl-trait vif epais" d="M${x},${y + sy * 18} L${x},${y + sy * 7} L${x + sx * 7},${y} L${x + sx * 18},${y}"/>`;
+    if (r >= 3) for (const [x, y, sx, sy] of [[11, 11, 1, 1], [229, 11, -1, 1], [11, 339, 1, -1], [229, 339, -1, -1]]) s += `<path class="cl-trait vif epais" d="M${x},${y + sy * 22} L${x},${y + sy * 8} L${x + sx * 8},${y} L${x + sx * 22},${y}"/>`;
     if (r >= 4) for (const y of [6.5, 343.5]) s += `<path class="cl-plein vif" d="M120,${y - 4} L124,${y} L120,${y + 4} L116,${y} Z"/>`;
     // le fleuron (Légendaire et au-delà) : une petite couronne qui pend du haut du cadre, et le cadre qui pulse
     if (r >= 5) s += `<path class="cl-plein or" d="M102,1.5 L138,1.5 L133,7 L128,4 L120,11 L112,4 L107,7 Z"/><path class="cl-trait vif pouls" d="${poly(1.5, C)}"/>`;
@@ -144,7 +147,8 @@
   function html(s) {
     // s : { r, rarete, nom, commune, valeur (HTML), loyer, potentiel, standing }
     return `<div class="cl r${s.r}"><svg class="cl-cadre" viewBox="0 0 240 350" preserveAspectRatio="none">${cadre(s.r)}</svg>` +
-      `<div class="cl-rar">${s.rarete}</div><canvas class="cl-vue"></canvas>` +
+      `<div class="cl-rar"><span>${s.rarete}</span></div><div class="cl-fenetre"></div><canvas class="cl-vue"></canvas>` +
+      `<svg class="cl-rose" viewBox="-12 -12 24 24"><path d="M0,-11 L2.4,-2.4 L11,0 L2.4,2.4 L0,11 L-2.4,2.4 L-11,0 L-2.4,-2.4 Z"/><path class="n" d="M0,-11 L2.4,-2.4 L0,0 L-2.4,-2.4 Z"/><circle r="1.6"/></svg>` +
       `<div class="cl-nom"><div class="plaque petite${s.nom.length > 34 ? ' tres-long' : (s.nom.length > 22 ? ' long' : '')}">${s.commune ? `<small>${s.commune}</small>` : ''}${s.nom}</div></div>` +
       `<div class="cl-stats"><div><b>${s.valeur}</b><i>Valeur</i></div><div><b>+${s.loyer}</b><i>Loyer / jour</i></div><div><b>${s.potentiel}</b><i>Potentiel</i></div><div><b class="etoiles">${'★'.repeat(s.standing)}<span>${'★'.repeat(Math.max(0, 3 - s.standing))}</span></b><i>Standing</i></div></div></div>`;
   }
