@@ -254,7 +254,7 @@ Deux monnaies, deux rôles :
   - créer l'adresse `contact@citydeck.fr` ;
   - désigner un médiateur de la consommation, obligatoire pour vendre à des particuliers ;
   - vérifier avec un comptable la TVA (franchise en base ou non) et l'activité déclarée, qui est aujourd'hui « conseil en systèmes et logiciels informatiques » ;
-  - voir s'il faut demander l'accord du joueur avant d'afficher Google Street View, qui pose ses propres traceurs ;
+  - **Les cookies de Google Street View** **[Décidé par Gautier le 5 nov.]** : les conditions (partie 10) disent qu'en jouant, on accepte les cookies de Google liés à la vue des rues, et expliquent pourquoi. Claude a signalé que, pour la CNIL, l'acceptation des conditions ne vaut pas accord pour des cookies non indispensables ; il propose, si besoin, un seul toucher la première fois que la vue s'affiche ;
   - faire relire le tout par un professionnel.
 
 ### Simulation de l'économie des gemmes (Claude, 4 nov. ; `tools/sim_gemmes.py`)

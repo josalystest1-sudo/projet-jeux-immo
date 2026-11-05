@@ -176,6 +176,7 @@ Rien d'important ne vit dans une conversation : tout est dans le dépôt ou sur 
 - **citydeck.fr branché** (PR #142). Gautier règle la zone DNS chez Infomaniak et la clé Google (« c'est bon ») ; Claude vérifie la zone et branche le domaine. Le jeu est désormais à https://citydeck.fr/.
 - **Avant la pub** (PR #143). Gautier demande ce qui manque avant de faire de la pub ; Claude dresse la liste (le serveur pour tous, les e-mails, le vrai rythme, les pages légales, les vrais paiements, puis la bêta, les sauvegardes, l'anti-triche, l'image de partage, le suivi, la marque). Gautier : « faisons les points facilement réalisables sur téléphone ». Claude fait « Supprimer mon compte » et l'image de partage, et guide Gautier pour le service d'e-mails.
 - **Les pages légales** (PR #144). Gautier remet Brevo à son retour devant le PC (Claude ne peut ni créer le compte ni se connecter à sa place) et donne la fiche de son entreprise individuelle pour les mentions légales. Claude rédige les conditions d'utilisation et de vente, la confidentialité et les mentions légales, et les relie au jeu.
+- **Les cookies de Google** (PR #145). Gautier : « on met dans les CGU que si un joueur joue au jeu, il accepte d'office les cookies Google, et on explique pourquoi ». Claude l'écrit et signale le risque (pour la CNIL, l'acceptation des conditions ne vaut pas accord pour ces cookies). Gautier demande aussi la traduction complète du jeu en anglais, avec le choix de la langue dans les réglages (français par défaut, noms propres et rues gardés en français).
 
 ## Toutes les PR
 
@@ -346,6 +347,7 @@ Puis une PR par étape, fusionnée en squash :
 | #142 | 05/11 | Le jeu est à https://citydeck.fr/ : domaine branché sur GitHub Pages (HTTPS), adresse principale de la connexion et des paiements |
 | #143 | 05/11 | Avant la pub : « Supprimer mon compte » (RGPD) et l'image de partage des liens vers citydeck.fr |
 | #144 | 05/11 | Les pages légales (conditions d'utilisation et de vente, confidentialité, mentions légales), reliées au jeu ; l'image de partage allégée (JPEG) |
+| #145 | 05/11 | Les cookies de Google Street View : acceptés en jouant, expliqués dans les conditions et la confidentialité |
 
 ## Les décisions de Gautier
 
