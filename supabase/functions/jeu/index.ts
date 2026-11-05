@@ -24,7 +24,9 @@ function cleSecrete(): string {
 const admin = createClient(Deno.env.get('SUPABASE_URL') || '', cleSecrete(), { auth: { persistSession: false, autoRefreshToken: false } });
 
 // le jeu publié, et l'outil de captures ; un autre site ne peut pas appeler la fonction depuis un navigateur
-const ORIGINES = ['https://josalystest1-sudo.github.io', 'http://jeu.local', 'http://localhost:8000'];
+// les pages qui peuvent appeler la fonction (et où un paiement peut revenir) : citydeck.fr (acheté par Gautier le 5 nov.),
+// l'ancienne adresse GitHub Pages, et les outils d'essai
+const ORIGINES = ['https://josalystest1-sudo.github.io', 'https://citydeck.fr', 'https://www.citydeck.fr', 'http://jeu.local', 'http://localhost:8000'];
 function enTetes(req: Request): Record<string, string> {
   const o = req.headers.get('origin') || '';
   return {

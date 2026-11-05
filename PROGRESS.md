@@ -381,6 +381,11 @@
     - `deno check` ;
     - 82 tests ;
     - `tools/serveur_essai.js` vérifie après la mise en ligne que la liste des robots est illisible.
+- 5 nov. 2026 (PR #141) : **citydeck.fr**, que Gautier a acheté chez Infomaniak.
+  - **Serveur** : la fonction « jeu » accepte les appels et les retours de paiement de citydeck.fr et www.citydeck.fr (`ORIGINES`).
+  - **Connexion** : `tools/serveur_adresses.js`, lancé à chaque publication du serveur, ajoute ces adresses à la liste de Supabase Auth, sans retirer celles qui y sont, pour les liens des e-mails.
+  - **Guide** `docs/serveur/GUIDE-DOMAINE.md` : la zone DNS chez Infomaniak (4 entrées A vers GitHub, `www` en CNAME), la clé Google, puis le branchement par Claude.
+  - **Décision de Gautier** : la phrase générale des CGU sur les joueurs automatiques (GDD § 5 quater).
 
 ## Bugs connus
 - Mode serveur : si la partie arrive du serveur avant que la carte ait fini de charger, un cadre rose « Erreur de style : The layer 'parcel-fill' does not exist… » peut s'afficher (la page cherche les parcelles avant que leurs calques soient posés) ; sans conséquence pour la partie. Vu le 3 nov. au soir, pas encore corrigé.
