@@ -395,6 +395,17 @@
     - de l'essai automatique.
   - **La clé Google** autorise citydeck.fr (Gautier) ; `data/google.json` le note.
   - **À savoir** : le téléphone garde les données d'un site par adresse. Sur citydeck.fr, il faut se reconnecter et réactiver « Jouer sur le vrai serveur » ; la partie de démo d'avant reste à l'ancienne adresse. L'icône déjà installée sur l'écran d'accueil est à refaire.
+- 5 nov. 2026 (PR #143) : **avant la pub**.
+  - **« Supprimer mon compte »** (RGPD), dans mon profil, sous « Se déconnecter » :
+    - une fenêtre dit ce qui sera perdu, puis il faut écrire SUPPRIMER (Entrée valide) ;
+    - l'action `supprimer_compte` de la fonction « jeu » efface le compte (`auth.admin.deleteUser`). Toutes les tables suivent : la partie, le pseudo, les offres, les mises, les versements ; les lieux redeviennent libres. Un robot ne peut pas se supprimer ainsi ;
+    - puis le jeu repart de zéro sur l'appareil.
+  - **L'image de partage** (`icones/partage.png`, fabriquée par `tools/image_partage.js`) et les balises Open Graph : l'aperçu d'un lien vers citydeck.fr dans les messages et sur les réseaux.
+  - **Vérifié** :
+    - `tools/essai_sql.mjs` : un compte supprimé emporte tout, ses lieux redeviennent libres ;
+    - `tools/serveur_essai.js` : après la mise en ligne, le joueur jetable se supprime lui-même (refusé sans le mot, puis fait, ses lieux libres) ;
+    - la fenêtre, à l'image ;
+    - 82 tests.
 
 ## Bugs connus
 - Mode serveur : si la partie arrive du serveur avant que la carte ait fini de charger, un cadre rose « Erreur de style : The layer 'parcel-fill' does not exist… » peut s'afficher (la page cherche les parcelles avant que leurs calques soient posés) ; sans conséquence pour la partie. Vu le 3 nov. au soir, pas encore corrigé.

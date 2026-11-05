@@ -174,6 +174,7 @@ Rien d'important ne vit dans une conversation : tout est dans le dépôt ou sur 
 - **Les robots cachés** (PR #140). Gautier : « il faut cacher les robots, le but est de faire croire que le jeu est actif ; par contre, les robots ne font jamais de transaction avec des gemmes (vente ou achat). » Claude signale le risque d'une pratique commerciale trompeuse envers des joueurs qui paient, et propose une phrase générale dans les CGU (à décider avant le lancement).
 - **Le domaine** (PR #141). Gautier accepte la phrase générale des CGU (« ok »), et achète **citydeck.fr** chez Infomaniak. Le serveur et la connexion sont prêts ; Gautier règle la zone DNS et la clé Google (guide bouton par bouton), puis Claude branche le domaine.
 - **citydeck.fr branché** (PR #142). Gautier règle la zone DNS chez Infomaniak et la clé Google (« c'est bon ») ; Claude vérifie la zone et branche le domaine. Le jeu est désormais à https://citydeck.fr/.
+- **Avant la pub** (PR #143). Gautier demande ce qui manque avant de faire de la pub ; Claude dresse la liste (le serveur pour tous, les e-mails, le vrai rythme, les pages légales, les vrais paiements, puis la bêta, les sauvegardes, l'anti-triche, l'image de partage, le suivi, la marque). Gautier : « faisons les points facilement réalisables sur téléphone ». Claude fait « Supprimer mon compte » et l'image de partage, et guide Gautier pour le service d'e-mails.
 
 ## Toutes les PR
 
@@ -342,6 +343,7 @@ Puis une PR par étape, fusionnée en squash :
 | #140 | 05/11 | Les robots cachés parmi les joueurs (icônes ordinaires, liste illisible) et jamais de gemmes avec un robot |
 | #141 | 05/11 | citydeck.fr (acheté par Gautier chez Infomaniak) : le serveur et les liens de connexion l'acceptent ; le guide pour le brancher (`docs/serveur/GUIDE-DOMAINE.md`) ; la phrase des CGU sur les joueurs automatiques est décidée |
 | #142 | 05/11 | Le jeu est à https://citydeck.fr/ : domaine branché sur GitHub Pages (HTTPS), adresse principale de la connexion et des paiements |
+| #143 | 05/11 | Avant la pub : « Supprimer mon compte » (RGPD) et l'image de partage des liens vers citydeck.fr |
 
 ## Les décisions de Gautier
 
@@ -392,6 +394,20 @@ Les décisions du 2 novembre (interview) sont dans `CLAUDE.md` § 4 et dans le G
 - **La boutique** (phase 9 ; faite en mode test, PR #127 à #130 : gemmes, packs, Pass et bon, chances affichées, ventes et offres en gemmes, paiement par carte Stripe ; restent, avant les vrais paiements : activer le compte Stripe (Gautier : identité, banque, statut), une clé restreinte de production, les pages légales) : Stripe → gemmes, packs nationaux et régionaux, Pass 15 jours (GDD § 3 et § 9), offres en gemmes au choix du vendeur, probabilités affichées, blocage Belgique et Pays-Bas, CGU (gemmes sans valeur, lieux = licences), confidentialité, mentions légales.
 - **Le domaine citydeck.fr** : branché le 5 nov. (`docs/serveur/GUIDE-DOMAINE.md`). citydeck.app reste à réserver si Gautier le veut.
 - **Ensuite** : les graphismes (phase 10), l'équilibrage et le lancement (phase 11).
+- **Avant la pub** (liste du 5 nov.) :
+  - Bloquant :
+    - le vrai serveur pour tous, sans les outils d'essai (au lancement) ;
+    - un service d'envoi d'e-mails (Brevo, en cours avec Gautier) ;
+    - le vrai rythme et la remise à zéro (au lancement) ;
+    - les pages légales (CGU/CGV, confidentialité, mentions légales ; SIRET de Gautier) ;
+    - les vrais paiements (activer Stripe, clé réelle ; la TVA, à voir avec un comptable).
+  - Conseillé :
+    - une bêta entre amis ;
+    - les sauvegardes (offre Pro de Supabase) ;
+    - un minimum d'anti-triche ;
+    - un tableau de bord (inscrits, retours à J1 et J7) ;
+    - la marque à l'INPI.
+  - Fait le 5 nov. (PR #143) : « Supprimer mon compte » et l'image de partage.
 - **Au lancement** :
   - remettre `jour_secondes` à 86400 et repartir de zéro ;
   - les robots restent, cachés parmi les joueurs (décisions du 5 nov., GDD § 5 quater) : repartir de zéro avec eux ; décider de la phrase des CGU sur les joueurs automatiques ;
