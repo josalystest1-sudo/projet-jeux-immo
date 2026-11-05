@@ -59,6 +59,7 @@ const VERSION='__VERSION__';
 <link rel="preload" href="fonts/barlow-condensed-latin-700-normal.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="style.css?v=20261103d">
 <meta name="theme-color" content="#F3F5F9">
+<meta name="color-scheme" content="only light">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" type="image/png" href="icones/icone-192.png">
 <link rel="apple-touch-icon" href="icones/apple-touch-icon.png">
@@ -2493,6 +2494,19 @@ function afficherBourse(cible){ const el=document.getElementById('wallet'); cibl
   if(bourseAffichee===null || Math.abs(cible-bourseAffichee)<2){ bourseAffichee=cible; el.textContent=nb(cible); return; }
   cancelAnimationFrame(bourseAnim); const depart=bourseAffichee, t0=performance.now(), duree=Math.min(900, 300+Math.abs(cible-depart)/20);
   const pas=()=>{ const t=Math.min(1,(performance.now()-t0)/duree), e=1-Math.pow(1-t,3); bourseAffichee=Math.round(depart+(cible-depart)*e); el.textContent=nb(bourseAffichee); if(t<1) bourseAnim=requestAnimationFrame(pas); }; pas(); }
+// La barre du haut tient sur tous les téléphones (Gautier, 5 nov. : « certains boutons sont rognés, il ne faut pas que ça se
+// produise sur aucun téléphone »). Si elle déborde (petit écran, texte agrandi dans les réglages du téléphone, gros montants),
+// elle se serre d'un cran à la fois : sans la ligne sous le pseudo, puis sans le pseudo (l'avatar seul), puis sans le gain
+// à récolter, puis avec des chiffres plus petits. Elle est revue chaque fois que la taille d'un de ses éléments change.
+(function(){ const top=document.getElementById('top'); if(!top || !window.ResizeObserver) return;
+  const lignes=[...top.querySelectorAll('.row,.barre')], crans=['serre1','serre2','serre3','serre4'];
+  // un élément de la ligne sort de son cadre (les pastilles posées en absolu, comme le nombre de notifications, ne comptent pas)
+  const deborde=()=>lignes.some(l=>{ const r=l.getBoundingClientRect(); const enfants=[...l.children].flatMap(c=>c.classList.contains('pills-droite')?[c,...c.children]:[c]);
+    return enfants.some(c=>{ const st=getComputedStyle(c); if(st.position==='absolute'||st.display==='none') return false; const q=c.getBoundingClientRect(); return q.width>0 && (q.right>r.right+1 || q.left<r.left-1); }); });
+  let en=false;
+  function ajuster(){ if(en) return; en=true; crans.forEach(c=>top.classList.remove(c)); for(const c of crans){ if(!deborde()) break; top.classList.add(c); } en=false; }
+  const ro=new ResizeObserver(()=>requestAnimationFrame(ajuster)); lignes.forEach(l=>{ ro.observe(l); [...l.children].forEach(x=>ro.observe(x)); });
+  top.querySelectorAll('.pill').forEach(x=>ro.observe(x)); window.addEventListener('resize', ajuster); })();
 function refreshTop(){ afficherBourse(dispo()); { const g=document.getElementById('gemmes'); if(g) g.textContent=nb(state.gemmes||0); } document.getElementById('meav').textContent=state.avatar||'🙂'; document.getElementById('mename').textContent=disp(ME); const n=Object.keys(state.owned).length; document.getElementById('count').textContent = `${n} lieu${n>1?'x':''}${MODE_SERVEUR?' · serveur':''}`;
   const p=Math.floor(pendingRent()); document.getElementById('pending').textContent = p>0 ? `+${nb(p)}` : '';
   const unread=state.notifs.filter(n=>!n.read).length; const c=document.getElementById('cnt-notif'); c.style.display=unread?'block':'none'; c.textContent=unread; refreshPack(); }

@@ -109,6 +109,11 @@ Ce fichier dit **ce qu'est le jeu, comment on travaille, ce qui est décidé et 
   - le logo est `src/logo.js` : `Logo.svg()` (accueil, connexion), `Logo.icone()` (`node tools/icones.js` refait les icônes de `icones/`) ;
   - la pièce de la monnaie est ronde et frappée d'une maison (`Logo.MAISON`). Il n'y en a qu'un dessin : `icones/piece.svg`, recopié en image de fond de `.pc` dans `style.css` (un test vérifie qu'ils concordent), et repris au dos des cartes et au verso de la pochette ;
   - le texte du logo est en Barlow Condensed : le SVG doit rester dans la page (en `<img>`, la police manque).
+- **Rien ne doit être rogné, sur aucun téléphone** (Gautier, 5 nov.) :
+  - la barre du haut se serre d'elle-même : un `ResizeObserver` dans `index.html`, juste avant `refreshTop`, pose les classes `serre1` à `serre4` sur `#top`. Ne jamais y mettre de largeur fixe ;
+  - un élément de ligne doit pouvoir rétrécir (`min-width:0`) ;
+  - vérifier en 320 px, avec de gros montants et le texte agrandi ;
+  - la page refuse le mode sombre forcé des téléphones (`<meta name="color-scheme" content="only light">`) : sur le téléphone de Gautier, les pastilles sortaient en gris foncé.
 - **Les écrans à saisir** (connexion, inscription, mot de passe, pseudo) : Entrée valide comme le bouton principal (`avecEntree` dans `src/compte.js`, demande de Gautier pour les joueurs sur ordinateur). Tout nouvel écran de saisie doit faire de même.
 - **Un texte avec un montant** (bandeau `toast`, notification) : écrire `fmt(n)` (qui met 🪙) ; l'affichage passe par `avecPieces()` qui échappe le texte et dessine la pièce. En page : `pcs(n)`.
 - **Vérifier l'interface** : `tools/visite_ecrans.js` capture tous les écrans au format téléphone (prérequis en tête du fichier), `tools/planche.py` les assemble en planches à relire d'un coup.

@@ -169,6 +169,7 @@ Rien d'important ne vit dans une conversation : tout est dans le dépôt ou sur 
 - **Le logo et la pièce** (PR #135). Gautier : « passons à la suite ». Il trouve la pièce-maison « moche » et veut « un logo avec le nom complet et un logo ». Après deux séries de pistes (il choisit les cartes et la ville, puis la pièce à la ville), il envoie son propre logo, fait avec un générateur d'images d'après les prompts de `docs/KIT-MARQUE.md` (PR #134, piste A) : la plaque CITYDECK, deux cartes dorées, une pièce ronde à la maison, « la pièce intégrée au logo ». Claude le redessine en SVG et en fait aussi la pièce de la monnaie.
 - **Petits retours** (PR #136). Gautier, sur son téléphone et sur ordinateur : « sur le bouton récolter il y a une épingle bizarre », « il faut pouvoir appuyer sur Entrée pour valider (pour les joueurs web) », « je ne trouve pas le classement par richesse », « le menu déroulant des packs régionaux est trop basique ».
 - **Le classement des pièces** (PR #137). Gautier : « le classement est trop caché, et ajoute un classement par pièces possédées ». Un trophée rejoint la cloche, en haut de la carte ; un onglet « Pièces » rejoint Patrimoine, Maires et Passées.
+- **Les boutons rognés** (PR #138). Gautier envoie une capture de son téléphone : la cloche et le montant de pièces sortent de l'écran, « il ne faut pas que ça se produise sur aucun téléphone ». Sur sa capture, le téléphone assombrissait aussi la page tout seul.
 
 ## Toutes les PR
 
@@ -332,6 +333,7 @@ Puis une PR par étape, fusionnée en squash :
 | #135 | 05/11 | Le logo de Gautier (plaque CITYDECK, cartes dorées, pièce à la maison) redessiné en SVG : accueil, connexion, icônes ; la nouvelle pièce ronde de la monnaie partout |
 | #136 | 05/11 | Retours de Gautier : plus d'épi sur le bouton Récolter, Entrée valide la connexion, les classements en un toucher (patrimoine, profil), une carte de France pour choisir la région du pack régional |
 | #137 | 05/11 | Le classement des pièces (démo et serveur) ; un trophée en haut de la carte pour ouvrir les classements |
+| #138 | 05/11 | Plus rien de rogné en haut de la carte, sur aucun téléphone (la barre se serre d'elle-même) ; la page refuse le mode sombre forcé du téléphone |
 
 ## Les décisions de Gautier
 
