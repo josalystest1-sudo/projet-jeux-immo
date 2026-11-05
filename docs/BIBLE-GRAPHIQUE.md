@@ -12,6 +12,7 @@ Ce document fixe **comment le jeu doit avoir l'air**, pour que chaque image, cha
 | Le rendu | **Jeu mobile coloré** : formes rondes, couleurs vives, gros reliefs, dans l'esprit de Clash Royale ou Brawl Stars. |
 | Les outils | **Gratuits d'abord** : Claude dessine en code (SVG, CSS, Canvas, Three.js) ; on ne paie un outil d'image ou de 3D que si une preuve le demande, dans le budget de 20 € par semaine. |
 | Nouvelle direction (4 nov.) | **« Moins dessin animé, plus classe, stylé, impressionnant »**, et « une ouverture de pack doit être un vrai événement ». Appliquée d'abord à la révélation (§ 9). Gautier se dit prêt à payer Meshy (3D par IA) si c'est la solution. Pour le reste du jeu (cartes, pochette, écrans), la question lui est posée. |
+| Les menus (5 nov.) | **Façon Pokémon TCG Pocket** (§ 12), après cinq preuves : blanc et gris perle, une seule couleur pour les boutons importants (le bleu de la plaque), la barre du bas blanche, des icônes au trait d'une seule couleur. Le jeu se voit dans les cartes, pas dans les menus. La carte de la ville passe en nuit le soir. Les règles du § 2 (contour encre, gros reliefs) ne valent plus que pour les illustrations (pochette, cartes), plus pour les menus. |
 
 Méthode (la même que pour l'Arena) : **une preuve complète, validée par Gautier, avant la série**. Personne ne dessine à la main.
 
@@ -470,3 +471,34 @@ Gautier : « c'est top ». La collection (Patrimoine) passe aux nouvelles cartes
 ![Les cartes de Notre-Dame, de la tour Eiffel et de Carcassonne](bible/cartes-monuments.jpg)
 
 **La face cachée jusqu'à la révélation** (4 nov. au soir, PR #122) : Gautier apercevait le modèle 3D du lieu avant la carte de France. Le voile de la révélation est désormais opaque dès que la carte se retourne : on ne voit rien du lieu avant la fin.
+
+## 12. Les menus façon Pokémon TCG Pocket (5 nov. 2026)
+
+Gautier a choisi « le style classe partout » pour la suite de la phase 10. Il a fallu cinq preuves, sur les vrais écrans du jeu (la carte, une fiche, le patrimoine, une carte ouverte, les communes, les enchères, les notifications), pour trouver la bonne :
+
+1. **« Nuit et or »** : fond de nuit, filets et boutons dorés, titres à empattements (Playfair Display), icônes au trait dorées. Gautier : « trop basique, ça ne fait pas assez jeu, on dirait une appli de réservation d'hôtel ».
+2. Une petite interview (quatre questions à choix) l'a orienté vers **« Clash Royale en plus riche »** : boutons gros, ronds, en relief, fond clair, titres ronds et épais. On a donc posé des contours encre partout, des boutons brillants, des titres blancs cernés, une barre du bas bleue en relief et des rayons derrière le pack. Gautier : « un peu moins cartoon ».
+3. **Des bords de la couleur de chaque élément** au lieu de l'encre, et des ombres douces. Gautier : « encore moins cartoon ».
+4. **Des titres sans contour**, des boutons et des panneaux plus plats. Gautier : « moins de couleurs, on dirait un jeu Roblox ».
+5. Une seconde interview (la référence, la couleur d'accent, la barre du bas, les icônes) : **Pokémon TCG Pocket**, le bleu de la plaque, une barre blanche aux icônes simples, des icônes au trait d'une couleur. Gautier : « oui, applique partout ».
+
+![Les cinq preuves, sur le patrimoine](bible/menus-cinq-preuves.jpg)
+
+**Les règles des menus** (elles remplacent le § 2 pour tout ce qui n'est pas une illustration) :
+- **Le fond** est gris perle (`#F3F5F9`), avec un très fin motif de lignes en biais. Les panneaux sont blancs, avec un bord d'un pixel (`#E6EAF1`) et une ombre douce.
+- **Une seule couleur d'accent** : le bleu de la plaque (`#2453B3`). Elle sert pour les boutons importants (acheter, construire, miser, récolter, accepter), l'onglet ouvert, ce qui est fait sur l'échelle de construction et les interrupteurs. Les autres boutons sont blancs, avec un bord gris. Les boutons d'avant en vert et en or passent aussi au bleu.
+- **Les textes** : bleu nuit presque noir (`#1F2633`) et gris (`#7C8598`), dans une seule police, Nunito (900 pour les titres et les chiffres). Les titres de section sont en petites capitales grises espacées.
+- **Les icônes** sont au trait, d'une seule couleur, celle du texte (`src/icones.js`). Elles remplacent les émojis de l'interface : barre du bas, titres, boutons, notifications, échelle de construction.
+- **Ce qui garde ses couleurs** : les cartes (et leur rareté), la carte de la ville, la plaque de rue, la pièce-maison, l'icône d'un lieu (église, mosquée, synagogue, temple, château, pont… toutes les religions de la même façon), les avatars, les médailles des classements et l'ouverture du pack.
+- **La barre du bas** est blanche. L'onglet ouvert est en bleu, sur une pastille bleu pâle. Le pack est un rond bleu au centre ; quand il est prêt, un reflet passe dessus (le seul mouvement de la barre).
+- **Les raretés** se lisent sur une étiquette pâle de leur couleur, et sur un filet de couleur en haut de la fiche d'un lieu. Pour l'Extraordinaire, ce filet est arc-en-ciel.
+
+**La carte de nuit, le soir** (Gautier : « selon l'heure ») : **[Proposé]** de 20 h à 7 h, à l'heure du téléphone. Le sol, les rues et les bâtiments libres passent en bleu nuit et en ardoise ; les noms des rues passent en clair ; la lumière se réchauffe. Les couleurs des lieux (à moi, aux autres, partagés, monuments) restent les mêmes. Pour essayer : `?carte=nuit` ou `?carte=jour` dans l'adresse.
+
+![Avant, après de jour, après le soir, une fiche, le patrimoine](bible/menus-pocket.jpg)
+
+Où c'est dans le code :
+- `style.css` : la dernière section, « le style façon Pokémon TCG Pocket ». La classe `pocket` est posée sur `<html>`, et ses règles l'emportent sur celles d'avant.
+- `src/icones.js` : `ICONES` (les dessins), `EMOJI_ICONE` (l'émoji que chacun remplace), `iconiser`, et un observateur qui remplace les émojis à l'affichage. Les exclusions sont dans `EXCLUS`.
+- `index.html` : `couleursCarte`, `COULEURS_CARTE` (de jour et de nuit, calque par calque), `estNuit`, `styleParcelles`.
+

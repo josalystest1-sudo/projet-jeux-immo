@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="fr">
+<html lang="fr" class="pocket">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
@@ -51,12 +51,13 @@ const VERSION='__VERSION__';
 <script src="src/maquettes.js"></script>
 <script src="src/carte_lieu.js"></script>
 <script src="src/regles/pseudo.js"></script>
+<script src="src/icones.js"></script>
 <script src="https://unpkg.com/@supabase/supabase-js@2.118.0/dist/umd/supabase.js"></script>
 <link rel="preload" href="fonts/baloo-2-latin-800-normal.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="fonts/nunito-latin-800-normal.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="fonts/barlow-condensed-latin-700-normal.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="style.css?v=20261103d">
-<meta name="theme-color" content="#EAF2FF">
+<meta name="theme-color" content="#F3F5F9">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" type="image/png" href="icones/icone-192.png">
 <link rel="apple-touch-icon" href="icones/apple-touch-icon.png">
@@ -346,7 +347,27 @@ map.on('load', ()=>{ setTimeout(()=>{ if(!map.isSourceLoaded('topo')) dsay('Donn
 
 // vues
 const b3d=document.getElementById('b3d'), b2d=document.getElementById('b2d');
-function styleParcelles(deDessus){ map.setPaintProperty('parcel-line','line-width',['case',SEL,3, deDessus?1.8:0.9]); map.setPaintProperty('parcel-line','line-color',['case',SEL,'#e0a800', deDessus?'#7a7262':'#a79f8c']); }
+function styleParcelles(deDessus){ map.setPaintProperty('parcel-line','line-width',['case',SEL,3, deDessus?1.8:0.9]);
+  map.setPaintProperty('parcel-line','line-color', CARTE_NUIT ? ['case',SEL,'#F7DE9C', deDessus?'#3A4360':'#262D42'] : ['case',SEL,'#e0a800', deDessus?'#7a7262':'#a79f8c']); }
+// La carte de nuit, le soir (Gautier, 5 nov. : « selon l'heure » ; [Proposé] de 20 h à 7 h, à l'heure du téléphone ;
+// ?carte=nuit ou ?carte=jour pour essayer). Les couleurs ne sont reposées que quand on passe du jour à la nuit : la carte
+// doit pouvoir se reposer. Les couleurs des lieux (à moi, aux autres, partagés) restent les mêmes de jour et de nuit.
+let CARTE_NUIT=false, CARTE_NUIT_POSEE=null;
+const LIBRE_NUIT = ['match',TEINTE, 0,'#3A4362', 1,'#363F5C', 2,'#3F4868', 3,'#343C58', 4,'#3C4564', '#384160'];
+const COULEUR_BATI_NUIT = ['case', ['boolean',['feature-state','monument'],false], ['interpolate',['linear'],['coalesce',['get','hauteur'],9], 0,'#C9973A', 60,'#E9C77B', 200,'#FFF1C8'], SEL, '#FFC233', ['match',ST,'me','#5B93FF','other','#D9533E','mixed','#9466EE', LIBRE_NUIT]];
+const COULEURS_CARTE = [ // calque, propriété, de jour, de nuit
+  ['bg','background-color','#DCE5D2','#0F1524'], ['ilot','fill-color','#EFE9DA','#151C2E'], ['veget','fill-color','#A6DA88','#132A20'],
+  ['parc','fill-color','#94D27A','#173326'], ['sport','fill-color','#8BD8A6','#15302A'], ['water','fill-color','#79C5F2','#0D2442'],
+  ['rail','line-color','#8d877c','#3A4158'], ['road-side','line-color','#D3DBE7','#171E31'], ['road-casing','line-color','#B6C1D4','#2A3350'],
+  ['road','line-color',['case',IMPORTANT,'#FFFFFF','#FBFCFE'],['case',IMPORTANT,'#4A5679','#3A4566']], ['road-axis','line-color','#F4CC5E','#C9A04E'],
+  ['road-label','text-color','#43506E','#D9D1C0'], ['road-label','text-halo-color','#ffffff','#0A0F1E'], ['bati-3d','fill-extrusion-color',COULEUR_BATI,COULEUR_BATI_NUIT] ];
+function estNuit(){ const q=new URLSearchParams(location.search).get('carte'); if(q==='nuit') return true; if(q==='jour') return false;
+  const h=new Date().getHours(); return h>=20 || h<7; }
+function couleursCarte(){ const n=estNuit(); if(n===CARTE_NUIT_POSEE || !map.isStyleLoaded()) return; CARTE_NUIT=CARTE_NUIT_POSEE=n;
+  COULEURS_CARTE.forEach(([c,p,j,nu])=>{ try{ map.setPaintProperty(c,p,n?nu:j); }catch(e){} });
+  try{ map.setLight(n ? { anchor:'viewport', color:'#fff1dc', intensity:0.5, position:[1.3,210,35] } : { anchor:'viewport', color:'#fff7e6', intensity:0.45, position:[1.3,200,40] }); }catch(e){}
+  styleParcelles(map.getPitch()<=5); document.documentElement.classList.toggle('carte-nuit', n); }
+map.on('load', couleursCarte); setInterval(couleursCarte, 60000);
 function vue3d(){ map.easeTo({pitch:58, duration:500}); b3d.classList.add('on'); b2d.classList.remove('on'); styleParcelles(false); }
 function vue2d(){ map.easeTo({pitch:0, bearing:0, duration:500}); b2d.classList.add('on'); b3d.classList.remove('on'); styleParcelles(true); }
 b3d.onclick=vue3d; b2d.onclick=vue2d;
