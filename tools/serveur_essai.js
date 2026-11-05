@@ -221,6 +221,16 @@ async function nouveauJoueur(publique, secrete) {
     verifier(etM.corps && etM.corps.ok && etM.corps.entretien && etM.corps.entretien.dette === 0 && etM.corps.entretien.impayeDepuis === null, 'ma partie dit ma dette d’entretien des monuments (aucune)', etM.corps && etM.corps.entretien);
     const alertesLues = await requete(`${URL}/rest/v1/alertes?select=id&limit=1`, { headers: { apikey: publique, Authorization: `Bearer ${acces}` } });
     verifier(alertesLues.statut >= 400 || (Array.isArray(alertesLues.corps) && alertesLues.corps.length === 0), 'les alertes de Gautier ne se lisent pas depuis le jeu', alertesLues.statut);
+    // le suivi de Gautier (150_suivi.sql) et l'anti-triche (160_anti_triche.sql), lus avec la clé secrète
+    const vis = await requete(`${URL}/rest/v1/visites?select=jour&joueur=eq.${id}`, { headers: entetesSecrets(secrete) });
+    verifier(Array.isArray(vis.corps) && vis.corps.length >= 1, 'ma visite du jour est notée (suivi de Gautier)', vis);
+    const emp = await requete(`${URL}/rest/v1/empreintes?select=empreinte&joueur=eq.${id}`, { headers: entetesSecrets(secrete) });
+    verifier(Array.isArray(emp.corps) && emp.corps.length >= 1 && emp.corps.every((x) => /^[0-9a-f]{24}$/.test(x.empreinte)), 'l’empreinte de ma connexion est notée (un condensé, jamais l’adresse IP)', emp);
+    const empLue = await requete(`${URL}/rest/v1/empreintes?select=empreinte&limit=1`, { headers: { apikey: publique, Authorization: `Bearer ${acces}` } });
+    const suiviLu = await requete(`${URL}/rest/v1/suivi_total?select=inscrits`, { headers: { apikey: publique, Authorization: `Bearer ${acces}` } });
+    verifier((empLue.statut >= 400 || (Array.isArray(empLue.corps) && empLue.corps.length === 0)) && (suiviLu.statut >= 400 || (Array.isArray(suiviLu.corps) && suiviLu.corps.length === 0)), 'les empreintes et le suivi ne se lisent pas depuis le jeu', [empLue.statut, suiviLu.statut]);
+    const suivi = await requete(`${URL}/rest/v1/suivi_total?select=inscrits,venus_aujourdhui`, { headers: entetesSecrets(secrete) });
+    verifier(Array.isArray(suivi.corps) && suivi.corps.length === 1 && Number(suivi.corps[0].venus_aujourdhui) >= 1, 'le suivi se lit dans le tableau de bord (clé secrète)', suivi);
     // la boutique (GDD § 3 et § 9) : gemmes d'essai, Pass, pack national et régional, refus
     const g0 = await jeu({ action: 'gemmes_essai' });
     verifier(g0.corps && g0.corps.ok && g0.corps.gemmes >= 1000, 'des gemmes d’essai (serveur d’essai)', g0);

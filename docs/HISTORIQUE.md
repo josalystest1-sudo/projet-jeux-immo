@@ -181,6 +181,7 @@ Rien d'important ne vit dans une conversation : tout est dans le dépôt ou sur 
 - **La langue du téléphone** (PR #147). Pendant la mise en ligne, Gautier précise : « idéalement la langue se met en fonction de la langue du périphérique par défaut, avec modification possible ». Le jeu suit désormais le téléphone (français s'il est en français, anglais pour toute autre langue, proposition de Claude), et le choix des Réglages passe avant.
 - **Le vrai serveur pour tous** (PR #148). Gautier : « on passe à quoi ? ». Claude propose de mettre tout le monde sur le vrai serveur (la grosse étape avant la bêta entre amis), ou d'ajouter des lieux célèbres ; Gautier : « super, c'est quoi la suite ? ». Plus de démo par défaut ni d'interrupteur : tout visiteur crée son compte et joue sur le serveur ; les signalements partent au serveur ; le cadre rose « Erreur de style » du 3 nov. est corrigé. Il manque, pour inviter des amis, le service d'e-mails (Brevo : le compte est à créer par Gautier, devant le PC).
 - **Le suivi** (PR #149). Claude propose ensuite un tableau de suivi et un minimum d'anti-triche (ou les lieux célèbres) ; Gautier : « vas-y ». Les jours de visite des vrais joueurs sont notés ; deux vues du tableau de bord de Supabase donnent les inscrits, les venus, les retours du lendemain et du 7e jour, et les achats.
+- **L'anti-triche** (PR #150). Dans la foulée : pas plus de 60 actions par minute pour un compte, et une empreinte chiffrée de la connexion (jamais l'adresse IP) ; dès 3 comptes sur une même connexion dans la journée, une alerte pour Gautier, sans rien bloquer (familles, réseaux partagés, multi-comptes tolérés en V1).
 
 ## Toutes les PR
 
@@ -356,6 +357,7 @@ Puis une PR par étape, fusionnée en squash :
 | #147 | 05/11 | La langue du téléphone par défaut (français s'il est en français, anglais sinon), modifiable dans les Réglages |
 | #148 | 05/11 | Le vrai serveur pour tout le monde (plus de démo par défaut ni d'interrupteur), les signalements envoyés au serveur, le cadre « Erreur de style » corrigé |
 | #149 | 05/11 | Le tableau de suivi de Gautier (inscrits, venus, retours du lendemain et du 7e jour, achats), dans le tableau de bord de Supabase |
+| #150 | 05/11 | Un minimum d'anti-triche : 60 actions par minute au plus, empreinte chiffrée de la connexion, alerte dès 3 comptes sur une même connexion, vue des comptes liés |
 
 ## Les décisions de Gautier
 
@@ -401,7 +403,7 @@ Les décisions du 2 novembre (interview) sont dans `CLAUDE.md` § 4 et dans le G
 
 - **Le serveur, suite** (phase 8) :
   - 8.2 : le mode serveur par défaut et la fin des joueurs simulés sont faits (PR #148 ; la démo reste par `?demo`). Reste l'inscription des amis : il faut le service d'e-mails (Brevo), sinon un nouveau joueur ne reçoit pas l'e-mail de confirmation. Question posée à Gautier, sans réponse : couper la confirmation par e-mail pendant les essais ?
-  - 8.3 : l'anti-triche.
+  - 8.3 : l'anti-triche. Un minimum est fait (PR #150 : cadence, empreintes de connexion, alerte et vue des comptes liés) ; plus tard, si besoin : un plafond de ventes entre comptes liés, l'appareil.
 - **Les graphismes** (phase 10, avant 8.2 : décision de Gautier) : les menus façon Pokémon TCG Pocket (PR #133), puis le logo, l'icône et la pièce d'après le modèle de Gautier (PR #135), faits le 5 nov. ; restent à revoir sur téléphone la promenade et les fenêtres rares ; la preuve, l'ouverture, les monuments nationaux et 358 monuments régionaux en 3D, plus la Grande Mosquée de Paris et quatre églises ajoutées le 4 nov. (416 maquettes ; les autres n'ont pas de bâtiment à dessiner ou portent une marque) ; ensuite l'habillage de la révélation, l'icône et le logo (`docs/BIBLE-GRAPHIQUE.md`).
 - **Le game design du 4 nov. porté dans le jeu** (le Maire par caisse de travaux, PR #119 et #120 ; les saisons et classements, PR #123 et #124 ; les monuments, PR #125 et #126). Reste : l'e-mail d'alerte à Gautier (il faut un service d'envoi), le niveau visuel des communes (§ 5, proposé), l'équilibrage (loyer modeste des monuments, § 5 ter) : les saisons et le classement de patrimoine (§ 5 bis), l'entretien et la reprise des monuments, l'alerte à Gautier (§ 5 ter).
 - **La boutique** (phase 9 ; faite en mode test, PR #127 à #130 : gemmes, packs, Pass et bon, chances affichées, ventes et offres en gemmes, paiement par carte Stripe ; restent, avant les vrais paiements : activer le compte Stripe (Gautier : identité, banque, statut), une clé restreinte de production, les pages légales) : Stripe → gemmes, packs nationaux et régionaux, Pass 15 jours (GDD § 3 et § 9), offres en gemmes au choix du vendeur, probabilités affichées, blocage Belgique et Pays-Bas, CGU (gemmes sans valeur, lieux = licences), confidentialité, mentions légales.
@@ -417,7 +419,7 @@ Les décisions du 2 novembre (interview) sont dans `CLAUDE.md` § 4 et dans le G
   - Conseillé :
     - une bêta entre amis ;
     - les sauvegardes (offre Pro de Supabase) ;
-    - un minimum d'anti-triche ;
+    - un minimum d'anti-triche : fait (PR #150) ;
     - un tableau de bord (inscrits, retours à J1 et J7) : fait (PR #149, vues `suivi_total` et `suivi_jours` de Supabase) ;
     - la marque à l'INPI.
   - Fait le 5 nov. : « Supprimer mon compte » et l'image de partage (PR #143), les pages légales (PR #144).

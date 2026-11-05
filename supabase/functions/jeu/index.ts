@@ -41,6 +41,26 @@ function enTetes(req: Request): Record<string, string> {
 // un refus attendu (pas assez de pièces…) : le message est montré tel quel au joueur
 class Refus extends Error { code: string; constructor(code: string, message: string) { super(message); this.code = code; } }
 
+// ---------------------------------------------------------------- l'anti-triche (supabase/sql/160_anti_triche.sql)
+// l'empreinte de la connexion : un condensé de l'adresse IP, chiffré avec la clé secrète du projet (on ne peut pas
+// retrouver l'adresse), noté une fois par jour et par joueur ; des comptes en série depuis une même connexion font
+// une alerte pour Gautier (rien n'est bloqué)
+let cleEmpreinte: Promise<CryptoKey> | null = null;
+const empreintesNotees = new Map<string, string>();   // joueur → « jour:empreinte » déjà notée par cette instance
+async function noterEmpreinte(j: string, req: Request) {
+  const ip = (req.headers.get('x-forwarded-for') || '').split(',')[0].trim() || (req.headers.get('x-real-ip') || '').trim();
+  if (!ip) return;
+  cleEmpreinte = cleEmpreinte || crypto.subtle.importKey('raw', new TextEncoder().encode('empreinte:' + cleSecrete()), { name: 'HMAC', hash: 'SHA-256' }, false, ['sign']);
+  const sig = new Uint8Array(await crypto.subtle.sign('HMAC', await cleEmpreinte, new TextEncoder().encode(ip)));
+  const e = Array.from(sig.slice(0, 12), (b) => b.toString(16).padStart(2, '0')).join('');
+  const deja = new Date().toISOString().slice(0, 10) + ':' + e;
+  if (empreintesNotees.get(j) === deja) return;
+  const A = ECO.anti_triche;
+  await rpc('jeu_empreinte', { j, e, seuil: A.comptes_par_connexion, garder: A.empreintes_jours });
+  if (empreintesNotees.size > 5000) empreintesNotees.clear();
+  empreintesNotees.set(j, deja);
+}
+
 // ---------------------------------------------------------------- la vitesse du temps (table reglages)
 // jour_secondes : 60 sur le serveur d'essai (un jour = une minute), 86400 pour le vrai jeu (pack à minuit à Paris)
 let vitesse = { jourMs: 60_000, lu: 0 };
@@ -946,6 +966,11 @@ Deno.serve(async (req: Request) => {
     const corps = await req.json().catch(() => ({}));
     const action = ACTIONS[String(corps.action || '')];
     if (!action) throw new Refus('action', 'Action inconnue.');
+    // la cadence : pas plus de N actions par minute pour un compte (un programme qui joue à sa place, un bouton martelé) ;
+    // au-delà, refusé, rien n'est perdu (une panne du compteur ne bloque pas le jeu)
+    const cadence = await rpc('jeu_cadence', { j: data.user.id, limite: ECO.anti_triche.actions_par_minute }).catch((e) => { console.error('cadence', e); return true; });
+    if (cadence === false) throw new Refus('cadence', 'Doucement : trop d’actions d’un coup. Réessaie dans une minute.');
+    await noterEmpreinte(data.user.id, req).catch((e) => console.error('empreinte', e));
     // le calendrier des enchères (lots finis clos, lots de la semaine ouverts) : une panne ici ne bloque pas le jeu
     await tenirEncheres().catch((e) => console.error('enchères', e));
     // ma visite (un Maire absent depuis trop longtemps perd le titre) ; les fins de mandat de Maire à annoncer

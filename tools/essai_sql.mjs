@@ -5,7 +5,7 @@
 // verser, part du Maire plafonnée, absence, fin de mandat annoncée une fois ; les classements et les saisons
 // (100_classements.sql) : patrimoine, Maires, saison figée une fois ; les monuments (110_monuments.sql) : entretien,
 // reprise (lot de reprise, alerte, échanges qui tombent) ; la boutique (120_boutique.sql) : gemmes d'essai, pack acheté,
-// Pass, bon ; les ventes et offres en gemmes ; le paiement par carte (130_paiements.sql) ; le classement des pièces (140_classement_pieces.sql) ; le suivi de Gautier (150_suivi.sql) ; les robots qui se retirent (050_robots.sql) ; les refus attendus et les droits du jeu.
+// Pass, bon ; les ventes et offres en gemmes ; le paiement par carte (130_paiements.sql) ; le classement des pièces (140_classement_pieces.sql) ; le suivi de Gautier (150_suivi.sql) ; l’anti-triche (160_anti_triche.sql) ; les robots qui se retirent (050_robots.sql) ; les refus attendus et les droits du jeu.
 // Prérequis (une fois, rien n'est ajouté au dépôt) : npm i --no-save --no-package-lock @electric-sql/pglite
 //   node tools/essai_sql.mjs            (000_comptes.sql, qui demande l'extension unaccent, est remplacé par un profil minimal)
 import { PGlite } from '@electric-sql/pglite';
@@ -352,9 +352,29 @@ const tot = (await q('select * from public.suivi_total'))[0];
 ok(Number(tot.pct_retour_j1) === 50 && Number(tot.pct_retour_j7) === 50 && Number(tot.venus_aujourdhui) >= 1, 'suivi_total : 50 % de retour le lendemain et le 7e jour', tot);
 await q('delete from auth.users where id = $1', [S2]);
 ok((await q('select count(*)::int as n from public.visites where joueur = $1', [S2]))[0].n === 0, 'un compte supprimé emporte ses visites');
+// l'anti-triche (160_anti_triche.sql) : la cadence des actions, les empreintes de connexion, les comptes liés
+const cad = async (u, lim) => (await q('select public.jeu_cadence($1, $2) as c', [u, lim]))[0].c;
+const cads = [await cad(A, 3), await cad(A, 3), await cad(A, 3), await cad(A, 3)];
+ok(cads.join() === 'true,true,true,false', 'la cadence : 3 actions par minute passent, la 4e est refusée', cads);
+await q("update public.cadence set minute = minute - interval '1 minute' where joueur = $1", [A]);
+ok((await cad(A, 3)) === true && Number((await q('select n from public.cadence where joueur = $1', [A]))[0].n) === 1, 'la minute suivante, le compteur repart de zéro');
+const emp = async (u, e) => Number((await q('select public.jeu_empreinte($1, $2, 3, 30) as k', [u, e]))[0].k);
+const alertesAvant = (await q("select count(*)::int as n from public.alertes where type = 'comptes'"))[0].n;
+await q("insert into public.empreintes (joueur, jour, empreinte) values ($1, public.jour_paris() - 40, 'vieille')", [B]);
+const ks = [await emp(A, 'e1'), await emp(D, 'e1'), await emp(B, 'e1'), await emp(A, 'e1')];
+ok(ks.join() === '1,1,2,0', 'les empreintes : un compte de plus à chaque joueur, jamais un robot ; déjà notée : 0', ks);
+ok((await q("select count(*)::int as n from public.alertes where type = 'comptes'"))[0].n === alertesAvant, 'deux comptes sur une connexion : pas d’alerte');
+ok((await emp(S1, 'e1')) === 3, 'un troisième compte sur la même connexion');
+const al = await q("select texte from public.alertes where type = 'comptes' order by id desc");
+ok(al.length === alertesAvant + 1 && /3 comptes depuis la même connexion/.test(al[0].texte) && /alice, bruno, sacha/.test(al[0].texte), 'au troisième, une alerte pour Gautier (avec les pseudos)', al[0]);
+ok((await q("select count(*)::int as n from public.empreintes where empreinte = 'vieille'"))[0].n === 0, 'les empreintes de plus de 30 jours sont effacées');
+const lies = await q("select * from public.comptes_lies");
+ok(lies.length === 1 && Number(lies[0].comptes) === 3 && lies[0].pseudos === 'alice, bruno, sacha', 'comptes_lies : les trois comptes de la même connexion, sans le robot', lies);
 await db.exec(`set role authenticated; set essai.uid = '${A}';`);
 ok(!!(await refus('select * from public.suivi_total')) && !!(await refus('select * from public.suivi_jours')) && !!(await refus('select * from public.visites')), 'le jeu ne lit pas le suivi de Gautier');
 ok(!!(await refus('select public.jeu_vu($1)', [A])), 'le jeu ne peut pas appeler jeu_vu');
+ok(!!(await refus('select * from public.empreintes')) && !!(await refus('select * from public.comptes_lies')) && !!(await refus('select * from public.cadence')), 'le jeu ne lit ni les empreintes, ni les comptes liés, ni la cadence');
+ok(!!(await refus('select public.jeu_cadence($1, 999)', [A])) && !!(await refus("select public.jeu_empreinte($1, 'x', 3, 30)", [A])), 'le jeu ne peut pas appeler jeu_cadence ni jeu_empreinte');
 await db.exec('reset role; set role anon;');
 ok(!!(await refus('select * from public.suivi_total')), 'sans compte non plus');
 ok((await q("select count(*)::int as n from public.caisse_communes(array['Bourg'], 6, now() - interval '7 days')"))[0].n > 0, 'sans compte aussi, on lit les caisses');
