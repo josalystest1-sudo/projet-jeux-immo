@@ -167,6 +167,7 @@ Rien d'important ne vit dans une conversation : tout est dans le dépôt ou sur 
 - **La sortie des cartes** (PR #132). Gautier, après avoir essayé avec le son : les cartes « n'ont pas l'air de sortir du pack », « ça lag », on voit mal que les cartes de dos sont empilées, et « les battements de cœur, ça fait nul ». Les cartes montent désormais hors du sachet, qui tombe ensuite ; la préparation de la révélation attend que la pile soit posée (l'image se figeait une demi-seconde) ; la pile a des liserés d'or ; le cœur est retiré.
 - **Les menus** (PR #133). Gautier choisit « le style classe partout ». La première preuve, nuit et or, est « trop basique, on dirait une appli de réservation d'hôtel ». Une interview l'oriente vers « Clash Royale en plus riche », puis il demande « un peu moins cartoon », puis « encore moins cartoon », puis « moins de couleurs, on dirait un jeu Roblox ». Une seconde interview tranche : les menus de Pokémon TCG Pocket, un seul accent (le bleu de la plaque), une barre du bas blanche, des icônes au trait. « Oui, applique partout. » Pour la carte de la ville, il choisit « selon l'heure » : la carte passe en nuit le soir.
 - **Le logo et la pièce** (PR #135). Gautier : « passons à la suite ». Il trouve la pièce-maison « moche » et veut « un logo avec le nom complet et un logo ». Après deux séries de pistes (il choisit les cartes et la ville, puis la pièce à la ville), il envoie son propre logo, fait avec un générateur d'images d'après les prompts de `docs/KIT-MARQUE.md` (PR #134, piste A) : la plaque CITYDECK, deux cartes dorées, une pièce ronde à la maison, « la pièce intégrée au logo ». Claude le redessine en SVG et en fait aussi la pièce de la monnaie.
+- **Petits retours** (PR #136). Gautier, sur son téléphone et sur ordinateur : « sur le bouton récolter il y a une épingle bizarre », « il faut pouvoir appuyer sur Entrée pour valider (pour les joueurs web) », « je ne trouve pas le classement par richesse », « le menu déroulant des packs régionaux est trop basique ».
 
 ## Toutes les PR
 
@@ -328,6 +329,7 @@ Puis une PR par étape, fusionnée en squash :
 | #133 | 05/11 | Les menus façon Pokémon TCG Pocket : blanc et gris perle, un seul accent (le bleu de la plaque), barre du bas blanche, icônes au trait ; la carte de nuit le soir |
 | #134 | 05/11 07:50 | Prompts de logo (3 pistes) et kit social media pour un générateur d'images (`docs/KIT-MARQUE.md`) |
 | #135 | 05/11 | Le logo de Gautier (plaque CITYDECK, cartes dorées, pièce à la maison) redessiné en SVG : accueil, connexion, icônes ; la nouvelle pièce ronde de la monnaie partout |
+| #136 | 05/11 | Retours de Gautier : plus d'épi sur le bouton Récolter, Entrée valide la connexion, les classements en un toucher (patrimoine, profil), une carte de France pour choisir la région du pack régional |
 
 ## Les décisions de Gautier
 

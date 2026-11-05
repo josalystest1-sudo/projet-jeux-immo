@@ -61,6 +61,7 @@
         return connecte(data.session);
       } catch (e) { err.textContent = texteErreur(e); ok.disabled = false; ok.textContent = inscription ? 'Créer mon compte' : 'Me connecter'; }
     };
+    avecEntree();
   }
 
   function ecranAttente(mail) {
@@ -92,6 +93,7 @@
       const { error } = await Compte.client.auth.resetPasswordForEmail(m, { redirectTo: retour() });
       err.style.color = error ? '' : 'var(--ok)'; err.textContent = error ? texteErreur(error) : 'Si un compte existe avec cet e-mail, le lien est parti.';
     };
+    avecEntree();
   }
 
   function ecranNouveauMotDePasse() {
@@ -106,12 +108,29 @@
       if (error) { err.textContent = texteErreur(error); return; }
       toast('Mot de passe changé'); const s = (await Compte.client.auth.getSession()).data.session; if (s) connecte(s); else ecranCompte('connexion');
     };
+    avecEntree();
   }
 
   function ecranIndisponible(raison) {
     bloquant = true;
     ouvrir(`<h2>Serveur indisponible</h2><div class="sub">${echapper(raison)}</div><button class="btn" style="width:100%" id="cpt-ok">Réessayer</button>`);
     box().querySelector('#cpt-ok').onclick = () => location.reload();
+  }
+
+  // Entrée valide l'écran (joueurs sur ordinateur, demande de Gautier du 5 nov.) : dans l'e-mail, elle passe au mot de passe
+  // s'il est encore vide ; sinon elle appuie sur le bouton principal. Sur ordinateur, le premier champ est déjà sélectionné.
+  function avecEntree() {
+    const b = box(), ok = b.querySelector('#cpt-ok'), mdp = b.querySelector('#cpt-mdp'), champs = [...b.querySelectorAll('input')];
+    champs.forEach((c) => {
+      c.enterKeyHint = (c.id === 'cpt-mail' && mdp) ? 'next' : 'go';
+      c.addEventListener('keydown', (e) => {
+        if (e.key !== 'Enter' || e.isComposing) return;
+        e.preventDefault();
+        if (c.id === 'cpt-mail' && mdp && !mdp.value) { mdp.focus(); return; }
+        if (ok && !ok.disabled) ok.click();
+      });
+    });
+    if (champs[0] && window.matchMedia && matchMedia('(pointer:fine)').matches) champs[0].focus();
   }
 
   // l'adresse où reviennent les liens des e-mails : la page du jeu, sans ce qui suit # ou ?
