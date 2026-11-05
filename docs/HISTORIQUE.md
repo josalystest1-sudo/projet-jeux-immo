@@ -85,7 +85,7 @@ Rien d'important ne vit dans une conversation : tout est dans le dépôt ou sur 
 - **La nuit des monuments** : Gautier va se coucher et demande d'en faire le maximum sans attendre sa validation. Premier lot (PR #49) : le Louvre, le Mont-Saint-Michel, Carcassonne, Chenonceau, le palais des Papes, la Madeleine.
 - Deuxième lot de la nuit (PR #50) : le Grand Palais, les ponts Alexandre-III et Neuf, la Conciergerie, le Palais-Royal, la place des Vosges, Saint-Sulpice.
 - Troisième lot de la nuit (PR #51) : Vaux-le-Vicomte, Vincennes, Blois, Amboise, le château d'If, Notre-Dame-de-la-Garde, le viaduc de Millau.
-- Quatrième lot de la nuit (PR #52) : les onze derniers monuments nationaux. Tous ont leur maquette, sauf les grottes, les cimetières et les jardins (halo doré) et le Ritz (une marque, question pour Gautier).
+- Quatrième lot de la nuit (PR #52) : les onze derniers monuments nationaux. Tous ont leur maquette, sauf les grottes, les cimetières et les jardins (halo doré) et le Ritz (une marque ; gardé aux enchères, décision du 5 nov.).
 - Premier lot de monuments régionaux (PR #53) : Montsoreau, Saint-Germain-en-Laye, Saint-Savin, la Saline royale, Saint-Eustache, Chaillot, la place Stanislas, Laon.
 - Deuxième lot régional (PR #54) : Fontevraud, le palais du Tau, Azay-le-Rideau, Cordouan, Villandry, l'observatoire de Nice, Albi, l'École militaire, le théâtre des Champs-Élysées, le Clos Lucé.
 - Troisième lot régional (PR #55) : l'Odéon, Chantilly, Angers, Bayeux, l'arc d'Orange, la villa Savoye ; et les maquettes construites à la demande (le démarrage du jeu ne ralentit pas avec leur nombre).
@@ -184,6 +184,7 @@ Rien d'important ne vit dans une conversation : tout est dans le dépôt ou sur 
 - **Les lieux célèbres** (PR #152). Claude propose d'ajouter les châteaux, mairies, gares, musées, phares, moulins… aux lieux célèbres ; Gautier demande ce que ça change aux packs, puis : « oui vas-y, mais il faut que les légendaires restent rares ». La chance d'une Légendaire ne change pas (1 carte sur 100) ; les Rares écartent les lieux célèbres ; les marques (grands vins, cabarets, musées de marque) sont écartées.
 - **Le niveau des communes** (PR #153). Gautier remet Brevo à plus tard : « on fait tout ce qui ne nécessite pas un PC ». Claude enchaîne avec ce que le game design du 4 nov. prévoyait encore : ce qui a été versé à la caisse d'une commune, depuis toujours, la fait monter de niveau (arbres, lampadaires, fleurs, fontaine, kiosque), visible dans la commune et sur la carte.
 - **Les travaux s'usent** (PR #156). Gautier : « c'est bien de monter le niveau d'une commune, mais si elle est au niveau max, il reste quoi à faire ? Comment devenir Maire ? Pour quoi faire ? ». Claude rappelle les règles du Maire (le plus gros versement de la quinzaine, 5 % des loyers des autres plafonnés, surtout du prestige) et propose ; Gautier choisit : les travaux s'usent (10 % toutes les 2 semaines), le niveau donne +2 % de loyer par niveau à tous les propriétaires de la commune, et le plafond du Maire monte avec le niveau (jusqu'à 2 000). Il accepte aussi l'horloge (« oui, active-la »).
+- **Les monuments qui sont des marques** (PR #157). Claude repose la question ouverte depuis le 3 nov. (le Ritz, Maxim's, le Crillon, le Negresco, Château Margaux, le Train bleu sont des marques) ; Gautier : « garde-les ». Ils restent aux enchères.
 - **L'horloge du serveur** (PR #155). Dans la même série : toutes les 10 minutes, GitHub appelle le serveur pour clore les enchères, faire tourner les mandats et les saisons, tenir les monuments et faire jouer les robots, même sans joueur.
 - **L'anti-triche** (PR #150). Dans la foulée : pas plus de 60 actions par minute pour un compte, et une empreinte chiffrée de la connexion (jamais l'adresse IP) ; dès 3 comptes sur une même connexion dans la journée, une alerte pour Gautier, sans rien bloquer (familles, réseaux partagés, multi-comptes tolérés en V1).
 
@@ -368,6 +369,7 @@ Puis une PR par étape, fusionnée en squash :
 | #154 | 05/11 | Relecture des écrans en 320 px (français et anglais) : « Area » au lieu de « Neighbourhood », le bouton de la démo dans les Réglages |
 | #155 | 05/11 | L'horloge du serveur : toutes les 10 minutes, enchères, mandats, saisons, monuments et robots tournent sans joueur |
 | #156 | 05/11 | Les travaux des communes s'usent (−10 % par mandat) ; le niveau donne +2 % de loyer par niveau et monte le plafond du Maire (jusqu'à 2 000) |
+| #157 | 05/11 | Documents : les six monuments qui sont des marques (Ritz, Maxim's, Crillon, Negresco, Château Margaux, Train bleu) restent aux enchères (Gautier : « garde-les ») |
 
 ## Les décisions de Gautier
 
@@ -409,6 +411,7 @@ Les décisions du 2 novembre (interview) sont dans `CLAUDE.md` § 4 et dans le G
 | 4 nov. | Lots réels (clés Steam, bons de commerçants) : idée gardée pour faire venir des joueurs, mais jamais attribués selon un score que l'argent ou le nombre de lieux influence (risque de loterie) |
 | 5 nov. | **Le jeu existe aussi en anglais** : choix dans les réglages ; par défaut la langue du téléphone (d'abord « français par défaut », précisé le même jour) ; les noms propres et les rues restent en français |
 | 5 nov. | Les communes (après la question « au niveau max, il reste quoi à faire ? ») : les travaux s'usent (10 % toutes les 2 semaines) ; le niveau donne +2 % de loyer par niveau aux propriétaires de la commune ; le plafond du Maire monte avec le niveau (jusqu'à 2 000 par mandat). L'horloge du serveur, toutes les 10 minutes. |
+| 5 nov. | Les monuments qui sont des marques (Ritz, Maxim's, Crillon, Negresco, Château Margaux, Train bleu) restent aux enchères : « garde-les » (exception à « pas de marque sur un lieu »). |
 
 ## Ce qui reste à faire (au 4 novembre après-midi)
 
