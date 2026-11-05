@@ -154,6 +154,33 @@ Ligne de conduite : un monument donne **du prestige et de la valeur**, pas de pu
 - **Où il est fort** : classement de patrimoine (poids 20), fiche de commune, carte (maquette 3D), vitrine du profil. En V2 : un pouvoir unique par monument.
 - **Alerte administrateur** (demande de Gautier) : quand un monument redevient libre (reprise, impayé, enchère sans preneur), le jeu envoie à Gautier un e-mail et une notification de tableau de bord avec le nom du monument, la commune, la date de fin de l'enchère à venir et une phrase prête à poster sur les réseaux.
 
+## 5 quater. Les joueurs de la maison (les robots) **[Décidé par Gautier le 5 nov. 2026 ; règles Proposé]**
+
+Gautier : « laisser les robots au début du jeu, mais leur donner des consignes pour jouer comme des humains et ne pas abuser ; ça permettra de faire vivre le jeu, surtout au début où il n'y aura pas beaucoup de joueurs. On les retirera progressivement avec la montée des joueurs. » Et : « un robot supprimé = son patrimoine remis en jeu. »
+
+Les règles (`src/regles/robots.js`, réglages `data/economie.json` → `robots`, appliquées par le serveur) :
+
+- **Combien** : 10 robots au plus quand personne ne joue, un de moins par tranche de 4 vrais joueurs venus dans les 7 derniers jours, aucun à partir de 40.
+- **Un robot qui se retire** :
+  - ses offres et ses propositions d'échange tombent ;
+  - ses lieux sont mis en vente à leur valeur ;
+  - au bout de 14 jours, ce qui n'est pas vendu est rendu libre : les lieux peuvent de nouveau sortir des packs, et un monument retourne aux enchères ;
+  - un robot revient si les joueurs se font rares.
+- **Comme un humain** :
+  - le robot joue à ses heures : 2 à 4 séances par jour, entre 8 h et 23 h, différentes chaque jour, et une ou deux choses par séance ;
+  - il met de 15 minutes à 6 heures à répondre à une offre ou à un échange ;
+  - il commence avec 1 500 pièces, comme tout le monde, et prend un lieu par jour près d'un vrai joueur ;
+  - sur le serveur d'essai accéléré (jours de 60 s), les séances n'ont pas de sens : il joue à chaque tour.
+- **Sans abuser** :
+  - il accepte une offre ou un échange à partir de 110 % de la valeur ;
+  - ses offres vont de 90 à 125 % de la valeur, jamais au rabais, une seule en attente à la fois ;
+  - il n'achète jamais un lieu mis en vente sous 80 % de sa valeur (une erreur de prix reste une affaire pour les vrais joueurs), ni au-dessus de 140 % ;
+  - aux enchères, il mise seulement contre un vrai joueur qui mène, deux fois au plus par lot, jamais dans la dernière heure, et jusqu'à 120 % de la mise de départ ;
+  - il ne verse à la caisse d'une commune que si aucun vrai joueur n'y a versé ce mandat, et dès qu'un vrai joueur a versé le seuil, les robots ne comptent pas dans l'élection : un robot ne prend jamais une mairie à un vrai joueur ;
+  - il apparaît dans les classements du moment (il les anime), mais jamais sur un podium ni sur une plaque de fin de saison ;
+  - 30 lieux au plus, 3 par commune.
+- **Ils restent reconnaissables** : leur icône est 🤖. **[Proposé ; à trancher par Gautier]** Les cacher parmi les vrais joueurs serait trompeur, puisque des joueurs paient des gemmes. Les CGU diront que des joueurs automatiques animent le jeu au lancement.
+
 ## 6. Les collections **[V2]**
 
 Pas de bonus de collection en V1. **[Décidé]** En V2 : « toute ma rue », « les 20 arrondissements », « une adresse par département »… avec badge sur le profil (jamais de ₳).

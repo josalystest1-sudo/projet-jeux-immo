@@ -1,14 +1,15 @@
 // Les joueurs robots du serveur d'essai (demande de Gautier, 3 nov. 2026) : de vrais comptes, créés s'ils manquent,
 // que la fonction « jeu » fait jouer (robotsTour). Lancé par la publication du serveur ; n'affiche jamais une clé.
 //   node tools/serveur_robots.js <référence du projet>
-// Au lancement du jeu : les supprimer (supabase/sql/050_robots.sql dit comment).
+// Ils restent au lancement et se retirent d'eux-mêmes quand les vrais joueurs arrivent (GDD § 5 quater, 5 nov.).
 const crypto = require('crypto');
 const REF = process.argv[2] || 'hxtyecwofajiozmnfyxt';
 const JETON = process.env.SUPABASE_ACCESS_TOKEN;
 const URL = `https://${REF}.supabase.co`;
 const ECO = require('../data/economie.json');
-const DEPART_ROBOT = 100000;   // assez pour acheter les lieux des vrais joueurs (serveur d'essai)
-const ROBOTS = ['Léa', 'Marco', 'Inès', 'Yanis', 'Chloé', 'Sacha'];   // des prénoms inventés, avec l'icône 🤖
+const DEPART_ROBOT = ECO.robots.depart_pieces;   // comme un vrai joueur (GDD § 5 quater : des joueurs ordinaires)
+// des prénoms inventés, avec l'icône 🤖 ; autant que de robots au plus (ECO.robots.max) : le jeu en fait jouer moins quand les vrais joueurs arrivent
+const ROBOTS = ['Léa', 'Marco', 'Inès', 'Yanis', 'Chloé', 'Sacha', 'Nathan', 'Camille', 'Hugo', 'Manon'].slice(0, ECO.robots.max);
 
 async function requete(url, options) { const r = await fetch(url, options); const t = await r.text(); let j = null; try { j = JSON.parse(t); } catch (_) { j = t; } return { statut: r.status, corps: j }; }
 async function cles() {

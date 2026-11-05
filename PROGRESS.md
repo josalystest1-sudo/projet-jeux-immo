@@ -345,6 +345,29 @@
     4. avec des chiffres plus petits.
   - **Le mode sombre forcé** : la page le refuse (`color-scheme: only light`). Le téléphone de Gautier assombrissait les pastilles tout seul.
   - **Vérifié** (`scan_debord`, dans le dossier de travail de Claude) : à 320, 360 et 412 px, avec 1 234 567 pièces, 12 345 gemmes, un long pseudo et le texte agrandi à 130 %, plus rien ne sort de l'écran. Les autres écrans ont été passés au même scan (patrimoine, enchères, communes, notifications, boutique, classements, détail d'une carte, réglages) : rien ne dépasse. 76 tests.
+- 5 nov. 2026 (PR #139) : **les joueurs de la maison** (décision de Gautier : les robots restent au lancement, jouent comme des humains sans abuser, et se retirent avec la montée des joueurs ; GDD § 5 quater).
+  - **Règles pures** `src/regles/robots.js` (réglages `ECO.robots`) :
+    - combien jouent selon les vrais joueurs de la semaine ;
+    - leurs séances (2 à 4 par jour, de 8 h à 23 h) ;
+    - le délai pour répondre ;
+    - les prix d'offre, d'achat et de vente ;
+    - les mises aux enchères (jamais dans la dernière heure, deux par lot, 120 % au plus) ;
+    - les versements aux caisses (seulement là où aucun vrai joueur n'a versé) ;
+    - l'élection sans les robots dès qu'un vrai joueur a versé le seuil ;
+    - 30 lieux au plus, 3 par commune.
+    - 5 tests (`tests/robots.test.js`).
+  - **Serveur** :
+    - `robotsTour` réécrit avec ces règles. Chaque robot en séance passe comme un joueur (récolte, entretien, visite), répond à ce qu'il a eu le temps de lire, puis fait une ou deux choses.
+    - `050_robots.sql` :
+      - plus de réserve de 100 000 pièces (ramenées à 20 000 au plus ; les nouveaux robots partent de 1 500) ;
+      - `jeu_humains_actifs`, `jeu_robot_retraite` (ses offres et échanges tombent), `jeu_robot_liberer` (un robot retiré depuis 14 jours rend ses lieux libres ; ses lieux sont d'abord mis en vente à leur valeur).
+    - L'élection d'un Maire et la fin de saison mettent les robots de côté (pas de mairie prise à un vrai joueur, ni de podium ou de plaque).
+    - Quatre robots de plus (dix au plus).
+  - **Jeu** : la caisse d'une commune applique la même règle que le serveur (`ROB.electeurs`).
+  - **Vérifié** :
+    - `tools/essai_sql.mjs` : tout passe, dont les vrais joueurs comptés, le retrait (offre qui tombe), la libération des lieux et les droits ;
+    - `deno check` ;
+    - 81 tests.
 
 ## Bugs connus
 - Mode serveur : si la partie arrive du serveur avant que la carte ait fini de charger, un cadre rose « Erreur de style : The layer 'parcel-fill' does not exist… » peut s'afficher (la page cherche les parcelles avant que leurs calques soient posés) ; sans conséquence pour la partie. Vu le 3 nov. au soir, pas encore corrigé.
