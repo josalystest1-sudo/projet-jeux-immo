@@ -57,5 +57,6 @@ Embarquées dans `fonts/` (licence OFL), pas de service extérieur.
 - Les notifications sont sous la cloche, en haut ; les réglages dans le profil.
 - Des cibles de 44 px au moins ; texte de 13 px au moins.
 - Sur téléphone, une fiche ouverte cache la recherche, les boutons de la carte et la légende (`body.fiche-ouverte`) ; la légende est repliée par défaut ; pas de boutons de zoom sur un écran tactile.
+- **Rien ne doit être rogné, sur aucun téléphone** (Gautier, 5 nov.). La barre du haut se serre d'elle-même : sans la ligne sous le pseudo, puis l'avatar seul, puis sans le gain, puis avec des chiffres plus petits (classes `serre1` à `serre4`). Tout écran se vérifie aussi en 320 px, avec de gros montants et le texte agrandi : `scan_debord`, décrit dans `PROGRESS.md` (PR #138). La page refuse le mode sombre forcé du téléphone (`color-scheme: only light`).
 - Tout écran se vérifie aussi en 360 px de large (`LARGEUR=360 HAUTEUR=780 node tools/visite_ecrans.js …`) : rien ne doit déborder ni se chevaucher.
 - Mouvement : seulement en réponse à un geste (ouvrir, confirmer, gagner), et l'ouverture du pack ; respecter « réduire les animations ».

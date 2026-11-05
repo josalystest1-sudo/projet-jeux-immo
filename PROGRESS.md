@@ -335,6 +335,16 @@
   - **L'onglet « Pièces »** : les pièces en main de chacun, en ce moment. Il bouge tout le temps et n'est pas figé à la fin de la saison [Proposé]. Démo : les pièces des autres joueurs sont simulées (`piecesSimulees`, `classementPieces`).
   - **Le serveur** (`supabase/sql/140_classement_pieces.sql`) : `classement_pieces(lim)` et `rang_pieces(j)`, seulement les joueurs qui ont un pseudo. Chacun ne lit toujours que ses propres pièces dans « joueurs ».
   - **Vérifié** : `tools/essai_sql.mjs` (162 essais, dont le classement, la place d'un joueur, la lecture sans compte et le refus de lire les pièces des autres). Les écrans à l'image en 390 et 360 px. 76 tests.
+- 5 nov. 2026 (PR #138) : **plus rien de rogné en haut de la carte**. Sur le téléphone de Gautier, la cloche et le montant de pièces sortaient de l'écran.
+  - **La cause** : la recherche et la pastille du pseudo ne pouvaient pas rétrécir. Sur un écran étroit, avec le texte agrandi ou de gros montants, la ligne débordait.
+  - **Chaque élément peut maintenant rétrécir** ; le pseudo se coupe par « … ».
+  - **La barre se serre d'elle-même, d'un cran à la fois** (`serre1` à `serre4`, revue à chaque changement de taille par un `ResizeObserver`) :
+    1. sans la ligne sous le pseudo ;
+    2. avec l'avatar seul ;
+    3. sans le gain à récolter ;
+    4. avec des chiffres plus petits.
+  - **Le mode sombre forcé** : la page le refuse (`color-scheme: only light`). Le téléphone de Gautier assombrissait les pastilles tout seul.
+  - **Vérifié** (`scan_debord`, dans le dossier de travail de Claude) : à 320, 360 et 412 px, avec 1 234 567 pièces, 12 345 gemmes, un long pseudo et le texte agrandi à 130 %, plus rien ne sort de l'écran. Les autres écrans ont été passés au même scan (patrimoine, enchères, communes, notifications, boutique, classements, détail d'une carte, réglages) : rien ne dépasse. 76 tests.
 
 ## Bugs connus
 - Mode serveur : si la partie arrive du serveur avant que la carte ait fini de charger, un cadre rose « Erreur de style : The layer 'parcel-fill' does not exist… » peut s'afficher (la page cherche les parcelles avant que leurs calques soient posés) ; sans conséquence pour la partie. Vu le 3 nov. au soir, pas encore corrigé.

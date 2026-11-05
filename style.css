@@ -1287,4 +1287,29 @@ html.pocket select{background:#fff;border:1px solid #D9DFEA;border-radius:12px;p
 #trophee{color:#C98A12}
 #trophee .ico-svg{width:24px;height:24px}
 .onglets-classement .filtre .pc{width:15px;height:15px}
+/* ===================== la barre du haut tient sur tous les téléphones (5 nov., Gautier : « certains boutons sont rognés ») =====================
+   Chaque élément peut rétrécir au lieu de sortir de l'écran (la recherche d'abord, puis le pseudo, coupé par « … ») ; si cela
+   ne suffit pas (texte agrandi dans les réglages du téléphone), index.html serre la barre d'un cran (classes serre1 à serre3). */
+:root{color-scheme:only light}
+#top .row,#top .barre{min-width:0;max-width:100%}
+#top .pill.moi{flex:0 1 auto;min-width:0;overflow:hidden}
+#top:not(.serre2) .pill.moi{min-width:118px}
+#top .moi-t{min-width:0;overflow:hidden}
+#top .moi-t b,#top .moi-t small{display:block;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#top .pills-droite{flex:0 0 auto;min-width:0}
+#top .pill.gemmes,#top .pill.bourse,#top .barre .rond{flex:none}
+#top #search{min-width:0}
+#top #search input{width:100%;min-width:0}
+#top.serre1 .moi-t small{display:none}
+#top.serre1 .pill{padding-right:9px}
+#top.serre1 .rond{width:44px;height:44px}
+#top.serre1 .row,#top.serre1 .barre,#top.serre1 .pills-droite{gap:6px}
+#top.serre2 .moi-t{display:none}
+#top.serre2 .pill.moi{padding:4px}
+#top.serre2 .pill.moi{flex:none}
+#top.serre3 .gain{display:none}
+#top.serre4 .bourse b,#top.serre4 .pill.gemmes b{font-size:15px}
+#top.serre4 .bourse .pc{width:20px;height:20px}
+#top.serre4 .pill.bourse,#top.serre4 .pill.gemmes{padding:5px 8px 5px 6px;gap:4px}
+#top.serre4 .pill.gemmes{flex:0 1 auto;min-width:0;overflow:hidden}
 
