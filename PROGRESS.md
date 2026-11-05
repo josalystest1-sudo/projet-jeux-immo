@@ -317,6 +317,8 @@
   - **La carte de nuit le soir** (choix de Gautier : « selon l'heure ») : `couleursCarte` passe de 20 h à 7 h aux couleurs de `COULEURS_CARTE` (sol, rues, bâtiments libres, lumière). Elle ne les repose qu'au passage du jour à la nuit. `?carte=nuit` ou `?carte=jour` pour essayer.
   - **Vérifié** : tous les écrans capturés au format téléphone (390 et 360 px de large), de jour et de nuit. Nouveau test `tests/icones.test.js`. 75 tests.
 
+- 5 nov. 2026 (matin, PR #134, document seulement) : `docs/KIT-MARQUE.md`, les prompts à coller dans un générateur d'images : brief (plaque et pièce, ton « classe, stylé »), 3 pistes de logo (plaque-carte, éventail de ville, monogramme pièce), réglages par outil, kit social media (dimensions, bannière, image Open Graph, 4 fonds de posts et stories, règles de texte), ordre de fabrication.
+
 ## Bugs connus
 - Mode serveur : si la partie arrive du serveur avant que la carte ait fini de charger, un cadre rose « Erreur de style : The layer 'parcel-fill' does not exist… » peut s'afficher (la page cherche les parcelles avant que leurs calques soient posés) ; sans conséquence pour la partie. Vu le 3 nov. au soir, pas encore corrigé.
 - Les badges 💰 des joueurs simulés n'apparaissent qu'après ouverture de leur parcelle (limite du prototype local).
