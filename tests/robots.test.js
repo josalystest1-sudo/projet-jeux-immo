@@ -53,3 +53,8 @@ test('un robot ne prend jamais une mairie à un vrai joueur', () => {
   assert.strictEqual(ROB.electeurs(sous, estRobot, 100).length, 2, 'sous le seuil, la caisse est élue comme d’habitude');
 });
 
+test('jamais de gemmes avec un robot, ni pour vendre ni pour acheter', () => {
+  assert.ok(ROB.devisePermise('pieces') && ROB.devisePermise(undefined) && ROB.devisePermise(null));
+  assert.ok(!ROB.devisePermise('gemmes'));
+});
+

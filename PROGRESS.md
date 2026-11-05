@@ -368,6 +368,19 @@
     - `tools/essai_sql.mjs` : tout passe, dont les vrais joueurs comptés, le retrait (offre qui tombe), la libération des lieux et les droits ;
     - `deno check` ;
     - 81 tests.
+- 5 nov. 2026 (PR #140) : **les robots cachés parmi les joueurs, et jamais de gemmes avec eux** (décisions de Gautier).
+  - **Cachés** :
+    - des icônes de joueurs ordinaires, à la place de 🤖 ;
+    - la table `robots` illisible par le jeu ;
+    - plus de carte « joueur d'essai » sur leur profil ;
+    - l'élection reste juste sans les désigner : `caisse_communes(…, seuil)` efface un robot d'une caisse où un vrai joueur a versé le seuil.
+  - **Jamais de gemmes** (`ROB.devisePermise`) : un robot refuse une offre en gemmes, n'achète pas un lieu vendu en gemmes et vend toujours en pièces.
+  - **Proposé à Gautier, non décidé** : une phrase générale dans les CGU sur les joueurs automatiques.
+  - **Vérifié** :
+    - `tools/essai_sql.mjs` : tout passe, dont l'effacement d'un robot d'une caisse et la liste illisible ;
+    - `deno check` ;
+    - 82 tests ;
+    - `tools/serveur_essai.js` vérifie après la mise en ligne que la liste des robots est illisible.
 
 ## Bugs connus
 - Mode serveur : si la partie arrive du serveur avant que la carte ait fini de charger, un cadre rose « Erreur de style : The layer 'parcel-fill' does not exist… » peut s'afficher (la page cherche les parcelles avant que leurs calques soient posés) ; sans conséquence pour la partie. Vu le 3 nov. au soir, pas encore corrigé.

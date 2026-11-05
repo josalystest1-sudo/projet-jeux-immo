@@ -196,6 +196,12 @@ ok((await q('select statut from public.offres where id = $1', [offreD]))[0].stat
 ok(Number((await q('select public.jeu_robot_liberer($1) as n', [A]))[0].n) === 0 && !!(await proprio('a2')), 'un vrai joueur ne perd jamais ses lieux ainsi');
 ok(Number((await q('select public.jeu_robot_liberer($1) as n', [D]))[0].n) === 2 && !(await proprio('d1')) && !(await proprio('d2')), 'le robot retiré rend ses lieux libres');
 ok(!(await q('select public.jeu_robot_retraite($1, true) as t', [D]))[0].t, 'un robot qui revient joue de nouveau');
+await q("insert into public.caisses (mandat, commune, joueur, points, verse) values (30, 'Robotville', $1, 500, 500), (30, 'Robotville', $2, 150, 150)", [D, A]);
+let cr = await q("select joueur from public.caisse_communes(array['Robotville'], 31, now() - interval '7 days', 100)");
+ok(cr.length === 1 && cr[0].joueur === A, 'un vrai joueur a versé le seuil : le robot s’efface de la caisse (il ne prend pas la mairie)', cr);
+await q("update public.caisses set points = 50 where commune = 'Robotville' and joueur = $1", [A]);
+cr = await q("select joueur from public.caisse_communes(array['Robotville'], 31, now() - interval '7 days', 100)");
+ok(cr.length === 2, 'sous le seuil, la caisse montre tout le monde', cr);
 ok(Number((await q("select public.jeu_mairies(12, $1::jsonb) as n", [JSON.stringify([{ commune: 'Bourg', maire: A, rivaux: 3 }, { commune: 'Classeville', maire: B, rivaux: 0 }])]))[0].n) === 2, 'garder les Maires d’un mandat');
 await q("select public.jeu_mairies(13, $1::jsonb)", [JSON.stringify([{ commune: 'Bourg', maire: B, rivaux: 2 }, { commune: 'Ailleurs', maire: A, rivaux: 1 }])]);
 const cm = await q('select joueur, n, mairies from public.classement_maires(12, 17, 10)');
@@ -320,6 +326,7 @@ ok(!!(await refus("insert into public.paiements (session, joueur, offre, gemmes,
 await db.exec('reset role; set role anon;');
 ok((await q("select count(*)::int as n from public.caisse_communes(array['Bourg'], 6, now() - interval '7 days')"))[0].n > 0, 'sans compte aussi, on lit les caisses');
 ok((await q('select count(*)::int as n from public.encheres'))[0].n > 0, 'sans compte aussi, on lit les lots');
+ok(!!(await refus('select * from public.robots')), 'personne ne peut lire la liste des robots (ils sont cachés parmi les joueurs)');
 ok((await q('select count(*)::int as n from public.classement_pieces(5)'))[0].n > 0 && !!(await refus('select pieces from public.joueurs')), 'sans compte aussi, on lit le classement des pièces, mais pas les pièces de chacun');
 await db.exec('reset role;');
 console.log(echecs ? `${echecs} échec(s)` : 'Tout passe.');

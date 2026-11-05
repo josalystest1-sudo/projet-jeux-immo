@@ -44,10 +44,12 @@
     function peutVerser(versementsHumains) { return !(versementsHumains > 0); }
     // garder un lieu de plus ? pas plus d'un certain nombre en tout ni par commune (ne pas envahir le quartier d'un joueur)
     function peutPrendre(nLieux, nDansCommune) { return nLieux < C.lieux_max && nDansCommune < C.par_commune_max; }
+    // jamais de gemmes avec un robot, ni pour vendre ni pour acheter (Gautier, 5 nov.) : seulement des pièces
+    function devisePermise(devise) { return (devise || 'pieces') === 'pieces'; }
     // l'élection d'un Maire : dès qu'un vrai joueur a versé au moins le seuil, les robots ne comptent pas (un robot ne prend
     // jamais une mairie à un vrai joueur) ; lignes = [{ joueur, points }]
     function electeurs(lignes, estRobot, seuil) { const h = lignes.filter((r) => !estRobot(r.joueur)); return h.some((r) => Number(r.points) >= seuil) ? h : lignes; }
-    return { C, alea, nombreActifs, seances, enSeance, delaiReponse, accepte, prixOffre, peutAcheter, prixVente, mise, peutVerser, peutPrendre, electeurs };
+    return { C, alea, nombreActifs, seances, enSeance, delaiReponse, accepte, prixOffre, peutAcheter, prixVente, mise, peutVerser, peutPrendre, electeurs, devisePermise };
   }
   const Robots = { creer, alea };
   if (typeof module !== 'undefined' && module.exports) module.exports = Robots; else racine.Robots = Robots;

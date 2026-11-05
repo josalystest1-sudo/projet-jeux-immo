@@ -55,7 +55,10 @@ grant all on public.mandats_tenus to service_role;
 -- ---------------------------------------------------------------- lire (le jeu et la fonction « jeu »)
 -- les caisses de plusieurs communes, pour le mandat m (en cours) et le précédent (qui élit les Maires de m) ;
 -- absent : le joueur n'est pas venu depuis absent_avant (il ne peut pas être Maire)
-create or replace function public.caisse_communes(communes text[], m bigint, absent_avant timestamptz)
+-- Les joueurs de la maison (GDD § 5 quater, 5 nov.) : dès qu'un vrai joueur a versé le seuil dans une caisse, les robots
+-- s'en effacent (ils ne prennent jamais une mairie à un vrai joueur) ; le jeu ne sait pas qui est un robot.
+drop function if exists public.caisse_communes(text[], bigint, timestamptz);
+create or replace function public.caisse_communes(communes text[], m bigint, absent_avant timestamptz, seuil bigint default 100)
 returns table (commune text, mandat bigint, joueur uuid, pseudo text, avatar text, points bigint, absent boolean)
 language sql stable security definer set search_path = '' as $$
   select c.commune, c.mandat, c.joueur, p.pseudo, p.avatar, c.points, j.vu_le < absent_avant
@@ -63,10 +66,13 @@ language sql stable security definer set search_path = '' as $$
     join public.joueurs j on j.id = c.joueur
     left join public.profils p on p.id = c.joueur
    where c.commune = any(communes) and c.mandat in (m - 1, m)
+     and not (exists (select 1 from public.robots r where r.id = c.joueur)
+              and exists (select 1 from public.caisses h where h.commune = c.commune and h.mandat = c.mandat and h.points >= seuil
+                                                          and not exists (select 1 from public.robots r2 where r2.id = h.joueur)))
    order by c.points desc, c.maj asc;
 $$;
-revoke all on function public.caisse_communes(text[], bigint, timestamptz) from public;
-grant execute on function public.caisse_communes(text[], bigint, timestamptz) to anon, authenticated, service_role;
+revoke all on function public.caisse_communes(text[], bigint, timestamptz, bigint) from public;
+grant execute on function public.caisse_communes(text[], bigint, timestamptz, bigint) to anon, authenticated, service_role;
 
 -- ---------------------------------------------------------------- les écritures (serveur seulement)
 -- je suis passé : la dernière visite (au plus une écriture toutes les 30 s)
