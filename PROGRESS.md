@@ -464,6 +464,10 @@
   - **Carte** : une étiquette sous la recherche (dès le zoom 14,5) donne la commune au centre, son Maire et ses travaux faits ; la toucher ouvre la commune (`majChipCommune` ; Paris, Lyon, Marseille : l'arrondissement, d'après `code_arr` de la parcelle).
   - Démo : les travaux sont ce que les joueurs simulés ont versé les 12 derniers mandats.
   - **Vérifié** : `tools/essai_sql.mjs` (201 vérifications : chaque versement compte, le départ d'un joueur ne retire rien, relancer le fichier ne compte rien deux fois, le jeu lit sans écrire) ; à l'image en 320 et 390 px, en français et en anglais. 96 tests.
+- 5 nov. 2026 (PR #154) : **relecture de tous les écrans en 320 px, en français et en anglais** (14 écrans × 2, démo). Deux défauts corrigés :
+  - en anglais, l'étiquette « NEIGHBOURHOOD » débordait de sa case (fiche d'un lieu, détail d'une carte) : « Quartier » se traduit maintenant « Area » ;
+  - dans les Réglages de la démo, le bouton « Jouer sur le vrai serveur » sortait de l'écran : il passe sous le texte.
+  - Le reste tient (y compris les nouveautés du jour : l'étiquette de la commune sur la carte, les travaux). Reste, sans gravité : une parenthèse qui passe seule à la ligne après une pièce dans une notification.
 
 ## Bugs connus
 - Les badges 💰 des joueurs simulés n'apparaissent qu'après ouverture de leur parcelle (limite du prototype local).
