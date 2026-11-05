@@ -36,7 +36,7 @@ let appelsPhoto = 0;
   page.on('pageerror', (e) => console.log('erreur page :', e.message));
   page.on('console', (m) => { if (m.type() === 'error' && !/Failed to load resource|net::/.test(m.text())) console.log('console :', m.text().slice(0, 200)); });
   await page.addInitScript((etat) => { try { if (!sessionStorage.getItem('fait')) { localStorage.setItem('proto-cadastre-v3', JSON.stringify(etat)); sessionStorage.setItem('fait', '1'); } } catch (e) {} }, ETAT());
-  await page.goto('http://jeu.local/');
+  await page.goto('http://jeu.local/?demo'); // la démo (joueurs simulés) : tout le monde joue sinon sur le vrai serveur
   await page.waitForTimeout(4500);
   await page.evaluate(() => { try { closeModal(); } catch (e) {} map.jumpTo({ center: [2.33963, 48.8812], zoom: 17.8, pitch: 58, bearing: 0 }); });
   await page.waitForTimeout(6000);

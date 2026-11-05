@@ -18,7 +18,7 @@ const dormir = (ms) => new Promise((r) => setTimeout(r, ms));
   await cmd('Emulation.setDeviceMetricsOverride', { width: 375, height: 812, deviceScaleFactor: 2, mobile: true });
   await cmd('Page.enable');
   // le jeu prend la langue du navigateur : en français pour les captures, sauf LANGUE=en
-  await cmd('Page.addScriptToEvaluateOnNewDocument', { source: `try{ if(!localStorage.getItem('citydeck-langue')) localStorage.setItem('citydeck-langue', '${process.env.LANGUE || 'fr'}'); }catch(e){}` });
+  await cmd('Page.addScriptToEvaluateOnNewDocument', { source: `try{ if(!localStorage.getItem('citydeck-langue')) localStorage.setItem('citydeck-langue', '${process.env.LANGUE || 'fr'}'); sessionStorage.setItem('cadastra-demo', '1'); }catch(e){}` });
   await cmd('Page.navigate', { url: URL_PAGE }); await dormir(7000);
   const lancer = `(async()=>{ try{closeModal()}catch(e){}; ${process.env.CARTE || "const l = await chargerCelebres('37'); window.__carte = Object.assign(Celebres.lieuDe(l.find(e=>/Beaulieu-lès-Loches/.test(e[1]))), {city:'Beaulieu-lès-Loches'});"} await fetchCommune(window.__carte);
     const sc=document.getElementById('packscene'); sc.classList.add('on','show'); document.getElementById('pkgl').style.display='none'; document.getElementById('pkhint').textContent=''; revealSequence(window.__carte); return 'ok'; })()`;

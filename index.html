@@ -186,9 +186,14 @@ const ME = 'moi';
 const AVATARS=['🦊','🐻','🐼','🦁','🐯','🐸','🐙','🦄','🐲','🤖','👑','🎩'];
 function disp(n){ return n===ME ? (state.pseudo||'Moi') : n; }
 const FAKE = ['Léa','Marco','Inès','Yanis','Chloé','Sacha'];
-// Le mode serveur (phase 8, essai : Réglages) : la partie vit sur le vrai serveur, au rythme qu'il donne ;
-// sinon, la démo sur l'appareil (un jour = une minute, joueurs simulés). Les deux parties sont gardées à part.
-const MODE_SERVEUR = (()=>{ try{ return localStorage.getItem('cadastra-mode')==='serveur'; }catch(e){ return false; } })();
+// Le mode serveur : la partie vit sur le vrai serveur, au rythme qu'il donne. Depuis le 5 nov. (8.2), tout le monde y joue ;
+// la démo (partie sur l'appareil, un jour = une minute, joueurs simulés) ne s'ouvre plus que par ?demo dans l'adresse
+// (outils de capture, essais), pour l'onglet ouvert, ou quand data/serveur.json n'a pas d'adresse (src/compte.js).
+// Les deux parties sont gardées à part (CLE_ETAT). L'ancien interrupteur des Réglages ('cadastra-mode') est oublié.
+const MODE_SERVEUR = (()=>{ try{ const q=new URLSearchParams(location.search);
+  if(q.has('demo')) sessionStorage.setItem('cadastra-demo','1'); else if(q.has('serveur')) sessionStorage.removeItem('cadastra-demo');
+  try{ localStorage.removeItem('cadastra-mode'); }catch(e){}
+  return sessionStorage.getItem('cadastra-demo')!=='1'; }catch(e){ return true; } })();
 let JOUR = 60*1000;   // démo : un jour = une minute ; mode serveur : la durée donnée par le serveur (essai : une minute ; vrai jeu : 24 h)
 const CLE_ETAT = MODE_SERVEUR ? 'cadastra-serveur-v1' : 'proto-cadastre-v3';
 // mode serveur : le monde réel, lu sur le serveur (voir « le monde réel » plus bas)
@@ -363,6 +368,9 @@ const map = new maplibregl.Map({
     ] }
 });
 if(!matchMedia('(pointer:coarse)').matches) map.addControl(new maplibregl.NavigationControl({showCompass:false}), 'bottom-right');   // sur téléphone, on zoome avec deux doigts
+// les parcelles dessinées (à un point, ou sur tout l'écran) ; rien tant que leur calque n'est pas posé : la partie du serveur
+// arrive parfois avant, et MapLibre se plaignait (cadre rose « The layer 'parcel-fill' does not exist… », bug du 3 nov.)
+function parcellesRendues(ou){ if(!map.getLayer('parcel-fill')) return []; return ou ? map.queryRenderedFeatures(ou, {layers:['parcel-fill']}) : map.queryRenderedFeatures({layers:['parcel-fill']}); }
 map.on('error', e=>{ const m=(e&&e.error&&e.error.message)||String(e); if(/style/i.test(m)) dsay('Erreur de style : '+m.slice(0,160)); });
 map.on('load', ()=>{ setTimeout(()=>{ if(!map.isSourceLoaded('topo')) dsay('Données IGN non chargées (réseau bloqué ?).'); }, 9000); });
 
@@ -415,7 +423,7 @@ function flyToAddr(a){ showScreen('carte'); allerA(a.lon, a.lat, 18, ()=>choisir
 // ouvrir la fiche du lieu qu'on est venu voir : sa parcelle, ou la plus proche s'il est sur la voie publique
 // (le Gros-Horloge de Rouen enjambe une rue, et une rue n'a pas de parcelle au cadastre)
 function choisirParcelleEn(lon,lat){ pointVise=[lon,lat]; const pf=parcelleDe(lon,lat) || parcelleProche(lon,lat,60); if(pf) return selectParcel(pf);
-  const pt=map.project([lon,lat]); const ff=map.queryRenderedFeatures(pt,{layers:['parcel-fill']}); if(ff[0]) selectParcel(ff[0]); }
+  const pt=map.project([lon,lat]); const ff=parcellesRendues(pt); if(ff[0]) selectParcel(ff[0]); }
 
 // Aller quelque part. Tout près : la carte glisse. Plus loin : un court écran de voyage, un saut direct, puis la caméra s'incline.
 // (Un survol depuis Paris jusqu'à Lyon téléchargeait en route des dizaines de tuiles lourdes : 10 à 30 s d'écran vide sur téléphone.)
@@ -457,9 +465,9 @@ function parcelBonus(idu){ const list=parcelAddrs[idu]; if(!list) return 0; let 
 // Les couleurs des parcelles et des bâtiments (feature-state). On ne repose un état que s'il change :
 // sinon chaque « idle » relançait un dessin, qui relançait un « idle »… et la carte ne se reposait jamais.
 const etatParc = {}, etatBati = {};
-function poserParcelle(idu, st){ if(etatParc[idu]===st) return; etatParc[idu]=st; map.setFeatureState({source:'pci', sourceLayer:'parcelle', id:idu}, {st}); }
+function poserParcelle(idu, st){ if(etatParc[idu]===st || !map.getSource('pci')) return; etatParc[idu]=st; map.setFeatureState({source:'pci', sourceLayer:'parcelle', id:idu}, {st}); }
 function paintParcel(idu){ const st = MODE_SERVEUR ? etatReel(idu) : parcelState(idu); if(st) poserParcelle(idu, st); paintBuildings(); paintBadges(idu); }
-function seedVisible(){ if(map.getZoom()<15) return; if(MODE_SERVEUR) calculerReel(); const feats = map.queryRenderedFeatures({layers:['parcel-fill']}); const seen=new Set();
+function seedVisible(){ if(map.getZoom()<15) return; if(MODE_SERVEUR) calculerReel(); const feats = parcellesRendues(); const seen=new Set();
   const miennes = new Set(Object.values(state.owned).map(a=>a.idu).filter(Boolean));
   for(const f of feats){ const idu=f.id; if(!idu || seen.has(idu)) continue; seen.add(idu);
     if(MODE_SERVEUR){ poserParcelle(idu, etatReel(idu)); continue; }
@@ -477,10 +485,10 @@ function grilleParcelles(parcels){ const T=0.0004, g=new Map();
   for(const pf of parcels){ if(!pf.id) continue; const b=boite(pf.geometry); pf._b=b;
     for(let i=Math.floor(b[0]/T); i<=Math.floor(b[2]/T); i++) for(let j=Math.floor(b[1]/T); j<=Math.floor(b[3]/T); j++){ const k=i+':'+j; let l=g.get(k); if(!l) g.set(k, l=[]); l.push(pf); } }
   return (pt)=>{ const l=g.get(Math.floor(pt[0]/T)+':'+Math.floor(pt[1]/T)) || []; for(const pf of l){ const b=pf._b; if(pt[0]<b[0]||pt[0]>b[2]||pt[1]<b[1]||pt[1]>b[3]) continue; if(inside(pt, pf.geometry)) return pf.id; } return null; }; }
-function paintBuildings(){ const bb=map.getBounds(); monVisibles = LISTE_MON.filter(m=>bb.contains([m.lon,m.lat])); const feats = map.queryRenderedFeatures({layers:['bati-3d']});
+function paintBuildings(){ if(!map.getLayer('bati-3d')) return; const bb=map.getBounds(); monVisibles = LISTE_MON.filter(m=>bb.contains([m.lon,m.lat])); const feats = map.queryRenderedFeatures({layers:['bati-3d']});
   let chercher=null; const vus=new Set();
   for(const b of feats){ const id=b.id; if(!id || vus.has(id)) continue; vus.add(id); let idu = batiParcel[id]; let c=null;
-    if(idu===undefined){ if(!chercher) chercher = grilleParcelles(map.queryRenderedFeatures({layers:['parcel-fill']})); c=centroid(b.geometry); idu=chercher(c); batiParcel[id]=idu; }
+    if(idu===undefined){ if(!chercher) chercher = grilleParcelles(parcellesRendues()); c=centroid(b.geometry); idu=chercher(c); batiParcel[id]=idu; }
     const st = idu ? (etatParc[idu] || 'free') : 'free';
     const bonus = idu ? parcelBonus(idu) : 0;
     let mon=false; if(monVisibles.length){ c = c || centroid(b.geometry); mon = monVisibles.some(m=>dist(c,[m.lon,m.lat])<70); }
@@ -564,6 +572,7 @@ map.on('click', (e)=>{ if(sugg.style.display==='block'){ sugg.style.display='non
   if(mq){ const ici=[mq.lon, mq.lat]; let mt=LISTE_MON.find(m=>m.id===mq.id), d=mt ? dist([mt.lon,mt.lat], ici) : Infinity;
     for(const m of LISTE_MON){ if(Math.abs(m.lat-mq.lat)>0.001 || Math.abs(m.lon-mq.lon)>0.0015) continue; const dm=dist([m.lon,m.lat], ici); if(dm<40 && dm<d){ mt=m; d=dm; } }
     if(mt){ ouvrirMonument(mt); return; } }
+  if(!map.getLayer('parcel-fill') || !map.getLayer('bati-3d')) return;
   const feats = map.queryRenderedFeatures(e.point, {layers:['bati-3d','parcel-fill']});
   let f = feats.find(x=>x.layer.id==='parcel-fill'); const b = feats.find(x=>x.layer.id==='bati-3d');
   if(b && batiParcel[b.id]){ const pf = map.querySourceFeatures('pci',{sourceLayer:'parcelle', filter:['==',['get','idu'],batiParcel[b.id]]})[0]; if(pf) f = pf; }
@@ -1829,7 +1838,7 @@ async function chargerZone(){ if(!(window.Compte && Compte.client && Compte.sess
 const IDU_DE = {};
 function calculerReel(){ const b=map.getBounds(); let trouver=null; const qui={};
   // seulement les lieux à l'écran (un joueur peut en avoir des centaines dans toute la France)
-  const poser=(a,q)=>{ let idu=a.idu || IDU_DE[a.id]; if(!idu){ if(!b.contains([a.lon,a.lat])) return; trouver=trouver||grilleParcelles(map.queryRenderedFeatures({layers:['parcel-fill']}));
+  const poser=(a,q)=>{ let idu=a.idu || IDU_DE[a.id]; if(!idu){ if(!b.contains([a.lon,a.lat])) return; trouver=trouver||grilleParcelles(parcellesRendues());
       idu=trouver([a.lon,a.lat]) || (parcelleProche(a.lon, a.lat, 12)||{}).id; if(idu) IDU_DE[a.id]=idu; }
     if(idu) (qui[idu]=qui[idu]||new Set()).add(q); };
   for(const a of Object.values(state.owned)) poser(a, ME); for(const p of Object.values(PROPRIOS)) poser(p, p.qui); REEL=qui; }
@@ -1859,7 +1868,8 @@ async function surveiller(){ if(document.hidden || serveurOccupe || !(window.Com
   if(document.getElementById('s-notifs').classList.contains('on')) renderNotifs();
   if(lieux!==Object.keys(state.owned).sort().join() && document.getElementById('s-patrimoine').classList.contains('on')) renderPatrimoine(); }
 if(MODE_SERVEUR) setInterval(surveiller, 60000);
-function changerMode(serveur){ try{ localStorage.setItem('cadastra-mode', serveur ? 'serveur' : 'demo'); }catch(e){} location.reload(); }
+// quitter la démo (ouverte par ?demo) : retour au vrai serveur
+function quitterDemo(){ try{ sessionStorage.removeItem('cadastra-demo'); }catch(e){} const u=new URL(location.href); u.searchParams.delete('demo'); location.replace(u.toString()); }
 
 // =================== tirage du pack (src/tirage.js, le même code que le serveur ; règles : src/regles/pack.js) ===================
 // En mode démo, le jeu tire lui-même ; les joueurs simulés possèdent les lieux selon la couleur de leur parcelle.
@@ -1919,7 +1929,7 @@ function ouvrirBoutique(){ const box=document.getElementById('modalbox'), t=now(
     <div class="article pass"><div class="t">⭐ Pass 15 jours</div><div class="m">Ton pack du jour a <b>${BOU.B.pass_cartes} cartes</b> au lieu de ${ECO.pack.cartes}, et un <b>bon</b> pour prendre l’adresse libre de ton choix (jusqu’à Épique) : « Prendre avec mon bon » sur sa fiche.</div>
       ${actif ? `<div class="m pass-actif">Actif encore ${dureeTexte(pass.fin-t)} · ${bons} bon${bons>1?'s':''} (${BOU.B.bons_max} au plus)</div>` : ''}${acheter('pass', actif ? 'Prolonger de 15 jours' : 'Prendre le Pass')}</div>
     <div class="article"><div class="t">💎 Gemmes</div><div class="gemmes-offres">${BOU.B.gemmes.map(o=>`<button class="offre-gemmes" data-gemmes="${o.id}"><b>💎 ${nb(o.gemmes)}</b><small>${o.euros.toFixed(2).replace('.',',')} €</small></button>`).join('')}</div>
-      <div class="m petit">${MODE_SERVEUR ? 'Paiement sécurisé par carte (Stripe).' : 'Le paiement par carte se fait sur le vrai serveur (Réglages).'} Les gemmes ne se revendent pas et ne s’échangent pas contre des pièces.</div></div>
+      <div class="m petit">${MODE_SERVEUR ? 'Paiement sécurisé par carte (Stripe).' : 'Le paiement par carte se fait sur le vrai serveur, pas dans la démo.'} Les gemmes ne se revendent pas et ne s’échangent pas contre des pièces.</div></div>
     <div class="probas"><div class="t">🎲 Chances par carte</div><div class="m">${proba}</div><div class="m petit">Les mêmes pour le pack du jour, le pack national et le pack régional. Les monuments ne sortent jamais des packs.</div></div>
     <button class="btn clair large" style="width:100%;margin-top:12px" onclick="closeModal()">Fermer</button>`;
   document.getElementById('modal').classList.add('on');
@@ -1935,7 +1945,7 @@ function ouvrirBoutique(){ const box=document.getElementById('modalbox'), t=now(
 // retour (?paiement=…), le serveur vérifie auprès de Stripe et crédite les gemmes
 const euros = x => x.toFixed(2).replace('.', ',')+' €';
 function acheterGemmes(id){ const o=BOU.B.gemmes.find(x=>x.id===id); if(!o) return;
-  if(!MODE_SERVEUR) return toast('💳 Le paiement par carte se fait sur le vrai serveur : Réglages, « Jouer sur le vrai serveur »');
+  if(!MODE_SERVEUR) return toast('💳 Le paiement par carte se fait sur le vrai serveur, pas dans la démo');
   const box=document.getElementById('modalbox');
   box.innerHTML=`<h2>💎 ${nb(o.gemmes)} gemmes</h2><div class="sub">${euros(o.euros)}, payés par carte avec Stripe</div>
     <label class="consentement"><input type="checkbox" id="pg-ok"><span>Je demande à recevoir mes gemmes tout de suite, et je renonce à mon droit de rétractation de 14 jours pour ce contenu numérique.</span></label>
@@ -2421,7 +2431,8 @@ function ouvrirReglages(){ const box=document.getElementById('modalbox');
     <div class="sw"><span>M’alerter quand je suis dépassé aux enchères</span><input type="checkbox" ${state.prefs.encheres?'checked':''} onchange="setPref('encheres',this.checked)"></div>
     <div class="sw"><span>Sons</span><input type="checkbox" ${state.prefs.sons!==false?'checked':''} onchange="setPref('sons',this.checked)"></div>
     <div class="sw"><span>Vibrations</span><input type="checkbox" ${state.prefs.vibrations!==false?'checked':''} onchange="setPref('vibrations',this.checked)"></div>
-    ${window.Compte && Compte.actif() ? `<div class="sw mode"><span>Jouer sur le vrai serveur (essai)<small>${MODE_SERVEUR ? (enVraisJours() ? 'Ta partie est sur le serveur, en vrais jours de 24 h.' : `Serveur d’essai accéléré : un jour du jeu = ${Math.round(JOUR/60000)} min.`) : 'Ta partie de démo reste sur ce téléphone ; celle du serveur part de zéro.'}</small></span><input type="checkbox" ${MODE_SERVEUR?'checked':''} onchange="changerMode(this.checked)"></div>` : ''}
+    ${MODE_SERVEUR ? (enVraisJours() ? '' : `<div class="m petit" style="margin-top:8px">Serveur d’essai accéléré : un jour du jeu = ${Math.round(JOUR/60000)} min.</div>`)
+      : `<div class="sw mode"><span>Démo : joueurs simulés<small>Ta partie de démo reste sur ce téléphone.</small></span><button class="btn sm" onclick="quitterDemo()">Jouer sur le vrai serveur</button></div>`}
     ${(state.signalements||[]).length?`<div class="m" style="margin-top:10px">🚩 Signalements envoyés : ${state.signalements.length}</div>`:''}
     <div class="essais"><b>Pack d’essai</b><small>S’ouvre comme un vrai pack, mais ne compte pas et ne te donne rien.</small>
       <div class="liste-btn"><button class="btn clair" onclick="ouvrirPackEssai([1,2,3,4,5])">🎴 Toutes les raretés</button><button class="btn clair" onclick="ouvrirPackEssai([4,4,4,4,4])">✨ Épiques</button><button class="btn clair" onclick="ouvrirPackEssai([5,5,5,5,5])">👑 Légendaires</button></div>
@@ -2481,7 +2492,8 @@ async function profilReel(name){ let uid=PAR_PSEUDO[name];
 // les communes où je suis Maire (mêmes règles que l'écran Communes)
 function mesMairies(){ const mine=mesLieuxParCommune(); return (MODE_SERVEUR ? Object.keys(CAISSES) : Object.keys(state.caisse.elus||{})).filter(k=>infoCommune(k, mine).jeSuisMaire); }
 // Signaler un joueur : une raison, un mot facultatif ; la file de signalements est traitée à la main par Gautier
-// (serveur simulé : gardée dans le profil ; avec Supabase : une table « signalements »).
+// (démo : gardée dans le profil ; mode serveur : la table « signalements », lue par Gautier dans le tableau de bord de
+// Supabase ; un même joueur une fois par jour au plus, le serveur le vérifie aussi).
 const RAISONS = { pseudo:'Pseudo inapproprié', triche:'Triche ou plusieurs comptes', comportement:'Comportement (offres, messages…)', autre:'Autre' };
 function signaler(name){ const box=document.getElementById('modalbox'); const deja=(state.signalements||[]).find(x=>x.qui===name && now()-x.ts<JOUR);
   if(deja) return toast('Tu as déjà signalé ce joueur aujourd’hui. Merci !');
@@ -2490,8 +2502,15 @@ function signaler(name){ const box=document.getElementById('modalbox'); const de
     <input class="txt" id="sigtxt" maxlength="200" placeholder="Un détail (facultatif)"><div class="err" id="sigerr"></div>
     <button class="btn" style="width:100%;margin-bottom:8px" id="sigok">Envoyer le signalement</button><button class="btn sm" style="width:100%" onclick="showPlayer('${name}')">Annuler</button>`;
   box.querySelectorAll('#raisons button').forEach(b=>b.onclick=()=>{ raison=b.dataset.r; box.querySelectorAll('#raisons button').forEach(x=>x.classList.toggle('on', x===b)); box.querySelector('#sigerr').textContent=''; });
-  box.querySelector('#sigok').onclick=()=>{ if(!raison){ box.querySelector('#sigerr').textContent='Choisis une raison'; return; }
-    (state.signalements=state.signalements||[]).push({ qui:name, raison, texte:box.querySelector('#sigtxt').value.trim().slice(0,200), ts:now() }); save(); closeModal(); toast('Signalement envoyé. Merci, il sera examiné.'); }; }
+  box.querySelector('#sigok').onclick=async()=>{ const err=box.querySelector('#sigerr'), ok=box.querySelector('#sigok'); if(!raison){ err.textContent='Choisis une raison'; return; }
+    const texte=box.querySelector('#sigtxt').value.trim().slice(0,200);
+    if(MODE_SERVEUR && window.Compte && Compte.client){ ok.disabled=true;
+      let uid=PAR_PSEUDO[name]; if(!uid){ const { data } = await Compte.client.from('profils').select('id').eq('pseudo', name).maybeSingle(); uid=data && data.id; }
+      if(!uid){ ok.disabled=false; err.textContent='Joueur introuvable'; return; }
+      const { error } = await Compte.client.from('signalements').insert({ cible:uid, raison, texte });
+      // (déjà signalé aujourd'hui : le serveur l'a gardé une fois, c'est bon)
+      if(error && !/duplicate|unique/i.test(error.message||'')){ ok.disabled=false; err.textContent='Le serveur ne répond pas : réessaie'; return; } }
+    (state.signalements=state.signalements||[]).push({ qui:name, raison, texte, ts:now() }); save(); closeModal(); toast('Signalement envoyé. Merci, il sera examiné.'); }; }
 document.getElementById('mepill').onclick=()=>showPlayer(ME);
 document.getElementById('walletpill').onclick=()=>recolter();
 document.getElementById('gemmespill').onclick=()=>ouvrirBoutique();

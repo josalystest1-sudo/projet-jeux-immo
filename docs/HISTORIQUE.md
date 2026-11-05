@@ -179,6 +179,7 @@ Rien d'important ne vit dans une conversation : tout est dans le dépôt ou sur 
 - **Les cookies de Google** (PR #145). Gautier : « on met dans les CGU que si un joueur joue au jeu, il accepte d'office les cookies Google, et on explique pourquoi ». Claude l'écrit et signale le risque (pour la CNIL, l'acceptation des conditions ne vaut pas accord pour ces cookies). Gautier demande aussi la traduction complète du jeu en anglais, avec le choix de la langue dans les réglages (français par défaut, noms propres et rues gardés en français).
 - **L'anglais** (PR #146). Gautier, dans le même message : « il faut une traduction complète du jeu en anglais (on garde les noms propres et les rues en français), avec le choix des langues dans les paramètres, et par défaut le français ». Claude ajoute une couche qui traduit tout à l'affichage (écrans, bandeaux, notifications, messages du serveur, pochette du pack), sans réécrire le jeu : le code reste en français, et un test vérifie que chaque nouveau message a sa traduction. Le choix est dans les Réglages et sur l'écran de compte ; les pages légales sont traduites (la version française fait foi).
 - **La langue du téléphone** (PR #147). Pendant la mise en ligne, Gautier précise : « idéalement la langue se met en fonction de la langue du périphérique par défaut, avec modification possible ». Le jeu suit désormais le téléphone (français s'il est en français, anglais pour toute autre langue, proposition de Claude), et le choix des Réglages passe avant.
+- **Le vrai serveur pour tous** (PR #148). Gautier : « on passe à quoi ? ». Claude propose de mettre tout le monde sur le vrai serveur (la grosse étape avant la bêta entre amis), ou d'ajouter des lieux célèbres ; Gautier : « super, c'est quoi la suite ? ». Plus de démo par défaut ni d'interrupteur : tout visiteur crée son compte et joue sur le serveur ; les signalements partent au serveur ; le cadre rose « Erreur de style » du 3 nov. est corrigé. Il manque, pour inviter des amis, le service d'e-mails (Brevo : le compte est à créer par Gautier, devant le PC).
 
 ## Toutes les PR
 
@@ -352,6 +353,7 @@ Puis une PR par étape, fusionnée en squash :
 | #145 | 05/11 | Les cookies de Google Street View : acceptés en jouant, expliqués dans les conditions et la confidentialité |
 | #146 | 05/11 | Le jeu en anglais : choix de la langue (Réglages et écran de compte), français par défaut, noms propres en français ; pages légales traduites |
 | #147 | 05/11 | La langue du téléphone par défaut (français s'il est en français, anglais sinon), modifiable dans les Réglages |
+| #148 | 05/11 | Le vrai serveur pour tout le monde (plus de démo par défaut ni d'interrupteur), les signalements envoyés au serveur, le cadre « Erreur de style » corrigé |
 
 ## Les décisions de Gautier
 
@@ -396,7 +398,7 @@ Les décisions du 2 novembre (interview) sont dans `CLAUDE.md` § 4 et dans le G
 ## Ce qui reste à faire (au 4 novembre après-midi)
 
 - **Le serveur, suite** (phase 8) :
-  - 8.2 : le mode serveur par défaut, la fin des joueurs simulés, l'inscription des amis. Question posée à Gautier, sans réponse : couper la confirmation par e-mail pendant les essais ?
+  - 8.2 : le mode serveur par défaut et la fin des joueurs simulés sont faits (PR #148 ; la démo reste par `?demo`). Reste l'inscription des amis : il faut le service d'e-mails (Brevo), sinon un nouveau joueur ne reçoit pas l'e-mail de confirmation. Question posée à Gautier, sans réponse : couper la confirmation par e-mail pendant les essais ?
   - 8.3 : l'anti-triche.
 - **Les graphismes** (phase 10, avant 8.2 : décision de Gautier) : les menus façon Pokémon TCG Pocket (PR #133), puis le logo, l'icône et la pièce d'après le modèle de Gautier (PR #135), faits le 5 nov. ; restent à revoir sur téléphone la promenade et les fenêtres rares ; la preuve, l'ouverture, les monuments nationaux et 358 monuments régionaux en 3D, plus la Grande Mosquée de Paris et quatre églises ajoutées le 4 nov. (416 maquettes ; les autres n'ont pas de bâtiment à dessiner ou portent une marque) ; ensuite l'habillage de la révélation, l'icône et le logo (`docs/BIBLE-GRAPHIQUE.md`).
 - **Le game design du 4 nov. porté dans le jeu** (le Maire par caisse de travaux, PR #119 et #120 ; les saisons et classements, PR #123 et #124 ; les monuments, PR #125 et #126). Reste : l'e-mail d'alerte à Gautier (il faut un service d'envoi), le niveau visuel des communes (§ 5, proposé), l'équilibrage (loyer modeste des monuments, § 5 ter) : les saisons et le classement de patrimoine (§ 5 bis), l'entretien et la reprise des monuments, l'alerte à Gautier (§ 5 ter).
@@ -405,7 +407,7 @@ Les décisions du 2 novembre (interview) sont dans `CLAUDE.md` § 4 et dans le G
 - **Ensuite** : les graphismes (phase 10), l'équilibrage et le lancement (phase 11).
 - **Avant la pub** (liste du 5 nov.) :
   - Bloquant :
-    - le vrai serveur pour tous, sans les outils d'essai (au lancement) ;
+    - le vrai serveur pour tous (fait, PR #148), sans les outils d'essai (au lancement) ;
     - un service d'envoi d'e-mails (Brevo, en cours avec Gautier) ;
     - le vrai rythme et la remise à zéro (au lancement) ;
     - les pages légales (CGU/CGV, confidentialité, mentions légales ; SIRET de Gautier) ;
