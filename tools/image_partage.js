@@ -1,6 +1,6 @@
 // L'image de partage de citydeck.fr (1200 × 630, balises Open Graph de index.html) : ce qui s'affiche quand on partage un
 // lien vers le jeu (messages, réseaux, publicités). Le logo de Gautier (src/logo.js) sur le fond perle des menus.
-//   node tools/image_partage.js      (Chrome installé ; sans bibliothèque : le protocole DevTools) → icones/partage.png
+//   node tools/image_partage.js      (Chrome installé ; sans bibliothèque : le protocole DevTools) → icones/partage.jpg (JPEG léger : WhatsApp boude les aperçus de plus de 300 Ko)
 const { spawn } = require('child_process');
 const fs = require('fs');
 const os = require('os');
@@ -43,8 +43,8 @@ const dormir = (ms) => new Promise((r) => setTimeout(r, ms));
     await cmd('Emulation.setDeviceMetricsOverride', { width: 1200, height: 630, deviceScaleFactor: 1, mobile: false });
     const f = path.join(profil, 'partage.html'); fs.writeFileSync(f, HTML);
     await cmd('Page.navigate', { url: 'file:///' + f.split(path.sep).join('/') }); await dormir(1200);
-    const s = await cmd('Page.captureScreenshot', { format: 'png', clip: { x: 0, y: 0, width: 1200, height: 630, scale: 1 } });
-    fs.writeFileSync(path.join(RACINE, 'icones', 'partage.png'), Buffer.from(s.result.data, 'base64')); console.log('image de partage : icones/partage.png');
+    const s = await cmd('Page.captureScreenshot', { format: 'jpeg', quality: 86, clip: { x: 0, y: 0, width: 1200, height: 630, scale: 1 } });
+    fs.writeFileSync(path.join(RACINE, 'icones', 'partage.jpg'), Buffer.from(s.result.data, 'base64')); console.log('image de partage : icones/partage.jpg');
     ws.close();
   } finally { chrome.kill(); }
 })().catch((e) => { console.error(e); process.exit(1); });

@@ -406,6 +406,21 @@
     - `tools/serveur_essai.js` : après la mise en ligne, le joueur jetable se supprime lui-même (refusé sans le mot, puis fait, ses lieux libres) ;
     - la fenêtre, à l'image ;
     - 82 tests.
+- 5 nov. 2026 (PR #144) : **les pages légales**.
+  - `conditions.html` (conditions d'utilisation et de vente), `confidentialite.html` (RGPD) et `mentions-legales.html`, avec la feuille `legal.css`, lisibles sur téléphone.
+  - L'éditeur est Gautier Lagrée, entrepreneur individuel (fiche du registre donnée par Gautier). Les hébergeurs : GitHub, Supabase (Paris), Stripe.
+  - Le jeu y renvoie :
+    - les Réglages (en bas) ;
+    - l'écran d'inscription (« En créant ton compte, tu acceptes… ») ;
+    - la fenêtre de paiement (conditions de vente).
+  - **L'image de partage** passe en JPEG de 97 Ko (`icones/partage.jpg`) : WhatsApp boude les aperçus de plus de 300 Ko.
+  - **Tests** : `tests/legal.test.js` (pages, liens, phrases décidées, poids de l'image). 85 tests.
+  - **Restent** (GDD § 9) :
+    - `contact@citydeck.fr` à créer ;
+    - un médiateur de la consommation ;
+    - la TVA et l'activité déclarée ;
+    - l'accord avant Street View ;
+    - une relecture professionnelle.
 
 ## Bugs connus
 - Mode serveur : si la partie arrive du serveur avant que la carte ait fini de charger, un cadre rose « Erreur de style : The layer 'parcel-fill' does not exist… » peut s'afficher (la page cherche les parcelles avant que leurs calques soient posés) ; sans conséquence pour la partie. Vu le 3 nov. au soir, pas encore corrigé.

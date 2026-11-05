@@ -74,7 +74,8 @@ const VERSION='__VERSION__';
 <meta property="og:site_name" content="CityDeck">
 <meta property="og:title" content="CityDeck — Collectionne la France">
 <meta property="og:description" content="Collectionne les lieux réels de France : ta rue, l’église du village, les monuments. Construis, échange et deviens Maire de ta commune.">
-<meta property="og:image" content="https://citydeck.fr/icones/partage.png">
+<meta property="og:image" content="https://citydeck.fr/icones/partage.jpg">
+<meta property="og:image:type" content="image/jpeg">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
 <meta property="og:image:alt" content="Le logo CityDeck : une plaque de rue, des cartes à collectionner et une pièce d’or">
@@ -1934,7 +1935,7 @@ function acheterGemmes(id){ const o=BOU.B.gemmes.find(x=>x.id===id); if(!o) retu
   const box=document.getElementById('modalbox');
   box.innerHTML=`<h2>💎 ${nb(o.gemmes)} gemmes</h2><div class="sub">${euros(o.euros)}, payés par carte avec Stripe</div>
     <label class="consentement"><input type="checkbox" id="pg-ok"><span>Je demande à recevoir mes gemmes tout de suite, et je renonce à mon droit de rétractation de 14 jours pour ce contenu numérique.</span></label>
-    <div class="m petit">Les gemmes n’ont pas de valeur monétaire : elles ne se revendent pas et ne s’échangent ni contre de l’argent ni contre des pièces.${enVraisJours() ? '' : ' Serveur d’essai : paie avec la carte de test 4242 4242 4242 4242 (n’importe quelle date future, n’importe quel code).'}</div>
+    <div class="m petit">Les gemmes n’ont pas de valeur monétaire : elles ne se revendent pas et ne s’échangent ni contre de l’argent ni contre des pièces. <a href="conditions.html#vente" target="_blank" rel="noopener">Conditions de vente</a>.${enVraisJours() ? '' : ' Serveur d’essai : paie avec la carte de test 4242 4242 4242 4242 (n’importe quelle date future, n’importe quel code).'}</div>
     <div class="liste-btn"><button class="btn large" id="pg-payer" disabled>Payer ${euros(o.euros)}</button><button class="btn clair large" id="pg-retour">Retour</button></div>`;
   document.getElementById('modal').classList.add('on');
   const ok=box.querySelector('#pg-ok'), payer=box.querySelector('#pg-payer');
@@ -2421,7 +2422,8 @@ function ouvrirReglages(){ const box=document.getElementById('modalbox');
       <b style="display:block;margin-top:10px">Gemmes d’essai</b><small>Pour essayer la boutique avant le paiement par carte. À retirer au lancement.</small>
       <div class="liste-btn"><button class="btn clair" onclick="gemmesEssai()">💎 +${nb(BOU.B.gemmes_essai)} gemmes</button></div></div>
     <div class="liste-btn"><button class="btn bleu large" onclick="closeModal();setTimeout(()=>guide(0),300)">🧭 Revoir le guide</button><button class="btn clair large" onclick="closeModal()">Fermer</button></div>
-    <div class="m" style="text-align:center;margin-top:10px">Version du jeu : ${VERSION.indexOf('__')===0 ? 'locale' : VERSION.slice(0,7)}</div>`;
+    <div class="m" style="text-align:center;margin-top:10px">Version du jeu : ${VERSION.indexOf('__')===0 ? 'locale' : VERSION.slice(0,7)}</div>
+    <div class="m petit liens-legaux" style="text-align:center"><a href="conditions.html" target="_blank" rel="noopener">Conditions</a> · <a href="confidentialite.html" target="_blank" rel="noopener">Confidentialité</a> · <a href="mentions-legales.html" target="_blank" rel="noopener">Mentions légales</a></div>`;
   document.getElementById('modal').classList.add('on'); }
 
 // le profil d'un joueur (le mien : icône, réglages, compte)
