@@ -279,7 +279,6 @@
 - La suite du serveur : 8.2 (le mode serveur par défaut et la fin des joueurs simulés : faits, PR #148 ; reste l'inscription des amis, qui attend le service d'e-mails Brevo), 8.3 (anti-triche) ; puis la boutique (phase 9). Liste complète, avec ce qu'il faudra faire au lancement : `docs/HISTORIQUE.md` § « Ce qui reste à faire » ; l'ordre : `docs/PLAN.md` (phases 1 à 11).
 
 ## Questions ouvertes
-- Le « Ritz Paris » est dans la liste des 60 monuments nationaux (enchères) : c'est une marque, alors que Gautier a décidé « pas de marque sur un lieu » (3 nov.). Le retirer de la liste ? (pas de maquette en attendant) Même question pour « Maxim's » (monument régional, une enseigne).
 - Relire la liste des 60 monuments nationaux (`data/monuments.json`, `palier: national`).
 - Seuils du standing (4 500 et 2 500 €/m²) : à valider.
 - Nom : « Cadastra » a des domaines pris (.fr, .com, .app) et une marque française « CadastrA » en immobilier/logiciel (voir GDD § 12) : garder ou changer, à décider par Gautier.
@@ -479,6 +478,7 @@
   - **Le Maire** : son plafond monte de 20 % par niveau, de 1 000 (niveau 0) à 2 000 pièces par mandat (niveau 5) (`MAI.plafondPart(n, niveau)`), et la part se calcule sur les loyers avec le bonus.
   - **Écran** : la commune montre l'état des travaux, ce qu'il manque, « Loyers de la commune +X % », « La mairie rapporte jusqu'à … », et l'usure.
   - **Vérifié** : 2 tests (règles), `tools/essai_sql.mjs` (206 vérifications : usure par mandat, versement ajouté, total gardé ; même usure qu'en JavaScript, vérifiée aussi par `npm test`) ; `deno check` ; à l'image en français et en anglais. 99 tests.
+- 5 nov. 2026 (PR #157, documents seulement) : **les monuments qui sont des marques restent aux enchères** (Gautier : « garde-les »). Le Ritz, Maxim's, le Crillon, le Negresco, Château Margaux et le Train bleu gardent leur place dans la liste des monuments, par exception à « pas de marque sur un lieu » (3 nov.) ; ils restent sans maquette pour l'instant (halo doré). Les marques écartées des lieux célèbres (PR #152 : Olympia, Lido, grands vins, musées de marque…) restent écartées.
 
 ## Bugs connus
 - Les badges 💰 des joueurs simulés n'apparaissent qu'après ouverture de leur parcelle (limite du prototype local).

@@ -220,7 +220,7 @@ Style et ergonomie (3 nov. 2026, demande de Gautier) : voir `docs/DESIGN.md` («
 | Devanture | Google Street View intégré (Maps Embed, gratuit, non stocké) | fiche d'un lieu |
 | Polices de carte | géoplateforme (`annexes/ressources/vectorTiles/fonts`) | noms de rues |
 
-Règles : jamais de nom de personne, jamais de lien adresse ↔ identité, le domicile n'est jamais révélé. **Pas d'enseignes ni de noms de marques** sur les lieux (idée examinée et écartée par Gautier le 3 nov. : marques sans accord dans un jeu payant, petits commerces au nom de leur patron, commerces qui changent, données Sirene brouillonnes). **[Décidé]** Les tuiles IGN sont gratuites avec attribution ; si le trafic devient important, on héberge nos propres tuiles (gratuit, un script).
+Règles : jamais de nom de personne, jamais de lien adresse ↔ identité, le domicile n'est jamais révélé. **Pas d'enseignes ni de noms de marques** sur les lieux (idée examinée et écartée par Gautier le 3 nov. : marques sans accord dans un jeu payant, petits commerces au nom de leur patron, commerces qui changent, données Sirene brouillonnes). **[Décidé]** Exception : six monuments de la liste des enchères qui sont des marques (le Ritz, Maxim's, le Crillon, le Negresco, Château Margaux, le Train bleu) restent aux enchères. **[Décidé par Gautier le 5 nov. : « garde-les »]** Les tuiles IGN sont gratuites avec attribution ; si le trafic devient important, on héberge nos propres tuiles (gratuit, un script).
 
 ## 8 bis. Plateforme, sécurité, modération **[Décidé]**
 
