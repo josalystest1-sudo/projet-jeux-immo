@@ -1,17 +1,19 @@
 // La traduction anglaise (5 nov. 2026, demande de Gautier : « une traduction complète du jeu en anglais, on garde les noms
-// propres et les rues en français, choix de la langue dans les paramètres, français par défaut »).
+// propres et les rues en français, choix de la langue dans les paramètres » ; puis : « idéalement la langue se met en
+// fonction de la langue du périphérique par défaut, avec modification possible »).
 // src/langue.js traduit à l'affichage avec data/langue_en.js : ces tests vérifient que les messages du jeu et du serveur
-// y sont, que les noms propres restent en français et que le français reste la langue par défaut.
+// y sont, que les noms propres restent en français, et que la langue suit le téléphone sauf choix du joueur.
 const test = require('node:test');
 const assert = require('node:assert');
 const fs = require('fs');
 const path = require('path');
 const lire = (f) => fs.readFileSync(path.join(__dirname, '..', f), 'utf8');
 
-// une page sans DOM, en anglais (le choix est lu dans le stockage du téléphone)
-function charger(langue) {
+// une page sans DOM : le choix du joueur (stockage du téléphone) et la langue du téléphone
+function charger(langue, appareil = 'fr-FR') {
   const st = langue ? { 'citydeck-langue': langue } : {};
   global.window = {};
+  Object.defineProperty(globalThis, 'navigator', { value: { language: appareil, languages: [appareil] }, configurable: true, writable: true });
   global.location = { search: '', href: 'https://citydeck.fr/' };
   global.localStorage = { getItem: (k) => (k in st ? st[k] : null), setItem: (k, v) => { st[k] = v; } };
   for (const f of ['../data/langue_en.js', '../src/langue.js']) delete require.cache[require.resolve(f)];
@@ -21,11 +23,18 @@ function charger(langue) {
 const EN = charger('en');
 const traduit = (s) => EN.t(s) !== s;
 
-test('le français est la langue par défaut : rien ne change sans choix', () => {
-  const FR = charger(null);
+test('sans choix, la langue du téléphone : français s’il est en français, anglais sinon', () => {
+  const FR = charger(null, 'fr-FR');
   assert.strictEqual(FR.code, 'fr');
   assert.strictEqual(FR.t('Récolter'), 'Récolter');
   assert.strictEqual(FR.t('Léa te propose 500 🪙 pour 12 Rue Lepic.'), 'Léa te propose 500 🪙 pour 12 Rue Lepic.');
+  assert.strictEqual(charger(null, 'fr-BE').code, 'fr');
+  assert.strictEqual(charger(null, 'en-US').code, 'en');
+  assert.strictEqual(charger(null, 'de-DE').code, 'en', 'une autre langue : l’anglais, plus compris que le français');
+  assert.strictEqual(charger(null, '').code, 'fr', 'langue inconnue : le français');
+  // le choix du joueur passe avant
+  assert.strictEqual(charger('fr', 'en-US').code, 'fr');
+  assert.strictEqual(charger('en', 'fr-FR').code, 'en');
   charger('en');
 });
 

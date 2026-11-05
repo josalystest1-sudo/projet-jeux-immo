@@ -20,7 +20,7 @@ let appelsPhoto = 0;
 (async () => {
   const proxy = process.env.HTTPS_PROXY ? { server: process.env.HTTPS_PROXY } : undefined;
   const navigateur = await chromium.launch({ proxy, args: ['--use-gl=swiftshader', '--enable-webgl', '--ignore-gpu-blocklist'] });
-  const contexte = await navigateur.newContext({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 2, ignoreHTTPSErrors: true, hasTouch: true });
+  const contexte = await navigateur.newContext({ locale: process.env.LANGUE || 'fr-FR', viewport: { width: 390, height: 844 }, deviceScaleFactor: 2, ignoreHTTPSErrors: true, hasTouch: true });
   const page = await contexte.newPage();
   await page.route('https://unpkg.com/**', (route) => { const u = new URL(route.request().url()); const m = u.pathname.match(/^\/((?:@[^/]+\/)?[^@/]+)@[^/]+\/(.*)$/); const f = path.join(ML, m[1], m[2]); route.fulfill({ body: fs.readFileSync(f), contentType: f.endsWith('.css') ? 'text/css' : 'application/javascript' }); });
   await page.route('https://maps.googleapis.com/**', (route) => { appelsPhoto++; const u = new URL(route.request().url()); const [la, lo] = u.searchParams.get('location').split(',').map(Number);

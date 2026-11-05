@@ -16,7 +16,10 @@ const dormir = (ms) => new Promise((r) => setTimeout(r, ms));
   let n = 0; const attente = {}; ws.addEventListener('message', (m) => { const d = JSON.parse(m.data); if (d.id && attente[d.id]) { attente[d.id](d); delete attente[d.id]; } });
   const cmd = (method, params) => new Promise((r) => { const id = ++n; attente[id] = r; ws.send(JSON.stringify({ id, method, params: params || {} })); });
   await cmd('Emulation.setDeviceMetricsOverride', { width: 375, height: 812, deviceScaleFactor: 2, mobile: true });
-  await cmd('Page.enable'); await cmd('Page.navigate', { url: URL_PAGE }); await dormir(7000);
+  await cmd('Page.enable');
+  // le jeu prend la langue du navigateur : en français pour les captures, sauf LANGUE=en
+  await cmd('Page.addScriptToEvaluateOnNewDocument', { source: `try{ if(!localStorage.getItem('citydeck-langue')) localStorage.setItem('citydeck-langue', '${process.env.LANGUE || 'fr'}'); }catch(e){}` });
+  await cmd('Page.navigate', { url: URL_PAGE }); await dormir(7000);
   const lancer = `(async()=>{ try{closeModal()}catch(e){}; ${process.env.CARTE || "const l = await chargerCelebres('37'); window.__carte = Object.assign(Celebres.lieuDe(l.find(e=>/Beaulieu-lès-Loches/.test(e[1]))), {city:'Beaulieu-lès-Loches'});"} await fetchCommune(window.__carte);
     const sc=document.getElementById('packscene'); sc.classList.add('on','show'); document.getElementById('pkgl').style.display='none'; document.getElementById('pkhint').textContent=''; revealSequence(window.__carte); return 'ok'; })()`;
   const r = await cmd('Runtime.evaluate', { expression: lancer, awaitPromise: true }); console.log('lancé', JSON.stringify(r.result && r.result.result));
