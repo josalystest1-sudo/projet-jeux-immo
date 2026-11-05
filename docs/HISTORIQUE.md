@@ -325,6 +325,7 @@ Puis une PR par étape, fusionnée en squash :
 | #131 | 05/11 | Publication du serveur : la clé Stripe s'envoie sans demande de confirmation (le nouvel outil Supabase bloquait) |
 | #132 | 05/11 | L'ouverture du pack : les cartes sortent vraiment du sachet (puis il tombe), plus de blocage pendant la sortie, une pile qui se lit comme un paquet, plus de battement de cœur |
 | #133 | 05/11 | Les menus façon Pokémon TCG Pocket : blanc et gris perle, un seul accent (le bleu de la plaque), barre du bas blanche, icônes au trait ; la carte de nuit le soir |
+| #134 | 05/11 07:50 | Prompts de logo (3 pistes) et kit social media pour un générateur d'images (`docs/KIT-MARQUE.md`) |
 
 ## Les décisions de Gautier
 
