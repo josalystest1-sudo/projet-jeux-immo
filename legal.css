@@ -19,3 +19,5 @@ a{color:#2453B3;font-weight:800}
 .encadre{background:#EAF0FB;border-radius:12px;padding:10px 14px;margin:12px 0}
 footer{margin-top:26px;color:#7C8598;font-size:14px;text-align:center}
 footer a{margin:0 6px}
+header a.langue{font-weight:800;color:#2453B3;text-decoration:none;font-size:14px;border:1.5px solid #D5DEEE;border-radius:999px;padding:3px 12px;background:#fff}
+.traduction{color:#7C8598;font-size:14px;margin:-10px 0 14px}

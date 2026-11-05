@@ -201,6 +201,7 @@ Style et ergonomie (3 nov. 2026, demande de Gautier) : voir `docs/DESIGN.md` («
 7. **Création de compte** : **inscription obligatoire** (e-mail + mot de passe, ou Google/Apple), puis pseudo + avatar. **[Décidé]**
    Mise en œuvre (2 nov. 2026, `src/compte.js`, Supabase) : e-mail + mot de passe (8 caractères au moins), confirmation par un lien reçu par e-mail qui ramène dans le jeu connecté (le lien marche même ouvert dans une autre application), « Renvoyer l'e-mail », « Mot de passe oublié » ; l'écran de compte ne se ferme pas tant qu'on n'est pas connecté ; puis le pseudo (filtre + unicité vérifiée par le serveur) et l'avatar, obligatoires ; **le pseudo est définitif : il se choisit une seule fois, à la création, confirmé d'un second appui, et ne se modifie plus ensuite (seule l'icône change). Le serveur l'interdit aussi ; seul Gautier peut corriger un pseudo, depuis le tableau de bord, s'il est signalé. [Décidé par Gautier, 2 nov.]** ; la session reste ouverte d'une visite à l'autre ; « Se déconnecter » dans son profil. Les lieux et les pièces restent sur l'appareil jusqu'à la phase serveur ; un autre compte sur le même appareil repart d'un état neuf. Google et Apple : plus tard. **[Proposé]**
 8. **Boutique** : packs, Pass mensuel. **[V1 fin]**
+9. **Les langues** **[Décidé par Gautier le 5 nov. 2026]** : le jeu existe en français et en anglais ; **le français est la langue par défaut** ; le choix se fait dans les Réglages (et dès l'écran de compte, pour un nouveau joueur). **Les noms propres restent en français** : lieux, rues, communes, départements, régions, pseudos. Mise en œuvre **[Proposé]** : le code écrit en français et une couche traduit à l'affichage (`src/langue.js`, dictionnaire `data/langue_en.js`), comme les icônes ; les messages du serveur aussi. Les nombres gardent l'écriture française (48 248). Les pages légales ont leur traduction anglaise (`terms.html`, `privacy.html`, `legal-notice.html`), la version française faisant foi. Street View s'affiche dans la langue choisie.
 
 ## 8. Les données et leur source (toutes ouvertes et gratuites)
 
@@ -250,6 +251,7 @@ Deux monnaies, deux rôles :
 - `confidentialite.html` : RGPD.
 - `mentions-legales.html` : l'éditeur, Gautier Lagrée, entrepreneur individuel (SIREN 941 648 156) ; les hébergeurs (GitHub, Supabase, Stripe) ; les sources des données.
 - Le jeu y renvoie depuis les Réglages, l'écran d'inscription et la fenêtre de paiement.
+- Version anglaise (5 nov. 2026) : `terms.html`, `privacy.html`, `legal-notice.html`, une traduction ; la version française fait foi. Le jeu en anglais renvoie vers elles ; chaque page a un lien vers l'autre langue.
 - **Restent, avant les vraies ventes** :
   - créer l'adresse `contact@citydeck.fr` ;
   - désigner un médiateur de la consommation, obligatoire pour vendre à des particuliers ;

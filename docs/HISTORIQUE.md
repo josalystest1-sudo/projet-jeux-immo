@@ -177,6 +177,7 @@ Rien d'important ne vit dans une conversation : tout est dans le dépôt ou sur 
 - **Avant la pub** (PR #143). Gautier demande ce qui manque avant de faire de la pub ; Claude dresse la liste (le serveur pour tous, les e-mails, le vrai rythme, les pages légales, les vrais paiements, puis la bêta, les sauvegardes, l'anti-triche, l'image de partage, le suivi, la marque). Gautier : « faisons les points facilement réalisables sur téléphone ». Claude fait « Supprimer mon compte » et l'image de partage, et guide Gautier pour le service d'e-mails.
 - **Les pages légales** (PR #144). Gautier remet Brevo à son retour devant le PC (Claude ne peut ni créer le compte ni se connecter à sa place) et donne la fiche de son entreprise individuelle pour les mentions légales. Claude rédige les conditions d'utilisation et de vente, la confidentialité et les mentions légales, et les relie au jeu.
 - **Les cookies de Google** (PR #145). Gautier : « on met dans les CGU que si un joueur joue au jeu, il accepte d'office les cookies Google, et on explique pourquoi ». Claude l'écrit et signale le risque (pour la CNIL, l'acceptation des conditions ne vaut pas accord pour ces cookies). Gautier demande aussi la traduction complète du jeu en anglais, avec le choix de la langue dans les réglages (français par défaut, noms propres et rues gardés en français).
+- **L'anglais** (PR #146). Gautier, dans le même message : « il faut une traduction complète du jeu en anglais (on garde les noms propres et les rues en français), avec le choix des langues dans les paramètres, et par défaut le français ». Claude ajoute une couche qui traduit tout à l'affichage (écrans, bandeaux, notifications, messages du serveur, pochette du pack), sans réécrire le jeu : le code reste en français, et un test vérifie que chaque nouveau message a sa traduction. Le choix est dans les Réglages et sur l'écran de compte ; les pages légales sont traduites (la version française fait foi).
 
 ## Toutes les PR
 
@@ -348,6 +349,7 @@ Puis une PR par étape, fusionnée en squash :
 | #143 | 05/11 | Avant la pub : « Supprimer mon compte » (RGPD) et l'image de partage des liens vers citydeck.fr |
 | #144 | 05/11 | Les pages légales (conditions d'utilisation et de vente, confidentialité, mentions légales), reliées au jeu ; l'image de partage allégée (JPEG) |
 | #145 | 05/11 | Les cookies de Google Street View : acceptés en jouant, expliqués dans les conditions et la confidentialité |
+| #146 | 05/11 | Le jeu en anglais : choix de la langue (Réglages et écran de compte), français par défaut, noms propres en français ; pages légales traduites |
 
 ## Les décisions de Gautier
 
@@ -387,6 +389,7 @@ Les décisions du 2 novembre (interview) sont dans `CLAUDE.md` § 4 et dans le G
 | 4 nov. | **Monuments** : aux enchères seulement, repris et remis aux enchères si le propriétaire ne se connecte pas pendant 14 jours (jamais les adresses, qui ont pu être payées) ; **entretien exponentiel** plutôt qu'une limite de 3 monuments ; prévenir Gautier dès qu'un monument redevient libre, pour l'annoncer sur les réseaux |
 | 4 nov. | **Monnaie premium (gemmes)** : euros → gemmes à sens unique, sans commission ; elle achète les packs, les packs régionaux (un peu plus chers), le Pass 15 jours (8 cartes au lieu de 5 + une adresse cible hors Légendaire et monument) et des offres sur les lieux d'autres joueurs. Revente de lieux contre des euros : écartée |
 | 4 nov. | Lots réels (clés Steam, bons de commerçants) : idée gardée pour faire venir des joueurs, mais jamais attribués selon un score que l'argent ou le nombre de lieux influence (risque de loterie) |
+| 5 nov. | **Le jeu existe aussi en anglais** : choix dans les réglages, français par défaut ; les noms propres et les rues restent en français |
 
 ## Ce qui reste à faire (au 4 novembre après-midi)
 
@@ -425,6 +428,7 @@ Les décisions du 2 novembre (interview) sont dans `CLAUDE.md` § 4 et dans le G
   - retirer le pack d'essai (Réglages, `?essai-pack`) ;
   - brancher un service d'envoi d'e-mails (celui de Supabase n'écrit qu'à l'équipe Supabase) ;
   - le nom est décidé : **CityDeck** (4 nov.) ; vérifier qu'il est libre (marque, nom de domaine, magasins d'applications) avant le lancement.
+- **L'anglais** (PR #146) : faire relire les textes par un anglophone ; les e-mails de connexion (Supabase, puis Brevo) n'existent qu'en une langue ; tout nouveau texte du jeu doit entrer dans `data/langue_en.js` (le test le rappelle pour les bandeaux et les refus du serveur).
 - **Petites choses** :
   - les autres catégories de lieux célèbres (châteaux, mairies, gares…). Wikidata se joint depuis le PC. Les lieux de culte de toutes les religions y sont depuis la PR #104 ;
   - retirer le prototype du dépôt de l'Arena ;
