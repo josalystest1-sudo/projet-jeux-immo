@@ -358,6 +358,7 @@ Puis une PR par étape, fusionnée en squash :
 | #148 | 05/11 | Le vrai serveur pour tout le monde (plus de démo par défaut ni d'interrupteur), les signalements envoyés au serveur, le cadre « Erreur de style » corrigé |
 | #149 | 05/11 | Le tableau de suivi de Gautier (inscrits, venus, retours du lendemain et du 7e jour, achats), dans le tableau de bord de Supabase |
 | #150 | 05/11 | Un minimum d'anti-triche : 60 actions par minute au plus, empreinte chiffrée de la connexion, alerte dès 3 comptes sur une même connexion, vue des comptes liés |
+| #151 | 05/11 | L'essai automatique du serveur : le lot d'enchère d'essai passe de 25 à 45 s (trop court quand le serveur répond lentement) |
 
 ## Les décisions de Gautier
 
