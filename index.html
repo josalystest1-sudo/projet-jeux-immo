@@ -82,6 +82,7 @@ const VERSION='__VERSION__';
   </div>
   <div class="barre">
     <div id="search"><span class="loupe">🔍</span><input id="q" type="search" placeholder="Adresse, ville…" autocomplete="off" enterkeyhint="search"><button id="go">OK</button></div>
+    <button class="rond" id="trophee" aria-label="Classements" onclick="ouvrirClassements()">🏆</button>
     <button class="rond" id="cloche" aria-label="Notifications">🔔<span class="cnt" id="cnt-notif"></span></button>
   </div>
   <div id="sugg"></div>
@@ -2143,6 +2144,11 @@ function classementPatrimoine(k){ if(MODE_SERVEUR){ if(!k) return rangsServeur(C
   const o={};
   for(const f of FAKE){ const v = k ? lieuxSimules(k, f)*(1+hash(k+f+':p')%4) : patrimoineSimule(f); if(v>0) o[f]=v; }
   o[ME]=CLA.patrimoine(Object.values(state.owned).filter(a=>!k || communeName(a.citycode,a.city)===k), rarete); return CLA.classer(o); }
+// le classement des pièces (Gautier, 5 nov. : « ajoute un classement par pièces possédées ») : les pièces en main, en ce
+// moment ; il bouge tout le temps et n'est pas figé à la fin d'une saison [Proposé]. Démo : les autres joueurs sont simulés.
+const piecesSimulees = f => 600 + hash(f+':pc')%26000 + (hash(f+':pc2')%3===0 ? hash(f+':pc3')%60000 : 0);
+function classementPieces(){ if(MODE_SERVEUR) return rangsServeur(CLASSES.pieces, CLASSES.moiPi);
+  const o={}; for(const f of FAKE) o[f]=piecesSimulees(f); o[ME]=Math.floor(state.wallet||0); return CLA.classer(o); }
 function classementMaires(s){ if(MODE_SERVEUR) return { rangs:rangsServeur(CLASSES.maires, CLASSES.moiM), mairies:{} };
   const mMax=Math.min(mandatCourant(), CLA.premierMandat(s+1)-1), ks=communesSuivies(), elections=[];
   for(const m of CLA.mandatsDe(s)) if(m<=mMax) for(const k of ks) elections.push(MAI.elire(caisseDe(k, m-1)));
@@ -2161,21 +2167,22 @@ function tickSaison(){ if(MODE_SERVEUR) return; const S=state.saisons, s=CLA.sai
   save(); }
 // Mode serveur : les classements sont lus sur le serveur (supabase/sql/100_classements.sql), gardés une minute dans CLASSES ;
 // la fonction « jeu » garde les Maires de chaque mandat et fige les saisons (avec les mêmes règles).
-const CLASSES = { lu:0, s:null, origine:null, maires:[], patrimoine:[], moiM:null, moiP:null, passees:[], communes:{} };
+const CLASSES = { lu:0, s:null, origine:null, maires:[], patrimoine:[], pieces:[], moiM:null, moiP:null, moiPi:null, passees:[], communes:{} };
 const poidsBonus = () => ({ poids:[1,2,3,4,5,6].map(r=>ECO.classements.poids_rarete[r]), bonus:ECO.classements.bonus_niveau });
 const lignesJoueurs = rs => (rs||[]).map(r=>{ if(r.joueur && r.pseudo){ JOUEURS[r.joueur]=JOUEURS[r.joueur]||{ pseudo:r.pseudo, avatar:r.avatar }; PAR_PSEUDO[r.pseudo]=r.joueur; } return r; });
 function rangsServeur(rows, moi){ const r=CLA.classer(Object.fromEntries((rows||[]).map(x=>[nomCaisse(x), Number(x.n)]))); if(moi && !r.some(x=>x.qui===ME)) r.push({ qui:ME, n:Number(moi.n), rang:Number(moi.rang) }); return r; }
 async function chargerClassements(force){ if(!MODE_SERVEUR || !(window.Compte && Compte.client)) return; const m=mandatCourant(), s=CLA.saison(m);
   if(!force && CLASSES.s===s && now()-CLASSES.lu<60000) return;
   const { poids, bonus }=poidsBonus(), j=monUid(), m0=CLA.premierMandat(s), rien=Promise.resolve({ data:[] });
-  const [o, cm, rm, cp, rp, sa, sj] = await Promise.all([
+  const [o, cm, rm, cp, rp, sa, sj, ci, ri] = await Promise.all([
     Compte.client.from('reglages').select('valeur').eq('cle','saison_origine').maybeSingle(),
     Compte.client.rpc('classement_maires', { m0, m1:m, lim:20 }), j ? Compte.client.rpc('rang_maires', { m0, m1:m, j }) : rien,
     Compte.client.rpc('classement_patrimoine', { poids, bonus, c:null, lim:20 }), j ? Compte.client.rpc('rang_patrimoine', { poids, bonus, c:null, j }) : rien,
     Compte.client.from('saisons').select('saison,numero,fin,maires,patrimoine,plaques').order('saison', { ascending:false }).limit(12),
-    j ? Compte.client.from('saisons_joueurs').select('saison,rang_maires,points_maires,rang_patrimoine,points_patrimoine').eq('joueur', j) : rien ]);
+    j ? Compte.client.from('saisons_joueurs').select('saison,rang_maires,points_maires,rang_patrimoine,points_patrimoine').eq('joueur', j) : rien,
+    Compte.client.rpc('classement_pieces', { lim:20 }), j ? Compte.client.rpc('rang_pieces', { j }) : rien ]);
   if(cp.error) return;
-  Object.assign(CLASSES, { s, lu:now(), origine:o.data && o.data.valeur!=null ? Number(o.data.valeur) : null, maires:lignesJoueurs(cm.data), moiM:(rm.data||[])[0]||null, patrimoine:lignesJoueurs(cp.data), moiP:(rp.data||[])[0]||null });
+  Object.assign(CLASSES, { s, lu:now(), origine:o.data && o.data.valeur!=null ? Number(o.data.valeur) : null, maires:lignesJoueurs(cm.data), moiM:(rm.data||[])[0]||null, patrimoine:lignesJoueurs(cp.data), moiP:(rp.data||[])[0]||null, pieces:ci.error ? [] : lignesJoueurs(ci.data), moiPi:(ri.data||[])[0]||null });
   const mes=Object.fromEntries((sj.data||[]).map(x=>[x.saison, x])), nom=r=>r.joueur===j ? ME : (r.pseudo || 'Un joueur'), conv=rows=>(rows||[]).map(r=>({ qui:nom(r), n:r.n, rang:r.rang }));
   CLASSES.passees=(sa.data||[]).filter(x=>(x.maires||[]).length || (x.patrimoine||[]).length).map(x=>{ const me=mes[x.saison];
     return { s:Number(x.saison), n:x.numero, maires:conv(x.maires), patrimoine:conv(x.patrimoine), plaques:Object.fromEntries(Object.entries(x.plaques||{}).map(([k,v])=>[k, nom(v)])),
@@ -2192,18 +2199,20 @@ function carteSaison(){ const s=CLA.saison(mandatCourant()), n=numeroSaison(s), 
   return `<button class="card saison-carte" id="ouvrir-classements"><div class="saison-tete"><span class="t">🏆 Saison ${n}</span><span class="caisse-fin" id="saison-fin">⏳ ${dureeTexte(finSaison(s)-now())}</span></div>
     <div class="saison-rangs"><div><small>👑 Maires</small><b>${!charge?'…':(mm?ordinal(mm.rang):'—')}</b><i>${!charge?'':(mm?points(mm.n):'aucune mairie disputée')}</i></div><div><small>🏛️ Patrimoine</small><b>${!charge?'…':(mp?ordinal(mp.rang):'—')}</b><i>${charge && mp?points(mp.n):''}</i></div></div>
     <span class="saison-voir">Voir les classements ›</span></button>`; }
-function ouvrirClassements(onglet){ onglet=onglet||'maires'; const box=document.getElementById('modalbox'), s=CLA.saison(mandatCourant()), n=numeroSaison(s);
+let ONGLET_CLASSEMENT='patrimoine';
+function ouvrirClassements(onglet){ onglet=onglet||ONGLET_CLASSEMENT; ONGLET_CLASSEMENT=onglet; const box=document.getElementById('modalbox'), s=CLA.saison(mandatCourant()), n=numeroSaison(s);
   if(MODE_SERVEUR && now()-CLASSES.lu>20000) chargerClassements(true).then(()=>{ if(document.getElementById('modal').classList.contains('on') && document.querySelector('#modalbox .onglets-classement')) ouvrirClassements(onglet); });
-  const ligne=r=>`<div class="rank${r.qui===ME?' moi':''}"><span class="pos">${r.rang<=3?['🥇','🥈','🥉'][r.rang-1]:r.rang}</span><span class="who" onclick="showPlayer('${r.qui}')">${r.qui===ME?echapper(disp(ME))+' (toi)':echapper(r.qui)}</span><b>${points(r.n)}</b></div>`;
-  const liste=(rangs, vide)=>{ if(!rangs.length) return `<div class="m" style="margin-top:10px">${vide}</div>`; let h=rangs.slice(0,20).map(ligne).join(''); const moi=rangs.find(r=>r.qui===ME); if(moi && moi.rang>20) h+='<div class="m" style="text-align:center">…</div>'+ligne(moi); return h; };
+  const ligne=(r, f)=>`<div class="rank${r.qui===ME?' moi':''}"><span class="pos">${r.rang<=3?['🥇','🥈','🥉'][r.rang-1]:r.rang}</span><span class="who" onclick="showPlayer('${r.qui}')">${r.qui===ME?echapper(disp(ME))+' (toi)':echapper(r.qui)}</span><b>${(f||points)(r.n)}</b></div>`;
+  const liste=(rangs, vide, f)=>{ if(!rangs.length) return `<div class="m" style="margin-top:10px">${vide}</div>`; let h=rangs.slice(0,20).map(r=>ligne(r, f)).join(''); const moi=rangs.find(r=>r.qui===ME); if(moi && moi.rang>20) h+='<div class="m" style="text-align:center">…</div>'+ligne(moi, f); return h; };
   let corps;
   if(onglet==='maires') corps=`<div class="m">Chaque mairie gagnée cette saison vaut le nombre de rivaux battus : les joueurs qui ont versé au moins ${pcs(MAI.M.seuil)} à sa caisse. Une mairie gagnée sans rival ne vaut rien.</div>`+liste(classementMaires(s).rangs, 'Personne n’a encore gagné de mairie disputée cette saison.');
+  else if(onglet==='pieces') corps=`<div class="m">Les pièces que chacun a en main, en ce moment (sans les gemmes, ni ce qui reste à récolter). Ce classement bouge tout le temps : il n’est pas figé à la fin de la saison.</div>`+liste(classementPieces(), 'Personne n’a encore de pièces.', n=>pcs(n));
   else if(onglet==='patrimoine') corps=`<div class="m">Chaque lieu compte selon sa rareté (Commun 1, Peu commun 2, Rare 4, Épique 8, Légendaire 12, Extraordinaire 20), plus son bâtiment (Maison +1 … Prestige +15). Il ne repart pas de zéro.</div>`+liste(classementPatrimoine(null), 'Personne n’a encore de lieu.');
   else { const P=saisonsPassees();
     corps = P.length ? P.map(x=>`<div class="saison-passee"><div class="t">Saison ${x.n}</div><div class="podiums"><div><small>👑 Maires</small>${podium(x.maires)}</div><div><small>🏛️ Patrimoine</small>${podium(x.patrimoine)}</div></div><div class="m" style="margin:6px 0 0">Toi : ${x.moi.maires?ordinal(x.moi.maires.rang):'—'} des Maires, ${x.moi.patrimoine?ordinal(x.moi.patrimoine.rang):'—'} en patrimoine.</div></div>`).join('')
       : '<div class="m" style="margin-top:10px">La première saison n’est pas encore finie : son podium s’affichera ici.</div>'; }
   box.innerHTML=`<h2>🏆 Classements</h2><div class="sub">Saison ${n} · fin dans ${dureeTexte(finSaison(s)-now())}</div>
-    <div class="filtres onglets-classement">${[['maires','👑 Maires'],['patrimoine','🏛️ Patrimoine'],['passees','📜 Passées']].map(([o,t])=>`<button class="filtre${o===onglet?' on':''}" onclick="ouvrirClassements('${o}')">${t}</button>`).join('')}</div>
+    <div class="filtres onglets-classement">${[['patrimoine','🏛️ Patrimoine'],['pieces','<i class="pc"></i> Pièces'],['maires','👑 Maires'],['passees','📜 Passées']].map(([o,t])=>`<button class="filtre${o===onglet?' on':''}" onclick="ouvrirClassements('${o}')">${t}</button>`).join('')}</div>
     ${corps}<button class="btn clair large" style="width:100%;margin-top:14px" onclick="closeModal()">Fermer</button>`;
   document.getElementById('modal').classList.add('on'); }
 // =================== les monuments : prestige, pas revenu (GDD § 5 ter) ===================

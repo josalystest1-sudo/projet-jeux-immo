@@ -330,6 +330,11 @@
   - **Les classements en un toucher** : un bouton « Classements » en tête du patrimoine et « Les classements » dans mon profil. Ils restaient aussi accessibles depuis la carte de la saison, dans Communes.
   - **Le choix de la région du pack régional** : une petite carte de France dont on touche la région, avec les 13 régions en boutons dessous (`choixRegion`, `carteRegionsSVG`, contours de `geo.js`). Elle remplace le menu déroulant.
   - **Vérifié** : Entrée dans un navigateur simulé, sur le vrai écran de connexion. Le vrai bouton était remplacé pour l'essai : rien n'est parti vers le serveur. Le choix de région, au toucher sur la carte et sur les boutons, jusqu'au pack demandé. Les écrans à l'image. 76 tests.
+- 5 nov. 2026 (PR #137) : **le classement des pièces, et des classements plus faciles à trouver**.
+  - **Le trophée** : un bouton rond en haut de la carte, à côté de la cloche. Il rouvre le dernier onglet regardé (Patrimoine au début).
+  - **L'onglet « Pièces »** : les pièces en main de chacun, en ce moment. Il bouge tout le temps et n'est pas figé à la fin de la saison [Proposé]. Démo : les pièces des autres joueurs sont simulées (`piecesSimulees`, `classementPieces`).
+  - **Le serveur** (`supabase/sql/140_classement_pieces.sql`) : `classement_pieces(lim)` et `rang_pieces(j)`, seulement les joueurs qui ont un pseudo. Chacun ne lit toujours que ses propres pièces dans « joueurs ».
+  - **Vérifié** : `tools/essai_sql.mjs` (162 essais, dont le classement, la place d'un joueur, la lecture sans compte et le refus de lire les pièces des autres). Les écrans à l'image en 390 et 360 px. 76 tests.
 
 ## Bugs connus
 - Mode serveur : si la partie arrive du serveur avant que la carte ait fini de charger, un cadre rose « Erreur de style : The layer 'parcel-fill' does not exist… » peut s'afficher (la page cherche les parcelles avant que leurs calques soient posés) ; sans conséquence pour la partie. Vu le 3 nov. au soir, pas encore corrigé.

@@ -31,6 +31,7 @@
 | `mairies` | les Maires de chaque mandat, par commune, avec le nombre de rivaux battus (classement des Maires) | lire toutes |
 | `saisons` | les saisons finies : numéro, fin, podiums (10 premiers de chaque classement), plaques « Maire de la saison » par commune | lire toutes |
 | `saisons_joueurs` | la place de chaque joueur à la fin de chaque saison | lire toutes |
+| (fonctions) `classement_pieces(lim)`, `rang_pieces(j)` (`supabase/sql/140_classement_pieces.sql`, 5 nov.) | le classement des pièces en main (seulement les joueurs qui ont un pseudo) : chacun ne lit toujours que ses propres pièces dans « joueurs », ces fonctions n'en montrent que le classement | lire (tout le monde) |
 | (fonctions) `classement_patrimoine(poids, bonus, c, lim)`, `rang_patrimoine(…, j)`, `classement_maires(m0, m1, lim)`, `rang_maires(m0, m1, j)` | les classements (national ou d'une commune ; d'une saison) et la place d'un joueur ; les poids viennent de `data/economie.json` | appeler (lecture seule) |
 | `gemmes_journal` | chaque mouvement de gemmes (essai, pack national ou régional, Pass ; plus tard les achats par carte) | lire **le sien** |
 | `paiements` | les sessions de paiement Stripe : joueur, offre, gemmes, prix, statut (ouvert, payé, expiré), accès immédiat demandé, pays de la carte, clé de test ou non | lire **les siennes** |
