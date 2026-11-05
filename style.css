@@ -1090,3 +1090,174 @@ body.promenade #sheet .svwrap{display:none}
 .c3d.dessous .c3d-dos{background:linear-gradient(rgba(3,6,16,.3),rgba(3,6,16,.3)),var(--dos-carte,linear-gradient(160deg,#17326F,#050B1E)) center/100% 100% no-repeat,#0B1738;
   box-shadow:0 0 0 1.5px rgba(233,199,123,.8)}
 .c3d.socle .c3d-dos{box-shadow:0 0 0 1.5px rgba(233,199,123,.8),0 4px 0 #040A1C,0 5.5px 0 rgba(233,199,123,.55),0 9px 0 #040A1C,0 10.5px 0 rgba(233,199,123,.35)}
+
+/* ===================== le style façon Pokémon TCG Pocket (5 nov. 2026 ; docs/DESIGN.md, bible graphique § 12) =====================
+   Gautier, après cinq preuves (« nuit et or » : « trop basique, on dirait une appli de réservation d'hôtel » ; « Clash Royale
+   en plus riche » puis deux versions moins cartoon : « moins de couleurs, on dirait un jeu Roblox ») : les menus de Pokémon
+   TCG Pocket. Blanc et gris perle, une seule couleur pour les boutons importants (le bleu de la plaque), la barre du bas
+   blanche, des icônes au trait d'une seule couleur (src/icones.js). Le jeu se voit dans les cartes, la carte de la ville et
+   la plaque de rue, pas dans les menus. La classe pocket est posée sur <html> (index.html) : ces règles l'emportent sur
+   celles d'avant, qui restent dessous. */
+.ico-svg{width:1.15em;height:1.15em;display:inline-block;vertical-align:-.2em;flex:none}
+ico-t{display:contents}
+html.pocket #accueil{background:radial-gradient(circle at 50% 42%,#FFFFFF 0,#F3F5F9 55%,#E6EBF3 100%)}
+/* les cartes et l'ouverture du pack gardent leur police ronde (un moment de jeu) */
+.c3d,.rcard,.art,.ccarte,#packscene,#reveal{--titre:'Baloo 2',ui-rounded,system-ui,sans-serif}
+html.pocket{
+  --encre:#1F2633; --encre2:#495266; --gris:#7C8598; --trait:#E6EAF1; --ciel:#F3F5F9; --blanc:#fff;
+  --accent:#2453B3; --accent2:#1A3F8C; --accent-clair:#EAF0FB;
+  --plaque:#2453B3; --plaque2:#1A3F8C; --plaque-clair:#EAF0FB; --piece-clair:#F4F6FA;
+  --titre:'Nunito',system-ui,sans-serif;
+  --ombre:0 1px 2px rgba(20,30,60,.04),0 6px 18px rgba(20,30,60,.06); --ombre-forte:0 18px 44px rgba(20,30,60,.18);
+  --nuance:#F6F8FB;
+}
+html.pocket,html.pocket body{background:var(--ciel);color:var(--encre)}
+html.pocket h1,html.pocket h2,html.pocket h3{font-family:var(--titre);font-weight:900;letter-spacing:-.01em;color:var(--encre)}
+html.pocket a{color:var(--accent)}
+
+/* le fond : gris perle, un fin motif de lignes */
+html.pocket .screen{background:repeating-linear-gradient(135deg,rgba(31,38,51,.022) 0 1px,transparent 1px 13px),linear-gradient(180deg,#F8F9FC 0%,#EEF1F6 100%)}
+html.pocket .screen h1{font-size:28px;font-weight:900;letter-spacing:-.015em}
+html.pocket .screen h2.section{font-size:12.5px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:var(--gris);margin:22px 4px 9px}
+html.pocket .screen h2.section.flex{text-transform:none;letter-spacing:-.01em;font-size:19px;color:var(--encre);font-weight:900}
+
+/* les panneaux : blancs, un bord fin, une ombre douce */
+html.pocket .card,html.pocket .kpi,html.pocket .notif{background:#fff;border:1px solid var(--trait);border-radius:18px;box-shadow:var(--ombre)}
+html.pocket .card .t{font-weight:900}
+html.pocket .card .m{color:var(--gris);font-weight:600}
+html.pocket .kpi small{color:var(--gris);font-weight:700}
+html.pocket .kpi b{font-weight:900;font-size:21px}
+html.pocket .kpi i{color:var(--accent);font-size:22px}
+html.pocket .kpi i .ico-svg{width:24px;height:24px}
+
+/* les boutons : un seul accent (le bleu de la plaque) ; les autres blancs */
+html.pocket .btn{background:linear-gradient(180deg,#3567D0 0%,#2453B3 55%,#1E4598 100%);color:#fff;border:0;border-radius:14px;box-shadow:inset 0 1px 0 rgba(255,255,255,.22),0 4px 12px rgba(36,83,179,.28);font-family:var(--titre);font-weight:800;letter-spacing:.005em;padding:11px 16px}
+html.pocket .btn:active:not(:disabled){transform:scale(.98);border-bottom-width:0}
+html.pocket .btn.vert,html.pocket .btn.sm.vert,html.pocket .btn.bleu,html.pocket .btn.sm.bleu,html.pocket .btn.sm.next{background:linear-gradient(180deg,#3567D0 0%,#2453B3 55%,#1E4598 100%);color:#fff;border:0;box-shadow:inset 0 1px 0 rgba(255,255,255,.22),0 4px 12px rgba(36,83,179,.25)}
+html.pocket .btn.clair,html.pocket .btn.ghost,html.pocket .btn.sm{background:#fff;color:var(--encre);border:1px solid #D9DFEA;box-shadow:0 1px 2px rgba(20,30,60,.06)}
+html.pocket .btn.sm{padding:7px 12px;border-radius:12px}
+html.pocket .btn.danger,html.pocket .btn.sm.danger{background:#fff;color:#C2412D;border:1px solid #F0D3CC;box-shadow:none}
+html.pocket .btn:disabled{filter:grayscale(1);opacity:.45}
+html.pocket .close,html.pocket .fermer-commune{background:#F1F3F7;color:var(--encre);border:0;font-weight:700}
+
+/* la barre du haut, sur la carte : du blanc, des ombres douces */
+html.pocket .pill,html.pocket #search,html.pocket .rond,html.pocket .seg,html.pocket #bnorth,html.pocket #bprom,html.pocket #legend,html.pocket #charge{background:rgba(255,255,255,.96);border:0;box-shadow:0 2px 10px rgba(20,30,60,.14)}
+html.pocket .moi .av{background:var(--accent-clair);border:2px solid #fff;box-shadow:0 0 0 1.5px #D9DFEA}
+html.pocket .moi-t b,html.pocket .bourse b,html.pocket .pill.gemmes b{font-family:var(--titre);font-weight:900;color:var(--encre)}
+html.pocket .pill.gemmes .gem{color:var(--accent)}
+html.pocket .gain{background:var(--accent-clair);color:var(--accent);font-weight:800}
+html.pocket #search .loupe{color:var(--gris);opacity:1}
+html.pocket #search button{background:var(--accent);border:0;border-radius:11px;font-family:var(--titre);font-weight:800}
+html.pocket #search:focus-within{border:0;box-shadow:0 0 0 2px var(--accent),0 2px 10px rgba(20,30,60,.14)}
+html.pocket .rond,html.pocket #bnorth,html.pocket #bprom{color:var(--encre)}
+html.pocket #bnorth{color:var(--accent);font-family:var(--titre);font-weight:900}
+html.pocket .rbtn{font-family:var(--titre);font-weight:800}
+html.pocket .rbtn.on{background:var(--accent);box-shadow:none}
+html.pocket .cnt{background:#E5484D;border-color:#fff;font-family:var(--titre);font-weight:800}
+html.pocket #legend .titre-legende{font-family:var(--titre)}
+
+/* la barre du bas : blanche, des icônes simples, l'onglet ouvert en bleu */
+html.pocket #nav{background:#fff;border-top:1px solid var(--trait);box-shadow:0 -4px 18px rgba(20,30,60,.06);border-radius:0}
+html.pocket #nav button{color:#8A93A6;font-family:var(--titre);font-weight:800;font-size:11px}
+html.pocket #nav button i{filter:none;color:#8A93A6;width:52px;height:30px}
+html.pocket #nav button i .ico-svg{width:24px;height:24px}
+html.pocket #nav button.on{color:var(--accent)}
+html.pocket #nav button.on i{color:var(--accent);background:var(--accent-clair);transform:none}
+html.pocket .pack-rond{background:linear-gradient(180deg,#3A6CD6 0%,#2453B3 60%,#1E4598 100%);border:4px solid #fff;box-shadow:0 6px 16px rgba(36,83,179,.38);color:#fff;overflow:hidden;position:relative}
+html.pocket .pack-rond .ico-svg{width:30px;height:30px}
+html.pocket .pack-nav .pack-t{color:var(--accent);font-family:var(--titre);font-weight:900}
+html.pocket .pack-nav.attente .pack-rond{background:#EEF1F6;box-shadow:0 3px 10px rgba(20,30,60,.12);color:#9AA3B5;filter:none}
+html.pocket .pack-nav.attente .pack-t{color:var(--gris);font-family:var(--titre);font-weight:800}
+/* le pack prêt : un reflet qui passe (le seul mouvement de la barre) */
+html.pocket .pack-nav.pret .pack-rond{animation:none}
+html.pocket .pack-nav.pret .pack-rond::after{content:'';position:absolute;inset:-4px;background:linear-gradient(115deg,transparent 35%,rgba(255,255,255,.55) 50%,transparent 65%);background-size:250% 100%;animation:reflet-pack 2.8s ease-in-out infinite}
+@keyframes reflet-pack{0%,45%{background-position:130% 0}100%{background-position:-40% 0}}
+@media (prefers-reduced-motion:reduce){html.pocket .pack-nav.pret .pack-rond::after{animation:none}}
+
+/* la fiche d'un lieu et le détail d'une carte */
+html.pocket #sheet{background:#fff;border-radius:24px 24px 0 0;box-shadow:0 -12px 40px rgba(20,30,60,.16)}
+html.pocket #sheet::before{background:#D5DBE5}
+html.pocket .svwrap{border-radius:16px;box-shadow:0 0 0 1px var(--trait)}
+html.pocket .addr{background:#fff;border:1px solid var(--trait);border-radius:20px;box-shadow:inset 0 3px 0 color-mix(in srgb,var(--rc,#D9DFEA) 80%,#fff),var(--ombre)}
+html.pocket .addr.r6{border:1px solid var(--trait);background:#fff;box-shadow:var(--ombre)}
+html.pocket .addr.r6::before{content:'';position:absolute;left:14px;right:14px;top:0;height:3px;border-radius:0 0 3px 3px;background:var(--arc)}
+html.pocket .addr .n{font-family:var(--titre);font-weight:900}
+html.pocket .addr .m{color:var(--gris);font-weight:700}
+html.pocket .ico-lieu,html.pocket .ico-lieu.r6{background:var(--nuance);border:1px solid var(--trait);box-shadow:none;border-radius:16px;color:var(--encre)}
+html.pocket .tag{background:#F1F3F7;color:var(--encre2);font-weight:800}
+html.pocket .tag.r1,html.pocket .tag.r2,html.pocket .tag.r3,html.pocket .tag.r4,html.pocket .tag.r5{background:color-mix(in srgb,var(--rc) 12%,#fff);color:var(--rc2)!important}
+html.pocket .tag.r6{background:#F4EEFF;color:#6B2A9E!important}
+html.pocket .own{font-weight:800}
+html.pocket .own.me{background:var(--accent-clair);color:var(--accent)}
+html.pocket .own.other,html.pocket .own.libre{background:#F1F3F7;color:var(--encre2)}
+html.pocket .stats{gap:8px}
+html.pocket .stat,html.pocket .stat.or,html.pocket .stat.vert{background:var(--nuance);border:1px solid #E9EDF3;border-radius:14px}
+html.pocket .stat>span{color:var(--gris);font-weight:800;letter-spacing:.08em;font-size:10.5px}
+html.pocket .stat b,html.pocket .stat.or b,html.pocket .stat.vert b{font-family:var(--titre);font-weight:900;color:var(--encre)}
+html.pocket .stat.rouge b{color:#C2412D}
+html.pocket .stat .etoiles{color:var(--accent)} html.pocket .stat .etoiles i{color:#D3DAE6}
+html.pocket .facteurs{color:var(--gris)}
+html.pocket .addr .actions,html.pocket .addr .offre{border-top:1px solid var(--trait)}
+/* l'échelle : un fil, des ronds au trait ; ce qui est fait en bleu */
+html.pocket .echelle .pas{color:var(--gris);font-weight:800}
+html.pocket .echelle .pas::before{height:2px;top:19px;background:#E2E7EF}
+html.pocket .echelle.longue .pas::before{top:16px}
+html.pocket .echelle .pas.fait::before{background:var(--accent)}
+html.pocket .echelle .rond-pas{background:#fff;border:1.5px solid #D9DFEA;color:var(--encre2)}
+html.pocket .echelle .rond-pas .ico-svg{width:20px;height:20px}
+html.pocket .echelle .pas.fait .rond-pas{background:var(--accent);border-color:var(--accent);color:#fff}
+html.pocket .echelle .pas.fait{color:var(--accent)}
+html.pocket .echelle .pas.suivant .rond-pas{background:#fff;border:2px solid var(--accent);color:var(--accent);animation:appel-pocket 2s ease-in-out infinite}
+html.pocket .echelle .pas.suivant{color:var(--accent)}
+@keyframes appel-pocket{0%,100%{box-shadow:0 0 0 0 rgba(36,83,179,.3)}50%{box-shadow:0 0 0 6px rgba(36,83,179,0)}}
+html.pocket .echelle .pas.bloque .rond-pas{opacity:.5;filter:none}
+html.pocket .raccourci{background:var(--nuance);border:1px solid #E9EDF3}
+html.pocket .raccourci b{font-family:var(--titre);font-weight:900}
+html.pocket input.txt,html.pocket input.num,html.pocket .champ-prix{border:1px solid #D9DFEA;box-shadow:none;border-radius:14px}
+html.pocket input.txt:focus,html.pocket input.num:focus{border-color:var(--accent)}
+html.pocket .vente-valeur,html.pocket .prix-vente,html.pocket .maire-gain{background:var(--nuance);color:var(--encre)}
+html.pocket .filtre{background:#fff;border:1px solid #D9DFEA;color:var(--encre2);font-weight:800}
+html.pocket .filtre.on{background:var(--encre);border-color:var(--encre);color:#fff}
+html.pocket .chip,html.pocket .chip.or,html.pocket .chip.vert,html.pocket .chip.bleu{background:var(--nuance);color:var(--encre2)}
+
+/* fenêtres, notifications, listes */
+html.pocket #modal{background:rgba(20,28,45,.42)}
+html.pocket #modal .box{border-radius:24px;border:0;box-shadow:var(--ombre-forte)}
+html.pocket #modal .box h2{font-family:var(--titre);font-weight:900}
+html.pocket .notif .ico{background:var(--nuance);border:1px solid #E9EDF3;color:var(--encre);border-radius:14px}
+html.pocket .notif.unread{box-shadow:inset 3px 0 0 var(--accent),var(--ombre)}
+html.pocket .notif .quand{color:var(--gris);font-weight:700}
+html.pocket .offre-valeur{background:var(--nuance)}
+html.pocket .offre-valeur .ecart.plus{background:#E8F5EE;color:#237A4B}
+html.pocket .offre-valeur .ecart.moins{background:#FBEFE6;color:#A45A1C}
+html.pocket .rank.moi{background:var(--accent-clair)}
+html.pocket .bar{background:#E9EDF3} html.pocket .bar i{background:var(--accent)}
+html.pocket .sw input:checked{background:var(--accent)}
+html.pocket .sw.mode{background:var(--nuance)}
+html.pocket .compte-a-rebours{background:var(--encre);font-family:var(--titre);font-weight:800}
+html.pocket .lot .mise{font-family:var(--titre);font-weight:900}
+html.pocket .lot summary{color:var(--accent)}
+html.pocket .card.lot.nat{border:1px solid var(--trait);background:#fff;animation:none;position:relative;overflow:hidden}
+html.pocket .card.lot.nat::before{content:'';position:absolute;left:0;right:0;top:0;height:4px;background:var(--arc)}
+html.pocket .card.lot.r6:not(.nat){border:1px solid var(--trait)}
+html.pocket .ligne-commune .nom,html.pocket .sugg-commune .nom{font-weight:900}
+html.pocket .ligne-commune .chevron{color:#B4BCCB}
+html.pocket .sugg-commune .maire-mini{background:var(--nuance);color:var(--encre2)}
+html.pocket .saison-carte{background:#fff!important}
+html.pocket .saison-rangs>div{background:var(--nuance);border:1px solid #E9EDF3;box-shadow:none}
+html.pocket .saison-rangs b{font-family:var(--titre);font-weight:900;color:var(--accent)}
+html.pocket .saison-voir,html.pocket .caisse-fin{color:var(--accent)}
+html.pocket .plaque-saison{background:var(--nuance);color:var(--encre)}
+html.pocket .card.entretien{border:1px solid var(--trait)}
+html.pocket .article,html.pocket .article.pass{background:var(--nuance);border:1px solid #E9EDF3}
+html.pocket .offre-gemmes{border:1px solid #E9EDF3;box-shadow:none}
+html.pocket .offre-gemmes b{color:var(--accent)}
+html.pocket .devises button.on{border-color:var(--accent);background:var(--accent-clair);color:var(--accent)}
+html.pocket .recolte{color:var(--accent);font-family:var(--titre);font-weight:900}
+html.pocket .profil-tete .av{border:3px solid #fff;box-shadow:0 0 0 1.5px #D9DFEA,0 8px 20px rgba(20,30,60,.12);background:var(--accent-clair)}
+html.pocket .avgrid button.on,html.pocket .raisons button.on{border-color:var(--accent);background:var(--accent-clair)}
+html.pocket .cel-pt{background:var(--accent);box-shadow:0 2px 6px rgba(0,0,0,.3)}
+html.pocket .cel-nom{background:#fff;color:var(--encre);border:0;outline:0;box-shadow:0 2px 8px rgba(0,0,0,.25);font-family:var(--titre);font-weight:900}
+html.pocket .mlabel{background:#fff;color:var(--encre);font-family:var(--titre);font-weight:900}
+html.pocket #toast{border-radius:16px}
+html.pocket select{background:#fff;border:1px solid #D9DFEA;border-radius:12px;padding:8px 10px;font-family:var(--texte);font-weight:700;font-size:15px;color:var(--encre)}
