@@ -87,3 +87,12 @@ test('échange : la balance compte le lieu donné et les pièces ajoutées', () 
   assert.deepEqual(bilanEchange(8000, 0, 10000), { donne: 8000, recoit: 10000, ecart: -0.2 });
   assert.deepEqual(bilanEchange(8000, 3000, 10000), { donne: 11000, recoit: 10000, ecart: 0.1 });
   assert.equal(bilanEchange(5000, -100, 5000).ecart, 0, 'des pièces en moins ne comptent pas'); });
+
+test('le niveau de la commune ajoute au loyer (bonus), jamais au salaire', () => {
+  const R2 = require('../src/regles/lieu.js').creer(require('../data/economie.json'), require('../data/standing.json'));
+  const l = { citycode: '28105', city: 'Clévilliers', niveau: 1 }, base = R2.loyerParJour(l);
+  assert.strictEqual(R2.loyerParJour(l, 0), base);
+  assert.strictEqual(R2.loyerParJour(l, 0.1), Math.round(base * 1.1));
+  const J = 86400000, sans = R2.aEncaisser([l], 0, J, J), avec = R2.aEncaisser([l], 0, J, J, () => 0.1);
+  assert.strictEqual(avec - sans, Math.round(base * 1.1) - base, 'seul le loyer monte, pas le salaire');
+});

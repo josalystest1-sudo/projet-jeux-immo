@@ -46,17 +46,27 @@
     }
     // la part d'un Maire : part_loyers des loyers des lieux des autres joueurs de la commune, partagée entre co-Maires,
     // sans dépasser le plafond du mandat (partagé lui aussi) ; dejaTouche : ce qu'il a déjà touché ce mandat
-    function part(loyersDesAutres, nbMaires, dejaTouche) {
-      const n = Math.max(1, nbMaires || 1), plafond = Math.floor(M.plafond_mandat / n);
+    // (niveau : celui de la commune ; le plafond monte avec lui, décision de Gautier du 5 nov. 2026 : « la mairie rapporte
+    // plus » ; 1 000 au niveau 0, 2 000 au niveau 5)
+    function part(loyersDesAutres, nbMaires, dejaTouche, niveau) {
+      const n = Math.max(1, nbMaires || 1), plafond = plafondPart(n, niveau);
       return Math.max(0, Math.min(Math.floor(loyersDesAutres * M.part_loyers / n), plafond - Math.floor(dejaTouche || 0)));
     }
-    function plafondPart(nbMaires) { return Math.floor(M.plafond_mandat / Math.max(1, nbMaires || 1)); }
+    function plafondPart(nbMaires, niveau) { return Math.floor(M.plafond_mandat * (1 + (M.travaux_bonus_plafond || 0) * (niveau || 0)) / Math.max(1, nbMaires || 1)); }
     // un Maire absent depuis trop longtemps : jours sans connexion
     function tropAbsent(joursSansConnexion) { return joursSansConnexion >= M.absence_jours; }
 
-    // le niveau de la commune (GDD § 5, [Proposé] ; construit le 5 nov. 2026) : tout ce qui a été versé à sa caisse de
-    // travaux depuis toujours, par tous (les travaux faits restent faits : il ne baisse jamais) ; 0 à 5 selon les
-    // paliers de M.travaux_paliers
+    // le niveau de la commune (GDD § 5 ; construit le 5 nov. 2026) : l'état de ses travaux, fait de tout ce qui a été versé
+    // à sa caisse, par tous ; 0 à 5 selon les paliers de M.travaux_paliers. Les travaux s'usent (décision de Gautier du
+    // 5 nov. : « les travaux s'usent ») : à chaque nouveau mandat, l'état perd M.travaux_usure (10 %) ; une commune au
+    // niveau 5 doit être entretenue.
+    // l'état des travaux au mandat « mandat », s'il valait « etat » au mandat « depuis » (usé une fois par mandat passé)
+    function etatTravaux(etat, depuis, mandat) {
+      const n = Math.max(0, Math.floor(mandat) - Math.floor(depuis)), e = Math.max(0, Math.floor(etat || 0));
+      return n ? Math.floor(e * Math.pow(1 - (M.travaux_usure || 0), n)) : e;
+    }
+    // ce que le niveau rapporte : la part de loyer en plus pour tous les lieux de la commune (0,02 par niveau)
+    function bonusLoyer(niveau) { return (M.travaux_bonus_loyer || 0) * Math.max(0, niveau || 0); }
     function niveauTravaux(total) { const p = M.travaux_paliers || []; let n = 0; while (n < p.length && total >= p[n]) n++; return n; }
     // le palier suivant : { niveau, palier, manque } (null au dernier niveau)
     function prochainTravaux(total) {
@@ -64,7 +74,7 @@
       return n < p.length ? { niveau: n + 1, palier: p[n], manque: p[n] - Math.floor(Math.max(0, total || 0)) } : null;
     }
 
-    return { mandat, premierJour, points, peutVerser, elire, manque, part, plafondPart, tropAbsent, niveauTravaux, prochainTravaux, M };
+    return { mandat, premierJour, points, peutVerser, elire, manque, part, plafondPart, tropAbsent, niveauTravaux, prochainTravaux, etatTravaux, bonusLoyer, M };
   }
 
   const api = { creer };

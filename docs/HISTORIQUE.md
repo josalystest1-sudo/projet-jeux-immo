@@ -183,6 +183,7 @@ Rien d'important ne vit dans une conversation : tout est dans le dépôt ou sur 
 - **Le suivi** (PR #149). Claude propose ensuite un tableau de suivi et un minimum d'anti-triche (ou les lieux célèbres) ; Gautier : « vas-y ». Les jours de visite des vrais joueurs sont notés ; deux vues du tableau de bord de Supabase donnent les inscrits, les venus, les retours du lendemain et du 7e jour, et les achats.
 - **Les lieux célèbres** (PR #152). Claude propose d'ajouter les châteaux, mairies, gares, musées, phares, moulins… aux lieux célèbres ; Gautier demande ce que ça change aux packs, puis : « oui vas-y, mais il faut que les légendaires restent rares ». La chance d'une Légendaire ne change pas (1 carte sur 100) ; les Rares écartent les lieux célèbres ; les marques (grands vins, cabarets, musées de marque) sont écartées.
 - **Le niveau des communes** (PR #153). Gautier remet Brevo à plus tard : « on fait tout ce qui ne nécessite pas un PC ». Claude enchaîne avec ce que le game design du 4 nov. prévoyait encore : ce qui a été versé à la caisse d'une commune, depuis toujours, la fait monter de niveau (arbres, lampadaires, fleurs, fontaine, kiosque), visible dans la commune et sur la carte.
+- **Les travaux s'usent** (PR #156). Gautier : « c'est bien de monter le niveau d'une commune, mais si elle est au niveau max, il reste quoi à faire ? Comment devenir Maire ? Pour quoi faire ? ». Claude rappelle les règles du Maire (le plus gros versement de la quinzaine, 5 % des loyers des autres plafonnés, surtout du prestige) et propose ; Gautier choisit : les travaux s'usent (10 % toutes les 2 semaines), le niveau donne +2 % de loyer par niveau à tous les propriétaires de la commune, et le plafond du Maire monte avec le niveau (jusqu'à 2 000). Il accepte aussi l'horloge (« oui, active-la »).
 - **L'horloge du serveur** (PR #155). Dans la même série : toutes les 10 minutes, GitHub appelle le serveur pour clore les enchères, faire tourner les mandats et les saisons, tenir les monuments et faire jouer les robots, même sans joueur.
 - **L'anti-triche** (PR #150). Dans la foulée : pas plus de 60 actions par minute pour un compte, et une empreinte chiffrée de la connexion (jamais l'adresse IP) ; dès 3 comptes sur une même connexion dans la journée, une alerte pour Gautier, sans rien bloquer (familles, réseaux partagés, multi-comptes tolérés en V1).
 
@@ -366,6 +367,7 @@ Puis une PR par étape, fusionnée en squash :
 | #153 | 05/11 | Le niveau des communes : les travaux versés depuis toujours (0 à 5 : arbres, lampadaires, fleurs, fontaine, kiosque), dans la commune et sur la carte |
 | #154 | 05/11 | Relecture des écrans en 320 px (français et anglais) : « Area » au lieu de « Neighbourhood », le bouton de la démo dans les Réglages |
 | #155 | 05/11 | L'horloge du serveur : toutes les 10 minutes, enchères, mandats, saisons, monuments et robots tournent sans joueur |
+| #156 | 05/11 | Les travaux des communes s'usent (−10 % par mandat) ; le niveau donne +2 % de loyer par niveau et monte le plafond du Maire (jusqu'à 2 000) |
 
 ## Les décisions de Gautier
 
@@ -406,6 +408,7 @@ Les décisions du 2 novembre (interview) sont dans `CLAUDE.md` § 4 et dans le G
 | 4 nov. | **Monnaie premium (gemmes)** : euros → gemmes à sens unique, sans commission ; elle achète les packs, les packs régionaux (un peu plus chers), le Pass 15 jours (8 cartes au lieu de 5 + une adresse cible hors Légendaire et monument) et des offres sur les lieux d'autres joueurs. Revente de lieux contre des euros : écartée |
 | 4 nov. | Lots réels (clés Steam, bons de commerçants) : idée gardée pour faire venir des joueurs, mais jamais attribués selon un score que l'argent ou le nombre de lieux influence (risque de loterie) |
 | 5 nov. | **Le jeu existe aussi en anglais** : choix dans les réglages ; par défaut la langue du téléphone (d'abord « français par défaut », précisé le même jour) ; les noms propres et les rues restent en français |
+| 5 nov. | Les communes (après la question « au niveau max, il reste quoi à faire ? ») : les travaux s'usent (10 % toutes les 2 semaines) ; le niveau donne +2 % de loyer par niveau aux propriétaires de la commune ; le plafond du Maire monte avec le niveau (jusqu'à 2 000 par mandat). L'horloge du serveur, toutes les 10 minutes. |
 
 ## Ce qui reste à faire (au 4 novembre après-midi)
 
