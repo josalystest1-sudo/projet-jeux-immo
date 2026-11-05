@@ -31,3 +31,17 @@ test('même graine, mêmes raretés tirées', () => {
   const a = Pack.raretes(5, eco.pack.chances, Pack.alea(Pack.graine('x:1'))), b = Pack.raretes(5, eco.pack.chances, Pack.alea(Pack.graine('x:1')));
   assert.deepEqual(a, b);
 });
+test('un tirage Rare ne donne jamais un lieu célèbre (les Légendaires restent à 1 carte sur 100)', async () => {
+  // le géocodeur des lieux nommés rend, à chaque demande, une gare célèbre (Wikipédia) et une gare qui ne l'est pas
+  const poi = (nom, lon, lat) => ({ geometry: { coordinates: [lon, lat] }, properties: { toponym: nom, category: ['Gare'], citycode: ['28105'], city: ['Clévilliers'] } });   // (standing 1 : un lieu nommé y est Rare)
+  const g = geocodeur(), geo = async (chemin) => (chemin.includes('index=poi') ? { features: [poi('Gare de Chartres', 1.4817, 48.4486), poi('Gare de Lucé', 1.45, 48.44)] } : g(chemin));
+  const celebres = async (dep) => (dep === '28' ? [['Q1', 'Gare de Chartres', 'gare', 1.4817, 48.4486, '28105']] : []);
+  const T = Tirage.creer({ geoJSON: geo, celebres, france: FRANCE, deps: ['28'], standing: table, Celebres, Pack, rarete: R.rarete, estLibre: () => true });
+  for (let k = 0; k < 20; k++) {
+    const c = await T.lieuNommeProche(1.46, 48.44, Pack.alea(Pack.graine('rare:' + k)));
+    assert.ok(c && c.label === 'Gare de Lucé' && R.rarete(c) === 3, `tirage ${k} : ${c && c.label}`);
+  }
+  // seul lieu nommé du coin : la gare célèbre ; le tirage Rare ne la donne pas (rien : le pack refait un essai, ou donne une Commune)
+  const seul = Tirage.creer({ geoJSON: async (chemin) => (chemin.includes('index=poi') ? { features: [poi('Gare de Chartres', 1.4817, 48.4486)] } : g(chemin)), celebres, france: FRANCE, deps: ['28'], standing: table, Celebres, Pack, rarete: R.rarete, estLibre: () => true });
+  assert.equal(await seul.lieuNommeProche(1.48, 48.45, Pack.alea(1)), null);
+});

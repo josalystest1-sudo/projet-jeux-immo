@@ -517,7 +517,10 @@ const celMarqueurs = {}; const CEL_MAX = 60;
 async function afficherCelebres(){
   const bb = map.getBounds(); const deps = DEP_BOITES.filter(d=>d.b[0]<=bb.getEast() && d.b[2]>=bb.getWest() && d.b[1]<=bb.getNorth() && d.b[3]>=bb.getSouth()).map(d=>d.code).slice(0,6);
   const listes = await Promise.all(deps.map(chargerCelebres)); const garder = new Set();
-  for(const l of listes) for(const e of l){ if(garder.size>=CEL_MAX || !bb.contains([e[3],e[4]])) continue; garder.add(e[0]);
+  // au plus CEL_MAX repères : les plus proches du centre de l'écran (une grande ville a plus de lieux célèbres que cela)
+  const c = map.getCenter(), d2 = e => (e[3]-c.lng)**2 + (e[4]-c.lat)**2;
+  const vus = listes.flat().filter(e=>bb.contains([e[3],e[4]])).sort((a,b)=>d2(a)-d2(b)).slice(0, CEL_MAX);
+  for(const e of vus){ garder.add(e[0]);
     if(!celMarqueurs[e[0]]){ const el=document.createElement('div'); el.className='cel';
       const pt=document.createElement('span'); pt.className='cel-pt'; pt.textContent='⭐'; const nom=document.createElement('span'); nom.className='cel-nom'; nom.textContent=e[1];
       el.append(pt, nom); el.onclick=(ev)=>{ ev.stopPropagation(); ouvrirCelebre(e); };

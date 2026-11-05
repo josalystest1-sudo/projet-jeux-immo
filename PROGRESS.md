@@ -272,7 +272,6 @@
   - Pour l'instant, un monument montre le bâtiment de l'IGN, pas sa maquette. 49 tests.
 
 ## En cours
-- Lieux célèbres : les autres catégories (châteaux, mairies, gares, musées, ponts, phares, moulins…). Wikidata répond depuis le PC : `python tools/wikidata_celebres.py --categories chateau,mairie,…`, puis `gen_donnees.py celebres`. La fusion garde les catégories déjà reçues.
 - Phase 1.1 à 1.4 : la carte et le modèle des lieux reconstruits en modules (`src/`) à partir du prototype ; puis le marché (phase 4 : historique des ventes d'un lieu) et les communes et Maires (phase 6). Ensuite : Signaler envoyé au serveur dès qu'il y aura de vrais joueurs à l'écran ; Google ; un service d'envoi d'e-mails avant le lancement (le service de Supabase n'écrit qu'aux membres de l'équipe Supabase, deux e-mails par heure).
 
 ## À faire
@@ -446,6 +445,17 @@
   - La confidentialité (française et anglaise) le dit, avec la durée de 30 jours.
   - **Vérifié** : `tools/essai_sql.mjs` (cadence, minute suivante, empreintes sans les robots, alerte au troisième compte avec les pseudos, effacement après 30 jours, comptes liés, rien de lisible par le jeu ; 195 vérifications) ; `deno check` ; l'essai automatique du serveur vérifie désormais la visite du jour, l'empreinte (un condensé) et que le jeu ne lit ni les empreintes ni le suivi. 94 tests.
 - 5 nov. 2026 (PR #151) : **l'essai automatique du serveur, plus solide**. Son lot d'enchère d'essai durait 25 s : après la mise en ligne de la PR #150, le serveur a répondu plus lentement (les essais complets durent de 2 min 30 à plus de 4 min selon le moment) et la dernière mise est arrivée après la fin. Relancé tel quel, l'essai est passé (92 vérifications, dont l'empreinte et la visite du jour). Le lot dure maintenant 45 s.
+- 5 nov. 2026 (PR #152) : **plus de lieux célèbres, des Légendaires plus variées** (Gautier : « oui vas-y, mais il faut que les légendaires restent rares »).
+  - **30 908 lieux célèbres** au lieu de 14 314. S'ajoutent les châteaux et châteaux forts, manoirs, monastères, prieurés, hôtels de ville, gares, musées (d'art, militaires, archéologiques, nationaux…), phares, ponts, forts, tours, moulins, théâtres, fontaines, stades et portes de ville, avec leur article Wikipédia en français (`tools/wikidata_celebres.py`, puis `tools/gen_donnees.py celebres`).
+  - **Les Légendaires restent rares** : la chance ne change pas (1 carte sur 100, tirée d'avance, `pack.chances`) ; seul le choix est plus varié (un château, une gare, un phare… au lieu d'une église presque toujours).
+  - **Les Rares aussi gardent leur chance** : un tirage Rare écarte désormais d'emblée les lieux nommés qui sont célèbres (`lieuNommeProche`) ; avant, il tombait dessus, était refait et finissait en Commune. Les gares ne sont plus tirées en Rare (presque toutes ont un article : elles sont Légendaires). Essai avec le vrai géocodeur : 16 Rares sur 16, aucune célèbre ; 12 Légendaires variées.
+  - **Jamais de marque** (décision du 3 nov.) :
+    - la requête de Wikidata écarte les lieux qui sont aussi domaine viticole, vignoble, hôtel, restaurant, cinéma, commerce, entreprise ou marque, et les bâtiments détruits ;
+    - les châteaux, manoirs, moulins, musées et théâtres dont l'article de Wikipédia est rangé dans une catégorie de vignoble, de grand cru, d'entreprise, de maison de champagne ou de cabaret sont écartés (107 lieux, dont château Palmer et Cos d'Estournel). Les catégories sont gardées dans le brouillon ; un musée de France n'est jamais écarté ;
+    - à la main (`CELEBRES_EXCLUS` de `gen_donnees.py`) : Olympia, Lido, Crazy Horse, Folies Bergère, Bobino, les cafés-théâtres, Grévin, les musées Dior, Baccarat, Lalique, Louis Vuitton, Renault, Citroën, EDF, Arkéa Arena… et le Bataclan (un lieu de mémoire).
+  - Les gares portent leur nom (« Gare de Biarritz » au lieu de « Biarritz »).
+  - **La carte** : au plus 60 ⭐ à l'écran, désormais les plus proches du centre (avant : les premiers de la liste).
+  - Le serveur embarque la nouvelle liste (2,7 Mo). 95 tests (dont : un tirage Rare ne donne jamais un lieu célèbre).
 
 ## Bugs connus
 - Les badges 💰 des joueurs simulés n'apparaissent qu'après ouverture de leur parcelle (limite du prototype local).

@@ -181,6 +181,7 @@ Rien d'important ne vit dans une conversation : tout est dans le dépôt ou sur 
 - **La langue du téléphone** (PR #147). Pendant la mise en ligne, Gautier précise : « idéalement la langue se met en fonction de la langue du périphérique par défaut, avec modification possible ». Le jeu suit désormais le téléphone (français s'il est en français, anglais pour toute autre langue, proposition de Claude), et le choix des Réglages passe avant.
 - **Le vrai serveur pour tous** (PR #148). Gautier : « on passe à quoi ? ». Claude propose de mettre tout le monde sur le vrai serveur (la grosse étape avant la bêta entre amis), ou d'ajouter des lieux célèbres ; Gautier : « super, c'est quoi la suite ? ». Plus de démo par défaut ni d'interrupteur : tout visiteur crée son compte et joue sur le serveur ; les signalements partent au serveur ; le cadre rose « Erreur de style » du 3 nov. est corrigé. Il manque, pour inviter des amis, le service d'e-mails (Brevo : le compte est à créer par Gautier, devant le PC).
 - **Le suivi** (PR #149). Claude propose ensuite un tableau de suivi et un minimum d'anti-triche (ou les lieux célèbres) ; Gautier : « vas-y ». Les jours de visite des vrais joueurs sont notés ; deux vues du tableau de bord de Supabase donnent les inscrits, les venus, les retours du lendemain et du 7e jour, et les achats.
+- **Les lieux célèbres** (PR #152). Claude propose d'ajouter les châteaux, mairies, gares, musées, phares, moulins… aux lieux célèbres ; Gautier demande ce que ça change aux packs, puis : « oui vas-y, mais il faut que les légendaires restent rares ». La chance d'une Légendaire ne change pas (1 carte sur 100) ; les Rares écartent les lieux célèbres ; les marques (grands vins, cabarets, musées de marque) sont écartées.
 - **L'anti-triche** (PR #150). Dans la foulée : pas plus de 60 actions par minute pour un compte, et une empreinte chiffrée de la connexion (jamais l'adresse IP) ; dès 3 comptes sur une même connexion dans la journée, une alerte pour Gautier, sans rien bloquer (familles, réseaux partagés, multi-comptes tolérés en V1).
 
 ## Toutes les PR
@@ -359,6 +360,7 @@ Puis une PR par étape, fusionnée en squash :
 | #149 | 05/11 | Le tableau de suivi de Gautier (inscrits, venus, retours du lendemain et du 7e jour, achats), dans le tableau de bord de Supabase |
 | #150 | 05/11 | Un minimum d'anti-triche : 60 actions par minute au plus, empreinte chiffrée de la connexion, alerte dès 3 comptes sur une même connexion, vue des comptes liés |
 | #151 | 05/11 | L'essai automatique du serveur : le lot d'enchère d'essai passe de 25 à 45 s (trop court quand le serveur répond lentement) |
+| #152 | 05/11 | 30 908 lieux célèbres (châteaux, gares, musées, phares, ponts, moulins…), Légendaires toujours à 1 carte sur 100, Rares sans lieu célèbre, marques écartées |
 
 ## Les décisions de Gautier
 
@@ -439,7 +441,7 @@ Les décisions du 2 novembre (interview) sont dans `CLAUDE.md` § 4 et dans le G
   - le nom est décidé : **CityDeck** (4 nov.) ; vérifier qu'il est libre (marque, nom de domaine, magasins d'applications) avant le lancement.
 - **L'anglais** (PR #146) : faire relire les textes par un anglophone ; les e-mails de connexion (Supabase, puis Brevo) n'existent qu'en une langue ; tout nouveau texte du jeu doit entrer dans `data/langue_en.js` (le test le rappelle pour les bandeaux et les refus du serveur).
 - **Petites choses** :
-  - les autres catégories de lieux célèbres (châteaux, mairies, gares…). Wikidata se joint depuis le PC. Les lieux de culte de toutes les religions y sont depuis la PR #104 ;
+  - les autres catégories de lieux célèbres : faites (PR #152). Restent à relire à la main quelques châteaux du Bordelais au nom de vin, et les lieux nommés de l'IGN qui portent une marque (un musée du chocolat d'un chocolatier) ;
   - retirer le prototype du dépôt de l'Arena ;
   - relire les 60 monuments nationaux ;
   - valider les seuils du standing et la capacité de gestion.

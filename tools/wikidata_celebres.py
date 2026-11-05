@@ -8,7 +8,7 @@ Ensuite : python3 tools/gen_donnees.py (fabrique data/celebres/<département>.js
     python3 tools/wikidata_celebres.py [--pause 65] [--categories eglise,gare] [--fusion]
     (--fusion : sans interroger Wikidata, assemble seulement les catégories déjà reçues)
 """
-import argparse, datetime, json, pathlib, sys, time, urllib.parse, urllib.request
+import argparse, datetime, json, pathlib, re, sys, time, urllib.parse, urllib.request
 
 RACINE = pathlib.Path(__file__).resolve().parent.parent
 SORTIE = RACINE / 'data' / 'sources' / 'celebres_wikidata.txt'
@@ -19,7 +19,11 @@ UA = 'Cadastra/0.1 (https://github.com/josalystest1-sudo/projet-jeux-immo)'
 CATEGORIES = {
     'eglise': 'Q16970', 'chapelle': 'Q108325', 'cathedrale': 'Q2977', 'abbaye': 'Q160742',
     'monastere': 'Q44613', 'prieure': 'Q2750108', 'chateau': 'Q751876', 'chateau_fort': 'Q23413',
-    'manoir': 'Q879050', 'mairie': 'Q543654', 'gare': 'Q55488', 'musee': 'Q33506', 'phare': 'Q39715',
+    'manoir': 'Q879050', 'gare': 'Q55488', 'phare': 'Q39715',
+    # (5 nov. 2026) les mairies françaises sont des « hôtels de ville » dans Wikidata ; les musées, souvent une sorte de
+    # musée (d'art, militaire, archéologique, national…) ; jamais une galerie d'art (un commerce)
+    'mairie': ('Q543654', 'Q25550691'),
+    'musee': ('Q33506', 'Q207694', 'Q2772772', 'Q3329412', 'Q17431399', 'Q16735822', 'Q2087181', 'Q588140', 'Q1595639'),
     'pont': 'Q12280', 'fort': 'Q57821', 'tour': 'Q12518', 'moulin_vent': 'Q38720', 'moulin_eau': 'Q185187',
     'theatre': 'Q24354', 'fontaine': 'Q483453',
     'stade': 'Q483110', 'synagogue': ('Q34627', 'Q109300353'), 'porte': 'Q82117',
@@ -48,11 +52,20 @@ def sparql(requete, pause):
     raise RuntimeError('Wikidata ne répond pas')
 
 
+# Jamais d'enseigne ni de marque sur un lieu (décision de Gautier, 3 nov. 2026) : un lieu qui est aussi un domaine
+# viticole (château Margaux), un vignoble, un hôtel (Negresco), un restaurant, un cinéma, une salle d'événements, un
+# commerce, une entreprise ou une marque est écarté ; de même un bâtiment détruit (rien à posséder). Classes directes (P31).
+EXCLUS_CLASSES = ['Q156362', 'Q22715', 'Q27686', 'Q1631129', 'Q11707', 'Q41253', 'Q18674739', 'Q875157', 'Q213441',
+                  'Q216107', 'Q133215', 'Q4830453', 'Q783794', 'Q431289', 'Q19860854']
+
+
 def lieux_de(classes, pause):
     classes = ' '.join('wd:' + c for c in ((classes,) if isinstance(classes, str) else classes))
+    exclus = ' '.join('wd:' + c for c in EXCLUS_CLASSES)
     return sparql(f'''SELECT DISTINCT ?i ?nom ?coord ?insee ?liens WHERE {{
       VALUES ?classe {{ {classes} }}
       ?i wdt:P31 ?classe ; wdt:P17 wd:Q142 ; wdt:P625 ?coord ; wikibase:sitelinks ?liens .
+      FILTER NOT EXISTS {{ VALUES ?exclu {{ {exclus} }} ?i wdt:P31 ?exclu . }}
       ?article schema:about ?i ; schema:isPartOf <https://fr.wikipedia.org/> .
       OPTIONAL {{ ?i wdt:P131 ?commune . ?commune wdt:P374 ?insee . }}
       OPTIONAL {{ ?i rdfs:label ?nom FILTER(lang(?nom) = "fr") }}
@@ -74,6 +87,68 @@ def commune_par_coordonnees(lon, lat):
         except Exception:
             time.sleep(2)
     return ''
+
+
+# Les marques que Wikidata ne classe pas comme telles (5 nov. 2026) : les grands vins (château Palmer, Cos d'Estournel…)
+# sont des « châteaux » dans Wikidata, mais leur article de Wikipédia est rangé dans une catégorie de vignoble ou de
+# domaine viticole ; une entreprise (maison de champagne, musée d'une marque), dans une catégorie d'entreprise. Pour
+# ces catégories de lieux, on lit les catégories de l'article (gardées dans le brouillon) et on écarte ces lieux.
+A_VERIFIER = {'chateau', 'chateau_fort', 'manoir', 'musee', 'theatre', 'moulin_vent', 'moulin_eau'}
+VIN = re.compile(r'viticole|^vignoble|\bvins?\b(?!-)|\bcrus?\b|appellation', re.I)   # (châteaux, manoirs, moulins)
+MARQUE = re.compile(r'entreprise|\bmarques?\b|maison de champagne|maison de cognac|négociant|cabaret|music-hall', re.I)
+# des catégories qui ne disent rien d'une marque : un site lié au vin (le château de Suze-la-Rousse), un musée du vin, une
+# intercommunalité « … du Vignoble », le nom officiel d'une rue de Paris
+IGNOREES = re.compile(r'^(Site ou monument lié à la vigne|Musée du vin|Communauté de communes|Appellation officielle)', re.I)
+
+
+def est_marque(cat, categories):
+    """Vrai si les catégories de l'article disent un grand vin, une entreprise ou un cabaret (un musée de France : jamais)."""
+    if any('Label musée de France' in c for c in categories):
+        return False
+    for c in categories:
+        if IGNOREES.search(c):
+            continue
+        if MARQUE.search(c) or (cat not in ('musee', 'theatre') and VIN.search(c)):
+            return True
+    return False
+CATEGORIES_WP = BROUILLON / 'categories_wikipedia.json'
+
+
+def api(url):
+    for _ in range(5):
+        try:
+            with urllib.request.urlopen(urllib.request.Request(url, headers={'User-Agent': UA}), timeout=60) as r:
+                return json.load(r)
+        except Exception as e:
+            print(f'    {e} ; nouvel essai', file=sys.stderr, flush=True)
+            time.sleep(5)
+    return {}
+
+
+def categories_wikipedia(qids):
+    """qid → les catégories (visibles) de son article de Wikipédia en français ; gardées dans le brouillon."""
+    deja = json.loads(CATEGORIES_WP.read_text(encoding='utf-8')) if CATEGORIES_WP.exists() else {}
+    manque = [q for q in qids if q not in deja]
+    for k in range(0, len(manque), 50):
+        lot = manque[k:k + 50]
+        ents = api('https://www.wikidata.org/w/api.php?' + urllib.parse.urlencode({'action': 'wbgetentities', 'ids': '|'.join(lot), 'props': 'sitelinks', 'sitefilter': 'frwiki', 'format': 'json'})).get('entities', {})
+        titres = {e['sitelinks']['frwiki']['title']: q for q, e in ents.items() if e.get('sitelinks', {}).get('frwiki')}
+        cats = {q: [] for q in lot}
+        if titres:
+            j = api('https://fr.wikipedia.org/w/api.php?' + urllib.parse.urlencode({'action': 'query', 'titles': '|'.join(titres), 'prop': 'categories', 'clshow': '!hidden', 'cllimit': 'max', 'redirects': 1, 'format': 'json'}))
+            renvois = {r['from']: r['to'] for r in j.get('query', {}).get('redirects', [])}
+            normal = {n['from']: n['to'] for n in j.get('query', {}).get('normalized', [])}
+            vers = {renvois.get(normal.get(t, t), normal.get(t, t)): q for t, q in titres.items()}
+            for p in j.get('query', {}).get('pages', {}).values():
+                q = vers.get(p.get('title'))
+                if q:
+                    cats[q] = [c['title'].split(':', 1)[1] for c in p.get('categories', [])]
+        deja.update(cats)
+        if k % 1000 == 0:
+            print(f'  catégories Wikipédia : {k + len(lot)}/{len(manque)}', flush=True)
+            CATEGORIES_WP.write_text(json.dumps(deja, ensure_ascii=False), encoding='utf-8')
+    CATEGORIES_WP.write_text(json.dumps(deja, ensure_ascii=False), encoding='utf-8')
+    return deja
 
 
 def main():
@@ -123,6 +198,14 @@ def main():
             l = lieux.setdefault(qid, {'nom': nom, 'cat': cat, 'lon': lon, 'lat': lat, 'insee': insee, 'liens': int(x['liens']['value'])})
             if not l['insee'] and insee:
                 l['insee'] = insee
+
+    # les marques (grands vins, entreprises, cabarets) : écartées d'après les catégories de leur article
+    a_voir = sorted(q for q, l in lieux.items() if l['cat'] in A_VERIFIER)
+    cats = categories_wikipedia(a_voir)
+    marques = [q for q in a_voir if est_marque(lieux[q]['cat'], cats.get(q, []))]
+    for q in marques:
+        del lieux[q]
+    print(f'{len(marques)} marques écartées (vins, entreprises, cabarets)', flush=True)
 
     sans = [q for q, l in lieux.items() if not l['insee']]
     print(f'{len(lieux)} lieux, {len(sans)} sans code INSEE : géocodage inverse', flush=True)
