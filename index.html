@@ -1869,6 +1869,25 @@ async function ouvrirPack(opts){ opts=opts||{}; const payant=opts.payant; const 
 // Tout ce qui est payant s'achète en gemmes : les packs (national, régional) et le Pass 15 jours. Les gemmes s'achètent en
 // euros (le paiement par carte viendra avec Stripe) ; en attendant, des gemmes d'essai (Réglages, à retirer au lancement).
 // Jamais de pièces contre des gemmes, ni de gemmes contre des euros. Les probabilités sont affichées (loot boxes).
+// Choisir une région (le pack régional) : une petite carte de France dont on touche la région, et les 13 régions en boutons
+// dessous (l'Île-de-France est trop petite pour le doigt). Les contours sont ceux des départements (geo.js) ; la carte est
+// dessinée une fois et gardée. Rend une fonction qui donne la région choisie.
+let CARTE_REGIONS=null;
+function carteRegionsSVG(){ if(CARTE_REGIONS) return CARTE_REGIONS;
+  const k=Math.cos(46.5*Math.PI/180), pts=GEO.france.flat(); let b=[180,90,-180,-90];
+  for(const [x,y] of pts) b=[Math.min(b[0],x),Math.min(b[1],y),Math.max(b[2],x),Math.max(b[3],y)];
+  const L=300, ech=L/((b[2]-b[0])*k), H=Math.ceil((b[3]-b[1])*ech), P=([x,y])=>((x-b[0])*k*ech).toFixed(1)+' '+((b[3]-y)*ech).toFixed(1);
+  const noms=Object.keys(REGIONS).sort((a,c)=>a.localeCompare(c,'fr'));
+  const g=noms.map((r,i)=>`<g class="cr-region t${i%4}" data-region="${echapper(r)}">${REGIONS[r].map(d=>((GEO.deps[d]||{}).rings||[]).map(ring=>`<path d="M${ring.map(P).join('L')}Z"/>`).join('')).join('')}</g>`).join('');
+  CARTE_REGIONS={ svg:`<svg class="cr-carte" viewBox="-4 -4 ${L+8} ${H+8}" role="img" aria-label="Carte des régions">${g}</svg>`, noms };
+  return CARTE_REGIONS; }
+function choixRegion(el, initiale){ const c=carteRegionsSVG(); let choisie=c.noms.includes(initiale)?initiale:c.noms[0];
+  el.innerHTML=`${c.svg}<div class="cr-nom"></div><div class="cr-liste">${c.noms.map(r=>`<button type="button" data-region="${echapper(r)}">${echapper(r)}</button>`).join('')}</div>`;
+  const poser=(r, defiler)=>{ choisie=r; el.querySelectorAll('[data-region]').forEach(x=>x.classList.toggle('on', x.dataset.region===r));
+    el.querySelector('.cr-nom').textContent=r; const g=el.querySelector(`g[data-region="${CSS.escape(r)}"]`); if(g) g.parentNode.appendChild(g);
+    if(defiler){ const bt=el.querySelector(`.cr-liste button[data-region="${CSS.escape(r)}"]`); if(bt) bt.scrollIntoView({block:'nearest', inline:'center'}); } };
+  el.querySelectorAll('[data-region]').forEach(x=>x.addEventListener('click', ()=>{ poser(x.dataset.region, x.tagName!=='BUTTON'); vibrer(6); }));
+  poser(choisie, true); return ()=>choisie; }
 function maRegion(){ const n={}; for(const a of Object.values(state.owned)){ const r=Regions.regionDuDepartement(Regles.departement(a.citycode)); if(r) n[r]=(n[r]||0)+1; }
   return Object.keys(n).sort((a,b)=>n[b]-n[a])[0] || 'Île-de-France'; }
 function ouvrirBoutique(){ const box=document.getElementById('modalbox'), t=now(), pass=state.pass||{}, actif=BOU.passActif(pass.fin, t), bons=BOU.bonsUtilisables(pass, t), g=state.gemmes||0;
@@ -1877,7 +1896,7 @@ function ouvrirBoutique(){ const box=document.getElementById('modalbox'), t=now(
   box.innerHTML=`<h2>🛍️ Boutique</h2><div class="sub">Tu as <b>💎 ${nb(g)}</b> gemme${g>1?'s':''}</div>
     <div class="article"><div class="t">🎁 Pack national</div><div class="m">${BOU.B.pack_cartes} lieux tirés dans toute la France.</div>${acheter('pack_national','Ouvrir')}</div>
     <div class="article"><div class="t">🗺️ Pack régional</div><div class="m">${BOU.B.pack_cartes} lieux tirés dans la région de ton choix : moins de hasard, un peu plus cher.</div>
-      <select class="txt" id="bq-region">${Object.keys(REGIONS).sort((a,b)=>a.localeCompare(b,'fr')).map(r=>`<option${r===maRegion()?' selected':''}>${echapper(r)}</option>`).join('')}</select>${acheter('pack_regional','Ouvrir')}</div>
+      <div class="choix-region" id="bq-region"></div>${acheter('pack_regional','Ouvrir')}</div>
     <div class="article pass"><div class="t">⭐ Pass 15 jours</div><div class="m">Ton pack du jour a <b>${BOU.B.pass_cartes} cartes</b> au lieu de ${ECO.pack.cartes}, et un <b>bon</b> pour prendre l’adresse libre de ton choix (jusqu’à Épique) : « Prendre avec mon bon » sur sa fiche.</div>
       ${actif ? `<div class="m pass-actif">Actif encore ${dureeTexte(pass.fin-t)} · ${bons} bon${bons>1?'s':''} (${BOU.B.bons_max} au plus)</div>` : ''}${acheter('pass', actif ? 'Prolonger de 15 jours' : 'Prendre le Pass')}</div>
     <div class="article"><div class="t">💎 Gemmes</div><div class="gemmes-offres">${BOU.B.gemmes.map(o=>`<button class="offre-gemmes" data-gemmes="${o.id}"><b>💎 ${nb(o.gemmes)}</b><small>${o.euros.toFixed(2).replace('.',',')} €</small></button>`).join('')}</div>
@@ -1885,10 +1904,11 @@ function ouvrirBoutique(){ const box=document.getElementById('modalbox'), t=now(
     <div class="probas"><div class="t">🎲 Chances par carte</div><div class="m">${proba}</div><div class="m petit">Les mêmes pour le pack du jour, le pack national et le pack régional. Les monuments ne sortent jamais des packs.</div></div>
     <button class="btn clair large" style="width:100%;margin-top:12px" onclick="closeModal()">Fermer</button>`;
   document.getElementById('modal').classList.add('on');
+  const region=choixRegion(box.querySelector('#bq-region'), maRegion());
   box.querySelectorAll('[data-article]').forEach(b=>b.onclick=()=>{ const a=b.dataset.article;
     if(!BOU.peutPayer(a, state.gemmes||0)) return toast(`Il te manque ${nb(BOU.prix(a)-(state.gemmes||0))} 💎`);
     if(a==='pass') return acheterPass();
-    ouvrirPack({ payant:a, region: a==='pack_regional' ? box.querySelector('#bq-region').value : null }); });
+    ouvrirPack({ payant:a, region: a==='pack_regional' ? region() : null }); });
   box.querySelectorAll('[data-gemmes]').forEach(b=>b.onclick=()=>acheterGemmes(b.dataset.gemmes));
   vibrer(8); }
 // acheter des gemmes par carte (Stripe Checkout, sur le vrai serveur) : le joueur demande l'accès immédiat (il renonce à la
@@ -1983,7 +2003,7 @@ function filtrerPatri(r){ filtrePatri = filtrePatri===r ? 0 : r; renderPatrimoin
 function renderPatrimoine(){ const el=document.getElementById('s-patrimoine'); const tous=Object.values(state.owned); const total=tous.reduce((s,a)=>s+valeur(a),0);
   const list = filtrePatri ? tous.filter(a=>rarete(a)===filtrePatri) : tous.slice();
   const p=Math.floor(pendingRent());
-  let h=`<h1>Mon patrimoine</h1><div class="kpis"><div class="kpi"><i>🏘️</i><b>${tous.length}</b><small>lieu${tous.length>1?'x':''}</small></div><div class="kpi"><i>💎</i><b>${nb(total)}<i class="pc"></i></b><small>de valeur</small></div><div class="kpi"><i>📈</i><b style="color:var(--cadre2)">${(v=>(v<0?'−':'+')+nb(Math.abs(v)))(SALAIRE+loyerTotal()-MON.parJour(tous))}</b><small>par jour</small></div></div>`;
+  let h=`<h1>Mon patrimoine <button class="btn sm clair act" onclick="ouvrirClassements('patrimoine')">🏆 Classements</button></h1><div class="kpis"><div class="kpi"><i>🏘️</i><b>${tous.length}</b><small>lieu${tous.length>1?'x':''}</small></div><div class="kpi"><i>💎</i><b>${nb(total)}<i class="pc"></i></b><small>de valeur</small></div><div class="kpi"><i>📈</i><b style="color:var(--cadre2)">${(v=>(v<0?'−':'+')+nb(Math.abs(v)))(SALAIRE+loyerTotal()-MON.parJour(tous))}</b><small>par jour</small></div></div>`;
   h+=`<div class="card flex"><div><div class="t">🌾 ${p>=1?`<span style="color:var(--cadre2)">+${nb(p)}</span> à récolter`:'Les loyers poussent…'}</div><div class="m">Salaire ${nb(SALAIRE)} + loyers ${nb(loyerTotal())} par jour, stockés 24 h au plus.</div></div>${p>=1?`<button class="btn vert" onclick="recolter()">Récolter</button>`:''}</div>`;
   { const mons=MON.entretiens(tous), e=state.entretien||{}; if(mons.length){ const jr=MON.joursAvantReprise(e.impayeDepuis, now(), JOUR), cher=mons[mons.length-1];
       h+=`<div class="card entretien${e.dette>0?' impaye':''}"><div class="t">🏛️ Entretien de tes monuments : ${pcs(MON.parMois(tous))} par mois</div>
@@ -2388,7 +2408,7 @@ function showPlayer(name){ const box=document.getElementById('modalbox'); let h;
     h=`<div class="profil-tete"><span class="av">${state.avatar}</span><div class="plaque"><small>Joueur</small>${echapper(disp(ME))}</div><div class="sub">Membre depuis aujourd’hui</div></div>
       <div class="kpis"><div class="kpi"><b>${list.length}</b><small>lieu${list.length>1?'x':''}</small></div><div class="kpi"><b>${nb(list.reduce((s,a)=>s+valeur(a),0))}<i class="pc"></i></b><small>de valeur</small></div><div class="kpi"><b>${list.filter(a=>a.niveau>0).length}</b><small>construit${list.filter(a=>a.niveau>0).length>1?'s':''}</small></div></div>
       ${maires.length?`<div class="card" style="box-shadow:none;background:var(--piece-clair)"><div class="t">👑 Maire de ${maires.map(echapper).join(', ')}</div></div>`:''}
-      <div class="liste-btn"><button class="btn bleu large" onclick="creationProfil()">🎨 Changer mon icône</button><button class="btn clair large" onclick="ouvrirReglages()">⚙️ Réglages</button></div>`; }
+      <div class="liste-btn"><button class="btn bleu large" onclick="creationProfil()">🎨 Changer mon icône</button><button class="btn clair large" onclick="ouvrirClassements('patrimoine')">🏆 Les classements</button><button class="btn clair large" onclick="ouvrirReglages()">⚙️ Réglages</button></div>`; }
   else if(MODE_SERVEUR){ h=`<div class="profil-tete"><span class="av">${echapper((JOUEURS[PAR_PSEUDO[name]]||{}).avatar||'🙂')}</span><div class="plaque"><small>Joueur</small>${echapper(name)}</div><div class="sub" id="pj-depuis">…</div></div><div id="pj-chiffres" class="m" style="text-align:center;margin:10px 0">Chargement…</div>`;
     setTimeout(()=>profilReel(name), 0); }
   else { const n=5+hash(name)%40, c=1+hash(name+'c')%4, b=Math.floor(n*(0.3+ (hash(name+'b')%50)/100)); const v=n*1200+b*900;
@@ -2442,6 +2462,8 @@ function creationProfil(){ const box=document.getElementById('modalbox'); let av
   const grid=box.querySelector('#avgrid'); AVATARS.forEach(e=>{ const b=document.createElement('button'); b.textContent=e; b.className=e===av?'on':''; b.onclick=()=>{ av=e; grid.querySelectorAll('button').forEach(x=>x.classList.toggle('on',x.textContent===e)); }; grid.appendChild(b); });
   const champ=box.querySelector('#pseudo'), err=box.querySelector('#pseudoerr'), bouton=box.querySelector('#okprofil');
   let aConfirmer=''; // à la création, le pseudo se confirme d'un second appui (il est définitif)
+  // Entrée valide, comme le bouton (joueurs sur ordinateur, Gautier, 5 nov.) : le pseudo reste à confirmer d'un second appui
+  if(champ) champ.addEventListener('keydown', e=>{ if(e.key==='Enter' && !e.isComposing){ e.preventDefault(); bouton.click(); } });
   if(champ) champ.oninput=()=>{ aConfirmer=''; bouton.textContent='C’est parti'; const v=champ.value; const r=v.trim().length<3 ? {ok:true} : verifierPseudo(v); err.textContent = r.ok ? '' : 'Pseudo refusé : '+r.texte; };
   const serveur = ()=> window.Compte && Compte.actif() && Compte.session;
   bouton.onclick=async()=>{
@@ -2475,7 +2497,7 @@ async function recolteConnexion(ensuite){ if(MODE_SERVEUR){ const r=await synchr
   const box=document.getElementById('modalbox');
   box.innerHTML=`<h2>🌾 La récolte</h2><div class="sub">Pendant ton absence, ton salaire${lieux?` et les loyers de tes ${lieux} lieu${lieux>1?'x':''}`:''} ont rapporté :</div>
     <div class="recolte">+${nb(p)}<i class="pc"></i></div><div class="m" style="text-align:center;margin-bottom:12px">${plein?'Ton stock était plein : les loyers s’arrêtent au bout de 24 h. Reviens chaque jour pour ne rien perdre.':'Les loyers s’accumulent jusqu’à 24 h, puis s’arrêtent.'}</div>
-    <button class="btn vert large" id="recolter">🌾 Récolter</button>`;
+    <button class="btn vert large" id="recolter">Récolter</button>`;
   document.getElementById('modal').classList.add('on');
   box.querySelector('#recolter').onclick=()=>{ closeModal(); recolter(); setTimeout(ensuite, 1000); }; }
 // sans serveur (data/serveur.json vide) : le profil local ; avec serveur, src/compte.js passe d'abord par le compte

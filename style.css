@@ -1271,3 +1271,16 @@ html.pocket select{background:#fff;border:1px solid #D9DFEA;border-radius:12px;p
 .points-charge i:nth-child(2){animation-delay:.15s}.points-charge i:nth-child(3){animation-delay:.3s}
 @keyframes point-charge{0%,100%{opacity:.25;transform:translateY(0)}40%{opacity:1;transform:translateY(-5px)}}
 @media (prefers-reduced-motion:reduce){.points-charge i{animation:none;opacity:.6}}
+
+/* ===================== le choix de la région du pack régional (5 nov., Gautier : « le menu déroulant est trop basique ») ===================== */
+.choix-region{display:flex;flex-direction:column;align-items:center;gap:8px;margin:4px 0 2px}
+.cr-carte{width:min(100%,250px);height:auto;display:block}
+.cr-region path{stroke:#fff;stroke-width:.5;stroke-linejoin:round;cursor:pointer;transition:fill .15s}
+.cr-region.t0 path{fill:#DCE4F2}.cr-region.t1 path{fill:#CCD8EE}.cr-region.t2 path{fill:#E4EAF5}.cr-region.t3 path{fill:#D3DDF0}
+.cr-region.on path{fill:var(--accent,#2453B3);stroke:#fff;stroke-width:.6}
+.cr-nom{font-family:var(--titre);font-weight:900;font-size:17px;color:var(--accent,#2453B3);min-height:22px}
+.cr-liste{display:flex;gap:6px;overflow-x:auto;max-width:100%;padding:2px 2px 6px;scrollbar-width:none}
+.cr-liste::-webkit-scrollbar{display:none}
+.cr-liste button{flex:none;border:1px solid #D9DFEA;background:#fff;border-radius:999px;padding:6px 11px;font-family:var(--texte);font-weight:800;font-size:13px;color:var(--encre2);cursor:pointer}
+.cr-liste button.on{background:var(--accent,#2453B3);border-color:var(--accent,#2453B3);color:#fff}
+

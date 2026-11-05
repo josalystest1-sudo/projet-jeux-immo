@@ -324,6 +324,12 @@
   - **Vérifié** : l'accueil, la connexion, la carte, le patrimoine, la pochette et la pile de cartes, à l'image. Un test vérifie que la pièce est la même partout. 76 tests.
 
 - 5 nov. 2026 (matin, PR #134, document seulement) : `docs/KIT-MARQUE.md`, les prompts à coller dans un générateur d'images : brief (plaque et pièce, ton « classe, stylé »), 3 pistes de logo (plaque-carte, éventail de ville, monogramme pièce), réglages par outil, kit social media (dimensions, bannière, image Open Graph, 4 fonds de posts et stories, règles de texte), ordre de fabrication.
+- 5 nov. 2026 (PR #136) : **retours de Gautier**.
+  - **Récolter** : plus d'icône sur le bouton (l'épi ressemblait à une épingle). Ailleurs, l'épi est redessiné en vrai épi de blé (`src/icones.js`).
+  - **Entrée valide** l'écran de connexion et d'inscription (`avecEntree`, `src/compte.js`) : dans l'e-mail, elle passe au mot de passe ; dans le mot de passe, elle se connecte. Même chose pour « mot de passe oublié », le nouveau mot de passe et le choix du pseudo (qui se confirme toujours d'un second appui). Sur ordinateur, le premier champ est sélectionné d'office.
+  - **Les classements en un toucher** : un bouton « Classements » en tête du patrimoine et « Les classements » dans mon profil. Ils restaient aussi accessibles depuis la carte de la saison, dans Communes.
+  - **Le choix de la région du pack régional** : une petite carte de France dont on touche la région, avec les 13 régions en boutons dessous (`choixRegion`, `carteRegionsSVG`, contours de `geo.js`). Elle remplace le menu déroulant.
+  - **Vérifié** : Entrée dans un navigateur simulé, sur le vrai écran de connexion. Le vrai bouton était remplacé pour l'essai : rien n'est parti vers le serveur. Le choix de région, au toucher sur la carte et sur les boutons, jusqu'au pack demandé. Les écrans à l'image. 76 tests.
 
 ## Bugs connus
 - Mode serveur : si la partie arrive du serveur avant que la carte ait fini de charger, un cadre rose « Erreur de style : The layer 'parcel-fill' does not exist… » peut s'afficher (la page cherche les parcelles avant que leurs calques soient posés) ; sans conséquence pour la partie. Vu le 3 nov. au soir, pas encore corrigé.
