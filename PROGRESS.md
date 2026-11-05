@@ -316,6 +316,12 @@
     - Il ne touche pas aux contenus : la carte, le pack, les cartes, l'icône d'un lieu (toutes les religions de la même façon), les avatars, la pièce, les médailles.
   - **La carte de nuit le soir** (choix de Gautier : « selon l'heure ») : `couleursCarte` passe de 20 h à 7 h aux couleurs de `COULEURS_CARTE` (sol, rues, bâtiments libres, lumière). Elle ne les repose qu'au passage du jour à la nuit. `?carte=nuit` ou `?carte=jour` pour essayer.
   - **Vérifié** : tous les écrans capturés au format téléphone (390 et 360 px de large), de jour et de nuit. Nouveau test `tests/icones.test.js`. 75 tests.
+- 5 nov. 2026 (PR #135) : **le logo, l'icône et la pièce** (phase 10.6).
+  - **Le choix** : deux séries de pistes envoyées en images (bible § 13), puis Gautier envoie son propre logo : la plaque CITYDECK, deux cartes dorées en éventail, une pièce ronde frappée d'une maison (« la pièce intégrée au logo »).
+  - **`src/logo.js`** : le logo redessiné en SVG. `Logo.svg()` sert à l'écran d'accueil (avec trois points de chargement) et à l'écran de connexion (`src/compte.js`) ; `Logo.icone()` dessine l'icône carrée « CITY / DECK » ; `Logo.MAISON` est la maison frappée sur la pièce.
+  - **Les icônes** : `tools/icones.js` réécrit sans bibliothèque (Chrome sans fenêtre). Il produit 512, 192, 180 (iPhone) et 512 masquable (Android). Le manifeste prend les couleurs des menus.
+  - **La pièce de la monnaie** : ronde, en relief, frappée d'une maison. Elle remplace partout la pièce-maison : `icones/piece.svg`, les montants (`.pc`), le médaillon du dos des cartes, le verso de la pochette.
+  - **Vérifié** : l'accueil, la connexion, la carte, le patrimoine, la pochette et la pile de cartes, à l'image. Un test vérifie que la pièce est la même partout. 76 tests.
 
 - 5 nov. 2026 (matin, PR #134, document seulement) : `docs/KIT-MARQUE.md`, les prompts à coller dans un générateur d'images : brief (plaque et pièce, ton « classe, stylé »), 3 pistes de logo (plaque-carte, éventail de ville, monogramme pièce), réglages par outil, kit social media (dimensions, bannière, image Open Graph, 4 fonds de posts et stories, règles de texte), ordre de fabrication.
 

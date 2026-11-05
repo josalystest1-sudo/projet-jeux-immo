@@ -1,5 +1,7 @@
 # CityDeck — Logo et kit social media : prompts pour un générateur d'images
 
+> **Le 5 nov. (PR #135)**, Gautier a généré son logo avec la piste A : la plaque CITYDECK, deux cartes dorées, une pièce d'or ronde frappée d'une maison. Claude l'a redessiné en SVG (`src/logo.js`, bible graphique § 13). La pièce de la monnaie est désormais cette pièce ronde à la maison ; la pièce en forme de maison n'existe plus. Pour les visuels qui suivent, joindre ce logo en image de référence.
+
 Écrit par Claude le 5 nov. 2026 à la demande de Gautier (« rédige un prompt que j'enverrai dans un autre moteur IA »). À coller dans Ideogram, Midjourney, GPT Image, Flux ou Leonardo. Les prompts sont **en anglais** (les moteurs y sont bien meilleurs) ; la version française de chaque idée est là pour que Gautier sache ce qu'il demande.
 
 **Outil conseillé pour le logo : Ideogram ou GPT Image** (ils écrivent le texte correctement). Midjourney et Flux font de belles images mais massacrent souvent les lettres : chez eux, générer l'emblème seul et ajouter le mot « CityDeck » après, dans Canva ou Figma.
