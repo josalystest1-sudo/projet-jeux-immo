@@ -44,7 +44,7 @@ const ETAT = () => { const t = Date.now(), j = Math.floor(t / 60000); return {
     const ext = path.extname(f); const types = { '.html': 'text/html', '.css': 'text/css', '.json': 'application/json', '.woff2': 'font/woff2', '.svg': 'image/svg+xml', '.png': 'image/png' }; route.fulfill({ body: fs.readFileSync(f), contentType: types[ext] || 'application/javascript' }); });
   page.on('pageerror', (e) => { if (!/localStorage/.test(e.message)) console.log('erreur page :', e.message); });
   await page.addInitScript((etat) => { try { if (!sessionStorage.getItem('fait')) { localStorage.setItem('proto-cadastre-v3', JSON.stringify(etat)); sessionStorage.setItem('fait', '1'); } } catch (e) {} }, ETAT());
-  await page.goto('http://jeu.local/');
+  await page.goto('http://jeu.local/?demo'); // la démo (joueurs simulés) : tout le monde joue sinon sur le vrai serveur
   await page.waitForTimeout(150);
   if (!SEULS.length || SEULS.includes('00-accueil')) { await page.waitForTimeout(500); await page.screenshot({ path: path.join(SORTIE, '00-accueil.png') }); console.log('capture 00-accueil'); }
   await page.waitForTimeout(3800);

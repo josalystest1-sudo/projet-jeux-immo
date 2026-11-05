@@ -196,7 +196,13 @@
   async function demarrer() {
     let conf = null;
     try { conf = await (await fetch('data/serveur.json', { cache: 'no-store' })).json(); } catch (e) {}
-    if (!conf || !conf.url || !conf.cle_publique || !window.supabase) return demarrageLocal();
+    const sansServeur = conf && (!conf.url || !conf.cle_publique);   // aucun serveur prévu (outils, essais) : la démo
+    if (typeof MODE_SERVEUR !== 'undefined' && MODE_SERVEUR) {
+      // tout le monde joue sur le vrai serveur (5 nov.) : sans adresse de serveur, la démo ; s'il ne répond pas, on réessaie
+      if (sansServeur) { let ok = false; try { sessionStorage.setItem('cadastra-demo', '1'); ok = sessionStorage.getItem('cadastra-demo') === '1'; } catch (e) {} if (ok) { location.reload(); return; } }
+      if (!conf || !window.supabase) return ecranIndisponible('Serveur injoignable : vérifie ta connexion et réessaie.');
+    }
+    if (!conf || sansServeur || !window.supabase) return demarrageLocal();
     Compte.client = window.supabase.createClient(conf.url, conf.cle_publique, {
       auth: { flowType: 'implicit', detectSessionInUrl: true, persistSession: true, autoRefreshToken: true, storageKey: 'cadastra-session' },
     });

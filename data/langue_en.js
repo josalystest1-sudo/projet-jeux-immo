@@ -240,8 +240,8 @@
     'Recevoir les offres d’achat sur mes lieux': 'Receive purchase offers on my places', 'Ignorer les offres sous la valeur du lieu': 'Ignore offers below the place’s value',
     'Conditions': 'Terms', 'Confidentialité': 'Privacy', 'Mentions légales': 'Legal notice', 'Conditions de vente': 'Terms of sale',
     'Gemmes d’essai': 'Test gems', 'Pour essayer la boutique avant le paiement par carte. À retirer au lancement.': 'To try the shop before card payment. To be removed at launch.',
-    'Jouer sur le vrai serveur (essai)': 'Play on the real server (test)', 'Jouer sur le vrai serveur': 'Play on the real server',
-    'Ta partie de démo reste sur ce téléphone ; celle du serveur part de zéro.': 'Your demo game stays on this phone; the server one starts from zero.',
+    'Jouer sur le vrai serveur': 'Play on the real server', 'Démo : joueurs simulés': 'Demo: simulated players',
+    'Ta partie de démo reste sur ce téléphone.': 'Your demo game stays on this phone.',
     'Ta partie est sur le serveur, en vrais jours de 24 h.': 'Your game is on the server, in real 24-hour days.',
     'Serveur d’essai accéléré : un jour du jeu = {n} min.': 'Fast test server: one game day = {n} min.',
     'Langue · Language': 'Language · Langue', 'locale': 'local',
@@ -249,9 +249,9 @@
     // ---------------------------------------------------------------- la boutique et les paiements
     'Boutique': 'Shop', 'Pass {n} jours': '{n}-day Pass', 'Prendre le Pass': 'Get the Pass', 'Prendre le Pass · 💎 {n}': 'Get the Pass · 💎 {n}',
     'Prolonger de {n} jours': 'Extend by {n} days', 'Autre montant': 'Other amount',
-    'Le paiement par carte se fait sur le vrai serveur (Réglages). Les gemmes ne se revendent pas et ne s’échangent pas contre des pièces.': 'Card payment happens on the real server (Settings). Gems can’t be resold or exchanged for coins.',
-    'Le paiement par carte se fait sur le vrai serveur : Réglages, « Jouer sur le vrai serveur »': 'Card payment happens on the real server: Settings, “Play on the real server”',
-    'Le paiement par carte se fait sur le vrai serveur (Réglages).': 'Card payment happens on the real server (Settings).',
+    'Le paiement par carte se fait sur le vrai serveur, pas dans la démo. Les gemmes ne se revendent pas et ne s’échangent pas contre des pièces.': 'Card payment happens on the real server, not in the demo. Gems can’t be resold or exchanged for coins.',
+    'Le paiement par carte se fait sur le vrai serveur, pas dans la démo': 'Card payment happens on the real server, not in the demo',
+    'Le paiement par carte se fait sur le vrai serveur, pas dans la démo.': 'Card payment happens on the real server, not in the demo.',
     'Les gemmes ne se revendent pas et ne s’échangent pas contre des pièces.': 'Gems can’t be resold or exchanged for coins.',
     'Les gemmes n’ont pas de valeur monétaire : elles ne se revendent pas et ne s’échangent ni contre de l’argent ni contre des pièces.': 'Gems have no monetary value: they can’t be resold or exchanged for money or coins.',
     'Je demande à recevoir mes gemmes tout de suite, et je renonce à mon droit de rétractation de {n} jours pour ce contenu numérique.': 'I ask to receive my gems right away, and I waive my {n}-day right of withdrawal for this digital content.',
@@ -302,7 +302,8 @@
     'Cette adresse ne peut pas recevoir d’e-mail pour l’instant (jeu en test).': 'This address can’t receive e-mails for now (game in testing).',
     'Trop de tentatives : réessaie dans quelques minutes.': 'Too many attempts: try again in a few minutes.',
     'Serveur injoignable : vérifie ta connexion et réessaie.': 'Server unreachable: check your connection and try again.', 'Serveur injoignable': 'Server unreachable',
-    'Le serveur ne répond pas': 'The server isn’t responding',
+    'Le serveur ne répond pas': 'The server isn’t responding', 'Le serveur ne répond pas : réessaie': 'The server isn’t responding: try again',
+    'Joueur introuvable': 'Player not found', 'Joueur introuvable.': 'Player not found.',
     'Le lien a expiré ou a déjà servi : connecte-toi, ou demande un nouvel e-mail.': 'The link has expired or was already used: log in, or ask for a new e-mail.',
 
     // ---------------------------------------------------------------- les refus du serveur (supabase/functions/jeu/index.ts)
