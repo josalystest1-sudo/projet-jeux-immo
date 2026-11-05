@@ -44,4 +44,4 @@ Les robots ne sont jamais comptés dans le suivi. Les jours sont de vrais jours 
 - **Les e-mails d'inscription** : le service d'e-mail fourni par Supabase n'écrit qu'aux membres de ton équipe Supabase, deux fois par heure au plus. Pour les vrais joueurs, il faudra brancher un service d'envoi (Brevo a une formule gratuite) avec une adresse d'expédition à toi.
 - **Google** : créer un identifiant de connexion dans Google Cloud (gratuit), je te guiderai.
 - **Apple** : la connexion Apple demande un compte développeur Apple payant ; à décider.
-- **Les pauses** : un projet gratuit sans aucune activité pendant une semaine se met en pause ; **Restore project** le relance, sans perte de données. La formule Pro (25 $/mois) supprime les pauses, à prendre au lancement.
+- **Les pauses** : un projet gratuit sans aucune activité pendant une semaine se met en pause (depuis le 5 nov., l'horloge du jeu l'appelle toutes les 10 minutes : cela ne devrait plus arriver) ; **Restore project** le relance, sans perte de données. La formule Pro (25 $/mois) supprime les pauses, à prendre au lancement.

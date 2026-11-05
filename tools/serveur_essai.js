@@ -231,6 +231,13 @@ async function nouveauJoueur(publique, secrete) {
     verifier((empLue.statut >= 400 || (Array.isArray(empLue.corps) && empLue.corps.length === 0)) && (suiviLu.statut >= 400 || (Array.isArray(suiviLu.corps) && suiviLu.corps.length === 0)), 'les empreintes et le suivi ne se lisent pas depuis le jeu', [empLue.statut, suiviLu.statut]);
     const suivi = await requete(`${URL}/rest/v1/suivi_total?select=inscrits,venus_aujourdhui`, { headers: entetesSecrets(secrete) });
     verifier(Array.isArray(suivi.corps) && suivi.corps.length === 1 && Number(suivi.corps[0].venus_aujourdhui) >= 1, 'le suivi se lit dans le tableau de bord (clé secrète)', suivi);
+    // l'horloge (tools/serveur_horloge.js, toutes les 10 minutes) : un jeton signé avec la clé secrète fait tourner le monde
+    const heure = Math.floor(Date.now() / 3_600_000), signe = crypto.createHmac('sha256', secrete).update('horloge:' + heure).digest('hex');
+    const horloge = (j) => requete(`${URL}/functions/v1/jeu`, { method: 'POST', headers: { apikey: publique, Authorization: `Bearer ${j}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'horloge' }) });
+    const tic = await horloge(signe);
+    verifier(tic.corps && tic.corps.ok && Array.isArray(tic.corps.fait) && tic.corps.fait.includes('enchères') && tic.corps.fait.includes('mairies'), `l’horloge fait tourner le monde (${tic.corps && tic.corps.fait ? tic.corps.fait.join(', ') : '?'})`, tic.corps);
+    const fauxTic = await horloge('0'.repeat(64));
+    verifier(fauxTic.corps && fauxTic.corps.ok === false && fauxTic.corps.code === 'non_connecte', 'un faux jeton d’horloge est refusé', fauxTic.corps);
     // la boutique (GDD § 3 et § 9) : gemmes d'essai, Pass, pack national et régional, refus
     const g0 = await jeu({ action: 'gemmes_essai' });
     verifier(g0.corps && g0.corps.ok && g0.corps.gemmes >= 1000, 'des gemmes d’essai (serveur d’essai)', g0);

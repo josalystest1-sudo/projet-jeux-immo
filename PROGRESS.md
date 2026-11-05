@@ -468,6 +468,11 @@
   - en anglais, l'étiquette « NEIGHBOURHOOD » débordait de sa case (fiche d'un lieu, détail d'une carte) : « Quartier » se traduit maintenant « Area » ;
   - dans les Réglages de la démo, le bouton « Jouer sur le vrai serveur » sortait de l'écran : il passe sous le texte.
   - Le reste tient (y compris les nouveautés du jour : l'étiquette de la commune sur la carte, les travaux). Reste, sans gravité : une parenthèse qui passe seule à la ligne après une pièce dans une notification.
+- 5 nov. 2026 (PR #155) : **l'horloge du serveur**. Avant, le monde ne tournait que quand un joueur appelait le serveur : les enchères finies attendaient d'être closes, un serveur sans appel pendant plusieurs mandats sautait leurs élections, et les robots ne jouaient que derrière un vrai joueur.
+  - `.github/workflows/horloge.yml` lance `tools/serveur_horloge.js` toutes les 10 minutes : il appelle la fonction « jeu » avec `{ action: 'horloge' }` et un jeton « horloge:<heure> » signé (HMAC) avec la clé secrète du projet. La clé ne voyage pas et n'est jamais affichée ; la fonction accepte l'heure en cours ou la précédente (`estHorloge`).
+  - Chaque tic (`tic`) : enchères (clore, ouvrir), mandats de Maire et saisons, raretés, monuments (entretien, absences), puis un tour des robots.
+  - Bonus : le projet Supabase gratuit ne se met plus en pause faute d'activité.
+  - **Vérifié** : `deno check` ; l'essai automatique appelle l'horloge (un vrai jeton fait tourner le monde, un faux est refusé). 96 tests.
 
 ## Bugs connus
 - Les badges 💰 des joueurs simulés n'apparaissent qu'après ouverture de leur parcelle (limite du prototype local).

@@ -1,0 +1,34 @@
+# L'horloge du serveur (5 nov. 2026) : toutes les 10 minutes, appelle la fonction « jeu » (action « horloge ») pour que
+# le monde tourne sans joueur : enchères closes et ouvertes, mandats de Maire, saisons, monuments, robots.
+# Voir tools/serveur_horloge.js. GitHub peut retarder une exécution de quelques minutes : sans conséquence.
+name: Horloge du serveur
+
+on:
+  schedule:
+    - cron: '*/10 * * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: horloge
+  cancel-in-progress: false
+
+jobs:
+  horloge:
+    name: Un tic
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    env:
+      SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          sparse-checkout: tools/serveur_horloge.js
+          sparse-checkout-cone-mode: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Faire tourner le monde
+        run: node tools/serveur_horloge.js hxtyecwofajiozmnfyxt

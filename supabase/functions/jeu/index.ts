@@ -41,6 +41,39 @@ function enTetes(req: Request): Record<string, string> {
 // un refus attendu (pas assez de pièces…) : le message est montré tel quel au joueur
 class Refus extends Error { code: string; constructor(code: string, message: string) { super(message); this.code = code; } }
 
+// ---------------------------------------------------------------- l'horloge du serveur (.github/workflows/horloge.yml)
+// Toutes les 10 minutes, la publication appelle la fonction avec { action: 'horloge' } et un jeton signé avec la clé
+// secrète du projet (la clé elle-même ne voyage pas ; tools/serveur_horloge.js) : les enchères se closent et s'ouvrent,
+// les mandats de Maire et les saisons tournent, les monuments sont tenus et les robots jouent, même quand aucun joueur
+// n'appelle le serveur (avant, tout attendait le prochain appel d'un joueur).
+function clesServeur(): string[] {
+  const l: string[] = [];
+  try { for (const v of Object.values(JSON.parse(Deno.env.get('SUPABASE_SECRET_KEYS') || '{}'))) if (typeof v === 'string' && v) l.push(v); } catch (_) { /* pas de nouvelles clés */ }
+  const s = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY'); if (s) l.push(s);
+  return l;
+}
+async function signer(cle: string, texte: string): Promise<string> {
+  const k = await crypto.subtle.importKey('raw', new TextEncoder().encode(cle), { name: 'HMAC', hash: 'SHA-256' }, false, ['sign']);
+  return Array.from(new Uint8Array(await crypto.subtle.sign('HMAC', k, new TextEncoder().encode(texte))), (b) => b.toString(16).padStart(2, '0')).join('');
+}
+// le jeton de l'horloge : « horloge:<heure> » signé avec une clé secrète du projet (l'heure en cours ou la précédente)
+async function estHorloge(jeton: string): Promise<boolean> {
+  if (!/^[0-9a-f]{64}$/.test(jeton)) return false;
+  const h = Math.floor(Date.now() / 3_600_000);
+  for (const cle of clesServeur()) for (const x of [h, h - 1]) if ((await signer(cle, 'horloge:' + x)) === jeton) return true;
+  return false;
+}
+async function tic(): Promise<Ligne> {
+  const t0 = Date.now(), fait: string[] = [];
+  const pas = async (nom: string, f: () => Promise<unknown>) => { try { await f(); fait.push(nom); } catch (e) { console.error('horloge', nom, e); } };
+  await pas('enchères', () => tenirEncheres(true));
+  await pas('mairies', () => tenirMairies());
+  await pas('raretés', () => tenirRaretes());
+  await pas('monuments', () => tenirMonuments());
+  await pas('robots', () => robotsTour());
+  return { horloge: new Date().toISOString(), fait, ms: Date.now() - t0 };
+}
+
 // ---------------------------------------------------------------- l'anti-triche (supabase/sql/160_anti_triche.sql)
 // l'empreinte de la connexion : un condensé de l'adresse IP, chiffré avec la clé secrète du projet (on ne peut pas
 // retrouver l'adresse), noté une fois par jour et par joueur ; des comptes en série depuis une même connexion font
@@ -961,6 +994,12 @@ Deno.serve(async (req: Request) => {
   const repondre = (corps: Ligne, statut = 200) => new Response(JSON.stringify(corps), { status: statut, headers: h });
   try {
     const jeton = (req.headers.get('authorization') || '').replace(/^Bearer\s+/i, '');
+    // l'horloge (toutes les 10 minutes) : le monde tourne sans joueur
+    if (await estHorloge(jeton)) {
+      const c = await req.json().catch(() => ({}));
+      if (c.action !== 'horloge') throw new Refus('action', 'Action inconnue.');
+      return repondre({ ok: true, ...(await tic()) });
+    }
     const { data, error } = jeton ? await admin.auth.getUser(jeton) : { data: { user: null }, error: null };
     if (error || !data.user) throw new Refus('non_connecte', 'Connecte-toi pour jouer.');
     const corps = await req.json().catch(() => ({}));
