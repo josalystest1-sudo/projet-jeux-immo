@@ -43,7 +43,7 @@ async function nouveauJoueur(publique, secrete) {
   const mail = `essai-${Date.now()}-${crypto.randomBytes(3).toString('hex')}@example.com`, mdp = crypto.randomBytes(18).toString('base64url');
   const cree = await requete(`${URL}/auth/v1/admin/users`, { method: 'POST', headers: { ...entetesSecrets(secrete), 'Content-Type': 'application/json' }, body: JSON.stringify({ email: mail, password: mdp, email_confirm: true }) });
   if (!cree.corps || !cree.corps.id) throw new Error('joueur d’essai non créé (HTTP ' + cree.statut + ')');
-  const id = cree.corps.id;
+  const id = cree.corps.id; let autoSupprime = false;
   try {
     const cnx = await requete(`${URL}/auth/v1/token?grant_type=password`, { method: 'POST', headers: { apikey: publique, 'Content-Type': 'application/json' }, body: JSON.stringify({ email: mail, password: mdp }) });
     const acces = cnx.corps && cnx.corps.access_token; verifier(!!acces, 'le joueur d’essai se connecte', cnx.statut);
@@ -273,9 +273,19 @@ async function nouveauJoueur(publique, secrete) {
     verifier(robots.statut >= 400 || (Array.isArray(robots.corps) && robots.corps.length === 0), 'les robots restent cachés : leur liste est illisible', robots.statut);
     const classement = await requete(`${URL}/rest/v1/rpc/classement_commune`, { method: 'POST', headers: { apikey: publique, 'Content-Type': 'application/json' }, body: JSON.stringify({ c: communes[0] || 'x' }) });
     verifier(classement.statut === 200 && Array.isArray(classement.corps), 'le classement d’une commune est lisible', classement.statut);
+    // « Supprimer mon compte » (RGPD, 5 nov.) : refusé sans le mot de confirmation, puis le joueur jetable se supprime lui-même
+    const sansMot = await jeu({ action: 'supprimer_compte' });
+    verifier(sansMot.corps && sansMot.corps.ok === false && sansMot.corps.code === 'confirmer', 'supprimer mon compte sans écrire SUPPRIMER : refusé', sansMot.corps);
+    const supprime = await jeu({ action: 'supprimer_compte', confirmer: 'SUPPRIMER' });
+    verifier(supprime.corps && supprime.corps.ok && supprime.corps.supprime, 'supprimer mon compte : fait par le joueur lui-même', supprime.corps);
+    if (supprime.corps && supprime.corps.ok) {
+      autoSupprime = true;
+      const reste = await requete(`${URL}/rest/v1/lieux?select=id&proprietaire=eq.${id}`, { headers: { apikey: publique } });
+      verifier(Array.isArray(reste.corps) && reste.corps.length === 0, 'ses lieux sont redevenus libres', reste.corps);
+    }
   } finally {
-    const sup = await requete(`${URL}/auth/v1/admin/users/${id}`, { method: 'DELETE', headers: entetesSecrets(secrete) });
-    verifier(sup.statut < 300, 'joueur d’essai supprimé', sup.statut);
+    if (!autoSupprime) { const sup = await requete(`${URL}/auth/v1/admin/users/${id}`, { method: 'DELETE', headers: entetesSecrets(secrete) });
+      verifier(sup.statut < 300, 'joueur d’essai supprimé', sup.statut); }
   }
   if (echecs) { console.log(`${echecs} vérification(s) en échec`); process.exit(1); }
   console.log('Le serveur répond comme prévu.');

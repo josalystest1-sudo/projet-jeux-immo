@@ -744,6 +744,16 @@ async function paysSansPacks(j: string) {
   const { count } = await admin.from('paiements').select('session', { count: 'exact', head: true }).eq('joueur', j).eq('statut', 'paye').in('pays', ['BE', 'NL']);
   return !!count;
 }
+// supprimer son compte (RGPD, 5 nov. 2026) : le compte et tout ce qui s'y rattache partent (partie, offres, mises,
+// versements, journaux) ; ses lieux redeviennent libres (« patrimoine remis en jeu »). Il faut écrire SUPPRIMER pour confirmer.
+// Les paiements restent connus de Stripe (factures).
+ACTIONS.supprimer_compte = async (j, corps) => {
+  if (String(corps.confirmer || '').trim().toUpperCase() !== 'SUPPRIMER') throw new Refus('confirmer', 'Écris SUPPRIMER pour confirmer.');
+  if ((await idsRobots()).has(j)) throw new Refus('robot', 'Ce compte ne peut pas être supprimé ainsi.');
+  const { error } = await admin.auth.admin.deleteUser(j);
+  if (error) throw error;
+  return { supprime: true };
+};
 ACTIONS.gemmes_essai = async (j) => ({ gemmes: Number(await rpc('jeu_gemmes_essai', { j, n: BOU.B.gemmes_essai })) });
 
 // ouvrir le pack du jour : le serveur tire au hasard (graine secrète), une fois par jour
@@ -939,7 +949,7 @@ Deno.serve(async (req: Request) => {
     // le calendrier des enchères (lots finis clos, lots de la semaine ouverts) : une panne ici ne bloque pas le jeu
     await tenirEncheres().catch((e) => console.error('enchères', e));
     // ma visite (un Maire absent depuis trop longtemps perd le titre) ; les fins de mandat de Maire à annoncer
-    await rpc('jeu_vu', { j: data.user.id }).catch((e) => console.error('visite', e));
+    if (corps.action !== 'supprimer_compte') await rpc('jeu_vu', { j: data.user.id }).catch((e) => console.error('visite', e));
     await tenirMairies().catch((e) => console.error('mairies', e));
     await tenirRaretes().catch((e) => console.error('raretés', e));
     await payerEntretien(data.user.id).catch((e) => console.error('entretien', e));
@@ -949,7 +959,7 @@ Deno.serve(async (req: Request) => {
     // les robots jouent un tour après la réponse (sans faire attendre le vrai joueur)
     const runtime = (globalThis as Ligne).EdgeRuntime; if (runtime && runtime.waitUntil) runtime.waitUntil(robotsTour().catch((e) => console.error('robots', e)));
     // après une action qui change la partie, sa partie à jour (pièces, lieux, récolte) pour que le jeu se recale
-    if (corps.action !== 'etat' && corps.action !== 'encheres') res.etat = await etatDe(data.user.id);
+    if (corps.action !== 'etat' && corps.action !== 'encheres' && corps.action !== 'supprimer_compte') res.etat = await etatDe(data.user.id);
     return repondre({ ok: true, ...res });
   } catch (e) {
     if (e instanceof Refus) return repondre({ ok: false, code: e.code, message: e.message });

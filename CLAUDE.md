@@ -115,6 +115,7 @@ Ce fichier dit **ce qu'est le jeu, comment on travaille, ce qui est décidé et 
   - un élément de ligne doit pouvoir rétrécir (`min-width:0`) ;
   - vérifier en 320 px, avec de gros montants et le texte agrandi ;
   - la page refuse le mode sombre forcé des téléphones (`<meta name="color-scheme" content="only light">`) : sur le téléphone de Gautier, les pastilles sortaient en gris foncé.
+- **Supprimer mon compte** (RGPD, 5 nov.) : l'action `supprimer_compte` de la fonction « jeu » (il faut `confirmer: 'SUPPRIMER'`) efface le compte de `auth.users`. Toutes les tables doivent suivre (`on delete cascade`, ou `set null` pour un historique) : **toute nouvelle table liée à un joueur doit le prévoir**, sinon la suppression échoue. Côté jeu : `supprimerMonCompte()` (profil).
 - **Les écrans à saisir** (connexion, inscription, mot de passe, pseudo) : Entrée valide comme le bouton principal (`avecEntree` dans `src/compte.js`, demande de Gautier pour les joueurs sur ordinateur). Tout nouvel écran de saisie doit faire de même.
 - **Un texte avec un montant** (bandeau `toast`, notification) : écrire `fmt(n)` (qui met 🪙) ; l'affichage passe par `avecPieces()` qui échappe le texte et dessine la pièce. En page : `pcs(n)`.
 - **Vérifier l'interface** : `tools/visite_ecrans.js` capture tous les écrans au format téléphone (prérequis en tête du fichier), `tools/planche.py` les assemble en planches à relire d'un coup.

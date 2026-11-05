@@ -68,6 +68,18 @@ const VERSION='__VERSION__';
 <meta name="apple-mobile-web-app-title" content="CityDeck">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="description" content="Collectionne les lieux réels de France, construis et deviens Maire de ta commune.">
+<!-- l'aperçu d'un lien vers le jeu (messages, réseaux, publicités) : tools/image_partage.js fabrique l'image -->
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://citydeck.fr/">
+<meta property="og:site_name" content="CityDeck">
+<meta property="og:title" content="CityDeck — Collectionne la France">
+<meta property="og:description" content="Collectionne les lieux réels de France : ta rue, l’église du village, les monuments. Construis, échange et deviens Maire de ta commune.">
+<meta property="og:image" content="https://citydeck.fr/icones/partage.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Le logo CityDeck : une plaque de rue, des cartes à collectionner et une pièce d’or">
+<meta property="og:locale" content="fr_FR">
+<meta name="twitter:card" content="summary_large_image">
 </head>
 <body>
 <div id="accueil"><div class="logo-jeu"></div><div class="points-charge"><i></i><i></i><i></i></div></div>
@@ -2426,8 +2438,25 @@ function showPlayer(name){ const box=document.getElementById('modalbox'); let h;
       <div class="kpis"><div class="kpi"><b>${n}</b><small>lieux</small></div><div class="kpi"><b>${nb(v)}<i class="pc"></i></b><small>de valeur</small></div><div class="kpi"><b>${b}</b><small>construits</small></div></div>
       <div class="card" style="box-shadow:none;background:var(--ciel)"><div class="t">📍 Présent dans ${c} commune${c>1?'s':''}</div><div class="m">Ses lieux sont en rouge sur la carte. Touche-en un pour lui faire une offre.</div></div>`; }
   const signaler = name===ME ? '' : `<button class="btn danger large" style="margin-top:8px" onclick="signaler('${name}')">🚩 Signaler ce joueur</button>`;
-  const compte = (name===ME && window.Compte && Compte.actif() && Compte.session) ? `<div class="m" style="text-align:center;margin-top:12px">Compte : ${echapper(Compte.session.user.email||'')}</div><button class="btn clair large" style="margin-top:6px" onclick="Compte.deconnecter()">Se déconnecter</button>` : '';
+  const compte = (name===ME && window.Compte && Compte.actif() && Compte.session) ? `<div class="m" style="text-align:center;margin-top:12px">Compte : ${echapper(Compte.session.user.email||'')}</div><button class="btn clair large" style="margin-top:6px" onclick="Compte.deconnecter()">Se déconnecter</button><button class="btn danger large" style="margin-top:8px" onclick="supprimerMonCompte()">Supprimer mon compte</button>` : '';
   box.innerHTML = h + signaler + compte + `<div class="liste-btn"><button class="btn clair large" onclick="closeModal()">Fermer</button></div>`; document.getElementById('modal').classList.add('on'); }
+// supprimer mon compte (RGPD, 5 nov.) : une fenêtre qui dit ce qui sera perdu, puis il faut écrire SUPPRIMER ; le serveur
+// efface le compte et tout ce qui s'y rattache (les lieux redeviennent libres), puis le jeu repart de zéro sur cet appareil
+function supprimerMonCompte(){ if(!(window.Compte && Compte.session)) return; const box=document.getElementById('modalbox');
+  box.innerHTML=`<h2>Supprimer mon compte</h2><div class="sub">C’est définitif : ton compte, ton pseudo, tes ${nb(Object.keys(state.owned).length)} lieux, tes pièces et tes gemmes (même achetées) seront effacés. Tes lieux redeviendront libres pour les autres joueurs.</div>
+    <div class="m" style="margin:10px 0 6px">Pour confirmer, écris <b>SUPPRIMER</b> :</div><input class="txt" id="suppr-mot" autocomplete="off" autocapitalize="characters" placeholder="SUPPRIMER">
+    <div class="err" id="suppr-err"></div>
+    <div class="liste-btn"><button class="btn danger large" id="suppr-ok">Supprimer définitivement</button><button class="btn clair large" onclick="closeModal()">Annuler</button></div>`;
+  document.getElementById('modal').classList.add('on');
+  const mot=box.querySelector('#suppr-mot'), ok=box.querySelector('#suppr-ok'), err=box.querySelector('#suppr-err');
+  mot.addEventListener('keydown', e=>{ if(e.key==='Enter' && !e.isComposing){ e.preventDefault(); ok.click(); } });
+  ok.onclick=async()=>{ if(mot.value.trim().toUpperCase()!=='SUPPRIMER'){ err.textContent='Écris SUPPRIMER pour confirmer.'; return; }
+    ok.disabled=true; ok.textContent='…'; const r=await appelServeur('supprimer_compte', { confirmer:'SUPPRIMER' });
+    if(!r || !r.ok){ ok.disabled=false; ok.textContent='Supprimer définitivement'; err.textContent=(r && r.message) || 'Le serveur ne répond pas'; return; }
+    try{ await Compte.client.auth.signOut(); }catch(e){}
+    try{ localStorage.removeItem(CLE_ETAT); localStorage.removeItem('cadastra-session'); localStorage.removeItem('cadastra-mode'); }catch(e){}
+    box.innerHTML='<h2>Compte supprimé</h2><div class="sub">Ton compte et ta partie sont effacés. Merci d’avoir joué à CityDeck.</div>';
+    setTimeout(()=>location.replace(location.pathname), 2500); }; }
 // mode serveur : les chiffres d'un vrai joueur, d'après ses lieux (lisibles par tous)
 async function profilReel(name){ let uid=PAR_PSEUDO[name];
   if(!uid){ const { data } = await Compte.client.from('profils').select('id,pseudo,avatar,cree_le').eq('pseudo', name).maybeSingle(); if(data){ uid=data.id; JOUEURS[uid]={ pseudo:data.pseudo, avatar:data.avatar, cree_le:data.cree_le }; PAR_PSEUDO[name]=uid; } }

@@ -323,6 +323,17 @@ ok(!!(await refus('select public.jeu_robot_liberer($1)', [A])) && !!(await refus
 ok(!!(await refus("insert into public.gemmes_journal (joueur, delta, motif) values ($1, 1000, 'x')", [A])), 'le jeu ne peut pas écrire dans le journal des gemmes');
 ok(!!(await refus("select public.jeu_paiement_crediter('cs_1', 'FR')")), 'le jeu ne peut pas se créditer un paiement');
 ok(!!(await refus("insert into public.paiements (session, joueur, offre, gemmes, centimes) values ('cs_x', $1, 'g500', 999999, 1)", [A])), 'le jeu ne peut pas écrire un paiement');
+// supprimer son compte (RGPD, 5 nov. ; la fonction « jeu » efface le compte de auth.users) : tout part avec lui, ses lieux redeviennent libres
+await db.exec('reset role;');
+const E = '00000000-0000-0000-0000-00000000000e';
+await q('insert into auth.users (id) values ($1)', [E]); await q('select public.jeu_nouveau_joueur($1, 1500)', [E]);
+await q("insert into public.profils (id, pseudo) values ($1, 'eve')", [E]);
+await q('select public.jeu_pack($1, 1, $2)', [E, JSON.stringify(['e1', 'e2'].map(carte))]);
+await q("select public.jeu_offrir($1, 'b1', 100, 'pieces')", [E]);
+await q('delete from auth.users where id = $1', [E]);
+ok(!(await proprio('e1')) && !(await proprio('e2')) && (await q('select count(*)::int as n from public.joueurs where id = $1', [E]))[0].n === 0
+   && (await q('select count(*)::int as n from public.profils where id = $1', [E]))[0].n === 0 && (await q('select count(*)::int as n from public.offres where acheteur = $1', [E]))[0].n === 0,
+   'un compte supprimé emporte sa partie, son pseudo et ses offres ; ses lieux redeviennent libres');
 await db.exec('reset role; set role anon;');
 ok((await q("select count(*)::int as n from public.caisse_communes(array['Bourg'], 6, now() - interval '7 days')"))[0].n > 0, 'sans compte aussi, on lit les caisses');
 ok((await q('select count(*)::int as n from public.encheres'))[0].n > 0, 'sans compte aussi, on lit les lots');
