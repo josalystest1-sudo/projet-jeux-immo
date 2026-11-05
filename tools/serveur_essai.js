@@ -135,7 +135,7 @@ async function nouveauJoueur(publique, secrete) {
         verifier(etatE.corps.pieces <= avantE - 10 + MARGE, 'les 10 pièces sont passées', { avant: avantE, apres: etatE.corps.pieces });
         const deuxFois = await B.jeu({ action: 'repondre_echange', echange: ech5.corps && ech5.corps.echange, accepter: true });
         verifier(deuxFois.corps && deuxFois.corps.ok === false && deuxFois.corps.code === 'echange', 'accepter deux fois : refusé', deuxFois);
-        // les enchères (8.1g) : la semaine en cours, puis un lot d'essai de 25 s (posé avec la clé du serveur, semaine -1 :
+        // les enchères (8.1g) : la semaine en cours, puis un lot d'essai de 45 s (25 s ne suffisaient pas quand le serveur répond lentement, 5 nov. ; posé avec la clé du serveur, semaine -1 :
         // invisible des joueurs) pour miser, surenchérir et clore, avec passage à la mise suivante
         const sem = await jeu({ action: 'encheres' });
         verifier(sem.corps && sem.corps.ok && Array.isArray(sem.corps.lots) && sem.corps.fin > Date.now() && Array.isArray(sem.corps.suivantes), `les enchères de la semaine : ${sem.corps && sem.corps.lots ? sem.corps.lots.length : '?'} lot(s)`, sem);
@@ -143,10 +143,10 @@ async function nouveauJoueur(publique, secrete) {
         const parCle = (chemin, methode, corps) => requete(`${URL}/rest/v1/${chemin}`, { method: methode, headers: { ...entetesSecrets(secrete), 'Content-Type': 'application/json', Prefer: 'return=minimal' }, body: corps ? JSON.stringify(corps) : undefined });
         try {
           await parCle(`joueurs?id=in.(${id},${B.id})`, 'PATCH', { pieces: 20000 });
-          const finEssai = Date.now() + 25000;
+          const finEssai = Date.now() + 45000;
           const creeLot = await parCle('encheres', 'POST', { cle: cleEssai, semaine: -1, rang: 0, palier: 'regional', monument: cleEssai, depart: 1000, fin: new Date(finEssai).toISOString(),
             lieu: { id: monEssai, label: 'Monument d’essai', lon: 2.3522, lat: 48.8566, citycode: '75104', city: 'Paris 4e', commune: 'Paris 4e', qid: null } });
-          verifier(creeLot.statut < 300, 'un lot d’essai de 25 secondes', creeLot);
+          verifier(creeLot.statut < 300, 'un lot d’essai de 45 secondes', creeLot);
           const bas = await jeu({ action: 'miser', cle: cleEssai, montant: 999 });
           verifier(bas.corps && bas.corps.ok === false && bas.corps.code === 'min', 'miser sous la mise de départ : refusé', bas);
           const m1 = await jeu({ action: 'miser', cle: cleEssai, montant: 1000 });
