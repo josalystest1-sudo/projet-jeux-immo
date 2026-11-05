@@ -183,6 +183,7 @@ Rien d'important ne vit dans une conversation : tout est dans le dépôt ou sur 
 - **Le suivi** (PR #149). Claude propose ensuite un tableau de suivi et un minimum d'anti-triche (ou les lieux célèbres) ; Gautier : « vas-y ». Les jours de visite des vrais joueurs sont notés ; deux vues du tableau de bord de Supabase donnent les inscrits, les venus, les retours du lendemain et du 7e jour, et les achats.
 - **Les lieux célèbres** (PR #152). Claude propose d'ajouter les châteaux, mairies, gares, musées, phares, moulins… aux lieux célèbres ; Gautier demande ce que ça change aux packs, puis : « oui vas-y, mais il faut que les légendaires restent rares ». La chance d'une Légendaire ne change pas (1 carte sur 100) ; les Rares écartent les lieux célèbres ; les marques (grands vins, cabarets, musées de marque) sont écartées.
 - **Le niveau des communes** (PR #153). Gautier remet Brevo à plus tard : « on fait tout ce qui ne nécessite pas un PC ». Claude enchaîne avec ce que le game design du 4 nov. prévoyait encore : ce qui a été versé à la caisse d'une commune, depuis toujours, la fait monter de niveau (arbres, lampadaires, fleurs, fontaine, kiosque), visible dans la commune et sur la carte.
+- **L'horloge du serveur** (PR #155). Dans la même série : toutes les 10 minutes, GitHub appelle le serveur pour clore les enchères, faire tourner les mandats et les saisons, tenir les monuments et faire jouer les robots, même sans joueur.
 - **L'anti-triche** (PR #150). Dans la foulée : pas plus de 60 actions par minute pour un compte, et une empreinte chiffrée de la connexion (jamais l'adresse IP) ; dès 3 comptes sur une même connexion dans la journée, une alerte pour Gautier, sans rien bloquer (familles, réseaux partagés, multi-comptes tolérés en V1).
 
 ## Toutes les PR
@@ -364,6 +365,7 @@ Puis une PR par étape, fusionnée en squash :
 | #152 | 05/11 | 30 908 lieux célèbres (châteaux, gares, musées, phares, ponts, moulins…), Légendaires toujours à 1 carte sur 100, Rares sans lieu célèbre, marques écartées |
 | #153 | 05/11 | Le niveau des communes : les travaux versés depuis toujours (0 à 5 : arbres, lampadaires, fleurs, fontaine, kiosque), dans la commune et sur la carte |
 | #154 | 05/11 | Relecture des écrans en 320 px (français et anglais) : « Area » au lieu de « Neighbourhood », le bouton de la démo dans les Réglages |
+| #155 | 05/11 | L'horloge du serveur : toutes les 10 minutes, enchères, mandats, saisons, monuments et robots tournent sans joueur |
 
 ## Les décisions de Gautier
 
