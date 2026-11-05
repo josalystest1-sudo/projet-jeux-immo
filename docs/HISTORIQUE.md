@@ -178,6 +178,7 @@ Rien d'important ne vit dans une conversation : tout est dans le dépôt ou sur 
 - **Les pages légales** (PR #144). Gautier remet Brevo à son retour devant le PC (Claude ne peut ni créer le compte ni se connecter à sa place) et donne la fiche de son entreprise individuelle pour les mentions légales. Claude rédige les conditions d'utilisation et de vente, la confidentialité et les mentions légales, et les relie au jeu.
 - **Les cookies de Google** (PR #145). Gautier : « on met dans les CGU que si un joueur joue au jeu, il accepte d'office les cookies Google, et on explique pourquoi ». Claude l'écrit et signale le risque (pour la CNIL, l'acceptation des conditions ne vaut pas accord pour ces cookies). Gautier demande aussi la traduction complète du jeu en anglais, avec le choix de la langue dans les réglages (français par défaut, noms propres et rues gardés en français).
 - **L'anglais** (PR #146). Gautier, dans le même message : « il faut une traduction complète du jeu en anglais (on garde les noms propres et les rues en français), avec le choix des langues dans les paramètres, et par défaut le français ». Claude ajoute une couche qui traduit tout à l'affichage (écrans, bandeaux, notifications, messages du serveur, pochette du pack), sans réécrire le jeu : le code reste en français, et un test vérifie que chaque nouveau message a sa traduction. Le choix est dans les Réglages et sur l'écran de compte ; les pages légales sont traduites (la version française fait foi).
+- **La langue du téléphone** (PR #147). Pendant la mise en ligne, Gautier précise : « idéalement la langue se met en fonction de la langue du périphérique par défaut, avec modification possible ». Le jeu suit désormais le téléphone (français s'il est en français, anglais pour toute autre langue, proposition de Claude), et le choix des Réglages passe avant.
 
 ## Toutes les PR
 
@@ -350,6 +351,7 @@ Puis une PR par étape, fusionnée en squash :
 | #144 | 05/11 | Les pages légales (conditions d'utilisation et de vente, confidentialité, mentions légales), reliées au jeu ; l'image de partage allégée (JPEG) |
 | #145 | 05/11 | Les cookies de Google Street View : acceptés en jouant, expliqués dans les conditions et la confidentialité |
 | #146 | 05/11 | Le jeu en anglais : choix de la langue (Réglages et écran de compte), français par défaut, noms propres en français ; pages légales traduites |
+| #147 | 05/11 | La langue du téléphone par défaut (français s'il est en français, anglais sinon), modifiable dans les Réglages |
 
 ## Les décisions de Gautier
 
@@ -389,7 +391,7 @@ Les décisions du 2 novembre (interview) sont dans `CLAUDE.md` § 4 et dans le G
 | 4 nov. | **Monuments** : aux enchères seulement, repris et remis aux enchères si le propriétaire ne se connecte pas pendant 14 jours (jamais les adresses, qui ont pu être payées) ; **entretien exponentiel** plutôt qu'une limite de 3 monuments ; prévenir Gautier dès qu'un monument redevient libre, pour l'annoncer sur les réseaux |
 | 4 nov. | **Monnaie premium (gemmes)** : euros → gemmes à sens unique, sans commission ; elle achète les packs, les packs régionaux (un peu plus chers), le Pass 15 jours (8 cartes au lieu de 5 + une adresse cible hors Légendaire et monument) et des offres sur les lieux d'autres joueurs. Revente de lieux contre des euros : écartée |
 | 4 nov. | Lots réels (clés Steam, bons de commerçants) : idée gardée pour faire venir des joueurs, mais jamais attribués selon un score que l'argent ou le nombre de lieux influence (risque de loterie) |
-| 5 nov. | **Le jeu existe aussi en anglais** : choix dans les réglages, français par défaut ; les noms propres et les rues restent en français |
+| 5 nov. | **Le jeu existe aussi en anglais** : choix dans les réglages ; par défaut la langue du téléphone (d'abord « français par défaut », précisé le même jour) ; les noms propres et les rues restent en français |
 
 ## Ce qui reste à faire (au 4 novembre après-midi)
 

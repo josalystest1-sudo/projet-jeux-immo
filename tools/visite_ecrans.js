@@ -35,7 +35,7 @@ const ETAT = () => { const t = Date.now(), j = Math.floor(t / 60000); return {
 (async () => {
   const proxy = process.env.HTTPS_PROXY ? { server: process.env.HTTPS_PROXY } : undefined;
   const navigateur = await chromium.launch({ proxy, args: ['--use-gl=swiftshader', '--enable-webgl', '--ignore-gpu-blocklist'] });
-  const contexte = await navigateur.newContext({ viewport: { width: +(process.env.LARGEUR || 390), height: +(process.env.HAUTEUR || 844) }, deviceScaleFactor: 2, ignoreHTTPSErrors: true, hasTouch: true });
+  const contexte = await navigateur.newContext({ locale: process.env.LANGUE || 'fr-FR', viewport: { width: +(process.env.LARGEUR || 390), height: +(process.env.HAUTEUR || 844) }, deviceScaleFactor: 2, ignoreHTTPSErrors: true, hasTouch: true });
   const page = await contexte.newPage();
   await page.route('https://unpkg.com/**', (route) => { const u = new URL(route.request().url()); const m = u.pathname.match(/^\/((?:@[^/]+\/)?[^@/]+)@[^/]+\/(.*)$/); const f = path.join(ML, m[1], m[2]); route.fulfill({ body: fs.readFileSync(f), contentType: f.endsWith('.css') ? 'text/css' : 'application/javascript' }); });
   await page.route('http://jeu.local/**', (route) => { const u = new URL(route.request().url());

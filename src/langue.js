@@ -14,16 +14,25 @@
 // Les textes dessinés (pochette du pack, dos des cartes) passent par Langue.t('…') ; les bandeaux et les notifications
 // (avecPieces de index.html) aussi, avant que la pièce soit dessinée. Les messages du serveur (refus, notifications)
 // arrivent en français et sont traduits comme le reste. Les liens vers les pages légales mènent à leur version anglaise
-// (PAGES) ; Street View reçoit &language=en (SV_LANGUE de index.html). Le choix est gardé dans le téléphone
-// (localStorage 'citydeck-langue') : réglages et écran de compte, Langue.choisir('fr' | 'en') recharge la page.
+// (PAGES) ; Street View reçoit &language=en (SV_LANGUE de index.html). Par défaut : la langue du téléphone (français
+// s'il est en français, anglais sinon) ; le choix fait dans les réglages ou l'écran de compte est gardé dans le téléphone
+// (localStorage 'citydeck-langue') et passe avant : Langue.choisir('fr' | 'en') recharge la page.
 (function () {
   const CLE = 'citydeck-langue';
+  // la langue du téléphone au premier lancement (Gautier, 5 nov. : « idéalement la langue se met en fonction de la langue
+  // du périphérique par défaut, avec modification possible ») : français si le téléphone est en français, anglais pour
+  // toute autre langue ; le choix fait dans les réglages (ou l'écran de compte) est gardé et passe avant
+  function langueAppareil() {
+    try { const l = (navigator.languages && navigator.languages[0]) || navigator.language || ''; return !l || /^fr\b/i.test(l) ? 'fr' : 'en'; }
+    catch (e) { return 'fr'; }
+  }
   let L = 'fr';
   try {
     const q = new URLSearchParams(location.search).get('langue');
     if (q === 'en' || q === 'fr') localStorage.setItem(CLE, q);
-    L = localStorage.getItem(CLE) === 'en' ? 'en' : 'fr';
-  } catch (e) {}
+    const choix = localStorage.getItem(CLE);
+    L = choix === 'en' || choix === 'fr' ? choix : langueAppareil();
+  } catch (e) { L = langueAppareil(); }
   const collecte = (() => { try { return new URLSearchParams(location.search).has('collecte'); } catch (e) { return false; } })();
   const manquants = new Set();
   const dico = () => (typeof window !== 'undefined' && window.LANGUE_EN) || { textes: {}, motifs: [] };
