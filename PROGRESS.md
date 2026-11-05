@@ -440,6 +440,11 @@
   - Le mode d'emploi pour Gautier : `docs/serveur/GUIDE-SUPABASE.md` (avec les signalements et les alertes).
   - La confidentialité (française et anglaise) dit que les jours de visite sont gardés pour mesurer la fréquentation.
   - **Vérifié** : `tools/essai_sql.mjs` (une visite par jour, jamais un robot, retours du lendemain et du 7e jour, vides tant que le jour n'est pas arrivé, compte supprimé emporte ses visites, le jeu ne lit pas le suivi ; 184 vérifications). 94 tests.
+- 5 nov. 2026 (PR #150) : **un minimum d'anti-triche** (étape 8.3, liste « avant la pub » ; réglages `ECO.anti_triche`, chiffres [Proposé] ; `supabase/sql/160_anti_triche.sql`).
+  - **La cadence** : pas plus de 60 actions par minute pour un compte (`jeu_cadence`, table `cadence`) ; au-delà, la fonction « jeu » refuse (« Doucement : trop d'actions d'un coup… »), rien n'est perdu.
+  - **Les comptes en série** : une fois par jour, la fonction note une empreinte de la connexion de chaque joueur (`jeu_empreinte`, table `empreintes` : un condensé HMAC de l'adresse IP avec la clé secrète du projet, jamais l'adresse ; gardé 30 jours). Dès 3 comptes (sans les robots) sur une même connexion dans la journée, puis tous les 3 de plus, une alerte pour Gautier (table `alertes`, type `comptes`, avec les pseudos). La vue `comptes_lies` (7 derniers jours) montre les comptes qui partagent une connexion, avec leurs ventes (et l'écart à la valeur) et leurs échanges entre eux. Rien n'est bloqué : une connexion partagée est courante, et plusieurs comptes sont tolérés en V1 (décision 11).
+  - La confidentialité (française et anglaise) le dit, avec la durée de 30 jours.
+  - **Vérifié** : `tools/essai_sql.mjs` (cadence, minute suivante, empreintes sans les robots, alerte au troisième compte avec les pseudos, effacement après 30 jours, comptes liés, rien de lisible par le jeu ; 195 vérifications) ; `deno check` ; l'essai automatique du serveur vérifie désormais la visite du jour, l'empreinte (un condensé) et que le jeu ne lit ni les empreintes ni le suivi. 94 tests.
 
 ## Bugs connus
 - Les badges 💰 des joueurs simulés n'apparaissent qu'après ouverture de leur parcelle (limite du prototype local).

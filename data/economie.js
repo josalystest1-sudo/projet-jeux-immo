@@ -141,6 +141,12 @@ const ECO = {
    "max": 0.15
   }
  },
+ "anti_triche": {
+  "_note": "Un minimum contre la triche (5 nov. 2026, liste avant la pub). Chiffres [Proposé]. Une connexion partagée (famille, réseau mobile) est courante : rien n’est bloqué, une alerte prévient Gautier.",
+  "actions_par_minute": 60,
+  "comptes_par_connexion": 3,
+  "empreintes_jours": 30
+ },
  "robots": {
   "_note": "Les joueurs de la maison (GDD § 5 quater, décision de Gautier du 5 nov. 2026 : jouer comme des humains, sans abuser, retirés peu à peu). Chiffres [Proposé].",
   "max": 10,

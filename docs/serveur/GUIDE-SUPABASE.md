@@ -33,8 +33,9 @@ Sur https://supabase.com/dashboard, ouvre le projet **cadastra**, puis **Table E
 
 - **suivi_total** : une ligne qui résume tout. On y trouve le nombre d'inscrits (en tout, et sur les 7 derniers jours) et les joueurs venus (aujourd'hui, et sur les 7 derniers jours). On y trouve aussi le pourcentage d'inscrits revenus le lendemain (`pct_retour_j1`) et le 7e jour (`pct_retour_j7`), ainsi que les payants, les euros encaissés et le nombre de robots en jeu ;
 - **suivi_jours** : un jour par ligne, du plus récent au plus ancien. Pour chaque jour : les inscrits du jour, les joueurs venus, les inscrits revenus le lendemain et le 7e jour (vide tant que ce jour n'est pas arrivé), les achats, les euros, et les achats en carte de test ;
+- **comptes_lies** : les comptes qui ont partagé une même connexion ces 7 derniers jours (une famille, un réseau partagé… ou quelqu'un qui crée des comptes pour en nourrir un), avec les ventes et les échanges entre eux ;
 - **signalements** : les joueurs signalés par les autres (bouton « Signaler » d'un profil) ; coche `traite` une fois réglé ;
-- **alertes** : un monument redevenu libre (une phrase prête à poster).
+- **alertes** : un monument redevenu libre (une phrase prête à poster), ou 3 comptes et plus sur une même connexion (type `comptes`).
 
 Les robots ne sont jamais comptés dans le suivi. Les jours sont de vrais jours (minuit à Paris), même sur le serveur d'essai accéléré.
 

@@ -303,6 +303,7 @@
     'Trop de tentatives : réessaie dans quelques minutes.': 'Too many attempts: try again in a few minutes.',
     'Serveur injoignable : vérifie ta connexion et réessaie.': 'Server unreachable: check your connection and try again.', 'Serveur injoignable': 'Server unreachable',
     'Le serveur ne répond pas': 'The server isn’t responding', 'Le serveur ne répond pas : réessaie': 'The server isn’t responding: try again',
+    'Doucement : trop d’actions d’un coup. Réessaie dans une minute.': 'Easy: too many actions at once. Try again in a minute.',
     'Joueur introuvable': 'Player not found', 'Joueur introuvable.': 'Player not found.',
     'Le lien a expiré ou a déjà servi : connecte-toi, ou demande un nouvel e-mail.': 'The link has expired or was already used: log in, or ask for a new e-mail.',
 
