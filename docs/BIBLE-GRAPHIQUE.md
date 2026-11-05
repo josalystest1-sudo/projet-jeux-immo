@@ -502,3 +502,19 @@ Où c'est dans le code :
 - `src/icones.js` : `ICONES` (les dessins), `EMOJI_ICONE` (l'émoji que chacun remplace), `iconiser`, et un observateur qui remplace les émojis à l'affichage. Les exclusions sont dans `EXCLUS`.
 - `index.html` : `couleursCarte`, `COULEURS_CARTE` (de jour et de nuit, calque par calque), `estNuit`, `styleParcelles`.
 
+## 13. Le logo, l'icône et la pièce (5 nov. 2026, phase 10.6)
+
+**Les pistes.** Claude a d'abord proposé quatre pistes, accordées aux menus (§ 12) : la plaque, le paquet de cartes, la pièce-maison et la ville sur une carte. Gautier : il faut « un logo avec le nom complet et un logo », et « la petite maison » (la pièce-maison) est « moche ». Quatre emblèmes sans la maison ont suivi ; il a choisi « les cartes et la ville ». Pour la monnaie, il a voulu une nouvelle pièce ; parmi quatre pièces rondes, il a choisi « la pièce à la ville ».
+
+**Le modèle de Gautier.** Il a ensuite envoyé son propre logo, et précisé : « tu as la pièce intégrée au logo ». Ce modèle remplace les pistes :
+- la plaque de rue émaillée « CITYDECK » : cadre vert, filet blanc aux coins rentrants, liseré d'or, deux vis ;
+- deux cartes au bord d'or en éventail derrière la plaque ;
+- une pièce d'or ronde frappée d'une maison, posée sur le coin de la plaque.
+
+**Ce qui est fait.** Claude l'a redessiné en SVG (`src/logo.js`), fidèle au modèle et net à toutes les tailles :
+- **le logo en long** sur l'écran d'accueil (avec trois points bleus de chargement) et sur l'écran de connexion ;
+- **l'icône** : la plaque sur deux lignes, « CITY / DECK », les cartes et la pièce, sur une tuile perle. `tools/icones.js` la tire en 512, 192, 180 (iPhone) et 512 « masquable » (Android) ;
+- **la pièce de la monnaie** devient celle du logo : ronde, en relief, frappée d'une maison. On la retrouve dans les montants (`.pc`, `icones/piece.svg`), au dos des cartes (le médaillon) et au verso de la pochette. **[Proposé]** : c'est ainsi que Claude a compris « la pièce intégrée au logo » ; elle remplace la pièce à la ville, choisie juste avant.
+
+![L'accueil, la carte, le dos des cartes, l'icône et la pièce](bible/logo-et-piece.jpg)
+

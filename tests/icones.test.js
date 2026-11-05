@@ -27,3 +27,17 @@ test('la page charge les icônes et pose le style', () => {
   const css = fs.readFileSync(path.join(__dirname, '..', 'style.css'), 'utf8');
   assert.match(css, /ico-t\{display:contents\}/);
 });
+
+test('le logo de Gautier (src/logo.js) et la pièce ronde à la maison (5 nov.)', () => {
+  const Logo = require('../src/logo.js');
+  assert.match(Logo.svg(), /CITYDECK/);
+  const ic = Logo.icone({ plein: true, zone: true });
+  assert.match(ic, />CITY</); assert.match(ic, />DECK</); assert.match(ic, /scale\(0\.8\)/);
+  // une seule pièce partout : le fichier, l'image de fond des montants (.pc) et le logo dessinent la même maison
+  const piece = fs.readFileSync(path.join(__dirname, '..', 'icones', 'piece.svg'), 'utf8');
+  assert.ok(piece.includes(Logo.MAISON));
+  const css = fs.readFileSync(path.join(__dirname, '..', 'style.css'), 'utf8');
+  assert.ok(css.includes(encodeURIComponent(Logo.MAISON).replace(/%20/g, ' ').slice(0, 30)), 'la pièce des montants (.pc) doit être icones/piece.svg');
+  const html = fs.readFileSync(path.join(__dirname, '..', 'index.html'), 'utf8');
+  assert.ok(!html.includes('M16 2.3 29.7 13.5'), 'plus de pièce-maison');
+});

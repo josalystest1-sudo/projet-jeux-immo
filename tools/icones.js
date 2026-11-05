@@ -1,29 +1,40 @@
-// Dessine l'icône de Cadastra (plaque de rue + pièce-maison) et l'enregistre à plusieurs tailles dans icones/.
-//   node tools/icones.js <racine du jeu>      (prérequis : npm i -g playwright)
-const { chromium } = require('playwright');
+// Dessine les icônes de CityDeck d'après le logo de Gautier (5 nov. 2026 ; src/logo.js : la plaque « CITY DECK », les
+// cartes en éventail, la pièce à la maison) et les enregistre dans icones/ : 512 et 192 (coins arrondis, fond transparent), 180 pour l'iPhone (carré
+// plein : l'iPhone arrondit lui-même), 512 « masquable » pour Android (fond plein, dessin réduit dans la zone sûre).
+//   node tools/icones.js            (Chrome installé ; sans bibliothèque : le protocole DevTools de Chrome sans fenêtre)
+const { spawn } = require('child_process');
+const fs = require('fs');
+const os = require('os');
 const path = require('path');
-const RACINE = process.argv[2];
+const RACINE = path.join(__dirname, '..');
+const CHROME = process.env.CHROME || (process.platform === 'win32' ? 'C:/Program Files/Google/Chrome/Application/chrome.exe' : 'google-chrome');
+const Logo = require(path.join(RACINE, 'src', 'logo.js'));
+const POLICE = 'data:font/woff2;base64,' + fs.readFileSync(path.join(RACINE, 'fonts', 'barlow-condensed-latin-700-normal.woff2')).toString('base64');
+const VARIANTES = [
+  ['icone-512.png', 512, {}],
+  ['icone-192.png', 192, {}],
+  ['apple-touch-icon.png', 180, { plein: true }],
+  ['icone-masquable-512.png', 512, { plein: true, zone: true }]
+];
+const dormir = (ms) => new Promise((r) => setTimeout(r, ms));
 (async () => {
-  const b = await chromium.launch();
-  for (const [taille, nom, marge] of [[512, 'icone-512.png', 0], [192, 'icone-192.png', 0], [180, 'apple-touch-icon.png', 0], [512, 'icone-masquable-512.png', 1]]) {
-    const p = await b.newPage({ viewport: { width: taille, height: taille } });
-    const f = (n) => 'data:font/woff2;base64,' + require('fs').readFileSync(path.join(RACINE, 'fonts', n)).toString('base64');
-    const k = taille / 512, pad = marge ? 64 * k : 0;
-    // la pièce sans son C (le grand C de l'icône suffit)
-    const svg = require('fs').readFileSync(path.join(RACINE, 'icones', 'piece.svg'), 'utf8').replace(/<path d='M19\.8[^>]*\/>/g, '');
-    const piece = 'data:image/svg+xml;base64,' + Buffer.from(svg).toString('base64');
-    await p.setContent(`<html><head><style>
-      @font-face{font-family:B;font-weight:800;src:url(${f('baloo-2-latin-800-normal.woff2')})}
-      html,body{margin:0;width:${taille}px;height:${taille}px;overflow:hidden;background:${marge ? '#1E4598' : 'transparent'}}
-      .fond{position:absolute;inset:${pad}px;border-radius:${marge ? 0 : 112 * k}px;background:radial-gradient(circle at 40% 30%,#3566CC,#1E4598 55%,#0E2457);}
-      .cadre{position:absolute;inset:${pad + 26 * k}px;border-radius:${78 * k}px;border:${16 * k}px solid #fff;box-shadow:0 0 0 ${14 * k}px #2E8B57}
-      .c{position:absolute;inset:${pad}px;display:flex;align-items:center;justify-content:center;font-family:B;font-weight:800;font-size:${(marge ? 300 : 360) * k}px;color:#fff;line-height:1;padding-bottom:${30 * k}px;text-shadow:0 ${10 * k}px 0 #132F6B}
-      .pc{position:absolute;right:${pad + (marge ? 112 : 84) * k}px;bottom:${pad + (marge ? 112 : 84) * k}px;width:${(marge ? 112 : 140) * k}px;height:${(marge ? 112 : 140) * k}px;background:url(${piece}) center/contain no-repeat;filter:drop-shadow(0 ${6 * k}px 0 #8a5a00)}
-    </style></head><body><div class="fond"></div><div class="cadre"></div><div class="c">C</div><div class="pc"></div></body></html>`);
-    await p.evaluate(async () => { await document.fonts.load('800 100px B'); await document.fonts.ready; });
-    await p.waitForTimeout(300);
-    await p.screenshot({ path: path.join(RACINE, 'icones', nom), omitBackground: !marge });
-    await p.close();
-  }
-  await b.close();
-})();
+  const PORT = 9300 + Math.floor(Math.random() * 500);
+  const profil = fs.mkdtempSync(path.join(os.tmpdir(), 'citydeck-icones-'));
+  const chrome = spawn(CHROME, ['--headless=new', `--remote-debugging-port=${PORT}`, `--user-data-dir=${profil}`, '--no-first-run', 'about:blank'], { stdio: 'ignore' });
+  try {
+    let cible = null;
+    for (let k = 0; k < 50 && !cible; k++) { await dormir(300); try { cible = (await (await fetch(`http://127.0.0.1:${PORT}/json/list`)).json()).find((t) => t.type === 'page'); } catch (e) {} }
+    const ws = new WebSocket(cible.webSocketDebuggerUrl); await new Promise((r) => ws.addEventListener('open', r));
+    let n = 0; const att = {}; ws.addEventListener('message', (m) => { const d = JSON.parse(m.data); if (d.id && att[d.id]) { att[d.id](d); delete att[d.id]; } });
+    const cmd = (method, params) => new Promise((r) => { const id = ++n; att[id] = r; ws.send(JSON.stringify({ id, method, params: params || {} })); });
+    await cmd('Emulation.setDefaultBackgroundColorOverride', { color: { r: 0, g: 0, b: 0, a: 0 } });
+    for (const [nom, taille, opts] of VARIANTES) {
+      await cmd('Emulation.setDeviceMetricsOverride', { width: taille, height: taille, deviceScaleFactor: 1, mobile: false });
+      const html = `<html><head><style>@font-face{font-family:'Barlow Condensed';font-weight:700;src:url(${POLICE})}</style></head><body style="margin:0;background:transparent">${Logo.icone({ ...opts, attrs: `width="${taille}" height="${taille}" style="display:block"` })}</body></html>`;
+      await cmd('Page.navigate', { url: 'data:text/html;charset=utf-8,' + encodeURIComponent(html) }); await dormir(700);
+      const s = await cmd('Page.captureScreenshot', { format: 'png', clip: { x: 0, y: 0, width: taille, height: taille, scale: 1 } });
+      fs.writeFileSync(path.join(RACINE, 'icones', nom), Buffer.from(s.result.data, 'base64')); console.log('icône', nom);
+    }
+    ws.close();
+  } finally { chrome.kill(); }
+})().catch((e) => { console.error(e); process.exit(1); });
