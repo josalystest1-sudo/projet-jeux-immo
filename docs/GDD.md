@@ -179,7 +179,9 @@ Les règles (`src/regles/robots.js`, réglages `data/economie.json` → `robots`
   - il ne verse à la caisse d'une commune que si aucun vrai joueur n'y a versé ce mandat, et dès qu'un vrai joueur a versé le seuil, les robots ne comptent pas dans l'élection : un robot ne prend jamais une mairie à un vrai joueur ;
   - il apparaît dans les classements du moment (il les anime), mais jamais sur un podium ni sur une plaque de fin de saison ;
   - 30 lieux au plus, 3 par commune.
-- **Ils restent reconnaissables** : leur icône est 🤖. **[Proposé ; à trancher par Gautier]** Les cacher parmi les vrais joueurs serait trompeur, puisque des joueurs paient des gemmes. Les CGU diront que des joueurs automatiques animent le jeu au lancement.
+- **Cachés parmi les joueurs** **[Décidé par Gautier le 5 nov. : « il faut cacher les robots, le but est de leur faire croire que le jeu est actif »]** : des prénoms et des icônes de joueurs ordinaires, et le jeu ne peut pas savoir qui est un robot (la liste n'est lisible que par le serveur).
+- **Jamais de gemmes avec un robot** **[Décidé par Gautier le même jour]** : un robot ne vend ni n'achète jamais en gemmes. Il refuse une offre en gemmes, n'achète pas un lieu vendu en gemmes et vend toujours en pièces. Personne ne dépense donc d'argent réel au profit d'un robot.
+- **[Proposé par Claude, à décider avant le lancement]** : que les CGU disent, en une phrase générale et sans désigner qui, que « des joueurs automatiques peuvent animer le jeu ». Cacher à des clients qui paient que des joueurs sont automatiques peut être reproché comme une pratique commerciale trompeuse ; la règle « jamais de gemmes » réduit ce risque, la phrase des CGU le couvre.
 
 ## 6. Les collections **[V2]**
 

@@ -45,7 +45,6 @@ const VERSION='__VERSION__';
 <script src="src/regles/monuments.js"></script>
 <script src="src/regles/regions.js"></script>
 <script src="src/regles/boutique.js"></script>
-<script src="src/regles/robots.js"></script>
 <script src="src/regles/encheres.js"></script>
 <script src="src/regles/pack.js"></script>
 <script src="src/tirage.js"></script>
@@ -187,8 +186,6 @@ const NIVEAUX = R.NIVEAUX; const SALAIRE = ECO.salaire_par_jour; const LOYER_BAS
 // Les 463 monuments (data/monuments.json), tous Extraordinaires : 60 nationaux et 403 régionaux ; chaque semaine, 1 national et 2 régionaux aux enchères.
 const ENC = Encheres.creer(ECO); // règles des enchères (src/regles/encheres.js)
 const MAI = Mairie.creer(ECO);    // le Maire par caisse de travaux (src/regles/mairie.js, GDD § 5)
-const ROB = Robots.creer(ECO);    // les joueurs de la maison (src/regles/robots.js, GDD § 5 quater) ; mode serveur : leurs ids
-let ROBOTS_IDS = null;
 const CLA = Classements.creer(ECO); // les classements et les saisons (src/regles/classements.js, GDD § 5 bis)
 const MON = Monuments.creer(ECO);   // les monuments : entretien, impayés, absence (src/regles/monuments.js, GDD § 5 ter)
 const BOU = Boutique.creer(ECO);    // la boutique et les gemmes (src/regles/boutique.js, GDD § 3 et § 9)
@@ -1827,15 +1824,12 @@ function etatReel(idu){ const s=new Set(REEL[idu]||[]); for(const a of (parcelAd
 // et ma part de Maire touchée ; gardées une minute (force : relire tout de suite)
 async function chargerCaisses(ks, force){ const m=mandatCourant(); ks=[...new Set(ks)].filter(Boolean).filter(k=>force || !(CAISSES[k] && CAISSES[k].m===m && now()-CAISSES[k].lu<60000));
   if(!ks.length || !(window.Compte && Compte.client)) return;
-  const [c, p] = await Promise.all([ Compte.client.rpc('caisse_communes', { communes:ks, m, absent_avant:new Date(now()-MAI.M.absence_jours*JOUR).toISOString() }),
+  const [c, p] = await Promise.all([ Compte.client.rpc('caisse_communes', { communes:ks, m, absent_avant:new Date(now()-MAI.M.absence_jours*JOUR).toISOString(), seuil:MAI.M.seuil }),
     monUid() ? Compte.client.from('parts_maire').select('commune,touche').eq('mandat', m).eq('maire', monUid()).in('commune', ks) : Promise.resolve({ data:[] }) ]);
   if(c.error) return;
-  if(!ROBOTS_IDS){ const r=await Compte.client.from('robots').select('id'); ROBOTS_IDS=new Set(((r && r.data)||[]).map(x=>x.id)); }
   for(const k of ks) CAISSES[k]={ m, avant:[], cours:[], touche:0, lu:now() };
   for(const r of (c.data||[])){ if(r.joueur && r.pseudo){ JOUEURS[r.joueur]=JOUEURS[r.joueur]||{ pseudo:r.pseudo, avatar:r.avatar }; PAR_PSEUDO[r.pseudo]=r.joueur; }
     const C=CAISSES[r.commune]; if(C) (Number(r.mandat)===m ? C.cours : C.avant).push(r); }
-  // comme le serveur : un robot ne prend jamais une mairie à un vrai joueur qui a versé le seuil (GDD § 5 quater)
-  for(const k of ks) CAISSES[k].avant=ROB.electeurs(CAISSES[k].avant, u=>ROBOTS_IDS.has(u), MAI.M.seuil);
   for(const r of ((p && p.data)||[])) if(CAISSES[r.commune]) CAISSES[r.commune].touche=Number(r.touche); }
 // le nom d'un joueur dans une caisse (moi : ME) ; un joueur sans pseudo garde un nom à lui (deux ne se confondent pas)
 const nomCaisse = r => r.joueur===monUid() ? ME : (r.pseudo || (JOUEURS[r.joueur]||{}).pseudo || 'Joueur '+String(r.joueur).slice(0,4));
@@ -2439,13 +2433,13 @@ async function profilReel(name){ let uid=PAR_PSEUDO[name];
   if(!uid){ const { data } = await Compte.client.from('profils').select('id,pseudo,avatar,cree_le').eq('pseudo', name).maybeSingle(); if(data){ uid=data.id; JOUEURS[uid]={ pseudo:data.pseudo, avatar:data.avatar, cree_le:data.cree_le }; PAR_PSEUDO[name]=uid; } }
   const zone=document.getElementById('pj-chiffres'); if(!zone) return; if(!uid){ zone.textContent='Joueur introuvable.'; return; }
   if(!(JOUEURS[uid]||{}).cree_le){ const { data } = await Compte.client.from('profils').select('id,avatar,cree_le').eq('id', uid).maybeSingle(); if(data) Object.assign(JOUEURS[uid]=JOUEURS[uid]||{pseudo:name}, { avatar:data.avatar, cree_le:data.cree_le }); }
-  const [{ data }, robot] = await Promise.all([ Compte.client.from('lieux').select(COLS_LIEU).eq('proprietaire', uid).limit(5000), Compte.client.from('robots').select('id').eq('id', uid).maybeSingle() ]);
+  const { data } = await Compte.client.from('lieux').select(COLS_LIEU).eq('proprietaire', uid).limit(5000);
   const liste=(data||[]).map(lieuDuServeur);
   const n=liste.length, v=liste.reduce((s,a)=>s+valeur(a),0), b=liste.filter(a=>a.niveau>0).length, c=new Set((data||[]).map(r=>r.commune)).size;
   const j=Math.max(0, Math.floor((Date.now()-Date.parse((JOUEURS[uid]||{}).cree_le||Date.now()))/86400000));
   const av=document.querySelector('#modalbox .profil-tete .av'); if(av && (JOUEURS[uid]||{}).avatar) av.textContent=JOUEURS[uid].avatar;
   const dep=document.getElementById('pj-depuis'); if(dep) dep.textContent = j ? `Membre depuis ${j} jour${j>1?'s':''}` : 'Membre depuis aujourd’hui';
-  zone.outerHTML=(robot && robot.data ? `<div class="card" style="box-shadow:none;background:var(--plaque-clair);text-align:center"><div class="t">🤖 Joueur d’essai</div><div class="m">Un robot du serveur d’essai : il joue tout seul (lieux, ventes, offres) pour qu’on puisse tester.</div></div>` : '')+`<div class="kpis"><div class="kpi"><b>${n}</b><small>lieu${n>1?'x':''}</small></div><div class="kpi"><b>${nb(v)}<i class="pc"></i></b><small>de valeur</small></div><div class="kpi"><b>${b}</b><small>construit${b>1?'s':''}</small></div></div>
+  zone.outerHTML=`<div class="kpis"><div class="kpi"><b>${n}</b><small>lieu${n>1?'x':''}</small></div><div class="kpi"><b>${nb(v)}<i class="pc"></i></b><small>de valeur</small></div><div class="kpi"><b>${b}</b><small>construit${b>1?'s':''}</small></div></div>
     <div class="card" style="box-shadow:none;background:var(--ciel)"><div class="t">📍 Présent dans ${c} commune${c>1?'s':''}</div><div class="m">Ses lieux sont en rouge sur la carte.</div></div>`; }
 // les communes où je suis Maire (mêmes règles que l'écran Communes)
 function mesMairies(){ const mine=mesLieuxParCommune(); return (MODE_SERVEUR ? Object.keys(CAISSES) : Object.keys(state.caisse.elus||{})).filter(k=>infoCommune(k, mine).jeSuisMaire); }

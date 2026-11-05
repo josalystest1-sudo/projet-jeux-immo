@@ -268,14 +268,9 @@ async function nouveauJoueur(publique, secrete) {
     } else verifier(pay.corps && pay.corps.code === 'paiement', 'pas encore de clé Stripe : le paiement est fermé', pay.corps);
     const mairieVol = await requete(`${URL}/rest/v1/mairies`, { method: 'POST', headers: { apikey: publique, Authorization: `Bearer ${acces}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ mandat: 1, commune: 'x', maire: id, rivaux: 999 }) });
     verifier(mairieVol.statut >= 400, 'me donner une mairie directement : refusé', mairieVol.statut);
-    const robots = await requete(`${URL}/rest/v1/robots?select=id,nom`, { headers: { apikey: publique } });
-    verifier(robots.statut === 200 && Array.isArray(robots.corps) && robots.corps.length >= 1, `les joueurs robots sont là (${Array.isArray(robots.corps) ? robots.corps.map((r) => r.nom).join(', ') : '?'})`, robots.statut);
-    if (Array.isArray(robots.corps) && robots.corps.length) {   // pour information : ce que les robots ont fait
-      await new Promise((ok) => setTimeout(ok, 21000)); await jeu({ action: 'etat' }); await new Promise((ok) => setTimeout(ok, 8000));
-      const leurs = await requete(`${URL}/rest/v1/lieux?select=id,niveau,prix_vente&proprietaire=in.(${robots.corps.map((r) => r.id).join(',')})`, { headers: { apikey: publique } });
-      const l = Array.isArray(leurs.corps) ? leurs.corps : [];
-      console.log(`ℹ les robots possèdent ${l.length} lieu(x), ${l.filter((x) => x.niveau > 0).length} construit(s), ${l.filter((x) => x.prix_vente != null).length} en vente`);
-    }
+    // les robots sont cachés parmi les joueurs (décision de Gautier, 5 nov.) : le jeu ne peut pas savoir qui en est un
+    const robots = await requete(`${URL}/rest/v1/robots?select=id,nom`, { headers: { apikey: publique, Authorization: `Bearer ${acces}` } });
+    verifier(robots.statut >= 400 || (Array.isArray(robots.corps) && robots.corps.length === 0), 'les robots restent cachés : leur liste est illisible', robots.statut);
     const classement = await requete(`${URL}/rest/v1/rpc/classement_commune`, { method: 'POST', headers: { apikey: publique, 'Content-Type': 'application/json' }, body: JSON.stringify({ c: communes[0] || 'x' }) });
     verifier(classement.statut === 200 && Array.isArray(classement.corps), 'le classement d’une commune est lisible', classement.statut);
   } finally {

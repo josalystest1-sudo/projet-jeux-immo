@@ -8,7 +8,7 @@ const JETON = process.env.SUPABASE_ACCESS_TOKEN;
 const URL = `https://${REF}.supabase.co`;
 const ECO = require('../data/economie.json');
 const DEPART_ROBOT = ECO.robots.depart_pieces;   // comme un vrai joueur (GDD § 5 quater : des joueurs ordinaires)
-// des prénoms inventés, avec l'icône 🤖 ; autant que de robots au plus (ECO.robots.max) : le jeu en fait jouer moins quand les vrais joueurs arrivent
+// des prénoms inventés, avec des icônes ordinaires : ils sont cachés parmi les joueurs (décision de Gautier, 5 nov.) ; autant que de robots au plus (ECO.robots.max) : le jeu en fait jouer moins quand les vrais joueurs arrivent
 const ROBOTS = ['Léa', 'Marco', 'Inès', 'Yanis', 'Chloé', 'Sacha', 'Nathan', 'Camille', 'Hugo', 'Manon'].slice(0, ECO.robots.max);
 
 async function requete(url, options) { const r = await fetch(url, options); const t = await r.text(); let j = null; try { j = JSON.parse(t); } catch (_) { j = t; } return { statut: r.status, corps: j }; }
@@ -34,7 +34,7 @@ async function cles() {
     const mail = `robot-${crypto.randomBytes(4).toString('hex')}@example.com`;
     const cree = await requete(`${URL}/auth/v1/admin/users`, { method: 'POST', headers: json, body: JSON.stringify({ email: mail, password: crypto.randomBytes(24).toString('base64url'), email_confirm: true, user_metadata: { robot: true } }) });
     const id = cree.corps && cree.corps.id; if (!id) throw new Error(`${nom} : compte non créé (HTTP ${cree.statut})`);
-    const profil = await requete(`${URL}/rest/v1/profils`, { method: 'POST', headers: json, body: JSON.stringify({ id, pseudo: nom, avatar: '🤖' }) });
+    const profil = await requete(`${URL}/rest/v1/profils`, { method: 'POST', headers: json, body: JSON.stringify({ id, pseudo: nom, avatar: ['🦊', '🐻', '🐼', '🦁', '🐯', '🐸', '🐙', '🦄', '🐲', '🎩'][ROBOTS.indexOf(nom) % 10] }) });
     if (profil.statut >= 300) { await requete(`${URL}/auth/v1/admin/users/${id}`, { method: 'DELETE', headers: H }); throw new Error(`${nom} : profil refusé (HTTP ${profil.statut}) ; compte retiré`); }
     const joueur = await requete(`${URL}/rest/v1/rpc/jeu_nouveau_joueur`, { method: 'POST', headers: json, body: JSON.stringify({ j: id, depart: DEPART_ROBOT }) });
     if (joueur.statut >= 300) throw new Error(`${nom} : partie refusée (HTTP ${joueur.statut})`);

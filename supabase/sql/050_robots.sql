@@ -8,10 +8,9 @@ create table if not exists public.robots (
   cree_le timestamptz not null default now()
 );
 alter table public.robots enable row level security;
+-- cachés parmi les joueurs (décision de Gautier, 5 nov.) : le jeu ne lit plus cette table ; seul le serveur sait qui est un robot
 drop policy if exists "robots connus de tous" on public.robots;
-create policy "robots connus de tous" on public.robots for select to anon, authenticated using (true);
 revoke all on public.robots from anon, authenticated;
-grant select on public.robots to anon, authenticated;
 grant all on public.robots to service_role;
 
 -- Les joueurs de la maison (5 nov. 2026, GDD § 5 quater, décision de Gautier : « les laisser au début du jeu, jouer comme
@@ -20,6 +19,9 @@ grant all on public.robots to service_role;
 -- ECO.robots.pieces_max_essai) ; la fonction « jeu » les fait jouer avec les règles de src/regles/robots.js.
 alter table public.robots add column if not exists retire_le timestamptz;   -- retiré depuis (vide : il joue)
 update public.joueurs set pieces = least(pieces, 20000) where id in (select id from public.robots);
+-- des icônes de joueurs ordinaires (plus de 🤖), toujours la même pour un robot donné
+update public.profils p set avatar = (array['🦊','🐻','🐼','🦁','🐯','🐸','🐙','🦄','🐲','🎩'])[1 + abs(hashtext(p.id::text)) % 10]
+ where p.id in (select id from public.robots) and p.avatar = '🤖';
 
 alter table public.joueurs add column if not exists vu_le timestamptz not null default now();   -- (aussi dans 090_mairie.sql)
 -- les vrais joueurs venus depuis « depuis » (avec un pseudo, sans les robots) : le nombre de robots en dépend

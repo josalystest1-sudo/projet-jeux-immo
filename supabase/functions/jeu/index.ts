@@ -458,7 +458,7 @@ async function caissesDe(communes: string[], m: number, jm: number) {
   const out: Record<string, { avant: Ligne[]; cours: Ligne[]; maires: string[]; rivaux: number }> = {};
   for (const k of communes) out[k] = { avant: [], cours: [], maires: [], rivaux: 0 };
   if (!communes.length) return out;
-  const data = await rpc('caisse_communes', { communes, m, absent_avant: new Date(Date.now() - MAI.M.absence_jours * jm).toISOString() });
+  const data = await rpc('caisse_communes', { communes, m, absent_avant: new Date(Date.now() - MAI.M.absence_jours * jm).toISOString(), seuil: MAI.M.seuil });
   for (const r of (data || []) as Ligne[]) { const o = out[r.commune]; if (o) (Number(r.mandat) === m ? o.cours : o.avant).push(r); }
   const robots = await idsRobots();
   for (const o of Object.values(out)) {
@@ -812,7 +812,7 @@ async function robotsTour() {
       const depuis = r.retire_le ? new Date(r.retire_le).getTime() : (await rpc('jeu_robot_retraite', { j: r.id, actif: false }), Date.now());
       if (Date.now() - depuis >= ROB.C.liberation_jours * jm) { await rpc('jeu_robot_liberer', { j: r.id }); continue; }
       const { data: siens } = await admin.from('lieux').select('*').eq('proprietaire', r.id).is('prix_vente', null).limit(30);
-      for (const l of siens || []) await rpc('jeu_vendre', { j: r.id, l: l.id, prix: arrondi(R.valeur(lieuDe(l))) }).catch(() => {});
+      for (const l of siens || []) await rpc('jeu_vendre', { j: r.id, l: l.id, prix: arrondi(R.valeur(lieuDe(l))), devise: 'pieces' }).catch(() => {});
     } catch (e) { console.error('robot retiré', r.nom, e); }
   }
   const enJeu = actifs.filter((r: Ligne) => ROB.enSeance(r.id, jour, heure, accelere));
@@ -842,8 +842,9 @@ async function robotsTour() {
       const { data: recues } = await admin.from('offres').select('*').eq('vendeur', j).eq('statut', 'attente').lt('cree_le', vieux(ROB.C.reponse_heures_min));
       for (const o of recues || []) {
         if (Date.now() - new Date(o.cree_le).getTime() < heuresMs(ROB.delaiReponse(o.id))) continue;
-        const l = mes.find((x: Ligne) => x.id === o.lieu), montant = Number(o.prix) * ((o.devise || 'pieces') === 'gemmes' ? 50 : 1);
-        await ACTIONS.repondre_offre(j, { offre: o.id, accepter: !!l && ROB.accepte(montant, valeurM(l)) }).catch(() => {});
+        // jamais de gemmes avec un robot : une offre en gemmes est refusée (Gautier, 5 nov.)
+        const l = mes.find((x: Ligne) => x.id === o.lieu);
+        await ACTIONS.repondre_offre(j, { offre: o.id, accepter: !!l && ROB.devisePermise(o.devise) && ROB.accepte(Number(o.prix), valeurM(l)) }).catch(() => {});
       }
       const { data: echRecus } = await admin.from('echanges').select('*').eq('destinataire', j).eq('statut', 'attente').lt('cree_le', vieux(ROB.C.reponse_heures_min));
       for (const x of echRecus || []) {
@@ -877,7 +878,7 @@ async function robotsTour() {
         },
         // acheter un lieu mis en vente par un vrai joueur, à un prix normal (jamais une erreur de prix : elle reste aux joueurs)
         async () => {
-          const enVente = aVendre.filter((l: Ligne) => (l.devise_vente || 'pieces') === 'pieces' && ROB.peutAcheter(Number(l.prix_vente), valeurM(l)) && Number(l.prix_vente) <= pieces);
+          const enVente = aVendre.filter((l: Ligne) => ROB.devisePermise(l.devise_vente) && ROB.peutAcheter(Number(l.prix_vente), valeurM(l)) && Number(l.prix_vente) <= pieces);
           if (!enVente.length || !ROB.peutPrendre(mes.length, 0)) return;
           const l = hasard(enVente); aVendre.splice(aVendre.indexOf(l), 1);
           await ACTIONS.acheter(j, { id: l.id, prix: Number(l.prix_vente) }).then(() => { pieces -= Number(l.prix_vente); }).catch(() => {});
@@ -885,7 +886,7 @@ async function robotsTour() {
         // mettre un de ses lieux en vente (105 à 140 % de sa valeur), deux au plus à la fois
         async () => {
           if (!mes.length || mes.filter((l: Ligne) => l.prix_vente != null).length >= 2) return;
-          const l = hasard(mes); await rpc('jeu_vendre', { j, l: l.id, prix: arrondi(ROB.prixVente(valeurM(l), j + l.id + jour)) }).catch(() => {});
+          const l = hasard(mes); await rpc('jeu_vendre', { j, l: l.id, prix: arrondi(ROB.prixVente(valeurM(l), j + l.id + jour)), devise: 'pieces' }).catch(() => {});
         },
         // les enchères : seulement contre un vrai joueur qui mène, deux mises au plus par lot, jamais dans la dernière heure,
         // jusqu'à 120 % de la mise de départ (les monuments restent aux vrais joueurs s'ils y tiennent)

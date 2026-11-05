@@ -171,6 +171,7 @@ Rien d'important ne vit dans une conversation : tout est dans le dépôt ou sur 
 - **Le classement des pièces** (PR #137). Gautier : « le classement est trop caché, et ajoute un classement par pièces possédées ». Un trophée rejoint la cloche, en haut de la carte ; un onglet « Pièces » rejoint Patrimoine, Maires et Passées.
 - **Les boutons rognés** (PR #138). Gautier envoie une capture de son téléphone : la cloche et le montant de pièces sortent de l'écran, « il ne faut pas que ça se produise sur aucun téléphone ». Sur sa capture, le téléphone assombrissait aussi la page tout seul.
 - **Les robots** (PR #139). Gautier demande à quoi sert la valeur, puisque ce sont les joueurs qui fixent les prix. Claude : elle guide le joueur et règle le comportement des robots, qu'on devait retirer au lancement. Gautier décide alors : « laisser les robots au début du jeu, leur donner des consignes pour jouer comme des humains et ne pas abuser ; on les retirera progressivement avec la montée des joueurs », et « un robot supprimé = son patrimoine remis en jeu ». Les événements réels (crues, fermetures) restent pour la V2.
+- **Les robots cachés** (PR #140). Gautier : « il faut cacher les robots, le but est de faire croire que le jeu est actif ; par contre, les robots ne font jamais de transaction avec des gemmes (vente ou achat). » Claude signale le risque d'une pratique commerciale trompeuse envers des joueurs qui paient, et propose une phrase générale dans les CGU (à décider avant le lancement).
 
 ## Toutes les PR
 
@@ -336,6 +337,7 @@ Puis une PR par étape, fusionnée en squash :
 | #137 | 05/11 | Le classement des pièces (démo et serveur) ; un trophée en haut de la carte pour ouvrir les classements |
 | #138 | 05/11 | Plus rien de rogné en haut de la carte, sur aucun téléphone (la barre se serre d'elle-même) ; la page refuse le mode sombre forcé du téléphone |
 | #139 | 05/11 | Les joueurs de la maison : les robots restent au lancement, jouent comme des humains sans abuser, et se retirent quand les vrais joueurs arrivent (patrimoine remis en jeu) |
+| #140 | 05/11 | Les robots cachés parmi les joueurs (icônes ordinaires, liste illisible) et jamais de gemmes avec un robot |
 
 ## Les décisions de Gautier
 
@@ -388,7 +390,7 @@ Les décisions du 2 novembre (interview) sont dans `CLAUDE.md` § 4 et dans le G
 - **Ensuite** : les graphismes (phase 10), l'équilibrage et le lancement (phase 11).
 - **Au lancement** :
   - remettre `jour_secondes` à 86400 et repartir de zéro ;
-  - les robots restent (décision du 5 nov., GDD § 5 quater) : repartir de zéro avec eux, et décider s'ils restent reconnaissables (🤖) ;
+  - les robots restent, cachés parmi les joueurs (décisions du 5 nov., GDD § 5 quater) : repartir de zéro avec eux ; décider de la phrase des CGU sur les joueurs automatiques ;
   - retirer le pack d'essai (Réglages, `?essai-pack`) ;
   - brancher un service d'envoi d'e-mails (celui de Supabase n'écrit qu'à l'équipe Supabase) ;
   - le nom est décidé : **CityDeck** (4 nov.) ; vérifier qu'il est libre (marque, nom de domaine, magasins d'applications) avant le lancement.
