@@ -54,7 +54,17 @@
     // un Maire absent depuis trop longtemps : jours sans connexion
     function tropAbsent(joursSansConnexion) { return joursSansConnexion >= M.absence_jours; }
 
-    return { mandat, premierJour, points, peutVerser, elire, manque, part, plafondPart, tropAbsent, M };
+    // le niveau de la commune (GDD § 5, [Proposé] ; construit le 5 nov. 2026) : tout ce qui a été versé à sa caisse de
+    // travaux depuis toujours, par tous (les travaux faits restent faits : il ne baisse jamais) ; 0 à 5 selon les
+    // paliers de M.travaux_paliers
+    function niveauTravaux(total) { const p = M.travaux_paliers || []; let n = 0; while (n < p.length && total >= p[n]) n++; return n; }
+    // le palier suivant : { niveau, palier, manque } (null au dernier niveau)
+    function prochainTravaux(total) {
+      const p = M.travaux_paliers || [], n = niveauTravaux(total);
+      return n < p.length ? { niveau: n + 1, palier: p[n], manque: p[n] - Math.floor(Math.max(0, total || 0)) } : null;
+    }
+
+    return { mandat, premierJour, points, peutVerser, elire, manque, part, plafondPart, tropAbsent, niveauTravaux, prochainTravaux, M };
   }
 
   const api = { creer };

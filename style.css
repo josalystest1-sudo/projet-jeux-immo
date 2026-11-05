@@ -1319,3 +1319,17 @@ html.pocket select{background:#fff;border:1px solid #D9DFEA;border-radius:12px;p
 .cpt-langue{display:flex;justify-content:center;gap:6px;margin:14px 0 0}
 .cpt-langue button{border:0;background:none;font:inherit;font-weight:800;font-size:13px;color:var(--gris,#7C8598);padding:4px 10px;border-radius:999px;cursor:pointer}
 .cpt-langue button.on{background:var(--accent-clair,#EAF0FB);color:var(--accent,#2453B3)}
+/* le niveau des communes (5 nov.) : l'étiquette de la commune au centre de la carte (son Maire, ses travaux faits) */
+#commune-chip{align-self:flex-start;max-width:calc(100% - 72px);min-width:0;display:flex;align-items:center;gap:8px;padding:6px 12px;border-radius:999px;font-family:var(--texte);font-weight:800;font-size:13px;color:var(--encre);background:rgba(255,255,255,.96);box-shadow:0 2px 10px rgba(20,30,60,.14);border:0;cursor:pointer}
+#commune-chip[hidden]{display:none}
+#commune-chip .nom{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0;flex:0 1 auto}
+#commune-chip .maire{color:var(--gris,#7C8598);font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0;flex:0 1 auto}
+#commune-chip .trav{white-space:nowrap;letter-spacing:-1px;flex:none}
+body.fiche-ouverte #commune-chip{opacity:0;pointer-events:none}
+body.avec-commune #charge{top:calc(168px + env(safe-area-inset-top))}
+/* les travaux d'une commune : les cinq embellissements, faits (en couleur) ou à venir (pâles) */
+.travaux-etapes{display:flex;justify-content:space-between;gap:4px;margin:8px 4px 10px}
+.travaux-etapes .etape{font-size:28px;line-height:1.1;opacity:.3;filter:grayscale(1)}
+.travaux-etapes .etape.faite{opacity:1;filter:none}
+.travaux-niv{font-family:var(--titre);color:var(--accent,#2453B3);white-space:nowrap;flex:none}
+.trav-mini{margin-left:6px;font-size:12px;letter-spacing:-1px}

@@ -213,7 +213,14 @@ const ECO = {
   "plafond_mandat": 1000,
   "derniere_heure": 0.5,
   "absence_jours": 7,
-  "versement_min": 10
+  "versement_min": 10,
+  "travaux_paliers": [
+   200,
+   1000,
+   3000,
+   8000,
+   20000
+  ]
  },
  "classements": {
   "poids_rarete": {
