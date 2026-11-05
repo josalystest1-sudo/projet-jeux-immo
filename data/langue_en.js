@@ -47,7 +47,7 @@
     'Un autre joueur': 'Another player', 'Plusieurs joueurs': 'Several players', 'En vente par un joueur': 'For sale by a player',
 
     // ---------------------------------------------------------------- la fiche d'un lieu
-    'Parcelle': 'Plot', 'Quartier': 'Neighbourhood', 'Standing': 'Standing', 'Potentiel': 'Potential', 'Valeur': 'Value',
+    'Parcelle': 'Plot', 'Quartier': 'Area', 'Standing': 'Standing', 'Potentiel': 'Potential', 'Valeur': 'Value',
     'La valeur': 'The value', 'Sa valeur': 'Its value', 'Loyer': 'Rent', 'Loyer / jour': 'Rent / day', '/jour': '/day', '/mois': '/month',
     'par jour': 'per day', 'par mois': 'per month', 'Entretien': 'Upkeep', 'Construire': 'Build', 'Notoriété': 'Fame',
     'Mettre en vente': 'Put up for sale', 'Mettre en vente à': 'Put up for sale at', 'En vente': 'For sale', 'En vente ({n})': 'For sale ({n})',

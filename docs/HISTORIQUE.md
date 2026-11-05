@@ -363,6 +363,7 @@ Puis une PR par étape, fusionnée en squash :
 | #151 | 05/11 | L'essai automatique du serveur : le lot d'enchère d'essai passe de 25 à 45 s (trop court quand le serveur répond lentement) |
 | #152 | 05/11 | 30 908 lieux célèbres (châteaux, gares, musées, phares, ponts, moulins…), Légendaires toujours à 1 carte sur 100, Rares sans lieu célèbre, marques écartées |
 | #153 | 05/11 | Le niveau des communes : les travaux versés depuis toujours (0 à 5 : arbres, lampadaires, fleurs, fontaine, kiosque), dans la commune et sur la carte |
+| #154 | 05/11 | Relecture des écrans en 320 px (français et anglais) : « Area » au lieu de « Neighbourhood », le bouton de la démo dans les Réglages |
 
 ## Les décisions de Gautier
 
