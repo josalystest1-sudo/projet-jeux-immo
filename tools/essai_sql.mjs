@@ -5,7 +5,7 @@
 // verser, part du Maire plafonnée, absence, fin de mandat annoncée une fois ; les classements et les saisons
 // (100_classements.sql) : patrimoine, Maires, saison figée une fois ; les monuments (110_monuments.sql) : entretien,
 // reprise (lot de reprise, alerte, échanges qui tombent) ; la boutique (120_boutique.sql) : gemmes d'essai, pack acheté,
-// Pass, bon ; les ventes et offres en gemmes ; le paiement par carte (130_paiements.sql) ; le classement des pièces (140_classement_pieces.sql) ; les refus attendus et les droits du jeu.
+// Pass, bon ; les ventes et offres en gemmes ; le paiement par carte (130_paiements.sql) ; le classement des pièces (140_classement_pieces.sql) ; les robots qui se retirent (050_robots.sql) ; les refus attendus et les droits du jeu.
 // Prérequis (une fois, rien n'est ajouté au dépôt) : npm i --no-save --no-package-lock @electric-sql/pglite
 //   node tools/essai_sql.mjs            (000_comptes.sql, qui demande l'extension unaccent, est remplacé par un profil minimal)
 import { PGlite } from '@electric-sql/pglite';
@@ -184,6 +184,18 @@ const cpi = await q('select joueur, pseudo, n from public.classement_pieces(10)'
 ok(cpi.length === 2 && Number(cpi[0].n) === Math.max(piA, piB) && Number(cpi[1].n) === Math.min(piA, piB) && !cpi.some((r) => r.joueur === C), 'le classement des pièces : les plus riches d’abord, sans les joueurs sans pseudo', cpi);
 const rpi = (await q('select * from public.rang_pieces($1)', [piA >= piB ? B : A]))[0];
 ok(Number(rpi.rang) === (piA === piB ? 1 : 2) && Number(rpi.n) === Math.min(piA, piB), 'la place d’un joueur au classement des pièces', rpi);
+// les joueurs de la maison (050_robots.sql, 5 nov.) : combien de vrais joueurs, se retirer, rendre ses lieux libres
+const D = '00000000-0000-0000-0000-00000000000d';
+await q('insert into auth.users (id) values ($1)', [D]); await q('select public.jeu_nouveau_joueur($1, 1500)', [D]);
+await q("insert into public.profils (id, pseudo) values ($1, 'robot-d')", [D]); await q("insert into public.robots (id, nom) values ($1, 'D')", [D]);
+await q('select public.jeu_pack($1, 1, $2)', [D, JSON.stringify(['d1', 'd2'].map(carte))]);
+const offreD = Number((await q("select public.jeu_offrir($1, 'b2', 100, 'pieces') as o", [D]))[0].o);
+ok(Number((await q("select public.jeu_humains_actifs(now() - interval '1 day') as n"))[0].n) === 2, 'les vrais joueurs venus : A et B (pas C sans pseudo, pas le robot D)');
+ok(!!(await q('select public.jeu_robot_retraite($1, false) as t', [D]))[0].t, 'le robot D se retire');
+ok((await q('select statut from public.offres where id = $1', [offreD]))[0].statut === 'annulee', 'en se retirant, son offre en attente tombe');
+ok(Number((await q('select public.jeu_robot_liberer($1) as n', [A]))[0].n) === 0 && !!(await proprio('a2')), 'un vrai joueur ne perd jamais ses lieux ainsi');
+ok(Number((await q('select public.jeu_robot_liberer($1) as n', [D]))[0].n) === 2 && !(await proprio('d1')) && !(await proprio('d2')), 'le robot retiré rend ses lieux libres');
+ok(!(await q('select public.jeu_robot_retraite($1, true) as t', [D]))[0].t, 'un robot qui revient joue de nouveau');
 ok(Number((await q("select public.jeu_mairies(12, $1::jsonb) as n", [JSON.stringify([{ commune: 'Bourg', maire: A, rivaux: 3 }, { commune: 'Classeville', maire: B, rivaux: 0 }])]))[0].n) === 2, 'garder les Maires d’un mandat');
 await q("select public.jeu_mairies(13, $1::jsonb)", [JSON.stringify([{ commune: 'Bourg', maire: B, rivaux: 2 }, { commune: 'Ailleurs', maire: A, rivaux: 1 }])]);
 const cm = await q('select joueur, n, mairies from public.classement_maires(12, 17, 10)');
@@ -301,6 +313,7 @@ ok(!!(await refus('select public.jeu_entretien($1, now(), now(), 0, 0, null)', [
 ok(!!(await refus("update public.joueurs set dette = 0")), 'le jeu ne peut pas effacer sa dette');
 ok(!!(await refus("update public.joueurs set gemmes = 999999")), 'le jeu ne peut pas se donner des gemmes');
 ok(!!(await refus('select public.jeu_gemmes_essai($1, 1000)', [A])), 'le jeu ne peut pas appeler jeu_gemmes_essai');
+ok(!!(await refus('select public.jeu_robot_liberer($1)', [A])) && !!(await refus("select public.jeu_humains_actifs(now())")) && !!(await refus('select public.jeu_robot_retraite($1, false)', [A])), 'le jeu ne peut pas appeler les fonctions des robots');
 ok(!!(await refus("insert into public.gemmes_journal (joueur, delta, motif) values ($1, 1000, 'x')", [A])), 'le jeu ne peut pas écrire dans le journal des gemmes');
 ok(!!(await refus("select public.jeu_paiement_crediter('cs_1', 'FR')")), 'le jeu ne peut pas se créditer un paiement');
 ok(!!(await refus("insert into public.paiements (session, joueur, offre, gemmes, centimes) values ('cs_x', $1, 'g500', 999999, 1)", [A])), 'le jeu ne peut pas écrire un paiement');

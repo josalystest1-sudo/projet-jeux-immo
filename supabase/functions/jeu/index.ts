@@ -3,7 +3,7 @@
 // que le jeu (src/regles, recopiées dans _genere/ par tools/serveur_prepare.js), puis écrit par les fonctions SQL
 // jeu_* (supabase/sql/010_jeu.sql), chacune atomique. Réponse : { ok: true, ... } ou { ok: false, code, message }.
 import { createClient } from '@supabase/supabase-js';
-import { Regles, Pack, Celebres, Tirage, Encheres, Mairie, Classements, Monuments, Regions, Boutique } from './_genere/regles.mjs';
+import { Regles, Pack, Celebres, Tirage, Encheres, Mairie, Classements, Monuments, Regions, Boutique, Robots } from './_genere/regles.mjs';
 import { ECO, STANDING, FRANCE, DEPARTEMENTS, CONTOURS, CELEBRES, MONUMENTS } from './_genere/donnees.mjs';
 
 const R = Regles.creer(ECO, STANDING);
@@ -11,6 +11,10 @@ const MAI = Mairie.creer(ECO);   // le Maire par caisse de travaux (src/regles/m
 const CLA = Classements.creer(ECO);   // les classements et les saisons (src/regles/classements.js, GDD § 5 bis)
 const MON = Monuments.creer(ECO);     // les monuments : entretien, impayés, absence (src/regles/monuments.js, GDD § 5 ter)
 const BOU = Boutique.creer(ECO);      // la boutique et les gemmes (src/regles/boutique.js, GDD § 3 et § 9)
+const ROB = Robots.creer(ECO);        // les joueurs de la maison (src/regles/robots.js, GDD § 5 quater)
+// les robots (relus au plus toutes les 60 s) : ils ne prennent jamais une mairie ni une place de podium à un vrai joueur
+let robotsLus = { ids: new Set<string>(), lu: 0 };
+async function idsRobots() { if (Date.now() - robotsLus.lu > 60000) { const { data } = await admin.from('robots').select('id'); robotsLus = { ids: new Set((data || []).map((r: Ligne) => r.id)), lu: Date.now() }; } return robotsLus.ids; }
 
 // la clé secrète du projet est donnée par Supabase à la fonction (jamais écrite dans le dépôt)
 function cleSecrete(): string {
@@ -456,9 +460,11 @@ async function caissesDe(communes: string[], m: number, jm: number) {
   if (!communes.length) return out;
   const data = await rpc('caisse_communes', { communes, m, absent_avant: new Date(Date.now() - MAI.M.absence_jours * jm).toISOString() });
   for (const r of (data || []) as Ligne[]) { const o = out[r.commune]; if (o) (Number(r.mandat) === m ? o.cours : o.avant).push(r); }
+  const robots = await idsRobots();
   for (const o of Object.values(out)) {
     const absents = new Set(o.avant.filter((r) => r.absent).map((r) => r.joueur));
-    const e = MAI.elire(Object.fromEntries(o.avant.map((r) => [r.joueur, Number(r.points)])), (u: string) => absents.has(u));
+    const electeurs = ROB.electeurs(o.avant, (u: string) => robots.has(u), MAI.M.seuil);
+    const e = MAI.elire(Object.fromEntries(electeurs.map((r: Ligne) => [r.joueur, Number(r.points)])), (u: string) => absents.has(u));
     o.maires = e.maires; o.rivaux = e.rivaux;
   }
   return out;
@@ -526,15 +532,17 @@ async function tenirSaison(s: number, origine: number) {
   const m0 = CLA.premierMandat(s), m1 = CLA.premierMandat(s + 1) - 1;
   const maires: Ligne[] = (await rpc('classement_maires', { m0, m1, lim: 5000 })) || [];
   const patr: Ligne[] = (await rpc('classement_patrimoine', { poids: POIDS, bonus: BONUS, c: null, lim: 5000 })) || [];
-  const rM = CLA.classer(Object.fromEntries(maires.map((r) => [r.joueur, Number(r.n)])));
-  const rP = CLA.classer(Object.fromEntries(patr.map((r) => [r.joueur, Number(r.n)])));
+  // les robots animent la saison mais ne prennent ni podium ni plaque aux vrais joueurs (GDD § 5 quater)
+  const robots = await idsRobots();
+  const rM = CLA.classer(Object.fromEntries(maires.filter((r) => !robots.has(r.joueur)).map((r) => [r.joueur, Number(r.n)])));
+  const rP = CLA.classer(Object.fromEntries(patr.filter((r) => !robots.has(r.joueur)).map((r) => [r.joueur, Number(r.n)])));
   const ps = await pseudos([...rM.slice(0, 10), ...rP.slice(0, 10)].map((r: Ligne) => r.qui));
   const top = (rows: Ligne[]) => rows.slice(0, 10).map((r) => ({ joueur: r.qui, pseudo: ps[r.qui] || null, n: r.n, rang: r.rang }));
   // le Maire de la saison : le plus de mandats, puis le plus récent (règles du jeu)
   const { data: lignes } = await admin.from('mairies').select('mandat, commune, maire').gte('mandat', m0).lte('mandat', m1).limit(20000);
   const parCommune: Record<string, Record<number, string[]>> = {};
   for (const l of (lignes || []) as Ligne[]) { const c = (parCommune[l.commune] = parCommune[l.commune] || {}); (c[Number(l.mandat)] = c[Number(l.mandat)] || []).push(l.maire); }
-  const elus = Object.entries(parCommune).map(([k, pm]) => [k, CLA.maireDeSaison(CLA.mandatsDe(s).map((m: number) => pm[m] || []))] as [string, string | null]).filter(([, q]) => q);
+  const elus = Object.entries(parCommune).map(([k, pm]) => [k, CLA.maireDeSaison(CLA.mandatsDe(s).map((m: number) => (pm[m] || []).filter((q) => !robots.has(q))))] as [string, string | null]).filter(([, q]) => q);
   const psP = await pseudos(elus.map(([, q]) => q as string));
   const plaques = Object.fromEntries(elus.map(([k, q]) => [k, { joueur: q, pseudo: psP[q as string] || null }]));
   const places: Record<string, Ligne> = {};
@@ -781,10 +789,34 @@ async function connaitreVrais(lieux: Ligne[], vrais: Set<string>) {
 // Un tour au plus toutes les 20 s (quel que soit le nombre de joueurs), lancé après la réponse à un vrai joueur.
 const hasard = <T,>(l: T[]) => l[Math.floor(Math.random() * l.length)];
 const arrondi = (n: number) => Math.max(50, Math.round(n / 50) * 50);
+// Les joueurs de la maison (GDD § 5 quater ; Gautier, 5 nov. : « les laisser au début du jeu, leur donner des consignes
+// pour jouer comme des humains et ne pas abuser ; on les retirera progressivement avec la montée des joueurs »). Les règles
+// sont dans src/regles/robots.js (ROB) :
+// - combien jouent : selon les vrais joueurs venus dans les 7 derniers jours ; les autres se retirent (leurs lieux en vente
+//   à leur valeur, puis rendus libres au bout de 14 jours) ;
+// - quand : à leurs heures (2 à 4 séances par jour, entre 8 h et 23 h ; sur le serveur d'essai accéléré, à chaque tour) ;
+// - quoi : une ou deux choses par séance, des réponses qui prennent du temps, jamais d'abus (pas d'achat d'une erreur de
+//   prix, pas de mise au dernier moment, pas de mairie disputée à un vrai joueur, 30 lieux au plus, 3 par commune).
 async function robotsTour() {
-  if (!(await rpc('jeu_robots_tour', { intervalle: 20 }))) return;
-  const { data: robots } = await admin.from('robots').select('id, nom'); if (!robots || !robots.length) return;
+  if (!(await rpc('jeu_robots_tour', { intervalle: 30 }))) return;
+  const { data: robots } = await admin.from('robots').select('id, nom, cree_le, retire_le').order('cree_le'); if (!robots || !robots.length) return;
   const ids = robots.map((r: Ligne) => r.id), exclus = `(${ids.join(',')})`;
+  const jm = await jourMs(), accelere = jm < 3_600_000, jour = Regles.jourDuJeu(Date.now(), jm), heure = 24 * (Date.now() - Regles.debutJour(jour, jm)) / jm;
+  const heuresMs = (h: number) => h * jm / 24;
+  const humains = Number(await rpc('jeu_humains_actifs', { depuis: new Date(Date.now() - 7 * jm).toISOString() })) || 0;
+  const nActifs = ROB.nombreActifs(humains), actifs = robots.slice(0, nActifs), retires = robots.slice(nActifs);
+  // ceux qui se retirent : leurs lieux en vente à leur valeur, puis libres au bout de 14 jours ; ceux qui reviennent
+  for (const r of actifs) if (r.retire_le) await rpc('jeu_robot_retraite', { j: r.id, actif: true }).catch(() => {});
+  for (const r of retires) {
+    try {
+      const depuis = r.retire_le ? new Date(r.retire_le).getTime() : (await rpc('jeu_robot_retraite', { j: r.id, actif: false }), Date.now());
+      if (Date.now() - depuis >= ROB.C.liberation_jours * jm) { await rpc('jeu_robot_liberer', { j: r.id }); continue; }
+      const { data: siens } = await admin.from('lieux').select('*').eq('proprietaire', r.id).is('prix_vente', null).limit(30);
+      for (const l of siens || []) await rpc('jeu_vendre', { j: r.id, l: l.id, prix: arrondi(R.valeur(lieuDe(l))) }).catch(() => {});
+    } catch (e) { console.error('robot retiré', r.nom, e); }
+  }
+  const enJeu = actifs.filter((r: Ligne) => ROB.enSeance(r.id, jour, heure, accelere));
+  if (!enJeu.length) return;
   const { data: tous } = await admin.from('lieux').select('*').not('proprietaire', 'in', exclus).order('maj', { ascending: false }).limit(300);
   // seulement les vrais joueurs (avec un pseudo) : pas les joueurs jetables de l'essai automatique
   const proprios = [...new Set((tous || []).map((l: Ligne) => l.proprietaire))];
@@ -795,78 +827,97 @@ async function robotsTour() {
   const { data: ventes } = await admin.from('lieux').select('*').not('proprietaire', 'in', exclus).not('prix_vente', 'is', null).limit(200);
   const aVendre = (ventes || []).slice();
   await connaitreVrais(aVendre, vrais);
-  const jm = await jourMs(), jour = Regles.jourDuJeu(Date.now(), jm);
   const { data: lieuxRobots } = await admin.from('lieux').select('*').in('proprietaire', ids);
   const indices = await indicesMarche([...reels, ...aVendre, ...(lieuxRobots || [])].filter((l, i, t) => t.findIndex((x) => x.id === l.id) === i));
   const valeurM = (l: Ligne) => Math.round(R.valeur(lieuDe(l)) * (indices[l.id] || 1));
-  for (const robot of robots.sort(() => Math.random() - 0.5).slice(0, 3)) {
+  const vieux = (h: number) => new Date(Date.now() - heuresMs(h)).toISOString();
+  for (const robot of enJeu.sort(() => Math.random() - 0.5).slice(0, 3)) {
     const j = robot.id;
     try {
-      await recolter(j);
+      // il passe, comme un joueur : il récolte, paie l'entretien, est vu
+      await recolter(j); await payerEntretien(j).catch(() => {}); await rpc('jeu_vu', { j }).catch(() => {});
       const mes = (await admin.from('lieux').select('*').eq('proprietaire', j)).data || [];
       const jr = await joueur(j); let pieces = Number(jr.pieces);
-      // 1. un lieu de plus, près d'un lieu d'un vrai joueur (une fois par jour du jeu, quinze au plus)
-      if (mes.length < 15) {
-        const r = hasard(reels), lon = r.lon + (Math.random() - 0.5) * 0.006, lat = r.lat + (Math.random() - 0.5) * 0.004;
-        const c = await TIRAGE.adresseProche(lon, lat);
-        if (c && await estLibre(c)) { try { await rpc('jeu_pack', { j, jour, cartes: [{ ...c, commune: Regles.nomCommune(c.citycode, c.city) }] }); } catch (_) { /* déjà pris aujourd'hui */ } }
+      // il répond aux offres et aux échanges qu'il a eu le temps de lire (de 15 min à 6 h), au-dessus de la valeur seulement
+      const { data: recues } = await admin.from('offres').select('*').eq('vendeur', j).eq('statut', 'attente').lt('cree_le', vieux(ROB.C.reponse_heures_min));
+      for (const o of recues || []) {
+        if (Date.now() - new Date(o.cree_le).getTime() < heuresMs(ROB.delaiReponse(o.id))) continue;
+        const l = mes.find((x: Ligne) => x.id === o.lieu), montant = Number(o.prix) * ((o.devise || 'pieces') === 'gemmes' ? 50 : 1);
+        await ACTIONS.repondre_offre(j, { offre: o.id, accepter: !!l && ROB.accepte(montant, valeurM(l)) }).catch(() => {});
       }
-      // 2. répondre aux offres reçues depuis 20 s : oui à partir de 110 % de la valeur, sinon non
-      const { data: recues } = await admin.from('offres').select('*').eq('vendeur', j).eq('statut', 'attente').lt('cree_le', new Date(Date.now() - 20_000).toISOString());
-      for (const o of recues || []) await ACTIONS.repondre_offre(j, { offre: o.id, accepter: (() => { const l = mes.find((x: Ligne) => x.id === o.lieu); return !!l && Number(o.prix) * ((o.devise || 'pieces') === 'gemmes' ? 50 : 1) >= valeurM(l) * 1.1; })() }).catch(() => {});
-      // 2 bis. répondre aux échanges reçus depuis 20 s : oui si on leur donne au moins 110 % de ce qu'ils cèdent
-      const { data: echRecus } = await admin.from('echanges').select('*').eq('destinataire', j).eq('statut', 'attente').lt('cree_le', new Date(Date.now() - 20_000).toISOString());
+      const { data: echRecus } = await admin.from('echanges').select('*').eq('destinataire', j).eq('statut', 'attente').lt('cree_le', vieux(ROB.C.reponse_heures_min));
       for (const x of echRecus || []) {
+        if (Date.now() - new Date(x.cree_le).getTime() < heuresMs(ROB.delaiReponse(x.id))) continue;
         const sien = mes.find((l: Ligne) => l.id === x.lieu), { data: dons } = await admin.from('lieux').select('*').in('id', x.donnes);
         const donne = (dons || []).reduce((t: number, l: Ligne) => t + valeurM(l), 0) + Number(x.ajout);
-        await ACTIONS.repondre_echange(j, { echange: x.id, accepter: !!sien && donne >= valeurM(sien) * 1.1 }).catch(() => {});
+        await ACTIONS.repondre_echange(j, { echange: x.id, accepter: !!sien && ROB.accepte(donne, valeurM(sien)) }).catch(() => {});
       }
-      // 3. une offre sur un lieu d'un vrai joueur (entre 85 et 140 % de sa valeur), une seule en attente à la fois
-      const { count: enAttente } = await admin.from('offres').select('id', { count: 'exact', head: true }).eq('acheteur', j).eq('statut', 'attente');
-      if (!enAttente && Math.random() < 0.15) {
-        const l = hasard(reels), prix = arrondi(valeurM(l) * (0.85 + Math.random() * 0.55));
-        if (prix <= pieces) { await ACTIONS.offrir(j, { id: l.id, prix }).catch(() => {}); }
-      }
-      // 3 bis. parfois, proposer un échange à un vrai joueur : un ou deux de ses lieux, plus des pièces pour arriver
-      // à 100-130 % de la valeur du lieu voulu ; une seule proposition en attente à la fois
-      const { count: echEnAttente } = await admin.from('echanges').select('id', { count: 'exact', head: true }).eq('proposeur', j).eq('statut', 'attente');
-      if (!echEnAttente && mes.length && Math.random() < 0.1) {
-        const l = hasard(reels), dons = mes.slice().sort(() => Math.random() - 0.5).slice(0, 1 + Math.floor(Math.random() * 2));
-        const v = dons.reduce((t: number, d: Ligne) => t + valeurM(d), 0), cible = valeurM(l) * (1 + Math.random() * 0.3), ajout = v < cible ? arrondi(cible - v) : 0;
-        if (ajout <= pieces) await ACTIONS.echanger(j, { id: l.id, donnes: dons.map((d: Ligne) => d.id), ajout }).catch(() => {});
-      }
-      // 4. acheter un lieu mis en vente par un vrai joueur, s'il n'est pas trop cher (jusqu'à 150 % de sa valeur) :
-      // une fois sur deux par robot et par tour (« personne ne m'achète », Gautier, 3 nov.)
-      const enVente = aVendre.filter((l: Ligne) => (l.devise_vente || 'pieces') === 'pieces' && Number(l.prix_vente) <= valeurM(l) * 1.5 && Number(l.prix_vente) <= pieces);
-      if (enVente.length && Math.random() < 0.5) { const l = hasard(enVente); await ACTIONS.acheter(j, { id: l.id, prix: Number(l.prix_vente) }).then(() => { pieces -= Number(l.prix_vente); }).catch(() => {}); aVendre.splice(aVendre.indexOf(l), 1); }
-      // 5. mettre un de ses lieux en vente (110 à 150 % de sa valeur), deux au plus à la fois
-      if (mes.length && mes.filter((l: Ligne) => l.prix_vente != null).length < 2 && Math.random() < 0.3) {
-        const l = hasard(mes); await rpc('jeu_vendre', { j, l: l.id, prix: arrondi(valeurM(l) * (1.1 + Math.random() * 0.4)) }).catch(() => {});
-      }
-      // 5 bis. les enchères : surenchérir quand un vrai joueur mène un lot (jamais seuls : les monuments restent aux
-      // vrais joueurs s'ils mettent le prix), jusqu'à 150 % de la mise de départ
-      if (Math.random() < 0.4) {
-        const { data: lots } = await admin.from('encheres').select('cle, depart').eq('statut', 'ouverte').gt('fin', new Date().toISOString());
-        for (const l of (lots || []).sort(() => Math.random() - 0.5)) {
-          const { data: top } = await admin.from('mises').select('joueur, montant').eq('lot', l.cle).order('montant', { ascending: false }).order('id', { ascending: true }).limit(1);
-          const t = top && top[0]; if (!t || ids.includes(t.joueur)) continue;
-          const { data: humain } = await admin.from('profils').select('id').eq('id', t.joueur).maybeSingle(); if (!humain) continue;
-          const mise = Math.ceil(Math.ceil(Number(t.montant) * (1 + ECO.encheres.pas_min)) / 100) * 100;
-          if (mise <= Number(l.depart) * 1.5) { await ACTIONS.miser(j, { cle: l.cle, montant: mise }).catch(() => {}); break; }
-        }
-      }
-      // 6 bis. verser à la caisse d'une de leurs communes (et passer pour présents : ils peuvent être élus)
-      await rpc('jeu_vu', { j }).catch(() => {});
-      await payerEntretien(j).catch(() => {});
-      if (mes.length && Math.random() < 0.35) {
-        const k = hasard(mes).commune, montant = Math.min(Math.floor(pieces * 0.15 / 10) * 10, 50 + Math.floor(Math.random() * 30) * 10);
-        if (k && montant >= MAI.M.versement_min) { await ACTIONS.verser(j, { commune: k, montant }).then(() => { pieces -= montant; }).catch(() => {}); }
-      }
-      // 6. construire le niveau suivant quand c'est possible
-      if (mes.length && Math.random() < 0.4) {
-        const l = lieuDe(hasard(mes)), n = (l.niveau || 0) + 1;
-        if (R.peutConstruire(l, n) && R.coutNiveau(l, n) <= pieces) await ACTIONS.construire(j, { id: l.id, niveau: n }).catch(() => {});
-      }
+      // puis une ou deux choses, comme un joueur pendant une séance
+      const choses: (() => Promise<void>)[] = [
+        // un lieu de plus, près d'un lieu d'un vrai joueur (une fois par jour du jeu ; 30 au plus, 3 par commune)
+        async () => {
+          const r = hasard(reels), lon = r.lon + (Math.random() - 0.5) * 0.006, lat = r.lat + (Math.random() - 0.5) * 0.004;
+          const c = await TIRAGE.adresseProche(lon, lat); if (!c || !(await estLibre(c))) return;
+          const commune = Regles.nomCommune(c.citycode, c.city);
+          if (!ROB.peutPrendre(mes.length, mes.filter((l: Ligne) => l.commune === commune).length)) return;
+          try { await rpc('jeu_pack', { j, jour, cartes: [{ ...c, commune }] }); } catch (_) { /* déjà pris aujourd'hui */ }
+        },
+        // une offre correcte (90 à 125 % de la valeur) sur un lieu d'un vrai joueur, une seule en attente à la fois
+        async () => {
+          const { count } = await admin.from('offres').select('id', { count: 'exact', head: true }).eq('acheteur', j).eq('statut', 'attente'); if (count) return;
+          const l = hasard(reels), prix = arrondi(ROB.prixOffre(valeurM(l), j + l.id + jour));
+          if (prix <= pieces) await ACTIONS.offrir(j, { id: l.id, prix }).catch(() => {});
+        },
+        // une proposition d'échange : un ou deux de ses lieux, plus des pièces, pour 100 à 125 % de la valeur voulue
+        async () => {
+          const { count } = await admin.from('echanges').select('id', { count: 'exact', head: true }).eq('proposeur', j).eq('statut', 'attente'); if (count || !mes.length) return;
+          const l = hasard(reels), dons = mes.slice().sort(() => Math.random() - 0.5).slice(0, 1 + Math.floor(Math.random() * 2));
+          const v = dons.reduce((t: number, d: Ligne) => t + valeurM(d), 0), cible = valeurM(l) * (1 + Math.random() * 0.25), ajout = v < cible ? arrondi(cible - v) : 0;
+          if (ajout <= pieces) await ACTIONS.echanger(j, { id: l.id, donnes: dons.map((d: Ligne) => d.id), ajout }).catch(() => {});
+        },
+        // acheter un lieu mis en vente par un vrai joueur, à un prix normal (jamais une erreur de prix : elle reste aux joueurs)
+        async () => {
+          const enVente = aVendre.filter((l: Ligne) => (l.devise_vente || 'pieces') === 'pieces' && ROB.peutAcheter(Number(l.prix_vente), valeurM(l)) && Number(l.prix_vente) <= pieces);
+          if (!enVente.length || !ROB.peutPrendre(mes.length, 0)) return;
+          const l = hasard(enVente); aVendre.splice(aVendre.indexOf(l), 1);
+          await ACTIONS.acheter(j, { id: l.id, prix: Number(l.prix_vente) }).then(() => { pieces -= Number(l.prix_vente); }).catch(() => {});
+        },
+        // mettre un de ses lieux en vente (105 à 140 % de sa valeur), deux au plus à la fois
+        async () => {
+          if (!mes.length || mes.filter((l: Ligne) => l.prix_vente != null).length >= 2) return;
+          const l = hasard(mes); await rpc('jeu_vendre', { j, l: l.id, prix: arrondi(ROB.prixVente(valeurM(l), j + l.id + jour)) }).catch(() => {});
+        },
+        // les enchères : seulement contre un vrai joueur qui mène, deux mises au plus par lot, jamais dans la dernière heure,
+        // jusqu'à 120 % de la mise de départ (les monuments restent aux vrais joueurs s'ils y tiennent)
+        async () => {
+          const { data: lots } = await admin.from('encheres').select('cle, depart, fin').eq('statut', 'ouverte').gt('fin', new Date().toISOString());
+          for (const l of (lots || []).sort(() => Math.random() - 0.5)) {
+            const { data: top } = await admin.from('mises').select('joueur, montant').eq('lot', l.cle).order('montant', { ascending: false }).order('id', { ascending: true }).limit(1);
+            const t = top && top[0]; if (!t || ids.includes(t.joueur)) continue;
+            const { data: humain } = await admin.from('profils').select('id').eq('id', t.joueur).maybeSingle(); if (!humain) continue;
+            const { count: miennes } = await admin.from('mises').select('id', { count: 'exact', head: true }).eq('lot', l.cle).eq('joueur', j);
+            const m = ROB.mise(Number(l.depart), Number(t.montant), (new Date(l.fin).getTime() - Date.now()) / heuresMs(1), Number(miennes) || 0, ECO.encheres.pas_min);
+            if (m != null && m <= pieces) { await ACTIONS.miser(j, { cle: l.cle, montant: m }).catch(() => {}); break; }
+          }
+        },
+        // verser à la caisse d'une de ses communes, seulement si aucun vrai joueur n'y a versé ce mandat
+        async () => {
+          if (!mes.length) return;
+          const k = hasard(mes).commune, montant = Math.min(Math.floor(pieces * 0.15 / 10) * 10, 50 + Math.floor(Math.random() * 30) * 10);
+          if (!k || montant < MAI.M.versement_min) return;
+          const { m } = await mandatServeur(); const { data: cours } = await admin.from('caisses').select('joueur, verse').eq('mandat', m).eq('commune', k);
+          const humainsVerses = (cours || []).filter((r: Ligne) => !ids.includes(r.joueur)).reduce((t: number, r: Ligne) => t + Number(r.verse), 0);
+          if (ROB.peutVerser(humainsVerses)) await ACTIONS.verser(j, { commune: k, montant }).then(() => { pieces -= montant; }).catch(() => {});
+        },
+        // construire le niveau suivant quand c'est possible
+        async () => {
+          if (!mes.length) return;
+          const l = lieuDe(hasard(mes)), n = (l.niveau || 0) + 1;
+          if (R.peutConstruire(l, n) && R.coutNiveau(l, n) <= pieces) await ACTIONS.construire(j, { id: l.id, niveau: n }).catch(() => {});
+        },
+      ];
+      const nb = 1 + (Math.random() < 0.4 ? 1 : 0);
+      for (const f of choses.sort(() => Math.random() - 0.5).slice(0, nb)) await f();
     } catch (e) { console.error('robot', robot.nom, e); }
   }
 }

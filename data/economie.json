@@ -32,6 +32,16 @@
     "quartier": { "rayon_m": 300, "par_point": 0.01, "isole": -0.05, "max": 0.2 },
     "tendance": { "part": 0.12, "min": 0.05, "max": 0.15 }
   },
+  "robots": {
+    "_note": "Les joueurs de la maison (GDD § 5 quater, décision de Gautier du 5 nov. 2026 : jouer comme des humains, sans abuser, retirés peu à peu). Chiffres [Proposé].",
+    "max": 10, "retrait_humains": 40, "humains_par_robot": 4,
+    "seances_min": 2, "seances_max": 4, "heure_debut": 8, "heure_fin": 23, "seance_heures": 0.75,
+    "reponse_heures_min": 0.25, "reponse_heures_max": 6, "accepte_au_dessus": 1.1,
+    "offre_min": 0.9, "offre_max": 1.25, "achat_min": 0.8, "achat_max": 1.4, "vente_min": 1.05, "vente_max": 1.4,
+    "encheres_pas_derniere_heure": 1, "encheres_mises_max": 2, "encheres_plafond": 1.2,
+    "lieux_max": 30, "par_commune_max": 3, "depart_pieces": 1500, "pieces_max_essai": 20000,
+    "liberation_jours": 14
+  },
   "boutique": {
     "gemmes": [
       { "id": "g500", "gemmes": 500, "euros": 4.99 },
