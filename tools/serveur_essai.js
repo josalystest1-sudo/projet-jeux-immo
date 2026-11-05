@@ -260,7 +260,7 @@ async function nouveauJoueur(publique, secrete) {
     // le paiement par carte (Stripe) : il faut cocher l'accès immédiat ; avec la clé de test, une vraie page de paiement
     const sansCase = await jeu({ action: 'paiement_creer', offre: 'g500' });
     verifier(sansCase.corps && sansCase.corps.ok === false && sansCase.corps.code === 'renonce', 'payer sans demander l’accès immédiat : refusé', sansCase.corps);
-    const pay = await jeu({ action: 'paiement_creer', offre: 'g500', renonce: true, retour: 'https://josalystest1-sudo.github.io/projet-jeux-immo/' });
+    const pay = await jeu({ action: 'paiement_creer', offre: 'g500', renonce: true, retour: 'https://citydeck.fr/' });
     if (pay.corps && pay.corps.ok) {
       verifier(/^https:\/\/checkout\.stripe\.com\//.test(pay.corps.url) && pay.corps.test === true, 'une page de paiement Stripe (clé de test)', pay.corps);
       const ver = await jeu({ action: 'paiement_verifier', session: pay.corps.session });

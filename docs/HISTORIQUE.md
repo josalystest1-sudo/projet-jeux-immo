@@ -11,7 +11,7 @@ Rien d'important ne vit dans une conversation : tout est dans le dépôt ou sur 
 | Quoi | Où |
 |---|---|
 | Le code, les données, les documents | GitHub `josalystest1-sudo/projet-jeux-immo` (public), branche `main` |
-| Le jeu publié | https://josalystest1-sudo.github.io/projet-jeux-immo/ (mis à jour 1 à 2 minutes après chaque fusion sur `main`) |
+| Le jeu publié | **https://citydeck.fr/** depuis le 5 nov. (l'ancienne adresse https://josalystest1-sudo.github.io/projet-jeux-immo/ y renvoie) (mis à jour 1 à 2 minutes après chaque fusion sur `main`) |
 | Le serveur : comptes, joueurs, lieux, offres, ventes, notifications, robots | Supabase, projet `cadastra`, organisation Josalys (offre gratuite). Ses tables et fonctions sont décrites dans `supabase/` et envoyées par `.github/workflows/serveur.yml` à chaque fusion (`docs/serveur/ARCHITECTURE.md`) |
 | La clé qui permet de publier le serveur | secret GitHub `SUPABASE_ACCESS_TOKEN`, posé par Gautier (Claude ne la voit jamais) |
 | La clé Google (Street View) | `data/google.json` (publique, limitée au site du jeu ; services payants mis à 0 dans la console Google, projet « Le Laboratoire ») ; `docs/serveur/GUIDE-GOOGLE.md` |
@@ -173,6 +173,7 @@ Rien d'important ne vit dans une conversation : tout est dans le dépôt ou sur 
 - **Les robots** (PR #139). Gautier demande à quoi sert la valeur, puisque ce sont les joueurs qui fixent les prix. Claude : elle guide le joueur et règle le comportement des robots, qu'on devait retirer au lancement. Gautier décide alors : « laisser les robots au début du jeu, leur donner des consignes pour jouer comme des humains et ne pas abuser ; on les retirera progressivement avec la montée des joueurs », et « un robot supprimé = son patrimoine remis en jeu ». Les événements réels (crues, fermetures) restent pour la V2.
 - **Les robots cachés** (PR #140). Gautier : « il faut cacher les robots, le but est de faire croire que le jeu est actif ; par contre, les robots ne font jamais de transaction avec des gemmes (vente ou achat). » Claude signale le risque d'une pratique commerciale trompeuse envers des joueurs qui paient, et propose une phrase générale dans les CGU (à décider avant le lancement).
 - **Le domaine** (PR #141). Gautier accepte la phrase générale des CGU (« ok »), et achète **citydeck.fr** chez Infomaniak. Le serveur et la connexion sont prêts ; Gautier règle la zone DNS et la clé Google (guide bouton par bouton), puis Claude branche le domaine.
+- **citydeck.fr branché** (PR #142). Gautier règle la zone DNS chez Infomaniak et la clé Google (« c'est bon ») ; Claude vérifie la zone et branche le domaine. Le jeu est désormais à https://citydeck.fr/.
 
 ## Toutes les PR
 
@@ -340,6 +341,7 @@ Puis une PR par étape, fusionnée en squash :
 | #139 | 05/11 | Les joueurs de la maison : les robots restent au lancement, jouent comme des humains sans abuser, et se retirent quand les vrais joueurs arrivent (patrimoine remis en jeu) |
 | #140 | 05/11 | Les robots cachés parmi les joueurs (icônes ordinaires, liste illisible) et jamais de gemmes avec un robot |
 | #141 | 05/11 | citydeck.fr (acheté par Gautier chez Infomaniak) : le serveur et les liens de connexion l'acceptent ; le guide pour le brancher (`docs/serveur/GUIDE-DOMAINE.md`) ; la phrase des CGU sur les joueurs automatiques est décidée |
+| #142 | 05/11 | Le jeu est à https://citydeck.fr/ : domaine branché sur GitHub Pages (HTTPS), adresse principale de la connexion et des paiements |
 
 ## Les décisions de Gautier
 
@@ -388,7 +390,7 @@ Les décisions du 2 novembre (interview) sont dans `CLAUDE.md` § 4 et dans le G
 - **Les graphismes** (phase 10, avant 8.2 : décision de Gautier) : les menus façon Pokémon TCG Pocket (PR #133), puis le logo, l'icône et la pièce d'après le modèle de Gautier (PR #135), faits le 5 nov. ; restent à revoir sur téléphone la promenade et les fenêtres rares ; la preuve, l'ouverture, les monuments nationaux et 358 monuments régionaux en 3D, plus la Grande Mosquée de Paris et quatre églises ajoutées le 4 nov. (416 maquettes ; les autres n'ont pas de bâtiment à dessiner ou portent une marque) ; ensuite l'habillage de la révélation, l'icône et le logo (`docs/BIBLE-GRAPHIQUE.md`).
 - **Le game design du 4 nov. porté dans le jeu** (le Maire par caisse de travaux, PR #119 et #120 ; les saisons et classements, PR #123 et #124 ; les monuments, PR #125 et #126). Reste : l'e-mail d'alerte à Gautier (il faut un service d'envoi), le niveau visuel des communes (§ 5, proposé), l'équilibrage (loyer modeste des monuments, § 5 ter) : les saisons et le classement de patrimoine (§ 5 bis), l'entretien et la reprise des monuments, l'alerte à Gautier (§ 5 ter).
 - **La boutique** (phase 9 ; faite en mode test, PR #127 à #130 : gemmes, packs, Pass et bon, chances affichées, ventes et offres en gemmes, paiement par carte Stripe ; restent, avant les vrais paiements : activer le compte Stripe (Gautier : identité, banque, statut), une clé restreinte de production, les pages légales) : Stripe → gemmes, packs nationaux et régionaux, Pass 15 jours (GDD § 3 et § 9), offres en gemmes au choix du vendeur, probabilités affichées, blocage Belgique et Pays-Bas, CGU (gemmes sans valeur, lieux = licences), confidentialité, mentions légales.
-- **Le domaine citydeck.fr** (acheté le 5 nov. chez Infomaniak) : Gautier règle la zone DNS et la clé Google (`docs/serveur/GUIDE-DOMAINE.md`), puis Claude le branche sur GitHub Pages. citydeck.app reste à réserver si Gautier le veut.
+- **Le domaine citydeck.fr** : branché le 5 nov. (`docs/serveur/GUIDE-DOMAINE.md`). citydeck.app reste à réserver si Gautier le veut.
 - **Ensuite** : les graphismes (phase 10), l'équilibrage et le lancement (phase 11).
 - **Au lancement** :
   - remettre `jour_secondes` à 86400 et repartir de zéro ;

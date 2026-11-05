@@ -1,4 +1,4 @@
 {
   "cle": "AIzaSyDIkIQbFnMAPbiwEK5LjAk91mOBKcx7DO8",
-  "note": "Clé Google Maps Platform du jeu (projet « Le Laboratoire » de Gautier, clé « Cadastra ») : Maps Embed API + Street View Static API, restreinte au site https://josalystest1-sudo.github.io/*. Faite pour être visible dans le jeu. Seuls des services gratuits sont utilisés (intégration Street View, recherche de photo). Si Google la refuse, le jeu revient tout seul à l'ancien Street View."
+  "note": "Clé Google Maps Platform du jeu (projet « Le Laboratoire » de Gautier, clé « Maps Platform API Key ») : Maps Embed API + Street View Static API, restreinte aux sites https://citydeck.fr/*, https://www.citydeck.fr/* (ajoutés par Gautier le 5 nov. 2026) et https://josalystest1-sudo.github.io/*. Faite pour être visible dans le jeu. Seuls des services gratuits sont utilisés (intégration Street View, recherche de photo). Si Google la refuse, le jeu revient tout seul à l'ancien Street View."
 }

@@ -16,7 +16,7 @@ La clé va dans `data/google.json` (`cle`). Elle est visible dans le jeu, c'est 
 3. Copier « Votre clé API » (commence par AIza…).
 4. ☰ → API et services → Bibliothèque : activer **Maps Embed API** et **Street View Static API**.
 5. ☰ → API et services → Identifiants → la clé :
-   - Restrictions relatives aux applications : Sites Web, `https://josalystest1-sudo.github.io/*` ;
+   - Restrictions relatives aux applications : Sites Web, `https://citydeck.fr/*`, `https://www.citydeck.fr/*` (depuis le 5 nov.) et `https://josalystest1-sudo.github.io/*` ; la clé s'appelle « Maps Platform API Key » ;
    - Restrictions relatives aux API : Maps Embed API et Street View Static API ;
    - Enregistrer.
 
