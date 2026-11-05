@@ -5,7 +5,7 @@
 // verser, part du Maire plafonnée, absence, fin de mandat annoncée une fois ; les classements et les saisons
 // (100_classements.sql) : patrimoine, Maires, saison figée une fois ; les monuments (110_monuments.sql) : entretien,
 // reprise (lot de reprise, alerte, échanges qui tombent) ; la boutique (120_boutique.sql) : gemmes d'essai, pack acheté,
-// Pass, bon ; les ventes et offres en gemmes ; le paiement par carte (130_paiements.sql) ; les refus attendus et les droits du jeu.
+// Pass, bon ; les ventes et offres en gemmes ; le paiement par carte (130_paiements.sql) ; le classement des pièces (140_classement_pieces.sql) ; les refus attendus et les droits du jeu.
 // Prérequis (une fois, rien n'est ajouté au dépôt) : npm i --no-save --no-package-lock @electric-sql/pglite
 //   node tools/essai_sql.mjs            (000_comptes.sql, qui demande l'extension unaccent, est remplacé par un profil minimal)
 import { PGlite } from '@electric-sql/pglite';
@@ -176,6 +176,14 @@ ok(patr.length === 2 && patr[0].joueur === B && Number(patr[0].n) === 20 && patr
 const rangA = (await q("select * from public.rang_patrimoine($1, $2, 'Classeville', $3)", [POIDS, BONUS, A]))[0];
 ok(Number(rangA.rang) === 2 && Number(rangA.n) === 10, 'la place de A dans la commune : 2e, 10 points', rangA);
 ok((await q('select count(*)::int as n from public.classement_patrimoine($1, $2, null, 100)', [POIDS, BONUS]))[0].n >= 2, 'le classement national se lit');
+// le classement des pièces (140_classement_pieces.sql) : seulement les joueurs qui ont un pseudo, à égalité le même rang
+for (const [u, ps] of [[A, 'alice'], [B, 'bruno']]) await q('insert into public.profils (id, pseudo) values ($1, $2) on conflict (id) do update set pseudo = excluded.pseudo', [u, ps]);
+await q("update public.profils set pseudo = null where id = $1", [C]);
+const [piA, piB] = [await pieces(A), await pieces(B)];
+const cpi = await q('select joueur, pseudo, n from public.classement_pieces(10)');
+ok(cpi.length === 2 && Number(cpi[0].n) === Math.max(piA, piB) && Number(cpi[1].n) === Math.min(piA, piB) && !cpi.some((r) => r.joueur === C), 'le classement des pièces : les plus riches d’abord, sans les joueurs sans pseudo', cpi);
+const rpi = (await q('select * from public.rang_pieces($1)', [piA >= piB ? B : A]))[0];
+ok(Number(rpi.rang) === (piA === piB ? 1 : 2) && Number(rpi.n) === Math.min(piA, piB), 'la place d’un joueur au classement des pièces', rpi);
 ok(Number((await q("select public.jeu_mairies(12, $1::jsonb) as n", [JSON.stringify([{ commune: 'Bourg', maire: A, rivaux: 3 }, { commune: 'Classeville', maire: B, rivaux: 0 }])]))[0].n) === 2, 'garder les Maires d’un mandat');
 await q("select public.jeu_mairies(13, $1::jsonb)", [JSON.stringify([{ commune: 'Bourg', maire: B, rivaux: 2 }, { commune: 'Ailleurs', maire: A, rivaux: 1 }])]);
 const cm = await q('select joueur, n, mairies from public.classement_maires(12, 17, 10)');
@@ -299,6 +307,7 @@ ok(!!(await refus("insert into public.paiements (session, joueur, offre, gemmes,
 await db.exec('reset role; set role anon;');
 ok((await q("select count(*)::int as n from public.caisse_communes(array['Bourg'], 6, now() - interval '7 days')"))[0].n > 0, 'sans compte aussi, on lit les caisses');
 ok((await q('select count(*)::int as n from public.encheres'))[0].n > 0, 'sans compte aussi, on lit les lots');
+ok((await q('select count(*)::int as n from public.classement_pieces(5)'))[0].n > 0 && !!(await refus('select pieces from public.joueurs')), 'sans compte aussi, on lit le classement des pièces, mais pas les pièces de chacun');
 await db.exec('reset role;');
 console.log(echecs ? `${echecs} échec(s)` : 'Tout passe.');
 process.exit(echecs ? 1 : 0);
