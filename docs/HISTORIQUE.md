@@ -180,6 +180,7 @@ Rien d'important ne vit dans une conversation : tout est dans le dépôt ou sur 
 - **L'anglais** (PR #146). Gautier, dans le même message : « il faut une traduction complète du jeu en anglais (on garde les noms propres et les rues en français), avec le choix des langues dans les paramètres, et par défaut le français ». Claude ajoute une couche qui traduit tout à l'affichage (écrans, bandeaux, notifications, messages du serveur, pochette du pack), sans réécrire le jeu : le code reste en français, et un test vérifie que chaque nouveau message a sa traduction. Le choix est dans les Réglages et sur l'écran de compte ; les pages légales sont traduites (la version française fait foi).
 - **La langue du téléphone** (PR #147). Pendant la mise en ligne, Gautier précise : « idéalement la langue se met en fonction de la langue du périphérique par défaut, avec modification possible ». Le jeu suit désormais le téléphone (français s'il est en français, anglais pour toute autre langue, proposition de Claude), et le choix des Réglages passe avant.
 - **Le vrai serveur pour tous** (PR #148). Gautier : « on passe à quoi ? ». Claude propose de mettre tout le monde sur le vrai serveur (la grosse étape avant la bêta entre amis), ou d'ajouter des lieux célèbres ; Gautier : « super, c'est quoi la suite ? ». Plus de démo par défaut ni d'interrupteur : tout visiteur crée son compte et joue sur le serveur ; les signalements partent au serveur ; le cadre rose « Erreur de style » du 3 nov. est corrigé. Il manque, pour inviter des amis, le service d'e-mails (Brevo : le compte est à créer par Gautier, devant le PC).
+- **Le suivi** (PR #149). Claude propose ensuite un tableau de suivi et un minimum d'anti-triche (ou les lieux célèbres) ; Gautier : « vas-y ». Les jours de visite des vrais joueurs sont notés ; deux vues du tableau de bord de Supabase donnent les inscrits, les venus, les retours du lendemain et du 7e jour, et les achats.
 
 ## Toutes les PR
 
@@ -354,6 +355,7 @@ Puis une PR par étape, fusionnée en squash :
 | #146 | 05/11 | Le jeu en anglais : choix de la langue (Réglages et écran de compte), français par défaut, noms propres en français ; pages légales traduites |
 | #147 | 05/11 | La langue du téléphone par défaut (français s'il est en français, anglais sinon), modifiable dans les Réglages |
 | #148 | 05/11 | Le vrai serveur pour tout le monde (plus de démo par défaut ni d'interrupteur), les signalements envoyés au serveur, le cadre « Erreur de style » corrigé |
+| #149 | 05/11 | Le tableau de suivi de Gautier (inscrits, venus, retours du lendemain et du 7e jour, achats), dans le tableau de bord de Supabase |
 
 ## Les décisions de Gautier
 
@@ -416,7 +418,7 @@ Les décisions du 2 novembre (interview) sont dans `CLAUDE.md` § 4 et dans le G
     - une bêta entre amis ;
     - les sauvegardes (offre Pro de Supabase) ;
     - un minimum d'anti-triche ;
-    - un tableau de bord (inscrits, retours à J1 et J7) ;
+    - un tableau de bord (inscrits, retours à J1 et J7) : fait (PR #149, vues `suivi_total` et `suivi_jours` de Supabase) ;
     - la marque à l'INPI.
   - Fait le 5 nov. : « Supprimer mon compte » et l'image de partage (PR #143), les pages légales (PR #144).
   - Restent pour les pages légales :

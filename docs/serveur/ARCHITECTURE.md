@@ -76,3 +76,4 @@ Demande de Gautier (3 nov.) : de vrais comptes qui jouent seuls, pour tester le 
 | 9.3 | Le paiement par carte (5 nov., `supabase/sql/130_paiements.sql`) : Stripe Checkout (`paiement_creer`, `paiement_verifier`), gemmes créditées une fois après vérification auprès de Stripe ; la clé est le secret GitHub `STRIPE_SECRET_KEY` (posé par Gautier), envoyé par la publication dans les secrets de la fonction ; mode test aujourd'hui | fait (test) |
 | 8.2 | Mode serveur par défaut ; fin des joueurs simulés (PR #148 : plus d'interrupteur, la démo par `?demo` ; Signaler écrit dans `signalements`) ; premiers amis (attend le service d'e-mails) | en cours |
 | 9 | Boutique (Stripe) : packs payants et Pass, crédités par le serveur | à faire |
+| 8.2s | Le suivi de Gautier (5 nov., `supabase/sql/150_suivi.sql`) : `visites` (un jour de visite par vrai joueur, noté par `jeu_vu`) ; vues `suivi_total` et `suivi_jours`, lisibles seulement dans le tableau de bord | fait |
