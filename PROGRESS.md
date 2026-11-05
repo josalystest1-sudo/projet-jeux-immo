@@ -419,8 +419,8 @@
     - `contact@citydeck.fr` à créer ;
     - un médiateur de la consommation ;
     - la TVA et l'activité déclarée ;
-    - l'accord avant Street View ;
     - une relecture professionnelle.
+- 5 nov. 2026 (PR #145) : **les cookies de Google Street View** (décision de Gautier). Les conditions (nouvelle partie 10) disent qu'en jouant, on accepte les cookies de Google liés à la vue des rues, pourquoi (la vue fait partie du jeu et ne s'affiche pas sans eux), et comment les effacer ou les régler ; la confidentialité y renvoie. Risque signalé à Gautier : pour la CNIL, l'acceptation des conditions ne vaut pas accord pour des cookies non indispensables.
 
 ## Bugs connus
 - Mode serveur : si la partie arrive du serveur avant que la carte ait fini de charger, un cadre rose « Erreur de style : The layer 'parcel-fill' does not exist… » peut s'afficher (la page cherche les parcelles avant que leurs calques soient posés) ; sans conséquence pour la partie. Vu le 3 nov. au soir, pas encore corrigé.
