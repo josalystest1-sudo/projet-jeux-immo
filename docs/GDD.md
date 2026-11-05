@@ -244,6 +244,19 @@ Deux monnaies, deux rôles :
 - V2 : cosmétiques (styles de bâtiments, plaques), commerces réels partenaires sur la carte, cadeaux (« offre la rue de ton enfance »).
 - Jamais : vente d'un lieu libre précis (le bon du Pass excepté ; § 3), de loyer, de construction, de pièces ; jamais de revente de lieux, de pièces ni de gemmes contre de l'argent réel (risque de jeu d'argent, décision du 4 nov. ; la boutique « en euros » entre joueurs a été examinée et écartée : loot box monétisable, statut d'intermédiaire de paiement, bots).
 
+### Les pages légales **[Proposé, 5 nov. 2026 ; à faire relire par un professionnel]**
+
+- `conditions.html` : conditions d'utilisation et de vente. Les lieux du jeu ne donnent aucun droit réel ; les pièces et les gemmes n'ont aucune valeur monétaire ; la revente contre de l'argent réel est interdite ; le droit de rétractation est perdu sur demande expresse (L221-28, 13°) ; les chances des packs sont affichées ; pas de packs en Belgique ni aux Pays-Bas ; « Des joueurs automatiques peuvent animer le jeu » ; les parties peuvent être remises à zéro avant le lancement ; préavis de 30 jours en cas d'arrêt.
+- `confidentialite.html` : RGPD.
+- `mentions-legales.html` : l'éditeur, Gautier Lagrée, entrepreneur individuel (SIREN 941 648 156) ; les hébergeurs (GitHub, Supabase, Stripe) ; les sources des données.
+- Le jeu y renvoie depuis les Réglages, l'écran d'inscription et la fenêtre de paiement.
+- **Restent, avant les vraies ventes** :
+  - créer l'adresse `contact@citydeck.fr` ;
+  - désigner un médiateur de la consommation, obligatoire pour vendre à des particuliers ;
+  - vérifier avec un comptable la TVA (franchise en base ou non) et l'activité déclarée, qui est aujourd'hui « conseil en systèmes et logiciels informatiques » ;
+  - voir s'il faut demander l'accord du joueur avant d'afficher Google Street View, qui pose ses propres traceurs ;
+  - faire relire le tout par un professionnel.
+
 ### Simulation de l'économie des gemmes (Claude, 4 nov. ; `tools/sim_gemmes.py`)
 365 jours, 15 inscrits/jour, 2 % de départs/jour (~740 actifs stables), 15 % de payeurs dont 3 % à 50 €/mois, pack 200, Pass 500 (ancien tarif), adresse revendue ~150 gemmes. Résultats : **~650-750 €/mois en régime stable, soit ~0,95 € par actif et par mois** ; seuls 3 à 11 joueurs gratuits sur 740 peuvent se payer un pack sans jamais avoir dépensé (le marché ne fabrique pas de rentiers de gemmes) ; 13-15 % des gemmes dépensées viennent de la revente (47 % si le marché est très actif) **sans faire baisser les euros** ; la commission de 10 % ne change rien au revenu ; un marché en pièces seulement est le scénario le **moins** rentable (−15 %). Le revenu dépend presque uniquement des inscriptions et de la rétention : passer de 2 % à 1 % de départs par jour double le revenu.
 

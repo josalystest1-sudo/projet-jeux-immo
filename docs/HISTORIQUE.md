@@ -175,6 +175,7 @@ Rien d'important ne vit dans une conversation : tout est dans le dépôt ou sur 
 - **Le domaine** (PR #141). Gautier accepte la phrase générale des CGU (« ok »), et achète **citydeck.fr** chez Infomaniak. Le serveur et la connexion sont prêts ; Gautier règle la zone DNS et la clé Google (guide bouton par bouton), puis Claude branche le domaine.
 - **citydeck.fr branché** (PR #142). Gautier règle la zone DNS chez Infomaniak et la clé Google (« c'est bon ») ; Claude vérifie la zone et branche le domaine. Le jeu est désormais à https://citydeck.fr/.
 - **Avant la pub** (PR #143). Gautier demande ce qui manque avant de faire de la pub ; Claude dresse la liste (le serveur pour tous, les e-mails, le vrai rythme, les pages légales, les vrais paiements, puis la bêta, les sauvegardes, l'anti-triche, l'image de partage, le suivi, la marque). Gautier : « faisons les points facilement réalisables sur téléphone ». Claude fait « Supprimer mon compte » et l'image de partage, et guide Gautier pour le service d'e-mails.
+- **Les pages légales** (PR #144). Gautier remet Brevo à son retour devant le PC (Claude ne peut ni créer le compte ni se connecter à sa place) et donne la fiche de son entreprise individuelle pour les mentions légales. Claude rédige les conditions d'utilisation et de vente, la confidentialité et les mentions légales, et les relie au jeu.
 
 ## Toutes les PR
 
@@ -344,6 +345,7 @@ Puis une PR par étape, fusionnée en squash :
 | #141 | 05/11 | citydeck.fr (acheté par Gautier chez Infomaniak) : le serveur et les liens de connexion l'acceptent ; le guide pour le brancher (`docs/serveur/GUIDE-DOMAINE.md`) ; la phrase des CGU sur les joueurs automatiques est décidée |
 | #142 | 05/11 | Le jeu est à https://citydeck.fr/ : domaine branché sur GitHub Pages (HTTPS), adresse principale de la connexion et des paiements |
 | #143 | 05/11 | Avant la pub : « Supprimer mon compte » (RGPD) et l'image de partage des liens vers citydeck.fr |
+| #144 | 05/11 | Les pages légales (conditions d'utilisation et de vente, confidentialité, mentions légales), reliées au jeu ; l'image de partage allégée (JPEG) |
 
 ## Les décisions de Gautier
 
@@ -407,7 +409,14 @@ Les décisions du 2 novembre (interview) sont dans `CLAUDE.md` § 4 et dans le G
     - un minimum d'anti-triche ;
     - un tableau de bord (inscrits, retours à J1 et J7) ;
     - la marque à l'INPI.
-  - Fait le 5 nov. (PR #143) : « Supprimer mon compte » et l'image de partage.
+  - Fait le 5 nov. : « Supprimer mon compte » et l'image de partage (PR #143), les pages légales (PR #144).
+  - Restent pour les pages légales :
+    - créer `contact@citydeck.fr` ;
+    - désigner un médiateur de la consommation ;
+    - la TVA et l'activité déclarée (comptable) ;
+    - l'accord avant Google Street View ;
+    - une relecture par un professionnel.
+  - Brevo : avec Gautier, devant le PC.
 - **Au lancement** :
   - remettre `jour_secondes` à 86400 et repartir de zéro ;
   - les robots restent, cachés parmi les joueurs (décisions du 5 nov., GDD § 5 quater) : repartir de zéro avec eux ; décider de la phrase des CGU sur les joueurs automatiques ;

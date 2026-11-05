@@ -36,6 +36,7 @@
       <input class="txt" id="cpt-mdp" type="password" autocomplete="${inscription ? 'new-password' : 'current-password'}" placeholder="Mot de passe${inscription ? ' (8 caractères au moins)' : ''}">
       <div class="err" id="cpt-err">${message ? echapper(message) : ''}</div>
       <button class="btn large" style="margin-bottom:10px" id="cpt-ok">${inscription ? 'Créer mon compte' : 'Me connecter'}</button>
+      ${inscription ? '<div class="m petit" style="text-align:center;margin:-2px 0 10px">En créant ton compte, tu acceptes les <a href="conditions.html" target="_blank" rel="noopener">conditions d’utilisation</a> et la <a href="confidentialite.html" target="_blank" rel="noopener">politique de confidentialité</a>.</div>' : ''}
       <div class="m" style="text-align:center">${inscription
         ? 'Déjà un compte ? <a href="#" id="cpt-bascule" style="color:var(--gold)">Me connecter</a>'
         : 'Pas encore de compte ? <a href="#" id="cpt-bascule" style="color:var(--gold)">Créer un compte</a> · <a href="#" id="cpt-oubli" style="color:var(--gold)">Mot de passe oublié</a>'}</div>`);
