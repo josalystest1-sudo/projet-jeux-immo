@@ -36,13 +36,16 @@
     function coutNiveau(lieu, niveau) { return Math.round(valeurBase(lieu) * NIVEAUX[niveau].cout); }
     function peutConstruire(lieu, niveau) { return niveau === (lieu.niveau || 0) + 1 && niveau <= plafond(lieu); }
     function valeur(lieu) { let v = valeurBase(lieu); for (let n = 1; n <= (lieu.niveau || 0); n++) v += coutNiveau(lieu, n); return v; }
-    function loyerParJour(lieu) { return eco.loyer_terrain + NIVEAUX[lieu.niveau || 0].loyer; }
-    function loyerTotal(lieux) { return lieux.reduce((s, l) => s + loyerParJour(l), 0); }
+    // le loyer d'un lieu par jour ; bonus : la part en plus que donne le niveau de sa commune (0,02 par niveau, GDD § 5 ;
+    // décision de Gautier du 5 nov. 2026), arrondi au plus proche
+    function loyerParJour(lieu, bonus) { const b = eco.loyer_terrain + NIVEAUX[lieu.niveau || 0].loyer; return bonus > 0 ? Math.round(b * (1 + bonus)) : b; }
+    // bonusDe(lieu) : le bonus de la commune d'un lieu (facultatif)
+    function loyerTotal(lieux, bonusDe) { return lieux.reduce((s, l) => s + loyerParJour(l, bonusDe ? bonusDe(l) : 0), 0); }
     // Ce qu'un joueur encaisse à la connexion : salaire + loyers, au plus `stock_loyer_heures` heures.
-    function aEncaisser(lieux, depuisMs, maintenantMs, msParJour) {
+    function aEncaisser(lieux, depuisMs, maintenantMs, msParJour, bonusDe) {
       const plafondMs = eco.stock_loyer_heures * (msParJour / 24);
       const dt = Math.max(0, Math.min(maintenantMs - depuisMs, plafondMs));
-      return Math.floor((eco.salaire_par_jour + loyerTotal(lieux)) * dt / msParJour);
+      return Math.floor((eco.salaire_par_jour + loyerTotal(lieux, bonusDe)) * dt / msParJour);
     }
     // Vendre : le vendeur fixe son prix (prix libre, GDD § marché). Un nombre entier de pièces, de 1 à PRIX_MAX.
     // Le texte tapé peut contenir des espaces (« 12 500 ») ; renvoie { ok, prix } ou { ok:false, raison:'vide'|'zero'|'trop' }.

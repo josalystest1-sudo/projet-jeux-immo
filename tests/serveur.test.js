@@ -34,3 +34,10 @@ test('les fonctions SQL du jeu sont réservées au serveur ; le jeu ne peut écr
     assert.doesNotMatch(sql, new RegExp(`grant [^;]*(insert|update|delete)[^;]* on public\\.${table} to`), `${table} : aucune écriture donnée au jeu`);
   }
 });
+
+test('l’usure des travaux du serveur (180_usure.sql) est celle des règles (ECO.mairie.travaux_usure)', () => {
+  const sql = require('fs').readFileSync(require('path').join(__dirname, '..', 'supabase', 'sql', '180_usure.sql'), 'utf8');
+  const m = /power\((\d+(?:\.\d+)?)::float8/.exec(sql);
+  assert.ok(m, 'l’usure se lit dans le SQL');
+  assert.ok(Math.abs(Number(m[1]) - (1 - require('../data/economie.json').mairie.travaux_usure)) < 1e-9, 'même usure des deux côtés');
+});

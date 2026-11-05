@@ -220,7 +220,10 @@ const ECO = {
    3000,
    8000,
    20000
-  ]
+  ],
+  "travaux_usure": 0.1,
+  "travaux_bonus_loyer": 0.02,
+  "travaux_bonus_plafond": 0.2
  },
  "classements": {
   "poids_rarete": {

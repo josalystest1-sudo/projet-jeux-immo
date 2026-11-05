@@ -473,6 +473,12 @@
   - Chaque tic (`tic`) : enchères (clore, ouvrir), mandats de Maire et saisons, raretés, monuments (entretien, absences), puis un tour des robots.
   - Bonus : le projet Supabase gratuit ne se met plus en pause faute d'activité.
   - **Vérifié** : `deno check` ; l'essai automatique appelle l'horloge (un vrai jeton fait tourner le monde, un faux est refusé). 96 tests.
+- 5 nov. 2026 (PR #156) : **les travaux s'usent, et le niveau rapporte** (Gautier : « si elle est au niveau max, il reste quoi à faire ? Comment devenir Maire ? Pour quoi faire ? » ; ses choix : « les travaux s'usent », « loyers +2 % par niveau », « la mairie rapporte plus »).
+  - **L'usure** : à chaque nouveau mandat (2 semaines), l'état des travaux d'une commune perd 10 % (`ECO.mairie.travaux_usure`, `MAI.etatTravaux`) ; le niveau vient de cet état. Une commune au niveau 5 doit être entretenue, sinon elle redescend. Serveur : `supabase/sql/180_usure.sql` (colonnes `travaux.etat` et `mandat` ; le déclencheur use l'état jusqu'au mandat du versement, puis l'ajoute ; le total versé depuis toujours reste, pour mémoire).
+  - **Les loyers** : +2 % par niveau pour tous les lieux de la commune, jusqu'à +10 % au niveau 5 (`MAI.bonusLoyer`, `R.loyerParJour(lieu, bonus)`, `R.aEncaisser(…, bonusDe)`). Serveur : la récolte et `etat` lisent les niveaux des communes du joueur (`bonusDe`, `niveauxCommunes`) ; ma partie les rend (`niveauxCommunes`). Jeu : `loyer(a)` et `pendingRent` les appliquent.
+  - **Le Maire** : son plafond monte de 20 % par niveau, de 1 000 (niveau 0) à 2 000 pièces par mandat (niveau 5) (`MAI.plafondPart(n, niveau)`), et la part se calcule sur les loyers avec le bonus.
+  - **Écran** : la commune montre l'état des travaux, ce qu'il manque, « Loyers de la commune +X % », « La mairie rapporte jusqu'à … », et l'usure.
+  - **Vérifié** : 2 tests (règles), `tools/essai_sql.mjs` (206 vérifications : usure par mandat, versement ajouté, total gardé ; même usure qu'en JavaScript, vérifiée aussi par `npm test`) ; `deno check` ; à l'image en français et en anglais. 99 tests.
 
 ## Bugs connus
 - Les badges 💰 des joueurs simulés n'apparaissent qu'après ouverture de leur parcelle (limite du prototype local).

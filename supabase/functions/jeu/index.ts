@@ -152,13 +152,28 @@ async function rpc(nom: string, args: Ligne) {
 
 // ---------------------------------------------------------------- les actions
 // récolter : salaire + loyers depuis la dernière récolte, 24 h de stock au plus (mêmes règles que le jeu)
+// le niveau des communes (supabase/sql/170_travaux.sql, 180_usure.sql ; GDD § 5) : l'état des travaux, usé jusqu'au mandat
+// en cours, donne le niveau ; le niveau ajoute au loyer des lieux de la commune (MAI.bonusLoyer) et au plafond du Maire
+const communeDe = (l: Ligne) => Regles.nomCommune(l.citycode || '', l.city || '');
+async function niveauxCommunes(ks: string[], m: number): Promise<Record<string, number>> {
+  const out: Record<string, number> = {}; if (!ks.length) return out;
+  const { data } = await admin.from('travaux').select('commune,etat,mandat').in('commune', ks);
+  for (const r of data || []) out[r.commune] = MAI.niveauTravaux(MAI.etatTravaux(Number(r.etat), r.mandat == null ? m : Number(r.mandat), m));
+  return out;
+}
+// les niveaux des communes de ces lieux, et le bonus de loyer de chacun
+async function bonusDe(lieux: Ligne[], jm: number, maintenant: number) {
+  const niv = await niveauxCommunes([...new Set(lieux.map(communeDe))], MAI.mandat(Regles.jourDuJeu(maintenant, jm)));
+  return { niv, f: (l: Ligne) => MAI.bonusLoyer(niv[communeDe(l)] || 0) };
+}
+
 async function recolter(j: string) {
   for (let essai = 0; essai < 3; essai++) {
-    const jr = await joueur(j), lieux = await mesLieux(j), maintenant = Date.now();
-    const montant = R.aEncaisser(lieux, ms(jr.encaisse), maintenant, await jourMs());
+    const jr = await joueur(j), lieux = await mesLieux(j), maintenant = Date.now(), jm = await jourMs(), b = await bonusDe(lieux, jm, maintenant);
+    const montant = R.aEncaisser(lieux, ms(jr.encaisse), maintenant, jm, b.f);
     if (montant < 1) return { recolte: 0, pieces: Number(jr.pieces) };
     const p = await rpc('jeu_recolter', { j, montant, avant: jr.encaisse, maintenant: new Date(maintenant).toISOString() });
-    if (p != null) { await partsDesMaires(j, lieux, ms(jr.encaisse), maintenant).catch((e) => console.error('part des Maires', e)); return { recolte: montant, pieces: Number(p) }; }
+    if (p != null) { await partsDesMaires(j, lieux, ms(jr.encaisse), maintenant, b).catch((e) => console.error('part des Maires', e)); return { recolte: montant, pieces: Number(p) }; }
   }
   throw new Refus('occupe', 'Une autre récolte est en cours : réessaie.');
 }
@@ -183,10 +198,10 @@ const TIRAGE = Tirage.creer({
 // ma partie : pièces, lieux, ce qui attend d'être récolté (rendue aussi après chaque action : le jeu se recale dessus)
 async function etatDe(j: string) {
   const jr = await joueur(j), lieux = await mesLieux(j), maintenant = Date.now(), jm = await jourMs();
-  const [offres, echanges, notifs, encheres] = await Promise.all([mesOffres(j), mesEchanges(j), mesNotifs(j), mesEncheres(j)]);
+  const [offres, echanges, notifs, encheres, b] = await Promise.all([mesOffres(j), mesEchanges(j), mesNotifs(j), mesEncheres(j), bonusDe(lieux, jm, maintenant)]);
   return {
     pieces: Number(jr.pieces), encaisse: ms(jr.encaisse), dernierJour: jr.dernier_jour == null ? null : Number(jr.dernier_jour), jour: Regles.jourDuJeu(maintenant, jm),
-    lieux, maintenant, aRecolter: R.aEncaisser(lieux, ms(jr.encaisse), maintenant, jm), jourMs: jm, ...offres, ...echanges, notifs, ...encheres,
+    lieux, maintenant, aRecolter: R.aEncaisser(lieux, ms(jr.encaisse), maintenant, jm, b.f), jourMs: jm, niveauxCommunes: b.niv, ...offres, ...echanges, notifs, ...encheres,
     entretien: { dette: Number(jr.dette || 0), impayeDepuis: jr.impaye_depuis ? ms(jr.impaye_depuis) : null },
     gemmes: Number(jr.gemmes || 0), pass: { fin: jr.pass_fin ? ms(jr.pass_fin) : null, bons: Number(jr.bons || 0) },
   };
@@ -525,15 +540,15 @@ async function caissesDe(communes: string[], m: number, jm: number) {
   return out;
 }
 // à chaque récolte : la part des Maires des communes où le joueur touche des loyers (pas sur ses propres lieux)
-async function partsDesMaires(j: string, lieux: Ligne[], depuis: number, maintenant: number) {
+async function partsDesMaires(j: string, lieux: Ligne[], depuis: number, maintenant: number, b: { niv: Record<string, number>, f: (l: Ligne) => number }) {
   const jm = await jourMs(), jours = Math.min(maintenant - depuis, ECO.stock_loyer_heures * jm / 24) / jm;
   if (!(jours > 0) || !lieux.length) return;
   const loyers: Record<string, number> = {};
-  for (const l of lieux) { const k = Regles.nomCommune(l.citycode || '', l.city || ''); loyers[k] = (loyers[k] || 0) + R.loyerParJour(l) * jours; }
+  for (const l of lieux) { const k = communeDe(l); loyers[k] = (loyers[k] || 0) + R.loyerParJour(l, b.f(l)) * jours; }
   const m = MAI.mandat(Regles.jourDuJeu(maintenant, jm)), caisses = await caissesDe(Object.keys(loyers), m, jm);
   for (const [k, c] of Object.entries(caisses)) {
     const n = c.maires.length; if (!n) continue;
-    for (const u of c.maires) if (u !== j) await rpc('jeu_part_maire', { m, c: k, mr: u, montant: Math.floor(loyers[k] * MAI.M.part_loyers / n), plafond: MAI.plafondPart(n) });
+    for (const u of c.maires) if (u !== j) await rpc('jeu_part_maire', { m, c: k, mr: u, montant: Math.floor(loyers[k] * MAI.M.part_loyers / n), plafond: MAI.plafondPart(n, b.niv[k] || 0) });
   }
 }
 // verser à la caisse d'une commune : un lieu dans la commune, au moins le minimum, couvert par les pièces moins les mises

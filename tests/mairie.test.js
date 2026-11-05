@@ -83,3 +83,17 @@ test('le niveau de la commune : tout ce qui a été versé à sa caisse depuis t
   assert.strictEqual(M.prochainTravaux(p[4]), null, 'au dernier niveau, plus rien à atteindre');
   for (let k = 1; k < p.length; k++) assert.ok(p[k] > p[k - 1], 'des paliers croissants');
 });
+
+test('les travaux s’usent (10 % par mandat) et le niveau rapporte : loyers +2 % par niveau, mairie jusqu’à 2 000', () => {
+  // décisions de Gautier du 5 nov. 2026 : « les travaux s'usent », « loyers +2 % par niveau », « la mairie rapporte plus »
+  assert.strictEqual(M.etatTravaux(10000, 4, 4), 10000, 'le même mandat : rien d’usé');
+  assert.strictEqual(M.etatTravaux(10000, 4, 5), 9000, 'un mandat de plus : −10 %');
+  assert.strictEqual(M.etatTravaux(10000, 4, 6), 8100);
+  assert.ok(M.etatTravaux(20000, 0, 50) < ECO.mairie.travaux_paliers[0], 'sans entretien, une commune finit par tout perdre');
+  assert.ok(M.niveauTravaux(M.etatTravaux(20000, 0, 1)) < 5, 'un niveau 5 tout juste atteint redescend s’il n’est pas entretenu');
+  assert.strictEqual(M.etatTravaux(500, 6, 3), 500, 'jamais d’usure à rebours');
+  assert.strictEqual(M.bonusLoyer(0), 0); assert.ok(Math.abs(M.bonusLoyer(5) - 0.10) < 1e-9);
+  assert.strictEqual(M.plafondPart(1, 0), 1000); assert.strictEqual(M.plafondPart(1, 5), 2000); assert.strictEqual(M.plafondPart(2, 5), 1000);
+  assert.strictEqual(M.part(1e9, 1, 0, 5), 2000, 'au niveau 5, le Maire touche jusqu’à 2 000');
+  assert.strictEqual(M.part(1e9, 1, 0), 1000, 'sans niveau, toujours 1 000');
+});

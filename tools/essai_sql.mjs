@@ -5,7 +5,7 @@
 // verser, part du Maire plafonnée, absence, fin de mandat annoncée une fois ; les classements et les saisons
 // (100_classements.sql) : patrimoine, Maires, saison figée une fois ; les monuments (110_monuments.sql) : entretien,
 // reprise (lot de reprise, alerte, échanges qui tombent) ; la boutique (120_boutique.sql) : gemmes d'essai, pack acheté,
-// Pass, bon ; les ventes et offres en gemmes ; le paiement par carte (130_paiements.sql) ; le classement des pièces (140_classement_pieces.sql) ; le suivi de Gautier (150_suivi.sql) ; l’anti-triche (160_anti_triche.sql) ; le niveau des communes (170_travaux.sql) ; les robots qui se retirent (050_robots.sql) ; les refus attendus et les droits du jeu.
+// Pass, bon ; les ventes et offres en gemmes ; le paiement par carte (130_paiements.sql) ; le classement des pièces (140_classement_pieces.sql) ; le suivi de Gautier (150_suivi.sql) ; l’anti-triche (160_anti_triche.sql) ; le niveau des communes et son usure (170_travaux.sql, 180_usure.sql) ; les robots qui se retirent (050_robots.sql) ; les refus attendus et les droits du jeu.
 // Prérequis (une fois, rien n'est ajouté au dépôt) : npm i --no-save --no-package-lock @electric-sql/pglite
 //   node tools/essai_sql.mjs            (000_comptes.sql, qui demande l'extension unaccent, est remplacé par un profil minimal)
 import { PGlite } from '@electric-sql/pglite';
@@ -380,8 +380,23 @@ ok((await travaux('Bourg')) === verseBourg + 150 && (await travaux('Village')) =
 await q('delete from auth.users where id = $1', [T0]);
 ok((await travaux('Bourg')) === verseBourg + 150 && (await travaux('Village')) === 50, 'les travaux faits restent faits : le départ d’un joueur ne les retire pas');
 await db.exec('reset role;');
-await db.exec(fs.readFileSync(path.join(DOSSIER, '170_travaux.sql'), 'utf8'));
-ok((await travaux('Bourg')) === verseBourg + 150, '170_travaux.sql relancé : rien n’est compté deux fois');
+await db.exec(fs.readFileSync(path.join(DOSSIER, '170_travaux.sql'), 'utf8')); await db.exec(fs.readFileSync(path.join(DOSSIER, '180_usure.sql'), 'utf8'));
+ok((await travaux('Bourg')) === verseBourg + 150, '170_travaux.sql et 180_usure.sql relancés : rien n’est compté deux fois');
+// les travaux s'usent (180_usure.sql, décision de Gautier du 5 nov.) : 10 % par mandat passé, puis le versement s'ajoute
+const etatDe = async (c) => (await q('select total, etat, mandat from public.travaux where commune = $1', [c]))[0];
+const T1 = '00000000-0000-0000-0000-000000000071';
+await q('insert into auth.users (id) values ($1)', [T1]); await q('select public.jeu_nouveau_joueur($1, 1500)', [T1]);
+await q("insert into public.lieux (id, proprietaire, type, label, lon, lat, commune) values ('us1', $1, 'adresse', 'x', 0, 0, 'Usure')", [T1]);
+await verser(T1, 10, 'Usure', 1000, 1000);
+let u = await etatDe('Usure');
+ok(Number(u.etat) === 1000 && Number(u.mandat) === 10, 'un premier versement : l’état vaut le versement', u);
+await verser(T1, 10, 'Usure', 50, 50);
+u = await etatDe('Usure');
+ok(Number(u.etat) === 1050, 'le même mandat : rien d’usé', u);
+await verser(T1, 12, 'Usure', 100, 100);
+u = await etatDe('Usure');
+ok(Number(u.etat) === Math.floor(1050 * 0.9 * 0.9) + 100 && Number(u.mandat) === 12 && Number(u.total) === 1150, 'deux mandats plus tard : l’état usé de 10 % par mandat, puis le versement ; le total, lui, ne baisse pas', u);
+ok(/power\(0\.9::float8/.test(fs.readFileSync(path.join(DOSSIER, '180_usure.sql'), 'utf8')), 'l’usure du serveur (0,9 par mandat) est celle des règles');
 const lies = await q("select * from public.comptes_lies");
 ok(lies.length === 1 && Number(lies[0].comptes) === 3 && lies[0].pseudos === 'alice, bruno, sacha', 'comptes_lies : les trois comptes de la même connexion, sans le robot', lies);
 await db.exec(`set role authenticated; set essai.uid = '${A}';`);

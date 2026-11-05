@@ -69,7 +69,10 @@
     "derniere_heure": 0.5,
     "absence_jours": 7,
     "versement_min": 10,
-    "travaux_paliers": [200, 1000, 3000, 8000, 20000]
+    "travaux_paliers": [200, 1000, 3000, 8000, 20000],
+    "travaux_usure": 0.1,
+    "travaux_bonus_loyer": 0.02,
+    "travaux_bonus_plafond": 0.2
   },
   "classements": {
     "poids_rarete": { "1": 1, "2": 2, "3": 4, "4": 8, "5": 12, "6": 20 },

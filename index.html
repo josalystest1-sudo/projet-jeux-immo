@@ -306,9 +306,12 @@ async function chargerValeurs(lieux){ if(!MODE_SERVEUR || !(window.Compte && Com
 function tendancesDeLaSemaine(){ const sem=semaineDuJeu(), t=Object.keys(GEO.deps).map(d=>({ d, nom:GEO.deps[d].nom, v:R.tendance(d, sem) })).filter(x=>x.v);
   return { hausse:t.filter(x=>x.v>0).sort((a,b)=>b.v-a.v), baisse:t.filter(x=>x.v<0).sort((a,b)=>a.v-b.v) }; }
 const pct = x => `${x>0?'+':'−'}${Math.abs(Math.round(x*100))} %`;
-function loyer(a){ return R.loyerParJour(a); }
+// le loyer d'un lieu : avec la part en plus que donne le niveau de sa commune (+2 % par niveau, décision de Gautier du 5 nov.)
+const TRAV={}, NIV_SERVEUR={}, TRAV_DEMO={};   // l'état des travaux des communes (voir niveauCommune, plus bas)
+const bonusDe = a => MAI.bonusLoyer(niveauCommune(communeName(a.citycode, a.city)));
+function loyer(a){ return R.loyerParJour(a, bonusDe(a)); }
 function loyerTotal(){ return Object.values(state.owned).reduce((s,a)=>s+loyer(a),0); }
-function pendingRent(){ return R.aEncaisser(Object.values(state.owned), state.encaisse, now(), JOUR) + partMaireEnAttente().total; }
+function pendingRent(){ return R.aEncaisser(Object.values(state.owned), state.encaisse, now(), JOUR, bonusDe) + partMaireEnAttente().total; }
 function encaisser(silent){ if(MODE_SERVEUR) return; const p=pendingRent(); if(p>=1){ const pm=partMaireEnAttente(); for(const [k,v] of Object.entries(pm.parCommune)) state.caisse.touche[k]=(state.caisse.touche[k]||0)+v; state.wallet += Math.floor(p); state.encaisse = now(); save(); if(!silent) toast(`+${Math.floor(p)} ₳ encaissés (salaire + loyers)`); } else if(!silent) toast('Rien à encaisser pour l’instant'); refreshTop(); }
 function dispo(){ return state.wallet - bloqueEncheres(); }
 function notify(type, text, extra){ state.notifs.unshift({ts:now(), type, text, read:false, ...(extra||{})}); if(state.notifs.length>60) state.notifs.length=60; save(); refreshTop(); }
@@ -1812,6 +1815,7 @@ async function appelServeur(action, corps){
 // ma partie, telle que le serveur la donne : pièces, dernière récolte, pack du jour, lieux
 function appliquerEtat(e){ if(!e) return; state.wallet=e.pieces; if(e.gemmes!=null) state.gemmes=e.gemmes; if(e.pass) state.pass=e.pass; if(e.entretien) state.entretien=Object.assign({}, state.entretien, e.entretien); state.encaisse=e.encaisse; state.dernierJour = e.dernierJour==null ? null : e.dernierJour;
   if(e.jourMs){ state.jourMs=e.jourMs; JOUR=e.jourMs; SEMAINE=7*JOUR; }
+  if(e.niveauxCommunes) Object.assign(NIV_SERVEUR, e.niveauxCommunes);
   if(e.offresRecues) state.offersIn=e.offresRecues; if(e.offresEnvoyees) state.offersOut=e.offresEnvoyees; if(e.notifs) state.notifs=e.notifs;
   if(e.echangesRecus) state.echangesIn=e.echangesRecus; if(e.echangesEnvoyes) state.echangesOut=e.echangesEnvoyes;
   if(e.encheresMenees) state.encheresMenees=e.encheresMenees; if(e.encheresDepasse) state.encheresDepasse=e.encheresDepasse;
@@ -1869,10 +1873,10 @@ async function chargerCaisses(ks, force){ const m=mandatCourant(); ks=[...new Se
   if(!ks.length || !(window.Compte && Compte.client)) return;
   const [c, p, t] = await Promise.all([ Compte.client.rpc('caisse_communes', { communes:ks, m, absent_avant:new Date(now()-MAI.M.absence_jours*JOUR).toISOString(), seuil:MAI.M.seuil }),
     monUid() ? Compte.client.from('parts_maire').select('commune,touche').eq('mandat', m).eq('maire', monUid()).in('commune', ks) : Promise.resolve({ data:[] }),
-    Compte.client.from('travaux').select('commune,total').in('commune', ks) ]);   // le niveau des communes (supabase/sql/170_travaux.sql)
+    Compte.client.from('travaux').select('commune,total,etat,mandat').in('commune', ks) ]);   // le niveau des communes (supabase/sql/170_travaux.sql, 180_usure.sql)
   if(c.error) return;
-  for(const k of ks) CAISSES[k]={ m, avant:[], cours:[], touche:0, travaux:0, lu:now() };
-  for(const r of ((t && t.data)||[])) if(CAISSES[r.commune]) CAISSES[r.commune].travaux=Number(r.total)||0;
+  for(const k of ks) CAISSES[k]={ m, avant:[], cours:[], touche:0, lu:now() };
+  for(const r of ((t && t.data)||[])) TRAV[r.commune]={ etat:Number(r.etat)||0, mandat:r.mandat==null?m:Number(r.mandat) };
   for(const r of (c.data||[])){ if(r.joueur && r.pseudo){ JOUEURS[r.joueur]=JOUEURS[r.joueur]||{ pseudo:r.pseudo, avatar:r.avatar }; PAR_PSEUDO[r.pseudo]=r.joueur; }
     const C=CAISSES[r.commune]; if(C) (Number(r.mandat)===m ? C.cours : C.avant).push(r); }
   for(const r of ((p && p.data)||[])) if(CAISSES[r.commune]) CAISSES[r.commune].touche=Number(r.touche); }
@@ -2157,8 +2161,15 @@ const nomsMaires = l => l.length ? l.map(q=>q===ME?'toi':q).join(' et ') : 'pers
 // toujours et par tous, la fait monter de niveau (0 à 5, paliers ECO.mairie.travaux_paliers) ; chaque niveau, un embellissement.
 // Même sans viser la mairie, on a une raison de verser. Il se voit dans la commune (écran Communes) et sur la carte.
 const TRAVAUX=[['🌳','Des arbres plantés'],['🏮','Des lampadaires'],['🌷','Des massifs de fleurs'],['⛲','Une fontaine'],['🎶','Un kiosque à musique']];
-// démo : ce que les joueurs simulés (et moi) ont versé les 12 derniers mandats
-function travauxDemo(k){ const m=mandatCourant(); let t=0; for(let x=m-12; x<=m; x++) for(const v of Object.values(caisseDe(k, x))) t+=v; return t; }
+// Les travaux s'usent (décision de Gautier, 5 nov.) : à chaque mandat, leur état perd 10 % (MAI.etatTravaux) ; le niveau
+// ajoute 2 % au loyer de tous les lieux de la commune et monte le plafond du Maire (1 000 → 2 000 au niveau 5).
+// Mode serveur : l'état lu dans la table « travaux » (TRAV, avec les caisses), sinon le niveau donné avec ma partie.
+// démo : ce que les joueurs simulés (et moi) ont versé, usé de 10 % par mandat passé (gardé quelques secondes)
+function travauxDemo(k){ const m=mandatCourant(), c=TRAV_DEMO[k]; if(c && c.m===m && now()-c.lu<5000) return c.v;
+  let t=0; for(let x=m-24; x<=m; x++){ let s=0; for(const v of Object.values(caisseDe(k, x))) s+=v; t=MAI.etatTravaux(t, x-1, x)+s; }
+  TRAV_DEMO[k]={ m, v:t, lu:now() }; return t; }
+function etatTravauxDe(k){ if(!MODE_SERVEUR) return travauxDemo(k); const t=TRAV[k]; return t ? MAI.etatTravaux(t.etat, t.mandat, mandatCourant()) : null; }
+function niveauCommune(k){ const e=etatTravauxDe(k); return e!=null ? MAI.niveauTravaux(e) : (NIV_SERVEUR[k]||0); }
 // tout ce que l'écran Communes montre d'une commune : ses Maires (élus au mandat précédent), sa caisse du mandat en cours
 function infoCommune(k, mine){ mine=mine||mesLieuxParCommune(); const lieux=mine[k]||0, m=mandatCourant();
   let avant, cours, absent=()=>false, touche, charge=true;
@@ -2166,9 +2177,9 @@ function infoCommune(k, mine){ mine=mine||mesLieuxParCommune(); const lieux=mine
     avant=vers(C&&C.avant); cours=vers(C&&C.cours); const abs=new Set(charge?C.avant.filter(r=>r.absent).map(nomCaisse):[]); absent=q=>abs.has(q); touche=charge?C.touche:0; }
   else { avant=caisseDe(k, m-1); cours=caisseDe(k, m); touche=state.caisse.touche[k]||0; }
   const elu=MAI.elire(avant, absent), caisse=MAI.elire(cours);
-  const travaux = MODE_SERVEUR ? ((CAISSES[k]||{}).travaux||0) : travauxDemo(k);
-  return { k, lieux, charge, travaux, niveau:MAI.niveauTravaux(travaux), prochain:MAI.prochainTravaux(travaux), maires:elu.maires, jeSuisMaire:elu.maires.includes(ME), caisse, total:Object.values(cours).reduce((s,x)=>s+x,0), moi:cours[ME]||0,
-    rang:caisse.rangs.findIndex(r=>r.qui===ME), manque:MAI.manque(cours, ME), fin:finMandat(m), touche, plafond:MAI.plafondPart(elu.maires.length) }; }
+  const travaux = etatTravauxDe(k)||0, niveau = niveauCommune(k);
+  return { k, lieux, charge, travaux, niveau, prochain:MAI.prochainTravaux(travaux), bonus:MAI.bonusLoyer(niveau), maires:elu.maires, jeSuisMaire:elu.maires.includes(ME), caisse, total:Object.values(cours).reduce((s,x)=>s+x,0), moi:cours[ME]||0,
+    rang:caisse.rangs.findIndex(r=>r.qui===ME), manque:MAI.manque(cours, ME), fin:finMandat(m), touche, plafond:MAI.plafondPart(elu.maires.length, niveau) }; }
 // la fin d'un mandat (démo) : la caisse repart à zéro, les élus prennent la mairie ; je suis prévenu de ce qui me concerne
 function tickMairie(){ if(MODE_SERVEUR) return; const e=state.caisse, m=mandatCourant(); if(e.m===m) return; const premier=e.m==null, avant=e.elus||{};
   e.avant = e.m===m-1 ? { m:e.m, verse:e.verse } : { m:null, verse:{} };
@@ -2301,7 +2312,7 @@ function tickMonuments(){ if(MODE_SERVEUR) return; const t=now(), e=state.entret
 function partMaireEnAttente(){ const o={ total:0, parCommune:{} }; if(MODE_SERVEUR || !state.caisse) return o; const e=state.caisse, m=mandatCourant(); if(e.m!==m) return o;
   const jours=Math.min(now()-Math.max(state.encaisse, debutMandat(m)), ECO.stock_loyer_heures*JOUR/24)/JOUR; if(!(jours>0)) return o;
   for(const k of Object.keys(e.elus||{})){ const elu=MAI.elire(caisseDe(k, m-1)); if(!elu.maires.includes(ME)) continue;
-    const autres=FAKE.reduce((s,f)=>s+lieuxSimules(k,f),0)*LOYER_BASE, v=MAI.part(autres*jours, elu.maires.length, e.touche[k]||0);
+    const niv=niveauCommune(k), autres=FAKE.reduce((s,f)=>s+lieuxSimules(k,f),0)*LOYER_BASE*(1+MAI.bonusLoyer(niv)), v=MAI.part(autres*jours, elu.maires.length, e.touche[k]||0, niv);
     if(v>0){ o.parCommune[k]=v; o.total+=v; } }
   return o; }
 // verser à la caisse d'une commune (il faut y posséder un lieu)
@@ -2335,13 +2346,16 @@ function mesLieuxParCommune(){ const mine={}; Object.values(state.owned).forEach
 // la clé d'une commune trouvée par la recherche, comme celle d'un lieu (communeName) : Paris par arrondissement, Lyon et Marseille entières
 function cleCommune(p){ const code=p.citycode||''; if(code.startsWith('751')) return communeName(code, p.city); return (p.name||p.city||'').replace(/\s+\d+(er|e)\s+Arrondissement$/i,''); }
 let communeVue=null, chargeMaires=false, chargeClasses=false;   // la commune ouverte en tête de l'écran : { k, sous, lon, lat }
-// les travaux de la commune : son niveau, les cinq embellissements (faits ou à venir), le total versé, ce qu'il manque
+// les travaux de la commune : son niveau, les cinq embellissements (faits ou à venir), leur état, ce qu'il manque, ce que
+// rapporte le niveau (loyers de tous les lieux de la commune, plafond du Maire)
 function blocTravaux(I){ const p=I.prochain;
   return `<div class="caisse travaux"><div class="caisse-tete"><span class="t">🏗️ Les travaux de la commune</span><b class="travaux-niv">Niveau ${I.niveau}</b></div>
     <div class="travaux-etapes">${TRAVAUX.map(([ico,t],i)=>`<span class="etape${i<I.niveau?' faite':''}" title="${t}" aria-label="${t}">${ico}</span>`).join('')}</div>
-    <div class="caisse-total"><span>Versé depuis toujours</span><b>${pcs(I.travaux)}</b></div>
+    <div class="caisse-total"><span>État des travaux</span><b>${pcs(I.travaux)}</b></div>
     ${p ? `<div class="caisse-total"><span>Ensuite : ${TRAVAUX[p.niveau-1][1].toLowerCase()}</span><b>${pcs(p.manque)}</b></div>` : '<div class="m">Tous les travaux sont faits : la commune est au plus haut.</div>'}
-    <div class="m petit">Chaque versement à la caisse compte pour les travaux, même sans viser la mairie. Les travaux faits restent faits.</div></div>`; }
+    <div class="caisse-total"><span>Loyers de la commune</span><b>+${Math.round(I.bonus*100)} %</b></div>
+    <div class="caisse-total"><span>La mairie rapporte jusqu’à</span><b>${pcs(MAI.plafondPart(1, I.niveau))}</b></div>
+    <div class="m petit">Les travaux s’usent : ils perdent ${Math.round((MAI.M.travaux_usure||0)*100)} % toutes les 2 semaines. Chaque versement à la caisse les entretient, même sans viser la mairie.</div></div>`; }
 function carteCommune(k, sous, lon, lat){ const I=infoCommune(k), medailles=['🥇','🥈','🥉'];
   let h=`<div class="card commune-ouverte"><button class="fermer-commune" onclick="fermerCommune()" aria-label="Fermer">✕</button>
     <div style="text-align:center"><div class="plaque petite"><small>Commune</small>${echapper(k)}</div>${sous?`<div class="m" style="margin:0 0 6px">${echapper(sous)}</div>`:''}</div>
