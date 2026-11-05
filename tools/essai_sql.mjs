@@ -5,7 +5,7 @@
 // verser, part du Maire plafonnée, absence, fin de mandat annoncée une fois ; les classements et les saisons
 // (100_classements.sql) : patrimoine, Maires, saison figée une fois ; les monuments (110_monuments.sql) : entretien,
 // reprise (lot de reprise, alerte, échanges qui tombent) ; la boutique (120_boutique.sql) : gemmes d'essai, pack acheté,
-// Pass, bon ; les ventes et offres en gemmes ; le paiement par carte (130_paiements.sql) ; le classement des pièces (140_classement_pieces.sql) ; les robots qui se retirent (050_robots.sql) ; les refus attendus et les droits du jeu.
+// Pass, bon ; les ventes et offres en gemmes ; le paiement par carte (130_paiements.sql) ; le classement des pièces (140_classement_pieces.sql) ; le suivi de Gautier (150_suivi.sql) ; les robots qui se retirent (050_robots.sql) ; les refus attendus et les droits du jeu.
 // Prérequis (une fois, rien n'est ajouté au dépôt) : npm i --no-save --no-package-lock @electric-sql/pglite
 //   node tools/essai_sql.mjs            (000_comptes.sql, qui demande l'extension unaccent, est remplacé par un profil minimal)
 import { PGlite } from '@electric-sql/pglite';
@@ -334,7 +334,29 @@ await q('delete from auth.users where id = $1', [E]);
 ok(!(await proprio('e1')) && !(await proprio('e2')) && (await q('select count(*)::int as n from public.joueurs where id = $1', [E]))[0].n === 0
    && (await q('select count(*)::int as n from public.profils where id = $1', [E]))[0].n === 0 && (await q('select count(*)::int as n from public.offres where acheteur = $1', [E]))[0].n === 0,
    'un compte supprimé emporte sa partie, son pseudo et ses offres ; ses lieux redeviennent libres');
+// le suivi de Gautier (150_suivi.sql) : un jour de visite par vrai joueur (jamais un robot), les retours du lendemain et du 7e jour
+const S1 = '00000000-0000-0000-0000-000000000051', S2 = '00000000-0000-0000-0000-000000000052';
+for (const [u, ps] of [[S1, 'sacha'], [S2, 'samy']]) { await q('insert into auth.users (id) values ($1)', [u]); await q('select public.jeu_nouveau_joueur($1, 1500)', [u]);
+  await q("insert into public.profils (id, pseudo, cree_le) values ($1, $2, now() - interval '8 days')", [u, ps]); }
+// sacha : inscrit il y a 8 jours, revenu le lendemain et le 7e jour ; samy : jamais revenu
+await q('insert into public.visites (joueur, jour) values ($1, public.jour_paris() - 8), ($1, public.jour_paris() - 7), ($1, public.jour_paris() - 1), ($2, public.jour_paris() - 8)', [S1, S2]);
+await q('select public.jeu_vu($1)', [S1]); await q('select public.jeu_vu($1)', [S1]); await q('select public.jeu_vu($1)', [D]);
+ok((await q('select count(*)::int as n from public.visites where joueur = $1 and jour = public.jour_paris()', [S1]))[0].n === 1, 'une visite notée une seule fois par jour');
+ok((await q('select count(*)::int as n from public.visites where joueur = $1', [D]))[0].n === 0, 'un robot n’est jamais compté dans les visites');
+const j8 = (await q('select * from public.suivi_jours where jour = public.jour_paris() - 8'))[0];
+ok(Number(j8.inscrits) === 2 && Number(j8.venus) === 2 && Number(j8.revenus_j1) === 1 && Number(j8.revenus_j7) === 1, 'suivi_jours : 2 inscrits il y a 8 jours, 1 revenu le lendemain, 1 le 7e jour', j8);
+const auj = (await q('select * from public.suivi_jours where jour = public.jour_paris()'))[0];
+ok(auj && auj.revenus_j1 === null && auj.revenus_j7 === null, 'suivi_jours : les retours d’aujourd’hui restent vides (le lendemain n’est pas arrivé)', auj);
+ok((await q('select count(*)::int as n from public.suivi_inscrits where id = $1', [D]))[0].n === 0, 'un robot n’est pas compté parmi les inscrits');
+const tot = (await q('select * from public.suivi_total'))[0];
+ok(Number(tot.pct_retour_j1) === 50 && Number(tot.pct_retour_j7) === 50 && Number(tot.venus_aujourdhui) >= 1, 'suivi_total : 50 % de retour le lendemain et le 7e jour', tot);
+await q('delete from auth.users where id = $1', [S2]);
+ok((await q('select count(*)::int as n from public.visites where joueur = $1', [S2]))[0].n === 0, 'un compte supprimé emporte ses visites');
+await db.exec(`set role authenticated; set essai.uid = '${A}';`);
+ok(!!(await refus('select * from public.suivi_total')) && !!(await refus('select * from public.suivi_jours')) && !!(await refus('select * from public.visites')), 'le jeu ne lit pas le suivi de Gautier');
+ok(!!(await refus('select public.jeu_vu($1)', [A])), 'le jeu ne peut pas appeler jeu_vu');
 await db.exec('reset role; set role anon;');
+ok(!!(await refus('select * from public.suivi_total')), 'sans compte non plus');
 ok((await q("select count(*)::int as n from public.caisse_communes(array['Bourg'], 6, now() - interval '7 days')"))[0].n > 0, 'sans compte aussi, on lit les caisses');
 ok((await q('select count(*)::int as n from public.encheres'))[0].n > 0, 'sans compte aussi, on lit les lots');
 ok(!!(await refus('select * from public.robots')), 'personne ne peut lire la liste des robots (ils sont cachés parmi les joueurs)');

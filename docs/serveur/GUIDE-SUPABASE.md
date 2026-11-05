@@ -27,6 +27,17 @@ Ton organisation gratuite a droit à **deux projets actifs** : « Agent de synth
 
 Fait une première fois à la main (SQL Editor). Depuis le 3 nov. 2026, les tables sont dans `supabase/sql/` et la publication les envoie toute seule au serveur (voir `GUIDE-SERVEUR.md`).
 
+## Lire le suivi, les signalements et les alertes (depuis le téléphone aussi)
+
+Sur https://supabase.com/dashboard, ouvre le projet **cadastra**, puis **Table Editor** (l'icône en forme de tableau, à gauche ; sur téléphone, dans le menu ☰). Dans la liste :
+
+- **suivi_total** : une ligne qui résume tout. On y trouve le nombre d'inscrits (en tout, et sur les 7 derniers jours) et les joueurs venus (aujourd'hui, et sur les 7 derniers jours). On y trouve aussi le pourcentage d'inscrits revenus le lendemain (`pct_retour_j1`) et le 7e jour (`pct_retour_j7`), ainsi que les payants, les euros encaissés et le nombre de robots en jeu ;
+- **suivi_jours** : un jour par ligne, du plus récent au plus ancien. Pour chaque jour : les inscrits du jour, les joueurs venus, les inscrits revenus le lendemain et le 7e jour (vide tant que ce jour n'est pas arrivé), les achats, les euros, et les achats en carte de test ;
+- **signalements** : les joueurs signalés par les autres (bouton « Signaler » d'un profil) ; coche `traite` une fois réglé ;
+- **alertes** : un monument redevenu libre (une phrase prête à poster).
+
+Les robots ne sont jamais comptés dans le suivi. Les jours sont de vrais jours (minuit à Paris), même sur le serveur d'essai accéléré.
+
 ## Avant le lancement public (plus tard)
 
 - **Les e-mails d'inscription** : le service d'e-mail fourni par Supabase n'écrit qu'aux membres de ton équipe Supabase, deux fois par heure au plus. Pour les vrais joueurs, il faudra brancher un service d'envoi (Brevo a une formule gratuite) avec une adresse d'expédition à toi.

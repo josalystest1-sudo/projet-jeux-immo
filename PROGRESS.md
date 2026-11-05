@@ -432,6 +432,14 @@
   - **Corrigé** : le cadre rose « Erreur de style : The layer 'parcel-fill' does not exist… » (bug du 3 nov.) : la page cherchait les parcelles et les bâtiments avant que leurs calques soient posés (`parcellesRendues`, et des gardes dans `paintBuildings` et `poserParcelle`). Vérifié en retirant les calques : le cadre apparaît sans la correction, plus avec.
   - **Vérifié** dans un téléphone simulé : avec le vrai serveur, un visiteur neuf arrive sur « Crée ton compte » ; sans serveur, la démo ; `?demo`, la démo et son bouton de retour. 94 tests.
   - **Reste pour la bêta entre amis** : le service d'e-mails (Brevo), sans lequel un nouveau joueur ne reçoit pas l'e-mail de confirmation ; au lancement, retirer les outils d'essai (pack et gemmes d'essai) et passer au vrai rythme.
+- 5 nov. 2026 (PR #149) : **le tableau de suivi de Gautier** (liste « avant la pub » : les inscrits et leurs retours ; Gautier : « vas-y »).
+  - Chaque jour où un vrai joueur passe (heure de Paris) est noté dans la table `visites` par `jeu_vu`, à chaque appel de la fonction « jeu » ; jamais pour un robot. Les joueurs déjà inscrits reçoivent leur jour d'inscription et celui de leur dernière visite.
+  - Deux vues, lisibles seulement dans le tableau de bord de Supabase (Table Editor), jamais par le jeu :
+    - `suivi_total` : inscrits (en tout, sur 7 jours), venus (aujourd'hui, sur 7 jours), pourcentage de retour le lendemain et le 7e jour, payants, euros (vrais paiements seulement), robots en jeu ;
+    - `suivi_jours` : par jour, inscrits, venus, revenus le lendemain et le 7e jour (vide tant que ce jour n'est pas arrivé), achats, euros, achats en carte de test.
+  - Le mode d'emploi pour Gautier : `docs/serveur/GUIDE-SUPABASE.md` (avec les signalements et les alertes).
+  - La confidentialité (française et anglaise) dit que les jours de visite sont gardés pour mesurer la fréquentation.
+  - **Vérifié** : `tools/essai_sql.mjs` (une visite par jour, jamais un robot, retours du lendemain et du 7e jour, vides tant que le jour n'est pas arrivé, compte supprimé emporte ses visites, le jeu ne lit pas le suivi ; 184 vérifications). 94 tests.
 
 ## Bugs connus
 - Les badges 💰 des joueurs simulés n'apparaissent qu'après ouverture de leur parcelle (limite du prototype local).
