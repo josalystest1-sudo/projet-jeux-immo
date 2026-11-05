@@ -695,7 +695,7 @@ async function stripe(chemin: string, params?: Record<string, string>) {
 // l'adresse où Stripe renvoie le joueur : le jeu publié (ou l'outil d'essai), jamais un autre site
 function adresseRetour(retour: unknown) {
   const u = String(retour || '').split('?')[0].split('#')[0];
-  return ORIGINES.some((o) => u === o || u.startsWith(o + '/')) ? u : 'https://josalystest1-sudo.github.io/projet-jeux-immo/';
+  return ORIGINES.some((o) => u === o || u.startsWith(o + '/')) ? u : 'https://citydeck.fr/';
 }
 ACTIONS.paiement_creer = async (j, corps) => {
   const o = (BOU.B.gemmes as Ligne[]).find((x) => x.id === String(corps.offre || ''));

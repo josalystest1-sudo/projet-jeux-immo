@@ -5,7 +5,7 @@ Ce fichier dit **ce qu'est le jeu, comment on travaille, ce qui est décidé et 
 ## 1. Le propriétaire et la façon de travailler
 
 - **Gautier** est le propriétaire. Il ne lit pas de code et n'utilise jamais de terminal. Il travaille depuis l'app Claude, souvent sur son téléphone. On lui parle **en français**, sans jargon.
-- **Fin de chaque session** : expliquer ce qui a été fait en langage courant et lui donner quelque chose à tester sur son téléphone (l'adresse du jeu publié). Ne jamais lui demander de taper une commande ; si une action manuelle est indispensable, la décrire bouton par bouton.
+- **Fin de chaque session** : expliquer ce qui a été fait en langage courant et lui donner quelque chose à tester sur son téléphone (l'adresse du jeu publié : **https://citydeck.fr/** depuis le 5 nov. ; voir `docs/serveur/GUIDE-DOMAINE.md`). Ne jamais lui demander de taper une commande ; si une action manuelle est indispensable, la décrire bouton par bouton.
 - **Une PR par étape**, petite, titre et description en français, fusionnée en squash sur `main` quand les tests passent (aucune vérification automatique sur les PR : lancer `npm test` avant de fusionner). Claude fusionne lui-même.
 - **À chaque PR** : mettre à jour `PROGRESS.md` (le détail) et `docs/HISTORIQUE.md` (une ligne dans « Toutes les PR », une phrase dans le récit si Gautier a demandé ou décidé quelque chose, « Ce qui reste à faire »).
 - **Un seul Claude à la fois** sur le jeu (depuis le 3 nov., le travail continue dans Claude Code : `docs/REPRENDRE-DANS-CLAUDE-CODE.md`).

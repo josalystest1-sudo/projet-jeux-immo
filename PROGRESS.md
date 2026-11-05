@@ -386,6 +386,15 @@
   - **Connexion** : `tools/serveur_adresses.js`, lancé à chaque publication du serveur, ajoute ces adresses à la liste de Supabase Auth, sans retirer celles qui y sont, pour les liens des e-mails.
   - **Guide** `docs/serveur/GUIDE-DOMAINE.md` : la zone DNS chez Infomaniak (4 entrées A vers GitHub, `www` en CNAME), la clé Google, puis le branchement par Claude.
   - **Décision de Gautier** : la phrase générale des CGU sur les joueurs automatiques (GDD § 5 quater).
+- 5 nov. 2026 (PR #142) : **le jeu est à https://citydeck.fr/**.
+  - **La zone DNS d'Infomaniak** est vérifiée : les 4 adresses de GitHub, `www` vers `josalystest1-sudo.github.io`, plus d'IPv6.
+  - **Le domaine** est déclaré dans GitHub Pages (par l'API, la publication passant par GitHub Actions) et le HTTPS est forcé dès que GitHub a donné le certificat. L'ancienne adresse renvoie vers citydeck.fr.
+  - **citydeck.fr devient l'adresse principale** :
+    - de la connexion (`tools/serveur_adresses.js` avec l'adresse principale) ;
+    - du retour d'un paiement par défaut (fonction « jeu ») ;
+    - de l'essai automatique.
+  - **La clé Google** autorise citydeck.fr (Gautier) ; `data/google.json` le note.
+  - **À savoir** : le téléphone garde les données d'un site par adresse. Sur citydeck.fr, il faut se reconnecter et réactiver « Jouer sur le vrai serveur » ; la partie de démo d'avant reste à l'ancienne adresse. L'icône déjà installée sur l'écran d'accueil est à refaire.
 
 ## Bugs connus
 - Mode serveur : si la partie arrive du serveur avant que la carte ait fini de charger, un cadre rose « Erreur de style : The layer 'parcel-fill' does not exist… » peut s'afficher (la page cherche les parcelles avant que leurs calques soient posés) ; sans conséquence pour la partie. Vu le 3 nov. au soir, pas encore corrigé.

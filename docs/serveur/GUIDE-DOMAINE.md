@@ -20,7 +20,7 @@ La clé Google du jeu (`data/google.json`) n'accepte que l'ancienne adresse. San
 
 1. Va sur **console.cloud.google.com**, projet **« Le Laboratoire »**.
 2. Menu ☰ → **API et services** → **Identifiants**.
-3. Touche la clé **« Cadastra »**.
+3. Touche la clé **« Maps Platform API Key »** (la seule de la liste ; c'est la clé du jeu).
 4. Dans **Restrictions relatives aux applications** → **Sites web**, touche **Ajouter** et mets `https://citydeck.fr/*`. Recommence avec `https://www.citydeck.fr/*`. Garde l'ancienne adresse.
 5. Touche **Enregistrer**.
 
@@ -29,8 +29,9 @@ La clé Google du jeu (`data/google.json`) n'accepte que l'ancienne adresse. San
 - **Fait (PR #141)** :
   - le serveur accepte citydeck.fr (`ORIGINES` dans la fonction « jeu », y compris pour le retour d'un paiement) ;
   - les liens des e-mails de connexion peuvent ramener sur citydeck.fr : `tools/serveur_adresses.js`, lancé à chaque publication du serveur.
+- **Fait le 5 nov. (PR #142)** : la zone DNS répondait (les 4 adresses de GitHub, `www` vers `josalystest1-sudo.github.io`, plus d'IPv6 d'Infomaniak), et Gautier avait autorisé la nouvelle adresse dans la clé Google. Claude a fait les étapes suivantes.
 - **Quand la zone DNS répond** : Claude vérifie que `citydeck.fr` mène bien à GitHub. Ensuite :
-  - il déclare le domaine dans GitHub Pages (fichier `CNAME`) et force le HTTPS ;
+  - il déclare le domaine dans GitHub Pages et force le HTTPS. La publication passe par GitHub Actions : le domaine est un réglage du dépôt (API `repos/…/pages`, champ `cname`), pas un fichier `CNAME` ;
   - il fait de citydeck.fr l'adresse principale (connexion, retour des paiements) ;
   - il vérifie le jeu à sa nouvelle adresse.
 - Ne jamais déclarer le domaine dans GitHub Pages **avant** que la zone DNS soit prête : GitHub enverrait alors l'ancienne adresse vers une adresse qui ne répond pas encore, et le jeu serait injoignable.

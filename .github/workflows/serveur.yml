@@ -72,7 +72,7 @@ jobs:
         run: supabase functions deploy jeu --use-api --no-verify-jwt --project-ref "$PROJET" --yes
       - name: Les adresses du jeu pour les liens des e-mails (citydeck.fr et l'ancienne adresse)
         if: steps.jeton.outputs.ok == '1'
-        run: node tools/serveur_adresses.js "$PROJET"
+        run: node tools/serveur_adresses.js "$PROJET" https://citydeck.fr/
       - name: Joueurs robots (serveur d'essai)
         if: steps.jeton.outputs.ok == '1'
         run: node tools/serveur_robots.js "$PROJET"
