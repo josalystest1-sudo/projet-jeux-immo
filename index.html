@@ -102,6 +102,7 @@ const VERSION='__VERSION__';
     <button class="rond" id="cloche" aria-label="Notifications">🔔<span class="cnt" id="cnt-notif"></span></button>
   </div>
   <div id="sugg"></div>
+  <button class="pill" id="commune-chip" hidden aria-label="La commune"></button>
 </div>
 <div id="ctrls">
   <div class="seg"><button class="rbtn on" id="b3d">3D</button><button class="rbtn" id="b2d">2D</button></div>
@@ -527,6 +528,19 @@ async function afficherCelebres(){
       celMarqueurs[e[0]] = new maplibregl.Marker({element:el, anchor:'left', offset:[-12,0]}).setLngLat([e[3],e[4]]).addTo(map); } }
   for(const q of Object.keys(celMarqueurs)) if(!garder.has(q)){ celMarqueurs[q].remove(); delete celMarqueurs[q]; }
   map.getContainer().classList.toggle('cel-noms', map.getZoom()>=16.5); }
+// La commune au centre de la carte (GDD § 5 : le niveau des communes se voit sur la carte) : une étiquette sous la recherche
+// donne son nom, son Maire et ses travaux faits ; la toucher ouvre la commune. Paris, Lyon et Marseille : l'arrondissement.
+let chipMinut=null, chipNum=0;
+function majChipCommune(){ clearTimeout(chipMinut); chipMinut=setTimeout(async()=>{ const el=document.getElementById('commune-chip'), num=++chipNum;
+  if(map.getZoom()<14.5){ el.hidden=true; document.body.classList.remove('avec-commune'); return; }
+  const c=map.getCenter(), pt=map.project(c), f=parcellesRendues([[pt.x-60,pt.y-60],[pt.x+60,pt.y+60]])[0]; if(!f) return;
+  const p=f.properties, code = p.code_arr && p.code_arr!=='000' ? p.code_dep+p.code_arr : p.code_insee, k=communeName(code, p.nom_com); if(!k) return;
+  if(MODE_SERVEUR){ await chargerCaisses([k]); if(num!==chipNum) return; }
+  const I=infoCommune(k), maires=I.charge ? (I.maires.length ? I.maires.map(q=>q===ME?disp(ME):q).join(', ') : '—') : '…';
+  el.innerHTML=`<span class="nom" data-pas-traduire>${echapper(k)}</span><span class="maire">👑 <span data-pas-traduire>${echapper(maires)}</span></span>${I.niveau?`<span class="trav">${TRAVAUX.slice(0,I.niveau).map(x=>x[0]).join('')}</span>`:''}`;
+  el.onclick=()=>{ showScreen('communes'); ouvrirCommune(k, '', c.lng, c.lat); };
+  el.hidden=false; document.body.classList.add('avec-commune'); }, 400); }
+map.on('moveend', majChipCommune); map.once('idle', majChipCommune);
 // toucher un repère : la parcelle du lieu s'ouvre (le lieu y est proposé)
 function parcelleDe(lon, lat){ return map.querySourceFeatures('pci',{sourceLayer:'parcelle'}).find(f=>inside([lon,lat], f.geometry)); }
 function parcelleProche(lon, lat, max){ const mx=111320*Math.cos(lat*Math.PI/180), my=110540; let best=null, bd=max;
@@ -1853,10 +1867,12 @@ function etatReel(idu){ const s=new Set(REEL[idu]||[]); for(const a of (parcelAd
 // et ma part de Maire touchée ; gardées une minute (force : relire tout de suite)
 async function chargerCaisses(ks, force){ const m=mandatCourant(); ks=[...new Set(ks)].filter(Boolean).filter(k=>force || !(CAISSES[k] && CAISSES[k].m===m && now()-CAISSES[k].lu<60000));
   if(!ks.length || !(window.Compte && Compte.client)) return;
-  const [c, p] = await Promise.all([ Compte.client.rpc('caisse_communes', { communes:ks, m, absent_avant:new Date(now()-MAI.M.absence_jours*JOUR).toISOString(), seuil:MAI.M.seuil }),
-    monUid() ? Compte.client.from('parts_maire').select('commune,touche').eq('mandat', m).eq('maire', monUid()).in('commune', ks) : Promise.resolve({ data:[] }) ]);
+  const [c, p, t] = await Promise.all([ Compte.client.rpc('caisse_communes', { communes:ks, m, absent_avant:new Date(now()-MAI.M.absence_jours*JOUR).toISOString(), seuil:MAI.M.seuil }),
+    monUid() ? Compte.client.from('parts_maire').select('commune,touche').eq('mandat', m).eq('maire', monUid()).in('commune', ks) : Promise.resolve({ data:[] }),
+    Compte.client.from('travaux').select('commune,total').in('commune', ks) ]);   // le niveau des communes (supabase/sql/170_travaux.sql)
   if(c.error) return;
-  for(const k of ks) CAISSES[k]={ m, avant:[], cours:[], touche:0, lu:now() };
+  for(const k of ks) CAISSES[k]={ m, avant:[], cours:[], touche:0, travaux:0, lu:now() };
+  for(const r of ((t && t.data)||[])) if(CAISSES[r.commune]) CAISSES[r.commune].travaux=Number(r.total)||0;
   for(const r of (c.data||[])){ if(r.joueur && r.pseudo){ JOUEURS[r.joueur]=JOUEURS[r.joueur]||{ pseudo:r.pseudo, avatar:r.avatar }; PAR_PSEUDO[r.pseudo]=r.joueur; }
     const C=CAISSES[r.commune]; if(C) (Number(r.mandat)===m ? C.cours : C.avant).push(r); }
   for(const r of ((p && p.data)||[])) if(CAISSES[r.commune]) CAISSES[r.commune].touche=Number(r.touche); }
@@ -2137,6 +2153,12 @@ function versementsSimules(k, m){ const o={}, d=debutMandat(m), fin=finMandat(m)
 function caisseDe(k, m){ const c=versementsSimules(k, m), e=state.caisse;
   const moi = e.m===m ? e.verse[k] : (e.avant.m===m ? e.avant.verse[k] : ((e.hist[m]||{})[k]||0)); if(moi) c[ME]=moi; return c; }
 const nomsMaires = l => l.length ? l.map(q=>q===ME?'toi':q).join(' et ') : 'personne';
+// Le niveau de la commune (GDD § 5, [Proposé], construit le 5 nov.) : tout ce qui a été versé à sa caisse de travaux, depuis
+// toujours et par tous, la fait monter de niveau (0 à 5, paliers ECO.mairie.travaux_paliers) ; chaque niveau, un embellissement.
+// Même sans viser la mairie, on a une raison de verser. Il se voit dans la commune (écran Communes) et sur la carte.
+const TRAVAUX=[['🌳','Des arbres plantés'],['🏮','Des lampadaires'],['🌷','Des massifs de fleurs'],['⛲','Une fontaine'],['🎶','Un kiosque à musique']];
+// démo : ce que les joueurs simulés (et moi) ont versé les 12 derniers mandats
+function travauxDemo(k){ const m=mandatCourant(); let t=0; for(let x=m-12; x<=m; x++) for(const v of Object.values(caisseDe(k, x))) t+=v; return t; }
 // tout ce que l'écran Communes montre d'une commune : ses Maires (élus au mandat précédent), sa caisse du mandat en cours
 function infoCommune(k, mine){ mine=mine||mesLieuxParCommune(); const lieux=mine[k]||0, m=mandatCourant();
   let avant, cours, absent=()=>false, touche, charge=true;
@@ -2144,7 +2166,8 @@ function infoCommune(k, mine){ mine=mine||mesLieuxParCommune(); const lieux=mine
     avant=vers(C&&C.avant); cours=vers(C&&C.cours); const abs=new Set(charge?C.avant.filter(r=>r.absent).map(nomCaisse):[]); absent=q=>abs.has(q); touche=charge?C.touche:0; }
   else { avant=caisseDe(k, m-1); cours=caisseDe(k, m); touche=state.caisse.touche[k]||0; }
   const elu=MAI.elire(avant, absent), caisse=MAI.elire(cours);
-  return { k, lieux, charge, maires:elu.maires, jeSuisMaire:elu.maires.includes(ME), caisse, total:Object.values(cours).reduce((s,x)=>s+x,0), moi:cours[ME]||0,
+  const travaux = MODE_SERVEUR ? ((CAISSES[k]||{}).travaux||0) : travauxDemo(k);
+  return { k, lieux, charge, travaux, niveau:MAI.niveauTravaux(travaux), prochain:MAI.prochainTravaux(travaux), maires:elu.maires, jeSuisMaire:elu.maires.includes(ME), caisse, total:Object.values(cours).reduce((s,x)=>s+x,0), moi:cours[ME]||0,
     rang:caisse.rangs.findIndex(r=>r.qui===ME), manque:MAI.manque(cours, ME), fin:finMandat(m), touche, plafond:MAI.plafondPart(elu.maires.length) }; }
 // la fin d'un mandat (démo) : la caisse repart à zéro, les élus prennent la mairie ; je suis prévenu de ce qui me concerne
 function tickMairie(){ if(MODE_SERVEUR) return; const e=state.caisse, m=mandatCourant(); if(e.m===m) return; const premier=e.m==null, avant=e.elus||{};
@@ -2312,6 +2335,13 @@ function mesLieuxParCommune(){ const mine={}; Object.values(state.owned).forEach
 // la clé d'une commune trouvée par la recherche, comme celle d'un lieu (communeName) : Paris par arrondissement, Lyon et Marseille entières
 function cleCommune(p){ const code=p.citycode||''; if(code.startsWith('751')) return communeName(code, p.city); return (p.name||p.city||'').replace(/\s+\d+(er|e)\s+Arrondissement$/i,''); }
 let communeVue=null, chargeMaires=false, chargeClasses=false;   // la commune ouverte en tête de l'écran : { k, sous, lon, lat }
+// les travaux de la commune : son niveau, les cinq embellissements (faits ou à venir), le total versé, ce qu'il manque
+function blocTravaux(I){ const p=I.prochain;
+  return `<div class="caisse travaux"><div class="caisse-tete"><span class="t">🏗️ Les travaux de la commune</span><b class="travaux-niv">Niveau ${I.niveau}</b></div>
+    <div class="travaux-etapes">${TRAVAUX.map(([ico,t],i)=>`<span class="etape${i<I.niveau?' faite':''}" title="${t}" aria-label="${t}">${ico}</span>`).join('')}</div>
+    <div class="caisse-total"><span>Versé depuis toujours</span><b>${pcs(I.travaux)}</b></div>
+    ${p ? `<div class="caisse-total"><span>Ensuite : ${TRAVAUX[p.niveau-1][1].toLowerCase()}</span><b>${pcs(p.manque)}</b></div>` : '<div class="m">Tous les travaux sont faits : la commune est au plus haut.</div>'}
+    <div class="m petit">Chaque versement à la caisse compte pour les travaux, même sans viser la mairie. Les travaux faits restent faits.</div></div>`; }
 function carteCommune(k, sous, lon, lat){ const I=infoCommune(k), medailles=['🥇','🥈','🥉'];
   let h=`<div class="card commune-ouverte"><button class="fermer-commune" onclick="fermerCommune()" aria-label="Fermer">✕</button>
     <div style="text-align:center"><div class="plaque petite"><small>Commune</small>${echapper(k)}</div>${sous?`<div class="m" style="margin:0 0 6px">${echapper(sous)}</div>`:''}</div>
@@ -2329,6 +2359,7 @@ function carteCommune(k, sous, lon, lat){ const I=infoCommune(k), medailles=['�
     h+= I.lieux ? `<button class="btn large" style="margin-top:12px;width:100%" id="verser-caisse">🪙 Verser à la caisse${I.manque>0?` · ${nb(I.manque)} pour mener`:''}</button>`
       : `<div class="m" style="margin-top:10px">Possède un lieu dans la commune pour verser à sa caisse.</div>`;
     h+=`<div class="m petit">Il faut au moins ${pcs(MAI.M.seuil)} pour être élu. Dans la dernière heure du mandat, un versement ne compte qu’à moitié.</div></div>`; }
+  if(I.charge) h+=blocTravaux(I);
   { const P=classementPatrimoine(k), moi=P.find(r=>r.qui===ME);
     h+=`<div class="caisse"><div class="caisse-tete"><span class="t">🏛️ Patrimoine dans la commune</span></div>`+(MODE_SERVEUR && !CLASSES.communes[k] ? '<div class="m">Chargement…</div>' : '')+P.slice(0,5).map(r=>`<div class="rank${r.qui===ME?' moi':''}"><span class="pos">${r.rang<=3?medailles[r.rang-1]:r.rang}</span><span class="who" onclick="showPlayer('${r.qui}')">${r.qui===ME?echapper(disp(ME))+' (toi)':echapper(r.qui)}</span><b>${points(r.n)}</b></div>`).join('')
       +(moi && moi.rang>5 ? `<div class="rank moi"><span class="pos">${moi.rang}</span><span class="who">${echapper(disp(ME))} (toi)</span><b>${points(moi.n)}</b></div>` : '')+`</div>`;
@@ -2351,7 +2382,7 @@ function renderCommunes(){ const el=document.getElementById('s-communes'); const
   if(!communes.length) h+=`<div class="card vide" style="padding:18px"><div class="ico">🏘️</div><div class="m" style="margin:0">Une commune s’ajoute ici dès que tu y possèdes un lieu. En attendant, cherche n’importe quelle commune ci-dessus pour voir son Maire.</div></div>`;
   else { h+=`<div class="card liste-communes">`; for(const k of communes){ const I=infoCommune(k, mine);
       const droite = !I.charge ? '…' : `${I.moi?pcs(I.moi):'—'}<small>${I.moi && !I.manque ? 'tu mènes' : (I.moi ? `${I.rang+1}e · encore ${nb(I.manque)}` : `${nb(I.manque)} pour mener`)}</small>`;
-      h+=`<button class="ligne-commune${communeVue&&communeVue.k===k?' on':''}" data-k="${echapper(k)}"><span class="nom">${I.jeSuisMaire?'👑 ':''}${echapper(k)}<small>Maire : ${I.charge?echapper(nomsMaires(I.maires)):'…'}</small></span><span class="moi-n">${droite}</span><span class="chevron">›</span></button>`; }
+      h+=`<button class="ligne-commune${communeVue&&communeVue.k===k?' on':''}" data-k="${echapper(k)}"><span class="nom">${I.jeSuisMaire?'👑 ':''}${echapper(k)}${I.niveau?`<span class="trav-mini">${TRAVAUX.slice(0,I.niveau).map(x=>x[0]).join('')}</span>`:''}<small>Maire : ${I.charge?echapper(nomsMaires(I.maires)):'…'}</small></span><span class="moi-n">${droite}</span><span class="chevron">›</span></button>`; }
     h+=`</div>`; }
   el.innerHTML=h;
   // mode serveur : les Maires de mes communes (une requête), puis l'écran redessiné s'il n'est pas en train d'être tapé

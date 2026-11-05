@@ -456,6 +456,14 @@
   - Les gares portent leur nom (« Gare de Biarritz » au lieu de « Biarritz »).
   - **La carte** : au plus 60 ⭐ à l'écran, désormais les plus proches du centre (avant : les premiers de la liste).
   - Le serveur embarque la nouvelle liste (2,7 Mo). 95 tests (dont : un tirage Rare ne donne jamais un lieu célèbre).
+- 5 nov. 2026 (PR #153) : **le niveau des communes** (GDD § 5, [Proposé] du 4 nov., construit ; Gautier : « on fait tout ce qui ne nécessite pas un PC »).
+  - Tout ce qui a été versé à la caisse de travaux d'une commune, depuis toujours et par tous, la fait monter de niveau : 0 à 5, paliers 200, 1 000, 3 000, 8 000 et 20 000 pièces (`ECO.mairie.travaux_paliers`, [Proposé]) ; les travaux faits restent faits. Règles : `niveauTravaux`, `prochainTravaux` de `src/regles/mairie.js` (1 test).
+  - Les cinq embellissements : 🌳 des arbres, 🏮 des lampadaires, 🌷 des massifs de fleurs, ⛲ une fontaine, 🎶 un kiosque à musique.
+  - **Serveur** (`supabase/sql/170_travaux.sql`) : table `travaux` (commune → total), tenue par un déclencheur sur `caisses` (chaque versement l'augmente), lisible par tous ; le départ d'un joueur ne la fait pas baisser ; ce qui avait été versé avant est repris une fois. Le jeu la lit avec les caisses (`chargerCaisses`).
+  - **Écran** : la commune ouverte montre « Les travaux de la commune » (niveau, cinq icônes faites ou pâles, versé depuis toujours, ce qu'il manque pour le suivant) ; la liste de mes communes, les icônes faites.
+  - **Carte** : une étiquette sous la recherche (dès le zoom 14,5) donne la commune au centre, son Maire et ses travaux faits ; la toucher ouvre la commune (`majChipCommune` ; Paris, Lyon, Marseille : l'arrondissement, d'après `code_arr` de la parcelle).
+  - Démo : les travaux sont ce que les joueurs simulés ont versé les 12 derniers mandats.
+  - **Vérifié** : `tools/essai_sql.mjs` (201 vérifications : chaque versement compte, le départ d'un joueur ne retire rien, relancer le fichier ne compte rien deux fois, le jeu lit sans écrire) ; à l'image en 320 et 390 px, en français et en anglais. 96 tests.
 
 ## Bugs connus
 - Les badges 💰 des joueurs simulés n'apparaissent qu'après ouverture de leur parcelle (limite du prototype local).

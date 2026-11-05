@@ -69,3 +69,17 @@ test('la part du Maire : 5 % des loyers des autres, partagée entre co-Maires, p
   assert.strictEqual(M.part(100000, 2, 0), 500);
   assert.strictEqual(M.plafondPart(1), 1000); assert.strictEqual(M.plafondPart(2), 500);
 });
+
+test('le niveau de la commune : tout ce qui a été versé à sa caisse depuis toujours, 0 à 5', () => {
+  const p = ECO.mairie.travaux_paliers;
+  assert.strictEqual(p.length, 5);
+  assert.strictEqual(M.niveauTravaux(0), 0);
+  assert.strictEqual(M.niveauTravaux(p[0] - 1), 0);
+  assert.strictEqual(M.niveauTravaux(p[0]), 1);
+  assert.strictEqual(M.niveauTravaux(p[2] + 1), 3);
+  assert.strictEqual(M.niveauTravaux(p[4] * 10), 5, 'pas au-delà du niveau 5');
+  assert.deepStrictEqual(M.prochainTravaux(0), { niveau: 1, palier: p[0], manque: p[0] });
+  assert.deepStrictEqual(M.prochainTravaux(p[1] + 10), { niveau: 3, palier: p[2], manque: p[2] - p[1] - 10 });
+  assert.strictEqual(M.prochainTravaux(p[4]), null, 'au dernier niveau, plus rien à atteindre');
+  for (let k = 1; k < p.length; k++) assert.ok(p[k] > p[k - 1], 'des paliers croissants');
+});
