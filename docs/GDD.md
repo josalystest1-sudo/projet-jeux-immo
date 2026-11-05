@@ -181,7 +181,7 @@ Les règles (`src/regles/robots.js`, réglages `data/economie.json` → `robots`
   - 30 lieux au plus, 3 par commune.
 - **Cachés parmi les joueurs** **[Décidé par Gautier le 5 nov. : « il faut cacher les robots, le but est de leur faire croire que le jeu est actif »]** : des prénoms et des icônes de joueurs ordinaires, et le jeu ne peut pas savoir qui est un robot (la liste n'est lisible que par le serveur).
 - **Jamais de gemmes avec un robot** **[Décidé par Gautier le même jour]** : un robot ne vend ni n'achète jamais en gemmes. Il refuse une offre en gemmes, n'achète pas un lieu vendu en gemmes et vend toujours en pièces. Personne ne dépense donc d'argent réel au profit d'un robot.
-- **[Proposé par Claude, à décider avant le lancement]** : que les CGU disent, en une phrase générale et sans désigner qui, que « des joueurs automatiques peuvent animer le jeu ». Cacher à des clients qui paient que des joueurs sont automatiques peut être reproché comme une pratique commerciale trompeuse ; la règle « jamais de gemmes » réduit ce risque, la phrase des CGU le couvre.
+- **[Décidé par Gautier le 5 nov. : « ok »]** : les CGU diront, en une phrase générale et sans désigner qui, que « des joueurs automatiques peuvent animer le jeu ». Cacher à des clients qui paient que des joueurs sont automatiques peut être reproché comme une pratique commerciale trompeuse ; la règle « jamais de gemmes » réduit ce risque, la phrase des CGU le couvre.
 
 ## 6. Les collections **[V2]**
 
