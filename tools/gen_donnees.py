@@ -9,7 +9,7 @@ Les codes INSEE manquants des monuments sont retrouvés par géocodage inverse (
 Relancer après toute modification de data/sources/ :  python3 tools/gen_donnees.py [standing] [monuments] [celebres]
 (sans argument : tout ; « monuments » interroge l'IGN pour chaque monument et prend une minute.)
 """
-import json, math, pathlib, sys, time, urllib.request, urllib.parse
+import json, math, pathlib, re, sys, time, urllib.request, urllib.parse
 
 RACINE = pathlib.Path(__file__).resolve().parent.parent
 SOURCES = RACINE / 'data' / 'sources'
@@ -137,6 +137,34 @@ def monuments():
 CELEBRES_PRES_MONUMENT = 60  # mètres : une entrée aussi proche d'un monument est ce monument (ou une de ses parties)
 
 
+# Lieux célèbres écartés à la main (5 nov. 2026) : des enseignes (« jamais d'enseigne ni de marque sur un lieu », décision
+# de Gautier du 3 nov.) que les catégories de Wikidata et de Wikipédia laissent passer (tools/wikidata_celebres.py écarte
+# déjà les vins, hôtels, restaurants, entreprises, cabarets), et le Bataclan (un lieu de mémoire, pas un lieu à posséder).
+CELEBRES_EXCLUS = {
+    'Q915451', 'Q3345116', 'Q1810868', 'Q1139243', 'Q330375', 'Q888776',   # Olympia, Nouvel Olympia, Lido, Crazy Horse, Folies Bergère, Bobino
+    'Q810700',                                                            # Bataclan
+    'Q2382361', 'Q2933015', 'Q2932929',                                   # cafés-théâtres (Café de la Gare, les 3T, Fontaine d'Argent)
+    'Q3527471', 'Q3329183',                                               # Grévin (théâtre, musée de La Rochelle)
+    'Q3329113', 'Q3329069', 'Q2992085', 'Q3329234', 'Q3329134',           # musées Christian-Dior, Baccarat (×2), Lalique, EDF
+    'Q16038744', 'Q3075489', 'Q3329250', 'Q3329325', 'Q2994467',          # Pathé, Louis Vuitton (×2), Renault, Citroën
+    'Q3396700', 'Q3113504', 'Q686045', 'Q3096140', 'Q2967866',            # pont Renault, Arkéa Arena, gares Futuroscope et Casino, château Dassault
+    'Q1367990',                                                           # fondation Fernet-Branca
+}
+
+
+def nom_de_gare(nom):
+    """Wikidata nomme une gare par son lieu (« Biarritz ») : « Gare de Biarritz », « Gare d'Ambérieu-en-Bugey », « Gare du Lido »."""
+    if re.match(r'(?i)gare\b', nom):
+        return nom
+    if nom.startswith('Le '):
+        return 'Gare du ' + nom[3:]
+    if nom.startswith('Les '):
+        return 'Gare des ' + nom[4:]
+    if re.match(r'(?i)[aeiouyàâäéèêëîïôöûü]', nom):
+        return "Gare d'" + nom
+    return 'Gare de ' + nom
+
+
 def celebres(monuments_liste):
     ids = {m['id'] for m in monuments_liste}
     grille = {}
@@ -158,10 +186,12 @@ def celebres(monuments_liste):
             continue
         qid, nom, cat, lon, lat, insee, _liens = ligne.split('|')
         lon, lat = float(lon), float(lat)
-        if qid in ids or qid in EXCLUS or not insee or pres_d_un_monument(lon, lat):
+        if qid in ids or qid in EXCLUS or qid in CELEBRES_EXCLUS or not insee or pres_d_un_monument(lon, lat):
             ecartes += 1
             continue
         dep = insee[:3] if insee.startswith('97') else insee[:2]
+        if cat == 'gare':
+            nom = nom_de_gare(nom)
         par_dep.setdefault(dep, []).append([qid, nom[0].upper() + nom[1:], cat, round(lon, 5), round(lat, 5), insee])
 
     dossier = RACINE / 'data' / 'celebres'

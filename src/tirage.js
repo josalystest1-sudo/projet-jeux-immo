@@ -3,7 +3,7 @@
 // tout ce qui touche au réseau et à l'état est fourni par l'appelant (géocodeur IGN, listes de lieux célèbres,
 // « ce lieu est-il libre ? »), et le hasard vient d'une graine (Pack.alea).
 //   Commun : l'adresse la plus proche d'un point au hasard du territoire ; Peu commun : une adresse d'une commune au
-//   standing 2 ; Rare : un lieu nommé (lieu de culte, mairie, château, gare, musée) près d'un point au hasard ;
+//   standing 2 ; Rare : un lieu nommé (lieu de culte, mairie, château, musée), pas célèbre, près d'un point au hasard ;
 //   Épique : une adresse d'une commune au standing 3 ; Légendaire : un lieu célèbre (Wikipédia).
 //   Jamais de monument (Extraordinaire : seulement aux enchères).
 (function (racine) {
@@ -53,7 +53,8 @@
       const c = o.Celebres.categorieDuNom(x.properties.toponym); return o.Celebres.famille(c) === 'culte' ? c : (cats.includes('culte divers') ? 'temple' : 'eglise');
     }
     async function lieuNommeProche(lon, lat, rng) {
-      const kinds = ['culte', 'mairie', 'chateau', 'gare', 'musee']; const k = kinds[Math.floor(rng() * kinds.length)];
+      // (plus de gares depuis le 5 nov. : presque toutes ont un article Wikipédia, elles sont Légendaires et non Rares)
+      const kinds = ['culte', 'mairie', 'chateau', 'musee']; const k = kinds[Math.floor(rng() * kinds.length)];
       const demandes = k === 'culte' ? CULTES.map(([q, c]) => `search?index=poi&q=${q}&category=${encodeURIComponent(c)}&lat=${lat}&lon=${lon}&limit=10`)
         : [`search?index=poi&q=${k}&lat=${lat}&lon=${lon}&limit=10`];
       const reponses = await Promise.all(demandes.map((d) => o.geoJSON(d).catch(() => ({}))));
@@ -63,11 +64,18 @@
       // lieux de culte : les dix plus proches du point, toutes religions confondues (un même lieu n'est compté qu'une fois)
       if (k === 'culte') { const vus = new Set(), d = (x) => o.Celebres.distance([lon, lat], x.geometry.coordinates);
         f = f.filter((x) => { const c = x.properties.toponym + x.geometry.coordinates; if (vus.has(c)) return false; vus.add(c); return true; }).sort((a, b) => d(a) - d(b)).slice(0, 10); }
-      if (!f.length) return null;
-      const x = f[Math.floor(rng() * f.length)], p = x.properties;
-      let carte = { id: 'poi' + hash(p.toponym + x.geometry.coordinates), label: p.toponym, lon: x.geometry.coordinates[0], lat: x.geometry.coordinates[1], citycode: (p.citycode || [])[0] || '', city: (p.city || [])[0] || '', type: 'lieu', cat: k === 'culte' ? catCulte(x) : k };
-      const e = o.Celebres.trouver(carte, await o.celebres(o.Celebres.departement(carte.citycode))); if (e) carte = Object.assign(o.Celebres.lieuDe(e), { city: carte.city });
-      return carte;
+      // un lieu célèbre (Wikipédia) n'est pas un Rare : il est Légendaire, et les Légendaires restent à leur chance (1 carte
+      // sur 100 ; Gautier, 5 nov. : « il faut que les légendaires restent rares »). On ne garde que les lieux nommés qui ne
+      // sont pas célèbres : depuis que les gares, mairies, châteaux et musées célèbres sont connus, un tirage Rare tombait
+      // souvent sur l'un d'eux, était refait, et finissait en Commune.
+      const cartes = [];
+      for (const x of f) {
+        const p = x.properties;
+        const carte = { id: 'poi' + hash(p.toponym + x.geometry.coordinates), label: p.toponym, lon: x.geometry.coordinates[0], lat: x.geometry.coordinates[1], citycode: (p.citycode || [])[0] || '', city: (p.city || [])[0] || '', type: 'lieu', cat: k === 'culte' ? catCulte(x) : k };
+        if (!o.Celebres.trouver(carte, await o.celebres(o.Celebres.departement(carte.citycode)))) cartes.push(carte);
+      }
+      if (!cartes.length) return null;
+      return cartes[Math.floor(rng() * cartes.length)];
     }
     async function celebreAuHasard(rng, zone) {
       const deps = zone ? zone.deps : o.deps, dep = deps[Math.floor(rng() * deps.length)]; const l = await o.celebres(dep); if (!l.length) return null;
