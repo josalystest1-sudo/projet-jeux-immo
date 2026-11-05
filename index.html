@@ -34,6 +34,8 @@ const VERSION='__VERSION__';
   verifier(true); document.addEventListener('visibilitychange', ()=>{ if(document.visibilityState==='visible') verifier(false); });
   setInterval(()=>{ if(document.visibilityState==='visible') verifier(false); }, 60000); })();
 </script>
+<script src="data/langue_en.js"></script>
+<script src="src/langue.js"></script>
 <script src="geo.js"></script>
 <script src="data/economie.js"></script>
 <script src="data/standing.js"></script>
@@ -245,7 +247,9 @@ function nb(n){ return Math.round(n).toLocaleString('fr-FR').replace(/\u202f/g,'
 // un montant : en texte (bandeaux, notifications) avec 🪙 (affiché en pièce dessinée par avecPieces), en page avec la pièce dessinée (pcs)
 function fmt(n){ return nb(n) + ' 🪙'; }
 // un texte qui contient des montants : échappé, et chaque 🪙 (ou l'ancien ₳) remplacé par la pièce dessinée
-function avecPieces(t){ return echapper(t).replace(/\s?(🪙|₳)/g,'\u00a0<i class="pc"></i>'); }
+function avecPieces(t){ return echapper(Langue.t(t)).replace(/\s?(🪙|₳)/g,'\u00a0<i class="pc"></i>'); }
+// Street View dans la langue du jeu (les boutons de Google : « Afficher dans Google Maps »…)
+const SV_LANGUE = Langue.code==='en' ? '&language=en' : '', SV_HL = Langue.code==='en' ? '&hl=en' : '';
 function pcs(n){ return `<span class="montant">${nb(n)}<i class="pc"></i></span>`; }
 // un montant en pièces ou en gemmes (ventes et offres entre joueurs, GDD § 9) : en texte (fmtD) et en page (pcsD)
 const enGemmes = d => d==='gemmes';
@@ -713,14 +717,14 @@ async function choisirPhoto(cible, vue){
   return meilleure; }
 async function afficherStreetView(cible, vue){ const svEl=document.getElementById('sv'), lien=document.getElementById('svlink'); const n=++svDemande; svCourant=null;
   const poser=(src, lat, lon, cap, pano)=>{ if(n!==svDemande) return; svCourant={lat, lon, cap, pano:pano||null}; if(svEl.src!==src) svEl.src=src; lien.href=`https://www.google.com/maps/@?api=1&map_action=pano&viewpoint=${lat.toFixed(6)},${lon.toFixed(6)}&heading=${Math.round(cap)}`; };
-  const sansCle=()=>poser(`https://maps.google.com/maps?q=&layer=c&cbll=${vue.lat.toFixed(6)},${vue.lon.toFixed(6)}&cbp=12,${Math.round(vue.cap)},0,0,${vue.pente}&output=svembed`, vue.lat, vue.lon, vue.cap);
+  const sansCle=()=>poser(`https://maps.google.com/maps?q=&layer=c&cbll=${vue.lat.toFixed(6)},${vue.lon.toFixed(6)}&cbp=12,${Math.round(vue.cap)},0,0,${vue.pente}&output=svembed${SV_HL}`, vue.lat, vue.lon, vue.cap);
   if(!CLE_GOOGLE || cleRefusee) return sansCle();
   const j=await choisirPhoto(cible, vue); if(cleRefusee) return sansCle();
   if(j){ const de={lat:j.location.lat, lon:j.location.lng}; const d=distPhoto(j, cible); const cap = d>4 ? capVers(de, cible) : vue.cap;
     const leve = cible.monument ? 2 : 0;   // un monument : à peine lever les yeux (une fontaine est basse ; on glisse le doigt pour voir plus haut)
-    return poser(`https://www.google.com/maps/embed/v1/streetview?key=${encodeURIComponent(CLE_GOOGLE)}&pano=${encodeURIComponent(j.pano_id)}&heading=${Math.round(cap)}&pitch=${leve}&fov=80`, de.lat, de.lon, cap, j.pano_id); }
+    return poser(`https://www.google.com/maps/embed/v1/streetview?key=${encodeURIComponent(CLE_GOOGLE)}&pano=${encodeURIComponent(j.pano_id)}&heading=${Math.round(cap)}&pitch=${leve}&fov=80${SV_LANGUE}`, de.lat, de.lon, cap, j.pano_id); }
   // aucune photo trouvée ou pas de réseau : l'intégration officielle, photos d'extérieur seulement, depuis la rue
-  poser(`https://www.google.com/maps/embed/v1/streetview?key=${encodeURIComponent(CLE_GOOGLE)}&location=${vue.lat.toFixed(6)},${vue.lon.toFixed(6)}&heading=${Math.round(vue.cap)}&pitch=${-vue.pente}&fov=80&source=outdoor`, vue.lat, vue.lon, vue.cap); }
+  poser(`https://www.google.com/maps/embed/v1/streetview?key=${encodeURIComponent(CLE_GOOGLE)}&location=${vue.lat.toFixed(6)},${vue.lon.toFixed(6)}&heading=${Math.round(vue.cap)}&pitch=${-vue.pente}&fov=80&source=outdoor${SV_LANGUE}`, vue.lat, vue.lon, vue.cap); }
 // =================== la promenade (Street View) ===================
 // Demande de Gautier (3 nov.) : se balader dans les rues en Street View et voir en direct sur la carte devant quel bâtiment
 // on passe, pour l'acheter s'il est à quelqu'un. L'intégration gratuite de Street View (Maps Embed) ne dit jamais où l'on
@@ -833,9 +837,9 @@ function promMarqueur(){ if(!PROM.marqueur){ const el=document.createElement('di
 function promCamera(){ const haut=document.querySelector('#prom .prom-vue').offsetHeight, bas=document.querySelector('#prom .prom-bas').offsetHeight, z=map.getZoom();
   map.easeTo({ center:[PROM.lon,PROM.lat], bearing:PROM.cap, pitch:50, zoom: z<17.4 || z>19 ? 18 : z, padding:{top:haut, bottom:bas, left:0, right:0}, duration:650 }); }
 function promSrc(){ const c=Math.round(PROM.cap), k=encodeURIComponent(CLE_GOOGLE);
-  if(promAvecCle() && PROM.pano) return `https://www.google.com/maps/embed/v1/streetview?key=${k}&pano=${encodeURIComponent(PROM.pano)}&heading=${c}&pitch=0&fov=90`;
-  if(promAvecCle()) return `https://www.google.com/maps/embed/v1/streetview?key=${k}&location=${PROM.lat.toFixed(6)},${PROM.lon.toFixed(6)}&heading=${c}&pitch=0&fov=90&source=outdoor`;
-  return `https://maps.google.com/maps?q=&layer=c&cbll=${PROM.lat.toFixed(6)},${PROM.lon.toFixed(6)}&cbp=12,${c},0,0,0&output=svembed`; }
+  if(promAvecCle() && PROM.pano) return `https://www.google.com/maps/embed/v1/streetview?key=${k}&pano=${encodeURIComponent(PROM.pano)}&heading=${c}&pitch=0&fov=90${SV_LANGUE}`;
+  if(promAvecCle()) return `https://www.google.com/maps/embed/v1/streetview?key=${k}&location=${PROM.lat.toFixed(6)},${PROM.lon.toFixed(6)}&heading=${c}&pitch=0&fov=90&source=outdoor${SV_LANGUE}`;
+  return `https://maps.google.com/maps?q=&layer=c&cbll=${PROM.lat.toFixed(6)},${PROM.lon.toFixed(6)}&cbp=12,${c},0,0,0&output=svembed${SV_HL}`; }
 // deux cadres l'un sur l'autre : la nouvelle vue se charge sous l'ancienne, puis prend sa place (pas d'écran vide à chaque pas)
 function promAfficher(){ const a=document.getElementById('prom-sv-a'), b=document.getElementById('prom-sv-b'), box=document.getElementById('prom');
   const vu = a.classList.contains('vu') ? a : (b.classList.contains('vu') ? b : null), src=promSrc();
@@ -1303,18 +1307,18 @@ function dessinPochette(verso){ const W=1024, H=1522, c=document.createElement('
         k.fillStyle=METAL_OR; k.beginPath(); k.arc(x,y,r,0,Math.PI*2); k.fill(); }
       const [px,py]=P([2.35,48.86]); g.strokeStyle='rgba(255,236,190,.8)'; g.lineWidth=2.5; g.beginPath(); g.arc(px,py,22,0,Math.PI*2); g.stroke();
       // le nom, le titre, la promesse
-      filet(BANDE+58,180,844,3); texte('CITYDECK',BANDE+238,176,700,26,OR(BANDE+90,BANDE+240),METAL_OR); filet(BANDE+272,180,844,3);
-      texte('PACK DU JOUR',BANDE+352,62,600,20,'#F3E3BC','rgb(0,60,230)');
-      filet(H-BANDE-212,300,724,2); texte('5 LIEUX · TOUTE LA FRANCE',H-BANDE-150,46,600,12,OR(H-BANDE-190,H-BANDE-150),METAL_OR);
-      texte('COLLECTIONNE LA FRANCE',H-BANDE-92,30,600,14,'rgba(243,227,188,.7)','rgb(0,90,200)');
+      filet(BANDE+58,180,844,3); texte(Langue.t('CITYDECK'),BANDE+238,176,700,26,OR(BANDE+90,BANDE+240),METAL_OR); filet(BANDE+272,180,844,3);
+      texte(Langue.t('PACK DU JOUR'),BANDE+352,62,600,20,'#F3E3BC','rgb(0,60,230)');
+      filet(H-BANDE-212,300,724,2); texte(Langue.t('5 LIEUX · TOUTE LA FRANCE'),H-BANDE-150,46,600,12,OR(H-BANDE-190,H-BANDE-150),METAL_OR);
+      texte(Langue.t('COLLECTIONNE LA FRANCE'),H-BANDE-92,30,600,14,'rgba(243,227,188,.7)','rgb(0,90,200)');
     } else {
       // le verso : la pièce d'or (ronde, frappée d'une maison : le logo de Gautier, 5 nov.) au centre, le nom, une ligne de texte
       const BORD=new Path2D(); BORD.arc(16,16,14.6,0,Math.PI*2); const ANNEAU=new Path2D(); ANNEAU.arc(16,16,11.2,0,Math.PI*2); const MAISON=new Path2D(Logo.MAISON);
       g.save(); g.translate(W/2-150,H*0.36); g.scale(300/32,300/32); g.shadowColor='rgba(255,196,96,.6)'; g.shadowBlur=4; g.lineJoin='round';
       g.strokeStyle=OR(0,32); g.lineWidth=1.3; g.stroke(BORD); g.lineWidth=0.8; g.stroke(ANNEAU); g.lineWidth=1.1; g.stroke(MAISON); g.restore();
       k.save(); k.translate(W/2-150,H*0.36); k.scale(300/32,300/32); k.strokeStyle=METAL_OR; k.lineWidth=1.6; k.stroke(BORD); k.lineWidth=1; k.stroke(ANNEAU); k.lineWidth=1.3; k.lineJoin='round'; k.stroke(MAISON); k.restore();
-      texte('CITYDECK',H*0.36+400,92,700,18,OR(H*0.36+320,H*0.36+400),METAL_OR);
-      filet(H*0.36+436,330,694,2); texte('CINQ LIEUX DE FRANCE À COLLECTIONNER',H*0.36+500,32,600,8,'rgba(243,227,188,.75)','rgb(0,90,200)');
+      texte(Langue.t('CITYDECK'),H*0.36+400,92,700,18,OR(H*0.36+320,H*0.36+400),METAL_OR);
+      filet(H*0.36+436,330,694,2); texte(Langue.t('CINQ LIEUX DE FRANCE À COLLECTIONNER'),H*0.36+500,32,600,8,'rgba(243,227,188,.75)','rgb(0,90,200)');
     }
     // les soudures : des bandes d'or brossé, en haut et en bas
     for(const y0 of [0,H-BANDE]){ const d=g.createLinearGradient(0,y0,0,y0+BANDE); d.addColorStop(0,'#5A3F14'); d.addColorStop(0.5,'#B8913F'); d.addColorStop(1,'#5A3F14'); g.fillStyle=d; g.fillRect(0,y0,W,BANDE);
@@ -1650,9 +1654,9 @@ function imageDosCarte(){ if(imageDosCarte.url) return imageDosCarte.url; const 
   g.lineCap='round'; g.strokeStyle='rgba(255,255,255,.8)'; g.lineWidth=1.3; g.stroke(REFLET); g.restore();
   // CITYDECK en capitales d'or, entre deux filets ; en bas, la promesse
   const texte=(t,y,taille,esp,style)=>{ g.font=`700 ${taille}px "Barlow Condensed", "Arial Narrow", sans-serif`; const ls=[...t], w=ls.map(ch=>g.measureText(ch).width); let x=cx-(w.reduce((a,b)=>a+b,0)+esp*(ls.length-1))/2; g.fillStyle=style; ls.forEach((ch,i)=>{ g.fillText(ch,x,y); x+=w[i]+esp; }); };
-  texte('CITYDECK',cy+152,50,14,OR(0,cy+110,0,cy+152));
+  texte(Langue.t('CITYDECK'),cy+152,50,14,OR(0,cy+110,0,cy+152));
   for(const [x0,x1] of [[60,150],[W-150,W-60]]){ const d=g.createLinearGradient(x0,0,x1,0); d.addColorStop(x0<cx?0:1,'rgba(233,199,123,0)'); d.addColorStop(x0<cx?1:0,'#E9C77B'); g.fillStyle=d; g.fillRect(x0,cy+170,x1-x0,2); }
-  texte('COLLECTIONNE LA FRANCE',H-62,17,6,'rgba(243,227,188,.75)');
+  texte(Langue.t('COLLECTIONNE LA FRANCE'),H-62,17,6,'rgba(243,227,188,.75)');
   imageDosCarte.url=c.toDataURL('image/jpeg',0.9); return imageDosCarte.url; }
 // la face d'une carte : le badge de src/carte_lieu.js (plan cadastral d'or, maquette de verre, plaque émaillée, chiffres)
 function faceCarte(c, r){ return CarteLieu.html({ r, rarete:RARETES[r], nom:echapper(c.label), commune:echapper(communeName(c.citycode, c.city)), valeur:pcs(valeur(c)), loyer:loyer(c), potentiel:NIVEAUX[plafond(c)].nom, standing:R.standing(c) }); }
@@ -2409,7 +2413,9 @@ function guide(i){ let g=document.getElementById('guide'); if(i>=GUIDE.length ||
 
 // les réglages (depuis le profil ou les notifications)
 function ouvrirReglages(){ const box=document.getElementById('modalbox');
-  box.innerHTML=`<h2>⚙️ Réglages</h2><div class="sub">Ce que le jeu te signale.</div>
+  box.innerHTML=`<h2>⚙️ Réglages</h2>
+    <div class="sw langue"><span>Langue · Language</span><span class="devises petit choix-langue" data-pas-traduire><button class="${Langue.code==='fr'?'on':''}" onclick="Langue.choisir('fr')">Français</button><button class="${Langue.code==='en'?'on':''}" onclick="Langue.choisir('en')">English</button></span></div>
+    <div class="sub">Ce que le jeu te signale.</div>
     <div class="sw"><span>Recevoir les offres d’achat sur mes lieux</span><input type="checkbox" ${state.prefs.offres?'checked':''} onchange="setPref('offres',this.checked)"></div>
     <div class="sw"><span>Ignorer les offres sous la valeur du lieu</span><input type="checkbox" ${state.prefs.seuil?'checked':''} onchange="setPref('seuil',this.checked)"></div>
     <div class="sw"><span>M’alerter quand je suis dépassé aux enchères</span><input type="checkbox" ${state.prefs.encheres?'checked':''} onchange="setPref('encheres',this.checked)"></div>
@@ -2452,7 +2458,7 @@ function supprimerMonCompte(){ if(!(window.Compte && Compte.session)) return; co
   document.getElementById('modal').classList.add('on');
   const mot=box.querySelector('#suppr-mot'), ok=box.querySelector('#suppr-ok'), err=box.querySelector('#suppr-err');
   mot.addEventListener('keydown', e=>{ if(e.key==='Enter' && !e.isComposing){ e.preventDefault(); ok.click(); } });
-  ok.onclick=async()=>{ if(mot.value.trim().toUpperCase()!=='SUPPRIMER'){ err.textContent='Écris SUPPRIMER pour confirmer.'; return; }
+  ok.onclick=async()=>{ const motTape=mot.value.trim().toUpperCase(); if(motTape!=='SUPPRIMER' && motTape!==Langue.t('SUPPRIMER')){ err.textContent='Écris SUPPRIMER pour confirmer.'; return; }
     ok.disabled=true; ok.textContent='…'; const r=await appelServeur('supprimer_compte', { confirmer:'SUPPRIMER' });
     if(!r || !r.ok){ ok.disabled=false; ok.textContent='Supprimer définitivement'; err.textContent=(r && r.message) || 'Le serveur ne répond pas'; return; }
     try{ await Compte.client.auth.signOut(); }catch(e){}

@@ -1312,4 +1312,10 @@ html.pocket select{background:#fff;border:1px solid #D9DFEA;border-radius:12px;p
 #top.serre4 .bourse .pc{width:20px;height:20px}
 #top.serre4 .pill.bourse,#top.serre4 .pill.gemmes{padding:5px 8px 5px 6px;gap:4px}
 #top.serre4 .pill.gemmes{flex:0 1 auto;min-width:0;overflow:hidden}
-
+/* le choix de la langue (réglages, 5 nov.) */
+.sw.langue .choix-langue{display:flex;gap:6px;margin:0;flex:none}
+.sw.langue .choix-langue button{flex:none;min-width:84px}
+/* le choix de la langue sur l'écran de compte (avant les réglages) */
+.cpt-langue{display:flex;justify-content:center;gap:6px;margin:14px 0 0}
+.cpt-langue button{border:0;background:none;font:inherit;font-weight:800;font-size:13px;color:var(--gris,#7C8598);padding:4px 10px;border-radius:999px;cursor:pointer}
+.cpt-langue button.on{background:var(--accent-clair,#EAF0FB);color:var(--accent,#2453B3)}

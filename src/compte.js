@@ -24,6 +24,12 @@
     if (/failed to fetch|network/i.test(m)) return 'Serveur injoignable : vérifie ta connexion et réessaie.';
     return 'Erreur : ' + m;
   }
+  // le choix de la langue, dès l'écran de compte (un nouveau joueur ne voit pas encore les réglages ; français par défaut)
+  function choixLangue() {
+    if (!window.Langue) return '';
+    const L = window.Langue.code;
+    return `<div class="cpt-langue" data-pas-traduire><button class="${L === 'fr' ? 'on' : ''}" onclick="Langue.choisir('fr')">Français</button><button class="${L === 'en' ? 'on' : ''}" onclick="Langue.choisir('en')">English</button></div>`;
+  }
   function emailValide(e) { return /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(e); }
 
   // ---------------------------------------------------------------- les écrans
@@ -39,7 +45,7 @@
       ${inscription ? '<div class="m petit" style="text-align:center;margin:-2px 0 10px">En créant ton compte, tu acceptes les <a href="conditions.html" target="_blank" rel="noopener">conditions d’utilisation</a> et la <a href="confidentialite.html" target="_blank" rel="noopener">politique de confidentialité</a>.</div>' : ''}
       <div class="m" style="text-align:center">${inscription
         ? 'Déjà un compte ? <a href="#" id="cpt-bascule" style="color:var(--gold)">Me connecter</a>'
-        : 'Pas encore de compte ? <a href="#" id="cpt-bascule" style="color:var(--gold)">Créer un compte</a> · <a href="#" id="cpt-oubli" style="color:var(--gold)">Mot de passe oublié</a>'}</div>`);
+        : 'Pas encore de compte ? <a href="#" id="cpt-bascule" style="color:var(--gold)">Créer un compte</a> · <a href="#" id="cpt-oubli" style="color:var(--gold)">Mot de passe oublié</a>'}</div>${choixLangue()}`);
     const err = box().querySelector('#cpt-err'), ok = box().querySelector('#cpt-ok');
     box().querySelector('#cpt-bascule').onclick = (e) => { e.preventDefault(); ecranCompte(inscription ? 'connexion' : 'inscription'); };
     const oubli = box().querySelector('#cpt-oubli'); if (oubli) oubli.onclick = (e) => { e.preventDefault(); ecranOubli(box().querySelector('#cpt-mail').value.trim()); };
