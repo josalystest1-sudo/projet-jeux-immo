@@ -515,6 +515,10 @@
   - la fonction « jeu » : `envoyerAlertes` dans l'horloge (`tic`, toutes les 10 minutes) envoie les nouvelles alertes de monument (reprise pour absence, impayé, lot de reprise sans preneur ; pas les alertes `comptes`) à contact@citydeck.fr, toutes ensemble, une fois par heure au plus : le nom, la commune, la fin de l'enchère et la phrase prête à poster ;
   - l'envoi : Brevo en SMTP, port 465 (Supabase bloque 25 et 587), par un petit client sans bibliothèque (`supabase/functions/jeu/smtp.mjs`, essayé par `tests/smtp.test.js` contre un serveur simulé) ; la publication du serveur passe la clé SMTP du secret GitHub aux secrets de la fonction ;
   - `tools/essai_sql.mjs` essaie la colonne et la fonction ; `deno check` passe. 102 tests.
+- 6 nov. 2026 (PR #168) : **le démarrage plus rapide** (mesuré par Chrome sans fenêtre, téléphone en 4G simulée, 9 Mbit/s et 150 ms, processeur ralenti 4 fois) : le logo de l'accueil n'apparaissait qu'après 3,2 s, car toutes les bibliothèques (carte, 3D, serveur : 1,1 Mo compressé en tout) étaient chargées dans l'en-tête, avant la page :
+  - les 32 scripts passent après l'écran d'accueil (`src/logo.js` juste avant le logo) : le logo s'affiche dès que la page et le style sont arrivés (sur le serveur local, sans compression : 3,8 s → 1,8 s ; la carte n'arrive pas plus tard) ;
+  - connexions ouvertes d'avance (`preconnect`) vers unpkg.com, data.geopf.fr (tuiles et polices IGN) et le serveur Supabase ;
+  - vérifié : traductions (rien de nouveau ne manque, seulement des noms propres), ouverture du pack, écrans. 102 tests.
 
 ## Bugs connus
 - Les badges 💰 des joueurs simulés n'apparaissent qu'après ouverture de leur parcelle (limite du prototype local).
