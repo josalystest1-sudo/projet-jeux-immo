@@ -1,4 +1,4 @@
-// Le logo de CityDeck, d'après le modèle envoyé par Gautier le 5 nov. 2026 : la plaque de rue émaillée « CITYDECK »
+// Le logo de StreetKeep, d'après le modèle envoyé par Gautier le 5 nov. 2026 : la plaque de rue émaillée « STREETKEEP »
 // (cadre vert, filet blanc aux coins rentrants, liseré d'or, deux vis), deux cartes au bord d'or en éventail derrière, et la
 // pièce d'or ronde frappée d'une maison (la monnaie du jeu, icones/piece.svg). Dessiné en SVG (net à toutes les tailles) :
 //   Logo.svg()        le logo en long (l'écran d'accueil, la connexion)
@@ -51,9 +51,9 @@
   // le logo en long : 1000 × 620
   function svg(attrs) {
     const id = 'lg' + (++n);
-    return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 620" role="img" aria-label="CityDeck" ${attrs || ''}>${degrades(id)}`
+    return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 620" role="img" aria-label="StreetKeep" ${attrs || ''}>${degrades(id)}`
       + carte(470, 250, 620, 330, -12, id) + carte(520, 270, 620, 330, -7, id)
-      + `<g transform="translate(500 360) rotate(-3)">${plaque(800, 400, ['CITYDECK'], 200, id)}</g>`
+      + `<g transform="translate(500 360) rotate(-3)">${plaque(800, 400, ['STREETKEEP'], 200, id)}</g>`
       + piece(868, 498, 92) + eclat(820, 430, 22) + `</svg>`;
   }
   // l'icône carrée : 512 × 512

@@ -36,7 +36,7 @@
   function ecranCompte(mode, message) {
     bloquant = true;
     const inscription = mode !== 'connexion';
-    ouvrir(`<div class="logo-jeu petit">${window.Logo ? Logo.svg() : '<div class="plaque" style="font-size:26px">CityDeck</div>'}</div><h2>${inscription ? 'Crée ton compte' : 'Connexion'}</h2>
+    ouvrir(`<div class="logo-jeu petit">${window.Logo ? Logo.svg() : '<div class="plaque" style="font-size:26px">StreetKeep</div>'}</div><h2>${inscription ? 'Crée ton compte' : 'Connexion'}</h2>
       <div class="sub">${inscription ? 'Un compte par joueur : il garde ton pseudo. Bientôt, tes lieux et tes pièces te suivront aussi d’un appareil à l’autre.' : 'Content de te revoir !'}</div>
       <input class="txt" id="cpt-mail" type="email" autocomplete="email" placeholder="Ton e-mail" style="margin-bottom:8px">
       <input class="txt" id="cpt-mdp" type="password" autocomplete="${inscription ? 'new-password' : 'current-password'}" placeholder="Mot de passe${inscription ? ' (8 caractères au moins)' : ''}">

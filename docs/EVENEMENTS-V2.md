@@ -1,4 +1,4 @@
-# CityDeck — Système d'événements de commune (V2)
+# StreetKeep — Système d'événements de commune (V2)
 
 Écrit par Claude le 4 nov. 2026 à la demande de Gautier, après la séance de game design de l'après-midi (GDD § 14). Pas en V1.
 

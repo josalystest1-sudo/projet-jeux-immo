@@ -4,7 +4,7 @@
 const fs = require('fs'); const path = require('path');
 const MIN = 2000, SORTIE = path.join(__dirname, '..', 'data', 'chasse_communes.json');
 (async () => {
-  const r = await fetch('https://geo.api.gouv.fr/communes?fields=nom,code,population,mairie,centre,codeDepartement&format=json', { headers: { 'User-Agent': 'CityDeck (github.com/josalystest1-sudo/projet-jeux-immo)' } });
+  const r = await fetch('https://geo.api.gouv.fr/communes?fields=nom,code,population,mairie,centre,codeDepartement&format=json', { headers: { 'User-Agent': 'StreetKeep (github.com/josalystest1-sudo/projet-jeux-immo)' } });
   if (!r.ok) throw new Error('geo.api.gouv.fr : HTTP ' + r.status);
   const liste = (await r.json()).filter((c) => (c.population || 0) >= MIN && (c.mairie || c.centre) && !String(c.codeDepartement).startsWith('97'))   // la métropole et la Corse (comme les packs)
     .map((c) => { const p = (c.mairie || c.centre).coordinates; return [c.code, c.nom, +p[0].toFixed(5), +p[1].toFixed(5), c.population, c.codeDepartement]; })

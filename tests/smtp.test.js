@@ -29,16 +29,16 @@ function serveur(refuser) {
 
 test('un e-mail par SMTP : connexion, authentification, message en UTF-8 lisible', async () => {
   const { envoyer } = await charger();
-  const s = serveur(), texte = 'Château de Blois (Blois) est de nouveau libre.\nÀ poster : « 🏛️ … #CityDeck »\n.ligne qui commence par un point';
-  await envoyer(s, { login: 'moi@smtp-brevo.com', cle: 'cle-secrete', de: 'noreply@citydeck.fr', nomDe: 'CityDeck', a: 'contact@citydeck.fr', sujet: 'CityDeck : un monument à annoncer', texte, date: new Date(0), id: 'essai' });
+  const s = serveur(), texte = 'Château de Blois (Blois) est de nouveau libre.\nÀ poster : « 🏛️ … #StreetKeep »\n.ligne qui commence par un point';
+  await envoyer(s, { login: 'moi@smtp-brevo.com', cle: 'cle-secrete', de: 'noreply@citydeck.fr', nomDe: 'StreetKeep', a: 'contact@citydeck.fr', sujet: 'StreetKeep : un monument à annoncer', texte, date: new Date(0), id: 'essai' });
   const r = s.recu;
   assert.equal(r[0], 'EHLO citydeck.fr'); assert.equal(r[1], 'AUTH LOGIN');
   assert.equal(Buffer.from(r[2], 'base64').toString(), 'moi@smtp-brevo.com'); assert.equal(Buffer.from(r[3], 'base64').toString(), 'cle-secrete');
   assert.equal(r[4], 'MAIL FROM:<noreply@citydeck.fr>'); assert.equal(r[5], 'RCPT TO:<contact@citydeck.fr>'); assert.equal(r[6], 'DATA');
   const fin = r.indexOf('.'), entetes = r.slice(7, r.indexOf('', 7)), corps = r.slice(r.indexOf('', 7) + 1, fin);
-  assert.ok(entetes.includes('From: CityDeck <noreply@citydeck.fr>') && entetes.includes('To: <contact@citydeck.fr>') && entetes.includes('Content-Transfer-Encoding: base64'));
+  assert.ok(entetes.includes('From: StreetKeep <noreply@citydeck.fr>') && entetes.includes('To: <contact@citydeck.fr>') && entetes.includes('Content-Transfer-Encoding: base64'));
   const sujet = entetes.find((l) => l.startsWith('Subject:')).match(/=\?UTF-8\?B\?(.*)\?=/)[1];
-  assert.equal(Buffer.from(sujet, 'base64').toString(), 'CityDeck : un monument à annoncer');
+  assert.equal(Buffer.from(sujet, 'base64').toString(), 'StreetKeep : un monument à annoncer');
   assert.ok(corps.every((l) => l.length <= 76 && !l.startsWith('.')));
   assert.equal(Buffer.from(corps.join(''), 'base64').toString(), texte);
   assert.equal(r[fin + 1], 'QUIT');
@@ -47,6 +47,6 @@ test('un e-mail par SMTP : connexion, authentification, message en UTF-8 lisible
 test('un refus du serveur SMTP arrête l’envoi avec son message', async () => {
   const { envoyer } = await charger();
   const s = serveur('Y2xl');   // la clé (base64 de « cle »)
-  await assert.rejects(envoyer(s, { login: 'moi', cle: 'cle', de: 'noreply@citydeck.fr', nomDe: 'CityDeck', a: 'contact@citydeck.fr', sujet: 's', texte: 't' }), /535/);
+  await assert.rejects(envoyer(s, { login: 'moi', cle: 'cle', de: 'noreply@citydeck.fr', nomDe: 'StreetKeep', a: 'contact@citydeck.fr', sujet: 's', texte: 't' }), /535/);
   assert.ok(!s.recu.some((l) => l.startsWith('MAIL FROM')));
 });

@@ -1,5 +1,5 @@
 """
-Simulation économique CityDeck — monnaie premium (gemmes) sur 365 jours.
+Simulation économique StreetKeep — monnaie premium (gemmes) sur 365 jours.
 Modèle agent-based simplifié. Hypothèses dans PARAMS (modifiables).
 """
 import random, statistics, json

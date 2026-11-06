@@ -452,7 +452,7 @@ async function cloturer(l: Ligne) {
   const top = ENC.meilleure((mises || []).map((b: Ligne) => ({ qui: b.joueur, montant: Number(b.montant), ts: Number(b.id) })));
   const r = await rpc('jeu_enchere_cloturer', { c: l.cle });
   if (!r) return;   // déjà clos par un autre appel
-  if (!r.gagnant && Number(l.rang) >= 10) await rpc('jeu_alerte', { alerte: { type: 'sans_preneur', monument: l.monument, nom: (l.lieu && l.lieu.label) || l.monument, commune: (l.lieu && l.lieu.commune) || '', fin_enchere: null, texte: `🏛️ ${(l.lieu && l.lieu.label) || 'Un monument'} attend toujours son propriétaire dans CityDeck : il reviendra bientôt aux enchères. #CityDeck` } }).catch((e) => console.error('alerte', e));
+  if (!r.gagnant && Number(l.rang) >= 10) await rpc('jeu_alerte', { alerte: { type: 'sans_preneur', monument: l.monument, nom: (l.lieu && l.lieu.label) || l.monument, commune: (l.lieu && l.lieu.commune) || '', fin_enchere: null, texte: `🏛️ ${(l.lieu && l.lieu.label) || 'Un monument'} attend toujours son propriétaire dans StreetKeep : il reviendra bientôt aux enchères. #StreetKeep` } }).catch((e) => console.error('alerte', e));
   const nom = (l.lieu && l.lieu.label) || 'le monument', g = r.gagnant as string | null, prix = Number(r.prix || 0), ps = await pseudos(joueurs);
   for (const u of joueurs) {
     if (u === g) { await notifier(u, 'enchere', `🏆 Tu as remporté ${nom} pour ${fmt(prix)} !`, { lieu: l.lieu.id }); continue; }
@@ -676,7 +676,7 @@ async function reprendre(l: Ligne, raison: string, pourquoi: string) {
   const nom = l.label || (m && m.nom) || 'Un monument', commune = Regles.nomCommune(l.citycode || '', l.city || '');
   const lot = m ? { cle: `${sem}:R:${m.id}:${Date.now()}`, semaine: sem, rang: 10, palier: m.palier, monument: m.id, lieu: lieuMonument(m), depart: ENC.miseDepart(m), fin: new Date(finLot).toISOString() } : null;
   const alerte = { type: raison, monument: id, nom, commune, fin_enchere: lot ? lot.fin : null,
-    texte: `🏛️ ${nom} (${commune}) est de nouveau libre dans CityDeck ! Enchères jusqu’au ${dateEnchere(finLot, jm)} : à vos pièces ! #CityDeck` };
+    texte: `🏛️ ${nom} (${commune}) est de nouveau libre dans StreetKeep ! Enchères jusqu’au ${dateEnchere(finLot, jm)} : à vos pièces ! #StreetKeep` };
   const p = await rpc('jeu_monument_reprendre', { l: l.id, raison, lot, alerte });
   if (p) await notifier(p, 'monument', `🏛️ ${nom} est remis aux enchères : ${pourquoi}.`, {});
 }
@@ -739,13 +739,13 @@ async function envoyerAlertes() {
   const blocs = (data as Ligne[]).map((a) => [`${ALERTES_EMAIL[a.type]} :`, `${a.nom || a.monument || 'un monument'}${a.commune ? ` (${a.commune})` : ''}`,
     ...(a.fin_enchere ? [`Enchères jusqu’au ${dateEnchere(ms(a.fin_enchere), jm)}.`] : []), ...(a.texte ? ['À poster :', a.texte] : [])].join('\n'));
   const un = data.length === 1 ? (data[0] as Ligne) : null;
-  const sujet = un ? (un.type === 'sans_preneur' ? `CityDeck : ${un.nom} attend un preneur` : `CityDeck : ${un.nom} est de nouveau libre`) : `CityDeck : ${data.length} alertes de monuments`;
+  const sujet = un ? (un.type === 'sans_preneur' ? `StreetKeep : ${un.nom} attend un preneur` : `StreetKeep : ${un.nom} est de nouveau libre`) : `StreetKeep : ${data.length} alertes de monuments`;
   const texte = ['Bonjour,', '', un ? 'Une nouvelle alerte du jeu :' : `${data.length} nouvelles alertes du jeu :`, '', blocs.join('\n\n---\n\n'), '',
     ...(essai ? ['(Serveur d’essai : un jour du jeu dure une minute.)', ''] : []),
-    'Toutes les alertes sont aussi dans le tableau de bord de Supabase (table « alertes »).', '— CityDeck'].join('\n');
+    'Toutes les alertes sont aussi dans le tableau de bord de Supabase (table « alertes »).', '— StreetKeep'].join('\n');
   const conn = await Deno.connectTls({ hostname: 'smtp-relay.brevo.com', port: 465 });
   try {
-    await envoyerSmtp(conn, { login: Deno.env.get('BREVO_SMTP_LOGIN') || 'bbfc16001@smtp-brevo.com', cle, de: 'noreply@citydeck.fr', nomDe: 'CityDeck',
+    await envoyerSmtp(conn, { login: Deno.env.get('BREVO_SMTP_LOGIN') || 'bbfc16001@smtp-brevo.com', cle, de: 'noreply@citydeck.fr', nomDe: 'StreetKeep',
       a: Deno.env.get('ALERTES_EMAIL') || 'contact@citydeck.fr', sujet, texte });
   } finally { try { conn.close(); } catch (_) { /* déjà fermée */ } }
   await rpc('jeu_alertes_envoyees', { ids: data.map((a: Ligne) => a.id) });
@@ -933,8 +933,8 @@ ACTIONS.paiement_creer = async (j, corps) => {
   const s = await stripe('checkout/sessions', {
     mode: 'payment', locale: 'fr', client_reference_id: j,
     'line_items[0][quantity]': '1', 'line_items[0][price_data][currency]': 'eur', 'line_items[0][price_data][unit_amount]': String(centimes),
-    'line_items[0][price_data][product_data][name]': `${nb(o.gemmes)} gemmes CityDeck`,
-    'line_items[0][price_data][product_data][description]': 'Monnaie du jeu CityDeck, sans valeur monétaire : elle ne se revend pas et ne s’échange ni contre de l’argent ni contre des pièces.',
+    'line_items[0][price_data][product_data][name]': `${nb(o.gemmes)} gemmes StreetKeep`,
+    'line_items[0][price_data][product_data][description]': 'Monnaie du jeu StreetKeep, sans valeur monétaire : elle ne se revend pas et ne s’échange ni contre de l’argent ni contre des pièces.',
     'metadata[joueur]': j, 'metadata[offre]': o.id, 'payment_intent_data[metadata][joueur]': j,
     success_url: `${retour}?paiement={CHECKOUT_SESSION_ID}`, cancel_url: `${retour}?paiement=annule`,
   });
