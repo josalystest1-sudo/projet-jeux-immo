@@ -74,3 +74,13 @@ test('le département d\'un code INSEE', () => {
   assert.strictEqual(C.departement('2A004'), '2A');
   assert.strictEqual(C.departement('97411'), '974');
 });
+
+test('pas de marque dans les packs : domaines viticoles, chocolatiers, maisons connues (décision du 3 nov.)', () => {
+  for (const n of ['Château Lynch-Bages', 'Château la Bécasse', 'Château Haut-Brion', 'Château Bouvet-Ladubay',
+    'Musée du Chocolat Puyodebat', 'Distillerie Combier', 'Musée Hennessy', 'Cristallerie Daum']) assert.ok(C.marque(n), n);
+  // un château porte le nom d'un lieu ; un nom de saint, de ville ou de personne n'est pas une marque
+  for (const n of ['Château de Saumur', "Château d'Angers", 'Château du Breuil', 'Château fort de Bonaguil', 'Château-Thierry',
+    'Musée du chocolat', "Musée Régional d'Archéologie et du Vin de Champagne", 'Église Saint-Pierre-Chanel',
+    'Abbaye bénédictine de La Rochette', 'Église Saint-Christophe de Champagne-Vigny', 'Mairie de Cognac',
+    'Église Saint-Rémy']) assert.ok(!C.marque(n), n);
+});

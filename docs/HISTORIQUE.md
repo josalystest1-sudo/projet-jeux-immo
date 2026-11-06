@@ -185,6 +185,7 @@ Rien d'important ne vit dans une conversation : tout est dans le dépôt ou sur 
 - **Le niveau des communes** (PR #153). Gautier remet Brevo à plus tard : « on fait tout ce qui ne nécessite pas un PC ». Claude enchaîne avec ce que le game design du 4 nov. prévoyait encore : ce qui a été versé à la caisse d'une commune, depuis toujours, la fait monter de niveau (arbres, lampadaires, fleurs, fontaine, kiosque), visible dans la commune et sur la carte.
 - **Les travaux s'usent** (PR #156). Gautier : « c'est bien de monter le niveau d'une commune, mais si elle est au niveau max, il reste quoi à faire ? Comment devenir Maire ? Pour quoi faire ? ». Claude rappelle les règles du Maire (le plus gros versement de la quinzaine, 5 % des loyers des autres plafonnés, surtout du prestige) et propose ; Gautier choisit : les travaux s'usent (10 % toutes les 2 semaines), le niveau donne +2 % de loyer par niveau à tous les propriétaires de la commune, et le plafond du Maire monte avec le niveau (jusqu'à 2 000). Il accepte aussi l'horloge (« oui, active-la »).
 - **Les monuments qui sont des marques** (PR #157). Claude repose la question ouverte depuis le 3 nov. (le Ritz, Maxim's, le Crillon, le Negresco, Château Margaux, le Train bleu sont des marques) ; Gautier : « garde-les ». Ils restent aux enchères.
+- **Les marques qui restaient** (PR #158). Gautier : « reste-t-il des trucs que tu peux faire seul ? ». Claude enchaîne ce qui ne demande pas Gautier. D'abord les marques encore présentes : un pack pouvait donner un domaine viticole en Rare (près de Pauillac, l'IGN ne propose que des « Château Lynch-Bages », « Château Pédesclaux »…) ; ces noms sont désormais écartés des packs, ainsi que huit lieux célèbres (Vache qui rit, Matmut Stadium, champagne Jacquesson…).
 - **L'horloge du serveur** (PR #155). Dans la même série : toutes les 10 minutes, GitHub appelle le serveur pour clore les enchères, faire tourner les mandats et les saisons, tenir les monuments et faire jouer les robots, même sans joueur.
 - **L'anti-triche** (PR #150). Dans la foulée : pas plus de 60 actions par minute pour un compte, et une empreinte chiffrée de la connexion (jamais l'adresse IP) ; dès 3 comptes sur une même connexion dans la journée, une alerte pour Gautier, sans rien bloquer (familles, réseaux partagés, multi-comptes tolérés en V1).
 
@@ -370,6 +371,7 @@ Puis une PR par étape, fusionnée en squash :
 | #155 | 05/11 | L'horloge du serveur : toutes les 10 minutes, enchères, mandats, saisons, monuments et robots tournent sans joueur |
 | #156 | 05/11 | Les travaux des communes s'usent (−10 % par mandat) ; le niveau donne +2 % de loyer par niveau et monte le plafond du Maire (jusqu'à 2 000) |
 | #157 | 05/11 | Documents : les six monuments qui sont des marques (Ritz, Maxim's, Crillon, Negresco, Château Margaux, Train bleu) restent aux enchères (Gautier : « garde-les ») |
+| #158 | 06/11 | Pas de marque dans les packs : les domaines viticoles (« Château Lynch-Bages »), chocolatiers et maisons connues écartés des Rares ; 8 lieux célèbres de marque écartés |
 
 ## Les décisions de Gautier
 
@@ -452,7 +454,7 @@ Les décisions du 2 novembre (interview) sont dans `CLAUDE.md` § 4 et dans le G
   - le nom est décidé : **CityDeck** (4 nov.) ; vérifier qu'il est libre (marque, nom de domaine, magasins d'applications) avant le lancement.
 - **L'anglais** (PR #146) : faire relire les textes par un anglophone ; les e-mails de connexion (Supabase, puis Brevo) n'existent qu'en une langue ; tout nouveau texte du jeu doit entrer dans `data/langue_en.js` (le test le rappelle pour les bandeaux et les refus du serveur).
 - **Petites choses** :
-  - les autres catégories de lieux célèbres : faites (PR #152). Restent à relire à la main quelques châteaux du Bordelais au nom de vin, et les lieux nommés de l'IGN qui portent une marque (un musée du chocolat d'un chocolatier) ;
+  - les autres catégories de lieux célèbres : faites (PR #152) ; les marques qui restaient (châteaux au nom de vin, lieux nommés de l'IGN au nom de marque) : faites (PR #158) ;
   - retirer le prototype du dépôt de l'Arena ;
   - relire les 60 monuments nationaux ;
   - valider les seuils du standing et la capacité de gestion.
