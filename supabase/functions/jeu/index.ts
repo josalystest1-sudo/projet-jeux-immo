@@ -3,8 +3,8 @@
 // que le jeu (src/regles, recopiées dans _genere/ par tools/serveur_prepare.js), puis écrit par les fonctions SQL
 // jeu_* (supabase/sql/010_jeu.sql), chacune atomique. Réponse : { ok: true, ... } ou { ok: false, code, message }.
 import { createClient } from '@supabase/supabase-js';
-import { Regles, Pack, Celebres, Tirage, Encheres, Mairie, Classements, Monuments, Regions, Boutique, Robots } from './_genere/regles.mjs';
-import { ECO, STANDING, FRANCE, DEPARTEMENTS, CONTOURS, CELEBRES, MONUMENTS } from './_genere/donnees.mjs';
+import { Regles, Pack, Celebres, Tirage, Encheres, Mairie, Classements, Monuments, Regions, Boutique, Robots, Chasse } from './_genere/regles.mjs';
+import { ECO, STANDING, FRANCE, DEPARTEMENTS, CONTOURS, CELEBRES, MONUMENTS, CHASSE_COMMUNES } from './_genere/donnees.mjs';
 import { envoyer as envoyerSmtp } from './smtp.mjs';
 
 const R = Regles.creer(ECO, STANDING);
@@ -73,6 +73,7 @@ async function tic(): Promise<Ligne> {
   await pas('monuments', () => tenirMonuments());
   await pas('robots', () => robotsTour());
   await pas('alertes', () => envoyerAlertes());
+  await pas('chasses', () => tenirChasses());
   return { horloge: new Date().toISOString(), fait, ms: Date.now() - t0 };
 }
 
@@ -751,6 +752,120 @@ async function envoyerAlertes() {
   console.log('alertes envoyées par e-mail :', data.length);
 }
 
+// ---------------------------------------------------------------- la chasse au trésor (GDD § 5 quinquies, supabase/sql/200_chasse.sql)
+// Une chasse par heure (règles pures : src/regles/chasse.js) : la commune est tirée parmi data/chasse_communes.json, le départ
+// est sa mairie, le trésor l'adresse (BAN) la plus proche d'un point tiré entre 500 m et 2 km du départ, dans la commune.
+// On s'inscrit pendant l'annonce (et encore pendant la chasse) ; au départ, tous partent de la mairie. La position de chaque
+// chasseur arrive toutes les 2 secondes : un saut plus rapide que la balade est refusé ; le premier à moins de 30 m du
+// trésor gagne (jeu_chasse_gagner, une seule fois) : des pièces et une adresse tirée au hasard, comme une carte de pack.
+const CH = Chasse.creer(ECO);
+const isoT = (t: number) => new Date(t).toISOString();
+const vueChasse = (c: Ligne): Ligne => ({ id: c.id, numero: Number(c.numero), commune: c.commune, depart: { lon: c.depart_lon, lat: c.depart_lat }, cible: c.cible,
+  annonce: ms(c.annonce), debut: ms(c.debut), fin: ms(c.fin), gagnant: c.gagnant, trouve_le: c.trouve_le ? ms(c.trouve_le) : null });
+// Paris, Lyon et Marseille : les adresses portent le code de l'arrondissement
+function memeCommune(code: string, citycode: string) {
+  if (code === '75056') return citycode.startsWith('751'); if (code === '69123') return citycode.startsWith('6938'); if (code === '13055') return citycode.startsWith('132');
+  return citycode === code; }
+async function preparerChasse(cr: Ligne, id: string, pour: string | null, essai = false): Promise<Ligne | null> {
+  const k = CH.commune(CHASSE_COMMUNES as unknown as Ligne[], essai ? Math.floor(Math.random() * 1e9) : cr.numero); if (!k) return null;
+  const depart = { lon: k[2], lat: k[3] }; let graine = (Chasse.hash(id + Math.random()) % 2147483646) + 1;
+  const alea = () => { graine = (graine * 16807) % 2147483647; return graine / 2147483647; };
+  for (let essaiN = 0; essaiN < 8; essaiN++) {
+    // une chasse d'essai (serveur d'essai) cache son trésor tout près : l'essai de la publication le rejoint en marchant
+    const p = essai ? Chasse.decale(depart, alea() * 360, 120 + alea() * 80) : CH.pointCible(depart, alea);
+    const j = await geoJSON(`reverse?lon=${p.lon.toFixed(6)}&lat=${p.lat.toFixed(6)}&index=address&limit=1`).catch(() => null) as Ligne | null;
+    const f = j && j.features && j.features[0]; if (!f) continue; const pr = f.properties || {};
+    if (!pr.housenumber || !pr.street || !memeCommune(k[0], String(pr.citycode || ''))) continue;
+    const cible = { id: pr.id, lon: f.geometry.coordinates[0], lat: f.geometry.coordinates[1], numero: String(pr.housenumber), rue: pr.street, label: pr.name || `${pr.housenumber} ${pr.street}` };
+    if (!essai && !CH.cibleValable(depart, cible)) continue;
+    return { id, numero: cr.numero, commune: k[1], code_insee: k[0], depart_lon: depart.lon, depart_lat: depart.lat, cible, annonce: isoT(cr.annonce), debut: isoT(cr.debut), fin: isoT(cr.fin), pour };
+  }
+  return null; }
+// la chasse de l'heure, préparée un quart d'heure avant son annonce (par l'horloge, ou au premier joueur qui regarde)
+let chassesTenues = 0;
+async function tenirChasses() {
+  if (Date.now() - chassesTenues < 20000) return; chassesTenues = Date.now();
+  const cr = CH.prochaine(Date.now()); if (!cr || Date.now() < cr.annonce - 15 * 60000) return;
+  const id = 'c' + cr.numero, { data } = await admin.from('chasses').select('id').eq('id', id).maybeSingle(); if (data) return;
+  const c = await preparerChasse(cr, id, null); if (!c) { console.error('chasse : pas de trésor trouvé pour', id); return; }
+  await rpc('jeu_chasse_creer', { c });
+  await rpc('jeu_chasses_purger', {}).catch((e) => console.error('chasses, purge', e));   // (une fois par heure)
+}
+// la chasse qui me concerne : ma chasse d'essai en cours, sinon la chasse publique annoncée, en cours ou juste finie
+async function chasseDe(j: string): Promise<Ligne | null> {
+  const t = Date.now(), { data } = await admin.from('chasses').select('*').or(`pour.is.null,pour.eq.${j}`).gt('fin', isoT(t - 3 * 60000)).lte('annonce', isoT(t)).order('debut', { ascending: false }).limit(4);
+  const l = (data || []) as Ligne[]; return l.find((c) => c.pour === j) || l.find((c) => !c.pour) || null; }
+async function profilsDe(ids: string[]) { if (!ids.length) return {} as Record<string, Ligne>; const { data } = await admin.from('profils').select('id, pseudo, avatar').in('id', ids); return Object.fromEntries((data || []).map((p: Ligne) => [p.id, p])); }
+async function etatChasse(j: string, c: Ligne | null) {
+  const t = Date.now(), cr = CH.prochaine(t);
+  if (!c) return { chasse: null, prochaine: cr ? { annonce: cr.annonce, debut: cr.debut } : null, maintenant: t };
+  const vue: Ligne = CH.vue(vueChasse(c), t);
+  // lisible même à cent chasseurs : le nombre d'inscrits, et seulement les rivaux proches (400 m, 12 au plus, actifs depuis
+  // une minute), du plus proche au plus loin ; le jeu les regroupe quand ils se touchent
+  const [{ data: moiL }, { count }] = await Promise.all([
+    admin.from('chasseurs').select('lon, lat').eq('chasse', c.id).eq('joueur', j).maybeSingle(),
+    admin.from('chasseurs').select('joueur', { count: 'exact', head: true }).eq('chasse', c.id),
+  ]);
+  const moi = moiL as Ligne | null, ici = moi || { lon: c.depart_lon, lat: c.depart_lat }, dlat = 400 / 110540, dlon = 400 / (111320 * Math.cos(ici.lat * Math.PI / 180));
+  const { data: pres } = await admin.from('chasseurs').select('joueur, lon, lat, le').eq('chasse', c.id).neq('joueur', j).gt('le', isoT(t - 60000))
+    .gte('lon', ici.lon - dlon).lte('lon', ici.lon + dlon).gte('lat', ici.lat - dlat).lte('lat', ici.lat + dlat).limit(80);
+  const proches: Ligne[] = ((pres || []) as Ligne[]).map((x): Ligne => ({ ...x, d: Chasse.distance(ici, x) })).filter((x) => x.d <= 400).sort((a, b) => a.d - b.d).slice(0, 12);
+  const p = await profilsDe([...new Set([...proches.map((x) => x.joueur), c.gagnant].filter(Boolean))]);
+  if (c.gagnant) vue.gagnant = { moi: c.gagnant === j, pseudo: (p[c.gagnant] || {}).pseudo || '?', avatar: (p[c.gagnant] || {}).avatar || '' };
+  const autres = proches.map((x) => ({ pseudo: (p[x.joueur] || {}).pseudo || '?', avatar: (p[x.joueur] || {}).avatar || '', lon: x.lon, lat: x.lat }));
+  return { chasse: vue, inscrits: count || 0, moi: moi ? { lon: moi.lon, lat: moi.lat } : null, autres, prochaine: cr ? { annonce: cr.annonce, debut: cr.debut } : null, maintenant: t };
+}
+ACTIONS.chasse = async (j) => { await tenirChasses().catch((e) => console.error('chasses', e)); return etatChasse(j, await chasseDe(j)); };
+// s'inscrire : pendant l'annonce (ou la chasse) ; au départ, on est à la mairie
+ACTIONS.chasse_rejoindre = async (j) => {
+  const c = await chasseDe(j); if (!c) throw new Refus('chasse', 'Pas de chasse au trésor en ce moment.');
+  const e = CH.etat(vueChasse(c), Date.now()); if (e !== 'annonce' && e !== 'en_cours') throw new Refus('chasse_finie', 'Cette chasse est finie : la prochaine arrive bientôt.');
+  await joueur(j); await rpc('jeu_chasse_rejoindre', { c: c.id, j, lon: c.depart_lon, lat: c.depart_lat });
+  return etatChasse(j, c);
+};
+// ma position (toutes les 2 secondes) : refusée si c'est un saut ; arrivé au trésor le premier, je gagne
+ACTIONS.chasse_position = async (j, corps) => {
+  const lon = Number(corps.lon), lat = Number(corps.lat); if (!Number.isFinite(lon) || !Number.isFinite(lat)) throw new Refus('position', 'Position illisible.');
+  const { data: c } = await admin.from('chasses').select('*').eq('id', String(corps.chasse || '')).maybeSingle();
+  if (!c || (c.pour && c.pour !== j)) throw new Refus('chasse', 'Pas de chasse au trésor en ce moment.');
+  const v = vueChasse(c), t = Date.now(), e = CH.etat(v, t);
+  const { data: moi } = await admin.from('chasseurs').select('lon, lat, le').eq('chasse', c.id).eq('joueur', j).maybeSingle();
+  if (!moi) throw new Refus('chasse_inscrire', 'Inscris-toi d’abord à la chasse.');
+  let pos = { lon: moi.lon, lat: moi.lat }, refuse = false, gagne: Ligne | null = null;
+  if (e === 'en_cours') {
+    // le temps de marche compte depuis le départ de la chasse (pas depuis l'inscription)
+    const avant = { lon: moi.lon, lat: moi.lat, le: Math.max(ms(moi.le), v.debut) };
+    // au départ, le pion se pose sur la rue la plus proche de la mairie : ce premier pas n'est pas un saut
+    const auDepart = moi.lon === c.depart_lon && moi.lat === c.depart_lat;
+    if (CH.pasValide(avant, { lon, lat, le: t }) || (auDepart && Chasse.distance(avant, { lon, lat }) <= 150)) { if (await rpc('jeu_chasse_position', { c: c.id, j, lon, lat, avant: moi.le })) pos = { lon, lat }; }
+    else refuse = true;
+    if (!refuse && CH.arrive(pos, c.cible)) {
+      const cartes = await TIRAGE.tirerPack(crypto.randomUUID() + ':chasse', ECO.pack.chances, CH.recompense.cartes).catch((err: unknown) => { console.error('chasse, carte', err); return []; });
+      const lignes = cartes.map((x: Ligne) => ({ ...x, commune: Regles.nomCommune(x.citycode, x.city) }));
+      const g: string[] | null = await rpc('jeu_chasse_gagner', { c: c.id, j, gain: CH.recompense.pieces, cartes: lignes });
+      if (g) {
+        if (g.length) await rpc('jeu_raretes', { ids: g, rs: g.map((id) => R.rarete(cartes.find((x: Ligne) => x.id === id))) }).catch((err) => console.error('raretés', err));
+        const maintenant = Date.now();
+        gagne = { pieces: CH.recompense.pieces, cartes: cartes.filter((x: Ligne) => g.includes(x.id)).map((x: Ligne) => ({ ...x, niveau: 0, depuis: maintenant })), tresor: c.cible.label };
+        const nom = ((await profilsDe([j]))[j] || {}).pseudo || 'Un joueur';
+        await notifier(j, 'chasse', `🏆 Tu as trouvé le trésor de ${c.commune} (${c.cible.label}) : +${fmt(CH.recompense.pieces)} et une carte !`, {});
+        const { data: autres } = await admin.from('chasseurs').select('joueur').eq('chasse', c.id).neq('joueur', j).limit(200);
+        for (const x of (autres || []) as Ligne[]) await notifier(x.joueur, 'chasse', `🗺️ ${nom} a trouvé le trésor de ${c.commune} : ${c.cible.label}.`, {}).catch(() => {});
+      }
+    }
+  }
+  const r: Ligne = await etatChasse(j, { ...c, ...(gagne ? { gagnant: j, trouve_le: isoT(Date.now()) } : {}) });
+  return { ...r, position: pos, refuse, gagne, ...(gagne ? { etat: await etatDe(j) } : {}) };
+};
+// une chasse d'essai, rien que pour moi (serveur d'essai seulement) : elle part dans 20 secondes, son trésor est tout près
+ACTIONS.chasse_essai = async (j) => {
+  if ((await jourMs()) >= 86_400_000) throw new Refus('essai', 'Les chasses d’essai n’existent que sur le serveur d’essai.');
+  const t = Date.now(), cr = { numero: -1, annonce: t, debut: t + 20000, fin: t + 20000 + CH.C.duree_max_minutes * 60000 }, id = 'essai-' + crypto.randomUUID();
+  const c = await preparerChasse(cr, id, j, true); if (!c) throw new Refus('reseau', 'Pas de trésor trouvé : réessaie dans un instant.');
+  await rpc('jeu_chasse_creer', { c });
+  return { ...(await etatChasse(j, { ...c, gagnant: null, trouve_le: null })), cible: c.cible };   // (le trésor d'un essai n'est pas un secret : il sert à l'essai de la publication)
+};
+
 // ---------------------------------------------------------------- la boutique (GDD § 3 et § 9)
 // Les gemmes achètent les packs (national, régional : les cartes tirées dans la région) et le Pass 15 jours (8 cartes au
 // pack du jour, un bon d'adresse). Le paiement par carte viendra ; en attendant, des gemmes d'essai sur le serveur d'essai.
@@ -1065,6 +1180,8 @@ Deno.serve(async (req: Request) => {
     const cadence = await rpc('jeu_cadence', { j: data.user.id, limite: ECO.anti_triche.actions_par_minute }).catch((e) => { console.error('cadence', e); return true; });
     if (cadence === false) throw new Refus('cadence', 'Doucement : trop d’actions d’un coup. Réessaie dans une minute.');
     await noterEmpreinte(data.user.id, req).catch((e) => console.error('empreinte', e));
+    // la chasse au trésor (une position toutes les 2 secondes) passe vite : ni tour du monde ni partie recalculée
+    if (corps.action === 'chasse_position' || corps.action === 'chasse') return repondre({ ok: true, ...(await action(data.user.id, corps)) });
     // le calendrier des enchères (lots finis clos, lots de la semaine ouverts) : une panne ici ne bloque pas le jeu
     await tenirEncheres().catch((e) => console.error('enchères', e));
     // ma visite (un Maire absent depuis trop longtemps perd le titre) ; les fins de mandat de Maire à annoncer

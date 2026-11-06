@@ -79,6 +79,24 @@
     "bonus_niveau": [0, 1, 3, 6, 10, 12, 15],
     "mandats_par_saison": 6
   },
+  "chasse": {
+    "intervalle_minutes": 60,
+    "heure_debut": 9,
+    "heure_fin": 23,
+    "annonce_minutes": 5,
+    "indice_minutes": 2,
+    "duree_max_minutes": 15,
+    "indices": ["cercle:600", "cercle:300", "rue", "cercle:100,cote", "numero"],
+    "distance_min_m": 500,
+    "distance_max_m": 2000,
+    "rayon_arrivee_m": 30,
+    "vitesse_ms": 11,
+    "marge_vitesse": 1.3,
+    "tolerance_m": 12,
+    "population_min": 2000,
+    "recompense_pieces": 500,
+    "recompense_cartes": 1
+  },
   "monuments": {
     "entretien_base": 300,
     "entretien_jours": 30,

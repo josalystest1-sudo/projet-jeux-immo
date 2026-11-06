@@ -15,6 +15,7 @@ on:
       - 'data/economie.json'
       - 'data/standing.json'
       - 'data/monuments.json'
+      - 'data/chasse_communes.json'
       - 'tools/serveur_*.js'
       - '.github/workflows/serveur.yml'
   workflow_dispatch:

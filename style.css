@@ -1373,3 +1373,56 @@ html.pocket .btn.large{white-space:normal;text-align:center;flex-wrap:wrap;row-g
   body.promenade #sheet{max-height:calc(100% - 24px);bottom:12px}
   .collection{grid-template-columns:repeat(4,1fr)}   /* quatre cartes par ligne : la taille d'une carte sur téléphone */
 }
+
+/* ---------------------------------------------------------------- la chasse au trésor (6 nov., GDD § 5 quinquies) */
+#chasse-bandeau{margin-top:8px;background:linear-gradient(135deg,#1C2A52,#2453B3);color:#fff;border-radius:18px;padding:10px 12px;display:grid;grid-template-columns:1fr auto;align-items:center;gap:2px 10px;box-shadow:0 6px 18px rgba(23,35,63,.3);pointer-events:auto}
+#chasse-bandeau[hidden]{display:none}
+#chasse-bandeau .t{font-weight:900;font-size:14px;min-width:0}
+#chasse-bandeau .s{font-size:12px;font-weight:700;opacity:.9;grid-column:1;min-width:0}
+#chasse-bandeau .btn,#chasse-bandeau .ok{grid-column:2;grid-row:1 / span 2;align-self:center;white-space:nowrap}
+#chasse-bandeau .btn{background:#FFC233;color:#1C2440;border:0;font-weight:900;padding:9px 14px;border-radius:12px;box-shadow:0 3px 0 #C99400}
+#chasse-bandeau .btn.clair{background:#fff;box-shadow:none}
+#chasse-bandeau .ok{font-weight:900;color:#FFD65A;font-size:13px}
+#chasse-bandeau .charge{grid-column:1 / span 2;height:4px;border-radius:2px;background:rgba(255,255,255,.2);overflow:hidden;margin-top:4px}
+#chasse-bandeau .charge i{display:block;height:100%;background:#FFC233;transition:width .4s}
+#prom-chasse{position:absolute;left:12px;right:12px;top:calc(64px + env(safe-area-inset-top));background:linear-gradient(135deg,#1C2A52,#2453B3);color:#fff;border-radius:16px;padding:9px 12px;box-shadow:0 6px 18px rgba(23,35,63,.3);pointer-events:auto;z-index:3}
+#prom.photo #prom-chasse{top:calc(max(42%, 220px) + 64px)}
+#prom-chasse .l1{display:flex;align-items:center;gap:8px;font-weight:900;font-size:15px}
+#prom-chasse .l1 b{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#prom-chasse .foule{margin-left:auto}
+#prom-chasse .foule + .temps{margin-left:0}
+#prom-chasse .temps{margin-left:auto;background:rgba(255,255,255,.16);border-radius:10px;padding:2px 8px;font-size:14px;white-space:nowrap}
+#prom-chasse .l2{font-size:12px;font-weight:700;opacity:.9;margin-top:2px}
+#prom-chasse .l3{font-size:13px;font-weight:800;color:#FFD65A;margin-top:4px;display:flex;align-items:center;gap:6px}
+#prom-chasse .fleche-cercle{display:inline-block;font-style:normal;font-size:15px;transition:transform .3s}
+#prom-chasse .indices{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
+#prom-chasse .indice{background:#FFC233;color:#1C2440;font-weight:900;font-size:13px;border-radius:10px;padding:4px 9px;min-width:0;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.chasse-decompte{position:fixed;inset:0;z-index:60;background:radial-gradient(circle at 50% 45%,rgba(23,35,63,.5),rgba(23,35,63,0) 55%);display:flex;flex-direction:column;align-items:center;justify-content:center;pointer-events:none;color:#fff;text-shadow:0 4px 18px rgba(0,0,0,.45)}
+.chasse-decompte small{font-weight:900;font-size:18px}
+.chasse-decompte b{font-family:var(--titre);font-size:56px;font-weight:800}
+.chasse-decompte b.gros{font-size:120px;animation:decompte .9s ease-out}
+.chasse-decompte b.partez{font-size:72px;color:#FFD65A}
+@keyframes decompte{from{transform:scale(1.6);opacity:0}30%{opacity:1}to{transform:scale(1)}}
+.chasse-depart{display:flex;flex-direction:column;align-items:center;pointer-events:none}
+.chasse-depart i{font-size:34px;font-style:normal;filter:drop-shadow(0 3px 4px rgba(0,0,0,.35))}
+.chasse-depart small{background:#fff;color:#1C2440;font-weight:900;font-size:11px;border-radius:8px;padding:1px 6px;margin-top:-4px}
+.chasse-coffre i{font-size:48px;font-style:normal;display:block;animation:coffre 1s ease-in-out infinite alternate;filter:drop-shadow(0 0 12px #FFD65A)}
+@keyframes coffre{from{transform:translateY(0) scale(1)}to{transform:translateY(-10px) scale(1.08)}}
+.maplibregl-marker.pion:not(.autre){z-index:4}
+.pion.autre{opacity:.82;transform-origin:50% 100%}
+.pion.autre.groupe .corps{background:#2453B3;border-color:#fff;color:#fff;font-size:14px;font-weight:900}
+.pion.autre.groupe .corps::after{border-top-color:#fff}
+.pion.autre.loin{width:20px;height:20px}
+.pion.autre.loin .point{position:absolute;left:50%;bottom:2px;width:12px;height:12px;margin-left:-6px;border-radius:50%;background:#7C8DA6;border:2px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,.35)}
+#prom-chasse .foule{background:rgba(255,255,255,.16);border-radius:10px;padding:2px 8px;font-size:13px;white-space:nowrap}
+.pion.autre .corps{width:36px;height:36px;margin-left:-18px;font-size:19px;border-color:#7C8DA6}
+.pion.autre .corps::after{border-top-color:#7C8DA6}
+.pion.autre small{position:absolute;left:50%;top:-4px;transform:translateX(-50%);background:rgba(28,36,64,.82);color:#fff;font-weight:800;font-size:10px;border-radius:6px;padding:0 5px;white-space:nowrap}
+.chasse-fin{text-align:center}
+.chasse-fin .gros{font-size:64px;line-height:1.1}
+.chasse-fin h2{margin:6px 0}
+.chasse-fin .gain{font-weight:900;font-size:20px;display:flex;align-items:center;justify-content:center;gap:6px;margin:10px 0}
+.chasse-fin .gain span{font-size:14px;color:var(--encre2)}
+.chasse-fin .cartes-gagnees{display:flex;justify-content:center;margin:6px auto 12px}
+.chasse-fin .cartes-gagnees .ccarte{width:150px}
+.chasse-fin .btn{margin-top:8px;width:100%}

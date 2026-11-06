@@ -530,6 +530,11 @@
   - la promenade réécrite : le pion (mon icône) sur la carte 3D, la manette en bas à droite (flèches du clavier sur ordinateur), la caméra derrière le pion, la carte qui ne se redessine que quand on bouge ; Street View seulement sur demande (📷), mis à jour à l'arrêt ; ce qu'on longe toujours en bas (Voir, Offre, Acheter) ; toucher un bâtiment l'ajoute en tête (« Touché ») sans y emmener ;
   - vérifié à l'image en 390 × 844, 320 × 640 (avec et sans photo) et 1440 × 900, filmé dans le jeu (rue des Martyrs, puis rue Choron) ;
   - la chasse au trésor proposée par Gautier est écrite dans le GDD (§ 5 quinquies, règles [Proposé]). 108 tests.
+- 6 nov. 2026 (PR #172) : **la chasse au trésor** (idée de Gautier ; réponses : la récompense n'est pas le lieu trouvé mais « une adresse aléatoire », des indices toutes les 2 minutes, « maintenant, avant le lancement » ; puis l'inscription et la téléportation au départ, la commune préparée d'avance, « encore plus jolie », lisible à cent joueurs) :
+  - règles pures `src/regles/chasse.js` et `ECO.chasse` (5 tests) ; 5 449 communes jouables (`data/chasse_communes.json`) ;
+  - serveur : `supabase/sql/200_chasse.sql` (chasses, chasseurs, victoire atomique, purge à 7 jours ; essayé par `tools/essai_sql.mjs`), actions de la fonction « jeu », préparation par l'horloge, chasse d'essai ; l'essai de la publication s'inscrit, tente un saut (refusé), marche jusqu'au trésor et gagne ;
+  - jeu : `src/chasse_jeu.js` : bandeau d'annonce et inscription, tuiles chargées d'avance, téléportation et « 3, 2, 1, partez ! », indices et cercle doré (survol de 3 s, flèche et distance), ambiance dorée, rivaux regroupés (« ×N »), victoire (coffre, pièces, carte) ou fin ; une chasse simulée en démo, essayée de bout en bout (inscription, départ, indices, victoire, foule de 24 rivaux) ;
+  - pages légales : la chasse dans les conditions (gratuite, sans achat utile, récompense sans valeur), la position du pion dans la confidentialité (7 jours). 113 tests.
 
 ## Bugs connus
 - Les badges 💰 des joueurs simulés n'apparaissent qu'après ouverture de leur parcelle (limite du prototype local).

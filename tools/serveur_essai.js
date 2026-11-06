@@ -290,6 +290,34 @@ async function nouveauJoueur(publique, secrete) {
     verifier(robots.statut >= 400 || (Array.isArray(robots.corps) && robots.corps.length === 0), 'les robots restent cachés : leur liste est illisible', robots.statut);
     const classement = await requete(`${URL}/rest/v1/rpc/classement_commune`, { method: 'POST', headers: { apikey: publique, 'Content-Type': 'application/json' }, body: JSON.stringify({ c: communes[0] || 'x' }) });
     verifier(classement.statut === 200 && Array.isArray(classement.corps), 'le classement d’une commune est lisible', classement.statut);
+    // la chasse au trésor (GDD § 5 quinquies) : une chasse d'essai rien que pour moi, son trésor tout près ; je m'inscris, un
+    // saut est refusé, puis je marche jusqu'au trésor (à la vitesse de la balade) et je gagne, une seule fois
+    const essaiChasse = await jeu({ action: 'chasse_essai' });
+    verifier(essaiChasse.corps && essaiChasse.corps.ok && essaiChasse.corps.chasse && essaiChasse.corps.cible, 'une chasse au trésor d’essai', essaiChasse.corps);
+    if (essaiChasse.corps && essaiChasse.corps.ok && essaiChasse.corps.cible) {
+      const ch = essaiChasse.corps.chasse, cible = essaiChasse.corps.cible;
+      const ins = await jeu({ action: 'chasse_rejoindre' });
+      verifier(ins.corps && ins.corps.ok && ins.corps.moi && Math.abs(ins.corps.moi.lon - ch.depart.lon) < 1e-9, 'inscrit : je pars de la mairie', ins.corps);
+      verifier(!JSON.stringify(ins.corps).includes(cible.label), 'le trésor reste secret dans ce que voit le joueur');
+      const attente = ch.debut - Date.now() + 1500; if (attente > 0) await new Promise((r) => setTimeout(r, attente));
+      const kx = 111320 * Math.cos(cible.lat * Math.PI / 180), KY = 110540;
+      const saut = await jeu({ action: 'chasse_position', chasse: ch.id, lon: cible.lon, lat: cible.lat });
+      verifier(saut.corps && saut.corps.ok && saut.corps.refuse === true && !saut.corps.gagne, 'un saut jusqu’au trésor : refusé', saut.corps);
+      let pos = { lon: ch.depart.lon, lat: ch.depart.lat }, fin = null;
+      for (let k = 0; k < 40 && !fin; k++) {
+        await new Promise((r) => setTimeout(r, 2000));
+        const dx = (cible.lon - pos.lon) * kx, dy = (cible.lat - pos.lat) * KY, d = Math.hypot(dx, dy), pas = Math.min(d, 18);
+        if (d > 0) pos = { lon: pos.lon + dx / d * pas / kx, lat: pos.lat + dy / d * pas / KY };
+        const r = await jeu({ action: 'chasse_position', chasse: ch.id, lon: pos.lon, lat: pos.lat });
+        if (!r.corps || !r.corps.ok) { verifier(false, 'une position pendant la chasse', r.corps); break; }
+        if (r.corps.refuse) pos = r.corps.position;
+        if (r.corps.gagne || (r.corps.chasse && r.corps.chasse.etat === 'trouvee')) fin = r.corps;
+      }
+      verifier(fin && fin.gagne && fin.gagne.pieces === ECO.chasse.recompense_pieces && fin.chasse.gagnant && fin.chasse.gagnant.moi, 'arrivé au trésor en marchant : gagné (pièces et carte)', fin);
+      verifier(fin && fin.chasse && fin.chasse.tresor === cible.label, 'à la fin, le trésor est dévoilé', fin && fin.chasse);
+      const encore = await jeu({ action: 'chasse_position', chasse: ch.id, lon: pos.lon, lat: pos.lat });
+      verifier(encore.corps && encore.corps.ok && !encore.corps.gagne, 'on ne gagne qu’une fois', encore.corps);
+    }
     // « Supprimer mon compte » (RGPD, 5 nov.) : refusé sans le mot de confirmation, puis le joueur jetable se supprime lui-même
     const sansMot = await jeu({ action: 'supprimer_compte' });
     verifier(sansMot.corps && sansMot.corps.ok === false && sansMot.corps.code === 'confirmer', 'supprimer mon compte sans écrire SUPPRIMER : refusé', sansMot.corps);
