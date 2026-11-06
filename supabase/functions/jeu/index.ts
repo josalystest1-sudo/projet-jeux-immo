@@ -776,7 +776,7 @@ async function preparerChasse(cr: Ligne, id: string, pour: string | null, essai 
   const alea = () => { graine = (graine * 16807) % 2147483647; return graine / 2147483647; };
   for (let essaiN = 0; essaiN < 8; essaiN++) {
     // une chasse d'essai (serveur d'essai) cache son trésor tout près : l'essai de la publication le rejoint en marchant
-    const p = essai ? Chasse.decale(depart, alea() * 360, 120 + alea() * 80) : CH.pointCible(depart, alea);
+    const p = essai ? Chasse.decale(depart, alea() * 360, 200 + alea() * 100) : CH.pointCible(depart, alea);
     const j = await geoJSON(`reverse?lon=${p.lon.toFixed(6)}&lat=${p.lat.toFixed(6)}&index=address&limit=1`).catch(() => null) as Ligne | null;
     const f = j && j.features && j.features[0]; if (!f) continue; const pr = f.properties || {};
     if (!pr.housenumber || !pr.street || (!ici && !memeCommune(k[0], String(pr.citycode || '')))) continue;
@@ -839,9 +839,9 @@ ACTIONS.chasse_position = async (j, corps) => {
   if (e === 'en_cours') {
     // le temps de marche compte depuis le départ de la chasse (pas depuis l'inscription)
     const avant = { lon: moi.lon, lat: moi.lat, le: Math.max(ms(moi.le), v.debut) };
-    // au départ, le pion se pose sur la rue la plus proche de la mairie : ce premier pas n'est pas un saut
+    // au départ, le pion se pose sur la rue la plus proche de la mairie (80 m au plus) : ce premier pas n'est pas un saut
     const auDepart = moi.lon === c.depart_lon && moi.lat === c.depart_lat;
-    if (CH.pasValide(avant, { lon, lat, le: t }) || (auDepart && Chasse.distance(avant, { lon, lat }) <= 150)) { if (await rpc('jeu_chasse_position', { c: c.id, j, lon, lat, avant: moi.le })) pos = { lon, lat }; }
+    if (CH.pasValide(avant, { lon, lat, le: t }) || (auDepart && Chasse.distance(avant, { lon, lat }) <= 80)) { if (await rpc('jeu_chasse_position', { c: c.id, j, lon, lat, avant: moi.le })) pos = { lon, lat }; }
     else refuse = true;
     if (!refuse && CH.arrive(pos, c.cible)) {
       const cartes = await TIRAGE.tirerPack(crypto.randomUUID() + ':chasse', ECO.pack.chances, CH.recompense.cartes).catch((err: unknown) => { console.error('chasse, carte', err); return []; });

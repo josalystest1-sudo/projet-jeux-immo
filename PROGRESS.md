@@ -540,6 +540,7 @@
   - renvoyé hors de la rue (le serveur rend la dernière position acceptée : au départ, la mairie, à côté de la rue), le pion ne trouvait plus de rue : il rejoint maintenant la plus proche, puis la suit dans le sens du regard ;
   - le serveur refusait trop vite sur un réseau lent (deux positions arrivées presque ensemble) : 35 m de marge (`ECO.chasse.tolerance_m`, environ 3 s de marche) ;
   - si l'on pousse sans avancer (bout de rue, T), un bandeau dit quoi faire ; la chasse d'essai part de là où l'on est (sa commune : celle de l'adresse la plus proche). 3 tests de plus (116).
+  - (PR #174) l'essai de la publication a montré qu'un « saut » de 150 m depuis la mairie restait permis au départ : marge ramenée à 80 m (la rue la plus proche de la mairie), trésor d'essai à 200-300 m.
 
 ## Bugs connus
 - Les badges 💰 des joueurs simulés n'apparaissent qu'après ouverture de leur parcelle (limite du prototype local).

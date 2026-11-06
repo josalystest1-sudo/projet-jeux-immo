@@ -384,6 +384,7 @@ Puis une PR par étape, fusionnée en squash :
 | #155 | 05/11 | L'horloge du serveur : toutes les 10 minutes, enchères, mandats, saisons, monuments et robots tournent sans joueur |
 | #156 | 05/11 | Les travaux des communes s'usent (−10 % par mandat) ; le niveau donne +2 % de loyer par niveau et monte le plafond du Maire (jusqu'à 2 000) |
 | #157 | 05/11 | Documents : les six monuments qui sont des marques (Ritz, Maxim's, Crillon, Negresco, Château Margaux, Train bleu) restent aux enchères (Gautier : « garde-les ») |
+| #174 | 06/11 | La chasse : le premier pas depuis la mairie limité à 80 m (un saut de 150 m restait possible), trésor d'essai à 200-300 m |
 | #173 | 06/11 | Bloqué dans une rue (virage pris pour un bout de rue, pion renvoyé hors de la rue) : corrigé ; marge du serveur sur réseau lent ; chasse d'essai « ici » |
 | #172 | 06/11 | La chasse au trésor : une commune chaque heure, inscription, départ commun devant la mairie, indices toutes les 2 minutes, le premier arrivé gagne 500 pièces et une carte |
 | #171 | 06/11 | La balade au joystick : le pion marche en continu dans les rues, la caméra derrière lui, Street View sur demande ; la chasse au trésor écrite dans le GDD |

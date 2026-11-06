@@ -235,7 +235,7 @@
     async chasse() { return etatDemo(); },
     async chasse_essai(corps) {
       const depart = { lon: corps.lon, lat: corps.lat }; let cible = null;
-      for (let k = 0; k < 8 && !cible; k++) { const p = Chasse.decale(depart, Math.random() * 360, 150 + Math.random() * 200);
+      for (let k = 0; k < 8 && !cible; k++) { const p = Chasse.decale(depart, Math.random() * 360, 200 + Math.random() * 150);
         const j = await geoJSON(`reverse?lon=${p.lon.toFixed(6)}&lat=${p.lat.toFixed(6)}&index=address&limit=1`).catch(() => null), f = j && j.features && j.features[0];
         if (f && f.properties.housenumber) cible = { lon: f.geometry.coordinates[0], lat: f.geometry.coordinates[1], numero: String(f.properties.housenumber), rue: f.properties.street, label: f.properties.name, commune: f.properties.city }; }
       if (!cible) throw new Error('Pas d’adresse par ici : approche-toi d’une rue');
@@ -249,7 +249,7 @@
       if (!D.c || !D.moi) throw new Error('Inscris-toi d’abord à la chasse.');
       const t = Date.now(), e = CHR.etat(D.c, t); let refuse = false, gagne = null;
       if (e === 'en_cours') { const ap = { lon: corps.lon, lat: corps.lat, le: t }, av = Object.assign({}, D.moi, { le: Math.max(D.moi.le, D.c.debut) }), auDepart = D.moi.lon === D.c.depart.lon && D.moi.lat === D.c.depart.lat;
-        if (CHR.pasValide(av, ap) || (auDepart && Chasse.distance(av, ap) <= 150)) D.moi = ap; else refuse = true;
+        if (CHR.pasValide(av, ap) || (auDepart && Chasse.distance(av, ap) <= 80)) D.moi = ap; else refuse = true;
         if (!refuse && CHR.arrive(D.moi, D.c.cible)) { D.c.gagnant = 'moi'; D.c.trouve_le = t; encaisser(true); state.wallet += CHR.recompense.pieces;
           const cartes = await TIRAGE.tirerPack((state.pseudo || '?') + ':chasse:' + t, ECO.pack.chances, CHR.recompense.cartes).catch(() => []);
           gagne = { pieces: CHR.recompense.pieces, cartes: cartes.map((c) => Object.assign({}, c, { niveau: 0, depuis: t })), tresor: D.c.cible.label }; } }
