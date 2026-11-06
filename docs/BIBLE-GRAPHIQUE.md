@@ -529,3 +529,13 @@ Où c'est dans le code :
 
 ![L'accueil, la carte, le dos des cartes, l'icône et la pièce](bible/logo-et-piece.jpg)
 
+## 14. La carte 3D, « plateau de jeu » (6 nov. 2026)
+
+Gautier : « est-ce qu'il n'est pas possible de rendre la carte 3D plus jeu vidéo ? Là, au final, elle dénote complètement. » La carte était restée un plan pastel (bâtiments beige, sol gris-vert, rues blanches) à côté des menus façon Pocket et des cartes nuit et or. Trois propositions lui ont été montrées à Paris et dans un village (Saint-Cirq-Lapopie) ; il a choisi **A · Plateau de jeu**, puis, pour les routes (« tu peux aussi styliser les routes au lieu de laisser blanc »), **l'asphalte**.
+
+- **Une ville blanche posée sur l'herbe, que les joueurs colorient.** Les bâtiments libres sont blancs (murs gris très clair, toit blanc) ; les couleurs franches restent celles des propriétaires (bleu à moi, rouge aux autres, violet partagé, or des monuments et de la sélection). Règle tirée de la première série d'essais : **jamais de couleur vive sur un bâtiment libre**, ni de toit rouge, bleu ou violet (on les prenait pour des lieux possédés).
+- **Le toit** : un second calque d'extrusion (`bati-toit`), une dalle de 1,2 m posée sur chaque bâtiment ; blanche s'il est libre, plus foncée que les murs s'il a un propriétaire. **L'ombre** (`bati-ombre`) : l'emprise du bâtiment décalée au sol, sombre et transparente. **Le pied** (`bati-pied`) : un trait sombre au bas des murs. Avec une lumière plus franche (intensité 0,7), cela donne l'air d'une maquette posée sur un plateau.
+- **Le sol** : herbe franche (îlots, fond, parcs et bois en vert plus soutenu), eau turquoise vif ; un ciel et une brume au loin (`sky`).
+- **Les routes** : asphalte gris foncé bordé de trottoirs clairs, ligne blanche en tirets au milieu de toutes les routes (à partir du zoom 16,5) ; les chemins, sentiers, escaliers, routes empierrées et pistes cyclables (`nature` de la BD TOPO) en terre battue, sans trottoir. Les noms des rues en blanc, cernés de sombre.
+- **La nuit** (20 h à 7 h) : herbe vert sombre, routes d'asphalte nuit, bâtiments gris neutre au toit clair (clair de lune) ; pas de bleu-violet sur un bâtiment libre (on le confondait avec « partagé »).
+- Écartées : B · Maquette (bois et haies en relief : des falaises vertes en ville), C · Couleurs douces (façades pastel : moins net à Paris) ; pour les routes, chemins de sable et pavés clairs.
