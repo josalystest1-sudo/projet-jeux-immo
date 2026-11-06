@@ -413,7 +413,7 @@
   - **L'image de partage** passe en JPEG de 97 Ko (`icones/partage.jpg`) : WhatsApp boude les aperçus de plus de 300 Ko.
   - **Tests** : `tests/legal.test.js` (pages, liens, phrases décidées, poids de l'image). 85 tests.
   - **Restent** (GDD § 9) :
-    - `contact@citydeck.fr` à créer ;
+    - `contact@citydeck.fr` : créé le 6 nov. (PR #164), une redirection du service mail gratuit d'Infomaniak (Service Mail « citydeck.fr », 1 adresse de redirection) vers la boîte Gmail de Gautier, qui doit l'accepter dans l'e-mail d'Infomaniak ;
     - un médiateur de la consommation ;
     - la TVA et l'activité déclarée ;
     - une relecture professionnelle.
