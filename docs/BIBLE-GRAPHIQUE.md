@@ -291,6 +291,17 @@ Où c'est dans le code : la pochette est dessinée par `makeArt()` (`index.html`
 
 ![Saint-François-Xavier, Saint-Ambroise, Saint-Martin de Tours, Saint-Pierre-le-Vieux](bible/monuments-58.jpg)
 
+- **Les six marques gardées aux enchères** (6 nov., après le « garde-les » de Gautier), d'après les emprises de l'IGN :
+  - **l'hôtel Ritz** : la façade de Mansart sur la place Vendôme, ses arcades, ses lucarnes, la marquise dorée ;
+  - **l'hôtel de Crillon** : le palais de Gabriel, sa colonnade devant une loggia sombre, ses deux pavillons à fronton ;
+  - **Maxim's** : la devanture rouge et or, son store ;
+  - **l'hôtel Negresco** : le palace blanc et la coupole rose de sa rotonde ;
+  - **Château Margaux** : le portique ionique et son fronton, le perron ;
+  - **le Train bleu** : les baies cintrées bleues de la gare de Lyon et la tour de l'Horloge, ses cadrans.
+- **Ce qu'on a appris** : une colonne de la même pierre et de la même lumière que le mur derrière elle disparaît (le trait d'encre ne se voit que sur le fond) ; il faut une loggia ou des fenêtres sombres derrière la colonnade.
+
+![Le Ritz, le Crillon, Maxim's, le Negresco, Château Margaux, le Train bleu](bible/monuments-59.jpg)
+
 ## 9. La révélation d'une carte (phase 10.5, 4 nov. 2026)
 
 Gautier : « Il faut qu'une ouverture de pack soit un vrai événement. Chaque carte révélée fait une explosion lumineuse de la couleur associée si c'est rare, épique ou légendaire, puis la révélation à la FIFA, où les informations arrivent petit à petit. » Puis : « moins dessin animé et plus classe, stylé, impressionnant ». Une première version « dessin animé » (contours encre épais, France crème, département bleu plaque, plaque émaillée) a été faite le matin et remplacée dans la foulée.
