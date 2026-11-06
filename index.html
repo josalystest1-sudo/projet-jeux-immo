@@ -933,7 +933,7 @@ document.getElementById('prom-av').onclick=()=>promPas(1);
 document.getElementById('prom-re').onclick=()=>promPas(-1);
 document.getElementById('prom-g').onclick=()=>promTourner(-45);
 document.getElementById('prom-d').onclick=()=>promTourner(45);
-document.addEventListener('keydown', e=>{ if(!PROM.on || (e.target && e.target.closest && e.target.closest('input,textarea,select'))) return;
+document.addEventListener('keydown', e=>{ if(!PROM.on || document.getElementById('modal').classList.contains('on') || (e.target && e.target.closest && e.target.closest('input,textarea,select'))) return;
   const f={ ArrowUp:()=>promPas(1), ArrowDown:()=>promPas(-1), ArrowLeft:()=>promTourner(-45), ArrowRight:()=>promTourner(45), Escape:finPromenade }[e.key]; if(f){ e.preventDefault(); f(); } });
 (()=>{ const t=document.getElementById('prom-touche'); let x0=null, y0=0, dx=0, t0=0; const cadre=()=>document.querySelector('.prom-sv.vu');
   t.addEventListener('pointerdown', e=>{ if(!PROM.on) return; x0=e.clientX; y0=e.clientY; dx=0; t0=Date.now(); try{ t.setPointerCapture(e.pointerId); }catch(_){} });
@@ -1460,7 +1460,7 @@ function askGyro(){ if(gyroOn) return; const D=window.DeviceOrientationEvent; co
     if(dech.cible>=0.85){ x0=null; dechirer(); } });
   const lacher=()=>{ const dech=GL.dech;
     if(peutDechirer() && !moved) dechirer();
-    else if(dech && dech.actif && !GL.torn){ dech.actif=false; dech.cible=0; sonDechirureFin(); document.getElementById('pkhint').textContent='Glisse ton doigt sur le haut du pack pour l’ouvrir'; }
+    else if(dech && dech.actif && !GL.torn){ dech.actif=false; dech.cible=0; sonDechirureFin(); document.getElementById('pkhint').textContent=aideOuvrir(); }
     x0=null; };
   cv.addEventListener('pointerup', lacher); cv.addEventListener('pointercancel', lacher);
   window.addEventListener('resize',()=>{ if(GL.r){ const c=document.getElementById('pkgl'); GL.r.setSize(c.clientWidth,c.clientHeight,false); GL.composer.setSize(c.clientWidth,c.clientHeight); GL.cam.aspect=c.clientWidth/c.clientHeight; GL.cam.updateProjectionMatrix(); } }); })();
@@ -1700,7 +1700,7 @@ function sortirCartes(){ const wrap=document.getElementById('pkcards'); wrap.inn
     wrap.appendChild(el); PK.cartes.push({ el, c, r }); });
   document.getElementById('pkhint').textContent='';
   const fin=()=>{ PK.etat='pile'; PK.cartes.forEach(k=>{ k.el.classList.remove('montee'); k.el.style.transitionDelay=''; }); dispoPack();
-    document.getElementById('pkhint').textContent='Touche la carte pour la révéler'; };
+    document.getElementById('pkhint').textContent=aideReveler(); };
   const sc=document.getElementById('packscene'), b=wrap.getBoundingClientRect();
   if(packOuverture==null || reduitMouvement() || !b.height || !GL.r){ fin(); }
   else {
@@ -1784,7 +1784,7 @@ function carteSuivante(k, sens){ const el=k.el; cancelAnimationFrame(PK.anim); i
   PK.i++; PK.etat='passe'; const fini=PK.i>=PK.cartes.length;
   setTimeout(()=>{ const sc=document.getElementById('packscene');
     if(fini){ PK.etat='fini'; sc.classList.add('fini'); document.getElementById('packdone').style.display='block'; document.getElementById('pkhint').textContent = PACK_ESSAI ? 'Pack d’essai : ces lieux ne sont pas à toi · touche une carte pour la voir' : `${PK.cartes.length} nouveaux lieux dans ton patrimoine · touche une carte pour la voir`; }
-    else { PK.etat='pile'; document.getElementById('pkhint').textContent='Touche la carte pour la révéler'; }
+    else { PK.etat='pile'; document.getElementById('pkhint').textContent=aideReveler(); }
     dispoPack(); }, 280); }
 // les gestes : la carte du dessus (ou la carte agrandie, à la fin) suit le doigt, s'incline vers lui, et revient
 (function(){ const wrap=document.getElementById('pkcards'); let g=null;
@@ -1924,7 +1924,7 @@ async function ouvrirPack(opts){ opts=opts||{}; const payant=opts.payant; const 
   if(!cards.length){ finPack(); return toast('Pack impossible à tirer : vérifie ta connexion'); }
   encaisser(true); if(!payant) state.lastPack=jour(); for(const c of cards){ if(!MODE_SERVEUR) state.owned[c.id]=Object.assign({}, c, {niveau:0, depuis:now()}); state.seen[c.id]='libre'; setBadge(c,0); } save(); refreshTop();
   // tri : les communes d'abord, la meilleure carte en dernier (suspense)
-  cards.sort((a,b)=>rarete(a)-rarete(b)); packCards=cards; cards.forEach(c=>fetchCommune(c)); document.getElementById('pkload').textContent=''; if(GL.uni) GL.uni.uReady.value=1; document.getElementById('pkhint').textContent='Glisse ton doigt sur le haut du pack pour l’ouvrir'; }
+  cards.sort((a,b)=>rarete(a)-rarete(b)); packCards=cards; cards.forEach(c=>fetchCommune(c)); document.getElementById('pkload').textContent=''; if(GL.uni) GL.uni.uReady.value=1; document.getElementById('pkhint').textContent=aideOuvrir(); }
 // =================== la boutique (GDD § 3 et § 9) ===================
 // Tout ce qui est payant s'achète en gemmes : les packs (national, régional) et le Pass 15 jours. Les gemmes s'achètent en
 // euros (le paiement par carte viendra avec Stripe) ; en attendant, des gemmes d'essai (Réglages, à retirer au lancement).
@@ -2025,8 +2025,12 @@ async function ouvrirPackEssai(raretes){ const sc0=document.getElementById('pack
   if(!document.getElementById('packscene').classList.contains('on')) return;
   if(!cartes.length){ finPack(); return toast('Pack d’essai impossible : vérifie ta connexion'); }
   cartes.sort((a,b)=>rarete(a)-rarete(b)); packCards=cartes; cartes.forEach(c=>fetchCommune(c)); if(window.CarteLieu) cartes.forEach(c=>CarteLieu.donnees(c).catch(()=>{}));
-  document.getElementById('pkload').textContent=''; if(GL.uni) GL.uni.uReady.value=1; document.getElementById('pkhint').textContent='Glisse ton doigt sur le haut du pack pour l’ouvrir'; }
+  document.getElementById('pkload').textContent=''; if(GL.uni) GL.uni.uReady.value=1; document.getElementById('pkhint').textContent=aideOuvrir(); }
 { const q=new URLSearchParams(location.search); if(q.has('essai-pack')){ const r=+q.get('essai-pack'); setTimeout(()=>ouvrirPackEssai(r>=1 && r<=5 ? [r,r,r,r,r] : [1,2,3,4,5]), 3000); } }
+// les consignes du pack : au doigt sur un téléphone, à la souris sur un ordinateur
+const SOURIS = matchMedia('(hover:hover) and (pointer:fine)').matches;
+function aideOuvrir(){ return SOURIS ? 'Fais glisser la souris sur le haut du pack pour l’ouvrir' : 'Glisse ton doigt sur le haut du pack pour l’ouvrir'; }
+function aideReveler(){ return SOURIS ? 'Clique sur la carte pour la révéler' : 'Touche la carte pour la révéler'; }
 function closeModal(){ document.getElementById('modal').classList.remove('on'); ficheOuverte=null; fermerCarteGrande(); }
 // la carte agrandie d'une fiche : sa maquette est libérée quand la fiche se ferme
 let CARTE_GRANDE=null;
@@ -2571,6 +2575,10 @@ document.getElementById('mepill').onclick=()=>showPlayer(ME);
 document.getElementById('walletpill').onclick=()=>recolter();
 document.getElementById('gemmespill').onclick=()=>ouvrirBoutique();
 document.getElementById('modal').addEventListener('click', e=>{ if(e.target.id==='modal') closeModal(); });
+// Échap ferme la fenêtre ouverte, sinon la fiche (joueurs sur ordinateur) ; la promenade a la sienne (plus haut)
+document.addEventListener('keydown', e=>{ if(e.key!=='Escape' || e.defaultPrevented) return;
+  if(document.getElementById('modal').classList.contains('on')){ e.preventDefault(); closeModal(); }
+  else if(!PROM.on && document.getElementById('sheet').classList.contains('open')){ e.preventDefault(); closeSheet(); } });
 
 // le filtre des pseudos (src/regles/pseudo.js, listes data/moderation.json) ; pris = les joueurs connus du serveur simulé
 let FILTRE=null; fetch('data/moderation.json').then(r=>r.json()).then(m=>{ FILTRE=Pseudo.creer(m); }).catch(()=>{});
