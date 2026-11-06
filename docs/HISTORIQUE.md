@@ -189,6 +189,7 @@ Rien d'important ne vit dans une conversation : tout est dans le dépôt ou sur 
 - **Les maquettes des marques** (PR #159). Dans la même série, les six monuments gardés aux enchères reçoivent leur maquette 3D : la façade du Ritz sur la place Vendôme, la colonnade du Crillon, la devanture rouge de Maxim's, la coupole rose du Negresco, le portique de Château Margaux, la tour de l'Horloge de la gare de Lyon pour le Train bleu.
 - **Les fenêtres rares en 320 px** (PR #160). Dernier lot de la série : la relecture au format d'un petit téléphone, en français et en anglais, des fenêtres qu'on ouvre rarement et de la promenade. Corrigés : un grand prix qui sortait de son champ et de son bouton, les onglets des Classements coupés, six textes anglais manquants.
 - **Brevo** (PR #161). Gautier, de retour : « je t'ai connecté à Brevo et Infomaniak sur Chrome, tu peux faire ce que tu voulais faire ». Claude authentifie citydeck.fr chez Brevo ; la sécurité de Claude bloque l'ajout des enregistrements DNS chez Infomaniak tant que Gautier n'a pas donné son accord pour cette action précise ; Gautier : « oui, ajoute ces 3 lignes ». Le domaine est authentifié, l'expéditeur CityDeck <noreply@citydeck.fr> vérifié, et la publication du serveur branchera les e-mails de connexion sur Brevo dès que Gautier aura posé la clé SMTP dans GitHub.
+- **Brevo essayé** (PR #163). Gautier ne reçoit d'abord rien : sa demande n'était jamais partie. Claude la fait lui-même pour son adresse (Gautier : « tu peux regarder toi-même ? »), suit la demande dans le journal de Supabase puis chez Brevo : l'e-mail « Ton nouveau mot de passe CityDeck » part de noreply@citydeck.fr ; Gautier : « c'est bon, j'ai reçu ».
 - **L'horloge du serveur** (PR #155). Dans la même série : toutes les 10 minutes, GitHub appelle le serveur pour clore les enchères, faire tourner les mandats et les saisons, tenir les monuments et faire jouer les robots, même sans joueur.
 - **L'anti-triche** (PR #150). Dans la foulée : pas plus de 60 actions par minute pour un compte, et une empreinte chiffrée de la connexion (jamais l'adresse IP) ; dès 3 comptes sur une même connexion dans la journée, une alerte pour Gautier, sans rien bloquer (familles, réseaux partagés, multi-comptes tolérés en V1).
 
@@ -374,6 +375,7 @@ Puis une PR par étape, fusionnée en squash :
 | #155 | 05/11 | L'horloge du serveur : toutes les 10 minutes, enchères, mandats, saisons, monuments et robots tournent sans joueur |
 | #156 | 05/11 | Les travaux des communes s'usent (−10 % par mandat) ; le niveau donne +2 % de loyer par niveau et monte le plafond du Maire (jusqu'à 2 000) |
 | #157 | 05/11 | Documents : les six monuments qui sont des marques (Ritz, Maxim's, Crillon, Negresco, Château Margaux, Train bleu) restent aux enchères (Gautier : « garde-les ») |
+| #163 | 06/11 | Documents : les e-mails par Brevo essayés (un « mot de passe oublié » reçu par Gautier) |
 | #162 | 06/11 | Les e-mails par Brevo branchés : la publication lit la clé SMTP sous le nom choisi par Gautier (`BREVO_SMTP_KEY_CITY_DECK`) |
 | #161 | 06/11 | Les e-mails de connexion par Brevo : citydeck.fr authentifié (DNS chez Infomaniak), expéditeur noreply@citydeck.fr, modèles en français et en anglais ; attend la clé SMTP de Gautier |
 | #160 | 06/11 | Relecture en 320 px des fenêtres rares et de la promenade : grands prix qui tiennent dans leur champ et leur bouton, onglets des Classements en grille, six textes anglais |
@@ -453,7 +455,7 @@ Les décisions du 2 novembre (interview) sont dans `CLAUDE.md` § 4 et dans le G
     - la TVA et l'activité déclarée (comptable) ;
     - l'accord avant Google Street View ;
     - une relecture par un professionnel.
-  - Brevo : fait (PR #161 et #162 ; clé SMTP posée par Gautier dans le secret `BREVO_SMTP_KEY_CITY_DECK`) ; reste un essai (« mot de passe oublié » sur son compte).
+  - Brevo : fait et essayé (PR #161 à #163 ; clé SMTP posée par Gautier dans le secret `BREVO_SMTP_KEY_CITY_DECK`) : le 6 nov., un « mot de passe oublié » sur le compte de Gautier est parti de noreply@citydeck.fr et lui est arrivé (journal de Brevo : envoyé, délivré).
 - **Au lancement** :
   - remettre `jour_secondes` à 86400 et repartir de zéro ;
   - les robots restent, cachés parmi les joueurs (décisions du 5 nov., GDD § 5 quater) : repartir de zéro avec eux ; décider de la phrase des CGU sur les joueurs automatiques ;
