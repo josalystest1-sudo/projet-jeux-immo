@@ -33,6 +33,8 @@
     if (p >= 1 && !(window.debloque && !debloque('recolte'))) return { cle: 'recolte', texte: `Récolter +${nb(p)}`, piece: true, sous: 'Le salaire et les loyers de tes lieux', f: () => { recolter(); setTimeout(A.render, 1200); } };
     return { cle: 'carte', texte: 'Explorer la carte', sous: 'Promène-toi dans les rues, retrouve tes lieux', f: () => showScreen('carte') };
   }
+  // le tout premier lancement : aucun pack ouvert, aucun lieu
+  const premierLancement = () => !(state.packsOuverts > 0) && !Object.keys(state.owned || {}).length;
   // les cartes du jour (le dernier pack ouvert), sinon les dernières arrivées
   function cartesDuJour() {
     const d = state.cartesDuJour, ids = d && d.ids ? d.ids.filter((id) => state.owned[id]) : [];
@@ -46,19 +48,35 @@
     el.classList.toggle('vitrine', pret);
     const haut = `<div class="acc-haut"><button class="acc-pill moi" data-a="profil"><span class="av">${echapper(state.avatar || '🙂')}</span><b data-pas-traduire>${echapper(state.pseudo || '')}</b></button><span class="acc-esp"></span>
       <button class="acc-pill" data-a="gemmes">💎 <b>${nb(state.gemmes || 0)}</b></button><button class="acc-pill" data-a="pieces"><i class="pc"></i><b>${nb(dispo())}</b></button></div>`;
-    const titre = pret ? '<div class="acc-titre"><small>Pack du jour</small><b>Ton pack est prêt !</b></div>'
+    const premier = pret && premierLancement();
+    const titre = premier ? '<div class="acc-titre"><small>Bienvenue !</small><b>Ton premier pack t’attend</b></div>' : pret ? '<div class="acc-titre"><small>Pack du jour</small><b>Ton pack est prêt !</b></div>'
       : `<div class="acc-titre"><small>Prochain pack dans</small><b class="acc-compte">${dureeCourte(secondesAvantPack())}</b></div>`;
     const cartes = pret ? [] : cartesDuJour();
     const centre = pret ? '<div class="acc-centre"></div>'
       : `<div class="acc-centre"><div class="acc-eventail" style="--n:${cartes.length}">${cartes.map((a, i) => `<button class="acc-carte ccarte r${rarete(a)}" data-id="${echapper(a.id)}" style="--i:${i - (cartes.length - 1) / 2}">${carteArt(a, '')}</button>`).join('')}</div>${cartes.length ? `<div class="acc-legende">${state.cartesDuJour ? 'Tes cartes du jour' : 'Tes dernières cartes'}</div>` : ''}</div>`;
-    const bas = `<div class="acc-bas"><button class="acc-gros ${act.or ? 'or' : ''}" data-a="gros">${echapper(act.texte)}${act.piece ? ' <i class="pc"></i>' : ''}</button><span class="acc-sous">${echapper(act.sous || '')}</span></div>`;
+    const bas = `<div class="acc-bas"><button class="acc-gros ${act.or ? 'or' : ''} ${premier ? 'pulse' : ''}" data-a="gros">${echapper(premier ? 'Ouvrir mon premier pack' : act.texte)}${act.piece ? ' <i class="pc"></i>' : ''}</button><span class="acc-sous">${echapper(premier ? `${nb(BOU.cartesDuJour(state.pass, now()))} vrais lieux de France, tirés au hasard : ils seront à toi.` : act.sous || '')}</span></div>`;
     el.innerHTML = haut + titre + centre + bas;
     el.onclick = (e) => { const b = e.target.closest('[data-a],[data-id]'); if (!b) return; vibrer(8);
       if (b.dataset.id) return ouvrirFicheLieu(b.dataset.id);
       const a = b.dataset.a; if (a === 'gros') return act.f(); if (a === 'profil') return showPlayer(ME); if (a === 'gemmes') return ouvrirBoutique(); if (a === 'pieces') return recolter(); };
   };
   // après un pack : retour à l'accueil, avec les cartes du jour
-  A.apresPack = () => { if (window.PROGRESSION) PROGRESSION.verifier(); if (visible()) A.render(); };
+  A.apresPack = () => { if (window.PROGRESSION) PROGRESSION.verifier(); if (visible()) A.render(); if (!state.prefs.guideVu && visible()) setTimeout(premiersLieux, 700); };
+  // le premier pack guidé (Gautier : « son premier pack, guidé ») : montrer où sont les lieux gagnés, puis le guide
+  function premiersLieux() {
+    if (state.prefs.guideVu || !visible() || document.querySelector('#modal.on')) return;
+    if (window.PROGRESSION && PROGRESSION.faits().packs > 1) return;   // (seulement le tout premier pack : pas un ancien joueur qui n'a pas vu le guide)
+    const l = cartesDuJour(); if (!l.length) return;
+    const beau = l.slice().sort((x, y) => rarete(y) - rarete(x))[0];
+    const box = document.getElementById('modalbox');
+    box.innerHTML = `<div class="prog-fen"><div class="prog-ic">🎉</div><h2>Tes premiers lieux !</h2><div class="sub">Ils sont à toi : de vrais lieux de France, à ta couleur sur la carte. Allons voir où ils sont.</div>
+      <div class="liste-btn"><button class="btn large" id="pl-voir">Voir sur la carte</button><button class="btn clair large" id="pl-passer">Passer</button></div></div>`;
+    document.getElementById('modal').classList.add('on');
+    box.querySelector('#pl-voir').onclick = () => { closeModal(); A.montrerSurCarte(beau); };
+    box.querySelector('#pl-passer').onclick = () => { state.prefs.guideVu = true; save(); closeModal(); };
+  }
+  A.montrerSurCarte = (a) => { ARRIVEE_FAITE = true; showScreen('carte');
+    allerA(a.lon, a.lat, 17.4, () => setTimeout(() => { GUIDE_LIEU = a; guide(0); }, 500), a.label || a.nom, communeName(a.citycode, a.city)); };
   // le compte à rebours et le bouton suivent le temps (toutes les secondes, seulement à l'écran)
   let derniereCle = '';
   setInterval(() => { if (!visible()) return; const c = ecran().querySelector('.acc-compte');

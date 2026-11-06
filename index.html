@@ -2534,18 +2534,19 @@ function renderNotifs(){ const el=document.getElementById('s-notifs'); let h=`<h
     h+=`</div></div>`; }
   el.innerHTML=h; if(MODE_SERVEUR && state.notifs.some(n=>!n.read)) appelServeur('notifs_lues'); state.notifs.forEach(n=>n.read=true); save(); refreshTop(); }
 // ---- le guide des premiers pas : chaque élément important éclairé tour à tour, avec une bulle
-const GUIDE=[
-  { cible:'#packbtn', titre:'🎁 Ton pack du jour', texte:'Chaque jour, 5 lieux tirés dans toute la France. Le bouton brille quand un nouveau pack t’attend.' },
-  { centre:true, titre:'🗺️ Touche un bâtiment', texte:'Tu vois ses lieux, leur rareté et leur propriétaire. Chez toi, tu construis ; chez les autres, tu fais une offre.' },
+const GUIDE=[   // (6 nov. : après le premier pack ; les enchères, les communes et la chasse sont présentées quand elles s'ouvrent, src/progression.js)
+  { lieu:true, centre:true, titre:'🗺️ Tes lieux sur la carte', texte:'Tes lieux sont sur la vraie carte de France, à ta couleur. Touche un bâtiment pour voir ses lieux : chez toi, tu construis pour toucher des loyers ; chez les autres, tu fais une offre.' },
   { cible:'#walletpill', titre:'<i class="pc"></i> Tes pièces', texte:'Ton salaire et tes loyers s’accumulent pendant 24 h. Touche ta bourse pour récolter, et reviens chaque jour.' },
   { cible:'#nav button[data-s="patrimoine"]', titre:'🏘️ Ta collection', texte:'Tes lieux en cartes. Maison, Immeuble, Tour : plus tu construis haut, plus le loyer monte.' },
-  { cible:'#nav button[data-s="encheres"]', titre:'🔨 Les monuments', texte:'Chaque semaine, trois monuments sont mis aux enchères pour toute la France.' },
-  { cible:'#nav button[data-s="communes"]', titre:'👑 Deviens Maire', texte:'Verse le plus de pièces à la caisse de travaux d’une commune : tu en deviens le Maire pour 2 semaines.' } ];
-function guide(i){ let g=document.getElementById('guide'); if(i>=GUIDE.length || i<0){ if(g) g.remove(); state.prefs.guideVu=true; save(); return; }
+  { cible:'#nav button[data-s="accueil"]', titre:'🏠 Ton pack chaque jour', texte:'Un nouveau pack t’attend chaque jour sur l’accueil. Le reste du jeu s’ouvre en jouant : construis, collectionne… et tu verras.' } ];
+let GUIDE_LIEU=null;   // le lieu montré par le premier pack guidé (src/accueil.js)
+function guide(i){ let g=document.getElementById('guide'); if(i>=GUIDE.length || i<0){ if(g) g.remove(); state.prefs.guideVu=true; GUIDE_LIEU=null; save(); return; }
+  if(window.PROGRESSION && !PROGRESSION.ouvert('carte')) return;   // (avant le premier pack, il n'y a rien à montrer)
   if(document.querySelector('.screen.on')) showScreen('carte');
   if(!g){ g=document.createElement('div'); g.id='guide'; g.innerHTML='<div class="spot"></div><div class="bulle"></div>'; document.body.appendChild(g); }
   const e=GUIDE[i], spot=g.querySelector('.spot'), bulle=g.querySelector('.bulle'); let r;
-  if(e.centre){ const w=innerWidth, h=innerHeight; r={ left:w/2-70, top:h*0.42-70, width:140, height:140 }; spot.style.borderRadius='50%'; }
+  if(e.lieu && GUIDE_LIEU){ const p=map.project([GUIDE_LIEU.lon, GUIDE_LIEU.lat]); r={ left:p.x-60, top:p.y-60, width:120, height:120 }; spot.style.borderRadius='50%'; }
+  else if(e.centre){ const w=innerWidth, h=innerHeight; r={ left:w/2-70, top:h*0.42-70, width:140, height:140 }; spot.style.borderRadius='50%'; }
   else { const el=document.querySelector(e.cible); const b=el.getBoundingClientRect(); const m=6; r={ left:b.left-m, top:b.top-m, width:b.width+2*m, height:b.height+2*m }; spot.style.borderRadius = e.cible==='#packbtn' ? '50%' : '22px';
     if(e.cible==='#packbtn'){ const rond=el.querySelector('.pack-rond').getBoundingClientRect(); r={ left:rond.left-8, top:rond.top-8, width:rond.width+16, height:rond.height+16 }; } }
   Object.assign(spot.style, { left:r.left+'px', top:r.top+'px', width:r.width+'px', height:r.height+'px' });

@@ -558,6 +558,11 @@
   - côté jeu `src/progression.js` (`PROGRESSION`, `window.debloque`) : un cadenas à la place de l'icône dans la barre du bas, une fenêtre « Pour l'ouvrir » avec ce qu'il reste à faire (barres de progression), une fenêtre « Nouveau ! » (avec la fête) quand une fonction s'ouvre, montrée quand rien d'autre n'est à l'écran (`state.nouveautes`) ; `showScreen` refuse un écran fermé ; la chasse n'a ni bandeau ni gros bouton tant qu'elle est fermée ; l'étiquette de la commune est cachée tant que les communes le sont ;
   - `state.deblocages` (clé → instant ; une fonction ouverte le reste), `state.packsOuverts` (compté par `ouvrirPack`, déduit des lieux sur un autre téléphone : un pack pour 5 lieux) ; ce qui s'ouvre au démarrage ou avant la première réponse du serveur (`ETAT_RECU`) s'ouvre sans fête : les joueurs d'avant retrouvent tout ;
   - vérifié : nouveau joueur (tout fermé sauf l'accueil), premier pack, premier bâtiment (fête des communes), 2ᵉ pack (fête de la chasse), cadenas des enchères ; 122 tests.
+- 6 nov. 2026 (PR #180) : **le premier pack guidé** (choix de Gautier : « son premier pack, guidé ») :
+  - le tout premier lancement (aucun pack ouvert, aucun lieu) : « Bienvenue ! Ton premier pack t'attend », le gros bouton « Ouvrir mon premier pack » bat doucement (`premierLancement`, `.acc-gros.pulse`) ;
+  - après ce premier pack, sur l'accueil : « Tes premiers lieux ! » (`premiersLieux`, seulement si `PROGRESSION.faits().packs` vaut 1 et que le guide n'a pas été vu) ; « Voir sur la carte » emmène sur le plus rare des lieux gagnés (`ACCUEIL.montrerSurCarte` : `allerA`, sans la descente d'arrivée), puis le guide commence par ce lieu, éclairé là où il est (`GUIDE_LIEU`) ;
+  - le guide passe de 6 à 4 bulles : tes lieux sur la carte, tes pièces, ta collection, ton pack chaque jour (« le reste du jeu s'ouvre en jouant ») ; les enchères, les communes et la chasse sont présentées quand elles s'ouvrent (PR #179) ; « Revoir le guide » ne fait rien tant que la carte est fermée ;
+  - le titre et le gros bouton de l'accueil rapetissent sur les petits écrans (320 px : une ligne chacun, loin du sachet) ; vérifié de bout en bout sur un nouveau joueur (démo) ; 122 tests.
 
 ## Bugs connus
 - Les badges 💰 des joueurs simulés n'apparaissent qu'après ouverture de leur parcelle (limite du prototype local).
