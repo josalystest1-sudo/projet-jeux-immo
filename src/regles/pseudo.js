@@ -1,5 +1,5 @@
 // Le filtre automatique des pseudos (GDD § 8 bis « Modération ») : longueur, caractères permis, mots interdits
-// (y compris déguisés : P.u.7.a.i.n, GrosCon), noms réservés (admin, CityDeck, Cadastra…), pseudo déjà pris.
+// (y compris déguisés : P.u.7.a.i.n, GrosCon), noms réservés (admin, StreetKeep, CityDeck, Cadastra…), pseudo déjà pris.
 // Module pur. Les listes viennent de data/moderation.json.
 (function (racine) {
   const LEET = { 0: 'o', 1: 'i', 3: 'e', 4: 'a', 5: 's', 7: 't', 8: 'b', '@': 'a', '$': 's', '!': 'i', '€': 'e' };

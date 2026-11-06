@@ -1,4 +1,4 @@
-// CityDeck : les icônes de l'interface, au trait, d'une seule couleur (5 nov. 2026, choix de Gautier : « au trait, une
+// StreetKeep : les icônes de l'interface, au trait, d'une seule couleur (5 nov. 2026, choix de Gautier : « au trait, une
 // couleur », menus façon Pokémon TCG Pocket ; docs/DESIGN.md). Le code du jeu écrit encore des émojis dans ses textes
 // (titres, boutons, notifications) : iconiser() remplace à l'affichage ceux de la table EMOJI_ICONE par l'icône dessinée,
 // partout sauf dans ce qui est un contenu et garde ses couleurs (les cartes, l'icône d'un lieu, les avatars, la carte de

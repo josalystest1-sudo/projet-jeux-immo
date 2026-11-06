@@ -1,4 +1,4 @@
-// CityDeck : la langue du jeu (5 nov. 2026, demande de Gautier : « une traduction complète du jeu en anglais, avec le choix
+// StreetKeep : la langue du jeu (5 nov. 2026, demande de Gautier : « une traduction complète du jeu en anglais, avec le choix
 // de la langue dans les paramètres, français par défaut ; on garde les noms propres et les rues en français »).
 //
 // Le code du jeu écrit en français. En anglais, ce fichier traduit à l'affichage, comme src/icones.js pour les icônes :

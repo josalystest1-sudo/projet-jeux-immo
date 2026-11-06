@@ -20,18 +20,18 @@ function email(titre, texte, bouton, fin, title, text, button) {
 <p style="font-size:13px;color:#5A6378">${fin}</p>
 <hr style="border:0;border-top:1px solid #D9DFEA;margin:24px 0">
 <p style="font-size:13px;color:#5A6378"><b>${title}</b> ${text} <a href="{{ .ConfirmationURL }}" style="color:${bleu}">${button}</a></p>
-<p style="font-size:12px;color:#8A93A8">CityDeck · citydeck.fr</p>
+<p style="font-size:12px;color:#8A93A8">StreetKeep · citydeck.fr</p>
 </div>`;
 }
 
 const REGLAGES = {
-  smtp_host: 'smtp-relay.brevo.com', smtp_port: '587', smtp_admin_email: 'noreply@citydeck.fr', smtp_sender_name: 'CityDeck',
+  smtp_host: 'smtp-relay.brevo.com', smtp_port: '587', smtp_admin_email: 'noreply@citydeck.fr', smtp_sender_name: 'StreetKeep',
   rate_limit_email_sent: 100,   // e-mails par heure pour tout le jeu (30 par défaut)
-  mailer_subjects_confirmation: 'Confirme ton inscription à CityDeck',
-  mailer_templates_confirmation_content: email('Bienvenue dans CityDeck !', 'Il ne reste qu’à confirmer ton adresse e-mail pour commencer ta collection.',
+  mailer_subjects_confirmation: 'Confirme ton inscription à StreetKeep',
+  mailer_templates_confirmation_content: email('Bienvenue dans StreetKeep !', 'Il ne reste qu’à confirmer ton adresse e-mail pour commencer ta collection.',
     'Confirmer mon adresse', 'Si tu n’as pas créé de compte, ignore simplement cet e-mail.',
-    'Welcome to CityDeck!', 'Confirm your e-mail address to start your collection:', 'confirm my address'),
-  mailer_subjects_recovery: 'Ton nouveau mot de passe CityDeck',
+    'Welcome to StreetKeep!', 'Confirm your e-mail address to start your collection:', 'confirm my address'),
+  mailer_subjects_recovery: 'Ton nouveau mot de passe StreetKeep',
   mailer_templates_recovery_content: email('Mot de passe oublié', 'Touche le bouton pour choisir un nouveau mot de passe.',
     'Choisir un nouveau mot de passe', 'Si tu n’as rien demandé, ignore cet e-mail : ton mot de passe ne change pas.',
     'Forgot your password?', 'Choose a new one here:', 'new password'),

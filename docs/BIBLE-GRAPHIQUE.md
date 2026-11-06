@@ -453,7 +453,7 @@ Les réponses :
   - la France en filigrane ;
   - un double cadre d'or aux angles ouvragés ;
   - un médaillon d'or perlé avec la pièce-maison ;
-  - CITYDECK en capitales d'or, et « COLLECTIONNE LA FRANCE ».
+  - STREETKEEP en capitales d'or, et « COLLECTIONNE LA FRANCE ».
 - **La tension** :
   - plus de point du lieu avant la fin (il n'apparaît qu'à la rue) ;
   - sur la France, les régions s'allument tour à tour, de plus en plus lentement, comme une roulette, et s'arrêtent sur la bonne, dont le nom claque ;
@@ -518,7 +518,7 @@ Où c'est dans le code :
 **Les pistes.** Claude a d'abord proposé quatre pistes, accordées aux menus (§ 12) : la plaque, le paquet de cartes, la pièce-maison et la ville sur une carte. Gautier : il faut « un logo avec le nom complet et un logo », et « la petite maison » (la pièce-maison) est « moche ». Quatre emblèmes sans la maison ont suivi ; il a choisi « les cartes et la ville ». Pour la monnaie, il a voulu une nouvelle pièce ; parmi quatre pièces rondes, il a choisi « la pièce à la ville ».
 
 **Le modèle de Gautier.** Il a ensuite envoyé son propre logo, et précisé : « tu as la pièce intégrée au logo ». Ce modèle remplace les pistes :
-- la plaque de rue émaillée « CITYDECK » : cadre vert, filet blanc aux coins rentrants, liseré d'or, deux vis ;
+- la plaque de rue émaillée « STREETKEEP » : cadre vert, filet blanc aux coins rentrants, liseré d'or, deux vis ;
 - deux cartes au bord d'or en éventail derrière la plaque ;
 - une pièce d'or ronde frappée d'une maison, posée sur le coin de la plaque.
 

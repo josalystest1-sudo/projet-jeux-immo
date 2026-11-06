@@ -1,4 +1,4 @@
-# CityDeck
+# StreetKeep
 
 (Nom choisi par Gautier le 4 nov. 2026 ; nom de travail avant : Cadastra, qui reste dans le code et les noms internes.)
 
