@@ -8,7 +8,7 @@ const path = require('path');
 
 const RACINE = path.resolve(__dirname, '..');
 const SORTIE = path.resolve(process.argv[2] || path.join(RACINE, 'supabase/functions/jeu/_genere'));
-const REGLES = ['regles/lieu.js', 'regles/pack.js', 'regles/encheres.js', 'regles/celebres.js', 'regles/mairie.js', 'regles/classements.js', 'regles/monuments.js', 'regles/regions.js', 'regles/boutique.js', 'tirage.js', 'regles/robots.js'];   // chacun pose son objet sur globalThis
+const REGLES = ['regles/lieu.js', 'regles/pack.js', 'regles/encheres.js', 'regles/celebres.js', 'regles/mairie.js', 'regles/classements.js', 'regles/monuments.js', 'regles/regions.js', 'regles/boutique.js', 'tirage.js', 'regles/chasse.js', 'regles/robots.js'];   // chacun pose son objet sur globalThis
 const ENTETE = '// Généré par tools/serveur_prepare.js depuis le dépôt : ne pas modifier ici.\n';
 
 // geo.js (contours de la France et des départements) est un script « const GEO = {…}; »
@@ -23,7 +23,7 @@ function preparer(sortie) {
   // s'accroche à globalThis (Regles, Pack, Encheres, Celebres), que l'on exporte ensuite
   let regles = ENTETE;
   for (const f of REGLES) regles += `\n// ---- src/${f}\n` + fs.readFileSync(path.join(RACINE, 'src', f), 'utf8') + '\n';
-  regles += '\nexport const { Regles, Pack, Encheres, Celebres, Mairie, Classements, Monuments, Regions, Boutique, Tirage, Robots } = globalThis;\n';
+  regles += '\nexport const { Regles, Pack, Encheres, Celebres, Mairie, Classements, Monuments, Regions, Boutique, Tirage, Robots, Chasse } = globalThis;\n';
   fs.writeFileSync(path.join(sortie, 'regles.mjs'), regles);
   const json = (f) => JSON.stringify(JSON.parse(fs.readFileSync(path.join(RACINE, 'data', f), 'utf8')));
   fs.writeFileSync(path.join(sortie, 'donnees.mjs'), ENTETE
@@ -33,7 +33,8 @@ function preparer(sortie) {
     + `export const FRANCE = ${JSON.stringify(geo().france)};\n`
     + `export const DEPARTEMENTS = ${JSON.stringify(Object.keys(geo().deps))};\n`
     + `export const CONTOURS = ${JSON.stringify(Object.fromEntries(Object.entries(geo().deps).map(([k, d]) => [k, d.rings])))};\n`
-    + `export const CELEBRES = ${JSON.stringify(celebres())};\n`);
+    + `export const CELEBRES = ${JSON.stringify(celebres())};\n`
+    + `export const CHASSE_COMMUNES = ${json('chasse_communes.json')};\n`);
   return sortie;
 }
 

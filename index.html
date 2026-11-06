@@ -85,6 +85,7 @@ const VERSION='__VERSION__';
 <script src="src/regles/boutique.js"></script>
 <script src="src/regles/encheres.js"></script>
 <script src="src/regles/pack.js"></script>
+<script src="src/regles/chasse.js"></script>
 <script src="src/tirage.js"></script>
 <script src="src/marche.js"></script>
 <script src="src/maquettes.js"></script>
@@ -161,7 +162,7 @@ const VERSION='__VERSION__';
   <div class="prom-haut">
     <div class="prom-rue" id="prom-rue">🚶 En promenade</div>
     <button id="prom-photo" aria-label="La photo de l’endroit (Street View)">📷</button>
-    <button class="prom-quitter" onclick="finPromenade()" aria-label="Arrêter la promenade">✕</button>
+    <button class="prom-quitter" onclick="promQuitter()" aria-label="Arrêter la promenade">✕</button>
   </div>
   <div class="prom-pied">
     <div id="prom-joy" role="button" aria-label="Manette : pousse pour marcher"><i></i></div>
@@ -795,7 +796,7 @@ async function afficherStreetView(cible, vue){ const svEl=document.getElementByI
 // toucher pour avancer) et la photo ne bouge pas toute seule. Chaque pas cherche la photo suivante le long de la rue avec
 // la recherche de photo gratuite (streetview/metadata), puis recharge l'intégration gratuite à cet endroit. Jamais d'image
 // fixe (payante). Sans clé Google : on marche sur le tracé IGN des rues et Street View prend la photo la plus proche.
-const MARCHE = Marche.creer({ vitesse:11 });
+const MARCHE = Marche.creer({ vitesse:ECO.chasse.vitesse_ms });   // (la même pour tous : la chasse au trésor)
 const norm360 = c => ((c%360)+360)%360;
 const ecartCap = (a, b) => { const d=norm360(a-b); return d>180 ? 360-d : d; };
 function promAvecCle(){ return !!CLE_GOOGLE && !cleRefusee; }
@@ -831,7 +832,7 @@ function promenade(depart){ if(PROM.on) return;
   if(document.getElementById('sheet').classList.contains('open')) closeSheet();
   const m = MARCHE.depart(ruesBalade(true), depart, depart.cap||0, 120);
   if(!m){ toast('🚧 Pas de rue ici : approche-toi d’une rue'); return; }
-  Object.assign(PROM, m, { on:true, joy:{x:0, y:0}, pano:null, vue:m.cap, photo:false, touche:null, liste:[], cleListe:'', avant:map.getPitch(),
+  Object.assign(PROM, m, { on:true, chasse:!!depart.chasse, joy:{x:0, y:0}, pano:null, vue:m.cap, photo:false, touche:null, liste:[], cleListe:'', avant:map.getPitch(),
     zoom:Math.min(19, Math.max(17.6, map.getZoom())), etat:'', envLe:0, envPt:null });
   document.body.classList.add('promenade'); document.body.classList.remove('prom-photo');
   const box=document.getElementById('prom'); box.setAttribute('aria-hidden','false'); box.classList.remove('photo','charge');
@@ -850,7 +851,7 @@ function finPromenade(){ if(!PROM.on) return; PROM.on=false; PROM.cadre++; PROM.
   if(PROM.marqueur){ PROM.marqueur.remove(); PROM.marqueur=null; }
   if(document.getElementById('sheet').classList.contains('open')) closeSheet();
   map.dragPan.enable(); map.dragRotate.enable(); map.touchZoomRotate.enableRotation(); map.keyboard.enable();
-  promSurligner([]); promManette(); map.resize(); map.easeTo({ padding:{top:0, bottom:0, left:0, right:0}, pitch:PROM.avant==null?58:PROM.avant, duration:450 }); vibrer(8); }
+  promSurligner([]); promManette(); if(window.chasseSortie) chasseSortie(); map.resize(); map.easeTo({ padding:{top:0, bottom:0, left:0, right:0}, pitch:PROM.avant==null?58:PROM.avant, duration:450 }); vibrer(8); }
 // les rues chargées (tronçons de la BD TOPO, relus toutes les 2 s : de nouvelles tuiles arrivent en marchant)
 let RUES_BAL = { liste:[], lu:0 };
 function ruesBalade(force){ if(!force && RUES_BAL.liste.length && performance.now()-RUES_BAL.lu<2000) return RUES_BAL.liste; const l=[];
@@ -861,7 +862,7 @@ function ruesBalade(force){ if(!force && RUES_BAL.liste.length && performance.no
 // à chaque image : un pas (src/marche.js), puis la carte et le pion seulement s'ils ont bougé (la carte doit pouvoir se reposer)
 let promT=0;
 function promBoucle(t){ if(!PROM.on) return; const dt=Math.min(0.05, promT ? (t-promT)/1000 : 0.016); promT=t;
-  const avant=PROM.bouge; MARCHE.pas(PROM, ruesBalade(), PROM.joy, dt);
+  const avant=PROM.bouge; MARCHE.pas(PROM, ruesBalade(), window.chasseBloque && chasseBloque() ? {x:0, y:0} : PROM.joy, dt);   // (en chasse : pas avant le départ)
   const etat=[PROM.lon.toFixed(7), PROM.lat.toFixed(7), PROM.camCap.toFixed(1), Math.round(PROM.cap), PROM.zoom].join();
   if(etat!==PROM.etat){ PROM.etat=etat; promMarqueur(); promSuivre(); }
   if(PROM.marqueur) PROM.marqueur.getElement().classList.toggle('marche', !!PROM.bouge);
@@ -869,7 +870,8 @@ function promBoucle(t){ if(!PROM.on) return; const dt=Math.min(0.05, promT ? (t-
   if(avant && !PROM.bouge){ promEnvirons(); promNomRue(); if(PROM.photo) promPhotoIci(); }   // à l'arrêt : ce qu'on longe, et la photo de l'endroit
   requestAnimationFrame(promBoucle); }
 // la caméra derrière le pion (Gautier : « comme une vue FPS, mais en dézoomé »), le pion dans la partie visible de la carte
-function promSuivre(){ const v=document.querySelector('#prom .prom-vue').getBoundingClientRect(), b=document.querySelector('#prom .prom-bas').getBoundingClientRect();   // (la manette est sur le côté : le pion reste au milieu)
+function promSuivre(){ if(PROM.vueLibre) return;   // (la chasse montre un instant son cercle d'indice)
+  const v=document.querySelector('#prom .prom-vue').getBoundingClientRect(), b=document.querySelector('#prom .prom-bas').getBoundingClientRect();   // (la manette est sur le côté : le pion reste au milieu)
   const cote = PROM.photo && v.width < innerWidth*0.9;
   const padding = { top: PROM.photo && !cote ? v.height : 0, bottom: b.height ? Math.max(0, innerHeight-b.top) : 0, left: cote ? v.right : 0, right:0 };
   const devant = Marche.decale(PROM, PROM.camCap, 30);
@@ -974,7 +976,7 @@ document.getElementById('prom-photo').onclick=promBasculerPhoto;
   const FLECHES={ ArrowUp:[0,-1], ArrowDown:[0,1], ArrowLeft:[-1,0], ArrowRight:[1,0] }, tenues=new Set();
   const clavier=()=>{ let x=0, y=0; for(const t of tenues){ x+=FLECHES[t][0]; y+=FLECHES[t][1]; } PROM.joy={ x:Math.max(-1,Math.min(1,x)), y:Math.max(-1,Math.min(1,y)) }; montrer(); };
   document.addEventListener('keydown', e=>{ if(!PROM.on || document.getElementById('modal').classList.contains('on') || (e.target && e.target.closest && e.target.closest('input,textarea,select'))) return;
-    if(e.key==='Escape'){ e.preventDefault(); finPromenade(); return; }
+    if(e.key==='Escape'){ e.preventDefault(); promQuitter(); return; }
     if(FLECHES[e.key]){ e.preventDefault(); tenues.add(e.key); clavier(); } });
   document.addEventListener('keyup', e=>{ if(FLECHES[e.key] && tenues.delete(e.key)) clavier(); });
   window.promManette=()=>{ tenues.clear(); montrer(); }; })();
@@ -2478,7 +2480,7 @@ function renderCommunes(){ const el=document.getElementById('s-communes'); const
 
 function setPref(k,v){ state.prefs[k]=v; save(); }
 // les notifications : une icône par sorte, l'heure relative, les actions ; les réglages sont à part
-function iconeNotif(n){ const t=n.text||''; if(n.type==='enchere') return /remporté/.test(t)?'🏆':(/surenchéri/.test(t)?'⚠️':'🔨'); if(n.type==='offre') return /accepté/.test(t)?'✅':(/refusé/.test(t)?'❌':'📨'); if(n.type==='vente') return '💰'; if(n.type==='maire') return /terminé/.test(t)?'🏛️':'👑'; if(n.type==='saison') return '🏆'; if(n.type==='monument') return /⚠️|⏳/.test(t)?'⏳':'🏛️'; if(n.type==='boutique') return '💎'; if(n.type==='echange') return /accepté/.test(t)?'🤝':(/refusé|annulé/.test(t)?'❌':'🔁'); return '🔔'; }
+function iconeNotif(n){ const t=n.text||''; if(n.type==='enchere') return /remporté/.test(t)?'🏆':(/surenchéri/.test(t)?'⚠️':'🔨'); if(n.type==='offre') return /accepté/.test(t)?'✅':(/refusé/.test(t)?'❌':'📨'); if(n.type==='vente') return '💰'; if(n.type==='maire') return /terminé/.test(t)?'🏛️':'👑'; if(n.type==='saison') return '🏆'; if(n.type==='monument') return /⚠️|⏳/.test(t)?'⏳':'🏛️'; if(n.type==='boutique') return '💎'; if(n.type==='chasse') return /Tu as trouvé/.test(t)?'🏆':'🗺️'; if(n.type==='echange') return /accepté/.test(t)?'🤝':(/refusé|annulé/.test(t)?'❌':'🔁'); return '🔔'; }
 function ilYa(ts){ const s=Math.max(0,Math.floor((now()-ts)/1000)); if(s<60) return 'à l’instant'; const m=Math.floor(s/60); if(m<60) return `il y a ${m} min`; const h=Math.floor(m/60); if(h<24) return `il y a ${h} h`; return `il y a ${Math.floor(h/24)} j`; }
 function renderNotifs(){ const el=document.getElementById('s-notifs'); let h=`<h1>Notifications <button class="act rond" style="width:44px;height:44px;font-size:20px" onclick="ouvrirReglages()" aria-label="Réglages">⚙️</button></h1>`;
   if(!state.notifs.length) h+=`<div class="card vide"><div class="ico">🔔</div><div class="t">Rien de neuf</div><div class="m">Les offres reçues, les enchères et les ventes arrivent ici.</div></div>`;
@@ -2539,7 +2541,9 @@ function ouvrirReglages(){ const box=document.getElementById('modalbox');
     <div class="essais"><b>Pack d’essai</b><small>S’ouvre comme un vrai pack, mais ne compte pas et ne te donne rien.</small>
       <div class="liste-btn"><button class="btn clair" onclick="ouvrirPackEssai([1,2,3,4,5])">🎴 Toutes les raretés</button><button class="btn clair" onclick="ouvrirPackEssai([4,4,4,4,4])">✨ Épiques</button><button class="btn clair" onclick="ouvrirPackEssai([5,5,5,5,5])">👑 Légendaires</button></div>
       <b style="display:block;margin-top:10px">Gemmes d’essai</b><small>Pour essayer la boutique avant le paiement par carte. À retirer au lancement.</small>
-      <div class="liste-btn"><button class="btn clair" onclick="gemmesEssai()">💎 +${nb(BOU.B.gemmes_essai)} gemmes</button></div></div>
+      <div class="liste-btn"><button class="btn clair" onclick="gemmesEssai()">💎 +${nb(BOU.B.gemmes_essai)} gemmes</button></div>
+      <b style="display:block;margin-top:10px">Chasse au trésor d’essai</b><small>Une chasse rien que pour toi, ici, dans 20 secondes : le trésor est à quelques rues.</small>
+      <div class="liste-btn"><button class="btn clair" onclick="chasseEssai()">🗺️ Lancer une chasse d’essai</button></div></div>
     <div class="liste-btn"><button class="btn bleu large" onclick="closeModal();setTimeout(()=>guide(0),300)">🧭 Revoir le guide</button><button class="btn clair large" onclick="closeModal()">Fermer</button></div>
     <div class="m" style="text-align:center;margin-top:10px">Version du jeu : ${VERSION.indexOf('__')===0 ? 'locale' : VERSION.slice(0,7)}</div>
     <div class="m petit liens-legaux" style="text-align:center"><a href="conditions.html" target="_blank" rel="noopener">Conditions</a> · <a href="confidentialite.html" target="_blank" rel="noopener">Confidentialité</a> · <a href="mentions-legales.html" target="_blank" rel="noopener">Mentions légales</a></div>`;
@@ -2689,6 +2693,7 @@ async function recolteConnexion(ensuite){ if(MODE_SERVEUR){ const r=await synchr
 function demarrageLocal(){ if(!state.pseudo) setTimeout(creationProfil, 600); else setTimeout(()=>recolteConnexion(packAuDemarrage), 500); }
 refreshTop(); if(!MODE_SERVEUR) tickAuction();
 </script>
+<script src="src/chasse_jeu.js"></script>
 <script src="src/compte.js?v=20261103b"></script>
 </body>
 </html>

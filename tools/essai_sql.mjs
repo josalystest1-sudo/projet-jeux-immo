@@ -5,7 +5,7 @@
 // verser, part du Maire plafonnée, absence, fin de mandat annoncée une fois ; les classements et les saisons
 // (100_classements.sql) : patrimoine, Maires, saison figée une fois ; les monuments (110_monuments.sql) : entretien,
 // reprise (lot de reprise, alerte, échanges qui tombent) ; la boutique (120_boutique.sql) : gemmes d'essai, pack acheté,
-// Pass, bon ; les ventes et offres en gemmes ; le paiement par carte (130_paiements.sql) ; le classement des pièces (140_classement_pieces.sql) ; le suivi de Gautier (150_suivi.sql) ; l’anti-triche (160_anti_triche.sql) ; le niveau des communes et son usure (170_travaux.sql, 180_usure.sql) ; les alertes parties par e-mail (190_alertes_email.sql) ; les robots qui se retirent (050_robots.sql) ; les refus attendus et les droits du jeu.
+// Pass, bon ; les ventes et offres en gemmes ; le paiement par carte (130_paiements.sql) ; le classement des pièces (140_classement_pieces.sql) ; le suivi de Gautier (150_suivi.sql) ; l’anti-triche (160_anti_triche.sql) ; le niveau des communes et son usure (170_travaux.sql, 180_usure.sql) ; les alertes parties par e-mail (190_alertes_email.sql) ; la chasse au trésor (200_chasse.sql) ; les robots qui se retirent (050_robots.sql) ; les refus attendus et les droits du jeu.
 // Prérequis (une fois, rien n'est ajouté au dépôt) : npm i --no-save --no-package-lock @electric-sql/pglite
 //   node tools/essai_sql.mjs            (000_comptes.sql, qui demande l'extension unaccent, est remplacé par un profil minimal)
 import { PGlite } from '@electric-sql/pglite';
@@ -406,9 +406,33 @@ ok(Number(u.etat) === Math.floor(1050 * 0.9 * 0.9) + 100 && Number(u.mandat) ===
 ok(/power\(0\.9::float8/.test(fs.readFileSync(path.join(DOSSIER, '180_usure.sql'), 'utf8')), 'l’usure du serveur (0,9 par mandat) est celle des règles');
 const lies = await q("select * from public.comptes_lies");
 ok(lies.length === 1 && Number(lies[0].comptes) === 3 && lies[0].pseudos === 'alice, bruno, sacha', 'comptes_lies : les trois comptes de la même connexion, sans le robot', lies);
+// ---------------------------------------------------------------- la chasse au trésor (200_chasse.sql)
+{ const cible = { id: 'x', lon: 2.35, lat: 48.86, numero: '12', rue: 'Rue Essai', label: '12 Rue Essai' };
+  const chasse = (id, debut, fin) => ({ id, numero: 1, commune: 'Essai', code_insee: '75056', depart_lon: 2.34, depart_lat: 48.85, cible, annonce: debut, debut, fin, pour: null });
+  const passe = new Date(Date.now() - 60000).toISOString(), futur = new Date(Date.now() + 600000).toISOString();
+  ok((await q('select public.jeu_chasse_creer($1::jsonb) as ok', [JSON.stringify(chasse('c-essai', passe, futur))]))[0].ok === true, 'une chasse créée');
+  ok((await q('select public.jeu_chasse_creer($1::jsonb) as ok', [JSON.stringify(chasse('c-essai', passe, futur))]))[0].ok === false, 'une seule fois');
+  ok((await q("select public.jeu_chasse_gagner('c-essai', $1, 500, '[]'::jsonb) as g", [A]))[0].g === null, 'pas inscrit : pas de victoire');
+  await q('select public.jeu_chasse_rejoindre($1, $2, 2.34, 48.85)', ['c-essai', A]); await q('select public.jeu_chasse_rejoindre($1, $2, 2.34, 48.85)', ['c-essai', B]);
+  const le = (await q("select le from public.chasseurs where chasse = 'c-essai' and joueur = $1", [A]))[0].le;
+  ok((await q("select public.jeu_chasse_position('c-essai', $1, 2.341, 48.851, $2) as ok", [A, le]))[0].ok === true, 'une position acceptée');
+  ok((await q("select public.jeu_chasse_position('c-essai', $1, 2.342, 48.852, $2) as ok", [A, le]))[0].ok === false, 'l’ancienne position ne sert qu’une fois (deux envois simultanés)');
+  const avant = Number((await q('select pieces from public.joueurs where id = $1', [A]))[0].pieces);
+  const carte = [{ id: 'chasse-carte-1', type: 'adresse', label: '3 Rue Gagnée', lon: 1, lat: 47, citycode: '28105', city: 'Combres', commune: 'Combres', rarete: 1 }];
+  const g = (await q("select public.jeu_chasse_gagner('c-essai', $1, 500, $2::jsonb) as g", [A, JSON.stringify(carte)]))[0].g;
+  ok(Array.isArray(g) && g[0] === 'chasse-carte-1' && Number((await q('select pieces from public.joueurs where id = $1', [A]))[0].pieces) === avant + 500, 'le premier arrivé gagne : 500 pièces et la carte', g);
+  ok((await q("select public.jeu_chasse_gagner('c-essai', $1, 500, '[]'::jsonb) as g", [B]))[0].g === null, 'le second ne gagne rien');
+  ok((await q("select gagnant from public.chasses where id = 'c-essai'"))[0].gagnant === A, 'le gagnant est noté');
+  await q('select public.jeu_chasse_creer($1::jsonb)', [JSON.stringify(chasse('c-futur', futur, new Date(Date.now() + 1200000).toISOString()))]);
+  await q('select public.jeu_chasse_rejoindre($1, $2, 2.34, 48.85)', ['c-futur', B]);
+  ok((await q("select public.jeu_chasse_gagner('c-futur', $1, 500, '[]'::jsonb) as g", [B]))[0].g === null, 'pas de victoire avant le départ');
+  await q("delete from auth.users where id = $1", [B]);
+  ok((await q("select count(*)::int as n from public.chasseurs where joueur = $1", [B]))[0].n === 0, 'un compte supprimé quitte ses chasses');
+}
 await db.exec(`set role authenticated; set essai.uid = '${A}';`);
 ok(!!(await refus('select * from public.suivi_total')) && !!(await refus('select * from public.suivi_jours')) && !!(await refus('select * from public.visites')), 'le jeu ne lit pas le suivi de Gautier');
 ok(!!(await refus('select public.jeu_vu($1)', [A])), 'le jeu ne peut pas appeler jeu_vu');
+ok(!!(await refus('select * from public.chasses')) && !!(await refus("select public.jeu_chasse_gagner('c-essai', $1, 999999, '[]'::jsonb)", [A])), 'le jeu ne lit pas les chasses (le trésor est secret) et ne se donne pas la victoire');
 ok(!!(await refus('select public.jeu_alertes_envoyees($1)', [[1]])), 'le jeu ne peut pas appeler jeu_alertes_envoyees');
 ok(!!(await refus('select * from public.empreintes')) && !!(await refus('select * from public.comptes_lies')) && !!(await refus('select * from public.cadence')), 'le jeu ne lit ni les empreintes, ni les comptes liés, ni la cadence');
 ok(!!(await refus('select public.jeu_cadence($1, 999)', [A])) && !!(await refus("select public.jeu_empreinte($1, 'x', 3, 30)", [A])), 'le jeu ne peut pas appeler jeu_cadence ni jeu_empreinte');
