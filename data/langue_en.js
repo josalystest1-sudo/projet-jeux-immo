@@ -117,7 +117,7 @@
     '+{n} 🪙 récoltées': '+{n} 🪙 collected', '+{n} ₳ encaissés (salaire + loyers)': '+{n} ₳ collected (salary + rents)', 'Les loyers poussent…': 'Rents are growing…',
 
     // ---------------------------------------------------------------- les packs
-    'Pack du jour': 'Daily pack', 'PACK DU JOUR': 'DAILY PACK', 'Ton pack du jour': 'Your daily pack', '{n} LIEUX · TOUTE LA FRANCE': '{n} PLACES · ALL OF FRANCE',
+    'Pack du jour': 'Daily pack', 'PACK DU JOUR': 'DAILY PACK', 'PACK PREMIUM': 'PREMIUM PACK', 'Ton pack du jour': 'Your daily pack', '{n} LIEUX · TOUTE LA FRANCE': '{n} PLACES · ALL OF FRANCE',
     'COLLECTIONNE LA FRANCE': 'COLLECT FRANCE', 'CINQ LIEUX DE FRANCE À COLLECTIONNER': 'FIVE PLACES IN FRANCE TO COLLECT', 'STREETKEEP': 'STREETKEEP',
     'Pack national': 'National pack', 'Pack régional': 'Regional pack', 'Pack d’essai': 'Test pack', 'Pack d’essai…': 'Test pack…',
     'Pack d’essai : ces lieux ne sont pas à toi · touche une carte pour la voir': 'Test pack: these places aren’t yours · tap a card to see it',

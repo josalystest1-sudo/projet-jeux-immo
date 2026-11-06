@@ -1467,14 +1467,22 @@ function makeNormalSachet(){ const W=256, H=512, c=document.createElement('canva
     if(v<zone || v>1-zone) ny=Math.sin(y*1.6)*55;   // les stries des soudures
     const i=(y*W+x)*4; d[i]=128+nx; d[i+1]=128+ny; d[i+2]=255; d[i+3]=255; }
   g.putImageData(img,0,0); return new THREE.CanvasTexture(c); }
-function dessinPochette(verso){ const W=1024, H=1522, c=document.createElement('canvas'), m=document.createElement('canvas'); c.width=m.width=W; c.height=m.height=H;
+// les illustrations héroïques de la pochette (6 nov., générées hors jeu d'après le brief docs/POCHETTE-WOW.md : une maquette de
+// porcelaine et d'or, la tour Eiffel et un quartier pour le pack du jour ; le Mont-Saint-Michel pour le premium quand il existe) ;
+// tant qu'une image n'est pas chargée, le décor dessiné reste le secours
+const ILLUS={}; function illustration(nom, ensuite){ let im=ILLUS[nom]; if(!im){ im=ILLUS[nom]=new Image(); im.onload=()=>{ (im.suites||[]).forEach(f=>f()); im.suites=null; }; im.onerror=()=>{ im.rate=true; }; im.suites=[]; im.src=`assets/pochette-${nom}.jpg`; }
+  if(im.complete && im.naturalWidth) return im; if(im.suites && ensuite) im.suites.push(ensuite); return null; }
+let PACK_PREMIUM=false;
+function dessinPochette(verso){ const W=1024, H=1522, c=document.createElement('canvas'), m=document.createElement('canvas'), irisC=document.createElement('canvas'); c.width=m.width=irisC.width=W; c.height=m.height=irisC.height=H;
+  irisC.getContext('2d').fillStyle='#fff'; irisC.getContext('2d').fillRect(0,0,W,H);
   const g=c.getContext('2d'), k=m.getContext('2d'); const BANDE=Math.round(H*SACHET.soudure/(SACHET.haut-SACHET.bas));
   const OR=(y0,y1)=>{ const d=g.createLinearGradient(0,y0,0,y1); d.addColorStop(0,'#FFF4D2'); d.addColorStop(0.35,'#E9C77B'); d.addColorStop(0.62,'#B8862F'); d.addColorStop(1,'#F6DE9C'); return d; };
   const METAL_OR='rgb(0,80,215)', METAL_FOND='rgb(0,110,185)';
   // un texte en capitales espacées, centré, dessiné lettre par lettre (sur la couleur et sur le métal)
-  const texte=(t,y,taille,poids,espace,style,metal)=>{ g.font=k.font=`${poids} ${taille}px "Barlow Condensed", "Arial Narrow", sans-serif`; const ls=[...t], w=ls.map(ch=>g.measureText(ch).width);
-    let x=W/2-(w.reduce((a,b)=>a+b,0)+espace*(ls.length-1))/2; g.fillStyle=style; k.fillStyle=metal; g.textBaseline=k.textBaseline='alphabetic';
-    ls.forEach((ch,i)=>{ g.fillText(ch,x,y); k.fillText(ch,x,y); x+=w[i]+espace; }); };
+  const ir=irisC.getContext('2d');   // (le texte garde peu d'arc-en-ciel : il reste lisible)
+  const texte=(t,y,taille,poids,espace,style,metal)=>{ g.font=k.font=ir.font=`${poids} ${taille}px "Barlow Condensed", "Arial Narrow", sans-serif`; const ls=[...t], w=ls.map(ch=>g.measureText(ch).width);
+    let x=W/2-(w.reduce((a,b)=>a+b,0)+espace*(ls.length-1))/2; g.fillStyle=style; k.fillStyle=metal; ir.fillStyle='#3a3a3a'; g.textBaseline=k.textBaseline=ir.textBaseline='alphabetic';
+    ls.forEach((ch,i)=>{ g.fillText(ch,x,y); k.fillText(ch,x,y); ir.fillText(ch,x,y); x+=w[i]+espace; }); };
   const filet=(y,x0,x1,ep)=>{ const d=g.createLinearGradient(x0,0,x1,0); d.addColorStop(0,'rgba(233,199,123,0)'); d.addColorStop(0.5,'#E9C77B'); d.addColorStop(1,'rgba(233,199,123,0)');
     g.fillStyle=d; g.fillRect(x0,y,x1-x0,ep); k.fillStyle=METAL_OR; k.fillRect(x0,y,x1-x0,ep); };
   const dessiner=()=>{
@@ -1486,7 +1494,25 @@ function dessinPochette(verso){ const W=1024, H=1522, c=document.createElement('
     for(let i=0;i<64;i++){ const y0=BANDE+10+i*22; g.beginPath(); k.beginPath();
       for(let x=0;x<=W;x+=8){ const y=y0+12*Math.sin(x*0.011+i*0.55)+5*Math.sin(x*0.029+i); if(x){ g.lineTo(x,y); k.lineTo(x,y); } else { g.moveTo(x,y); k.moveTo(x,y); } }
       g.strokeStyle='rgba(233,199,123,.075)'; g.lineWidth=1.4; g.stroke(); k.strokeStyle='rgb(0,70,235)'; k.lineWidth=1.4; k.stroke(); }
-    if(!verso){
+    const illus=!verso && (PACK_PREMIUM && !(ILLUS.premium && ILLUS.premium.rate) ? illustration('premium', redessiner) : null) || (!verso ? illustration('jour', redessiner) : null);
+    if(illus){
+      // l'illustration couvre tout le sachet ; son métal se déduit de l'image (l'or brille, la porcelaine est mate, le fond satiné)
+      const sx=illus.naturalWidth, sy=illus.naturalHeight, ech=Math.max(W/sx, H/sy), dw=sx*ech, dh=sy*ech; g.drawImage(illus, (W-dw)/2, (H-dh)/2, dw, dh);
+      const t=document.createElement('canvas'); t.width=256; t.height=380; const q=t.getContext('2d'); q.drawImage(g.canvas,0,0,W,H,0,0,256,380); const d=q.getImageData(0,0,256,380), px=d.data;
+      const ti=document.createElement('canvas'); ti.width=256; ti.height=380; const qi=ti.getContext('2d'), di=qi.createImageData(256,380), pi=di.data;
+      for(let i=0;i<px.length;i+=4){ const r=px[i]/255, v=px[i+1]/255, b=px[i+2]/255, lum=0.3*r+0.59*v+0.11*b, sat=Math.max(r,v,b)-Math.min(r,v,b), chaud=Math.max(0,r-b);
+        const or=Math.min(1, sat*2.2*chaud*3), rough=Math.round(255*(0.62-0.45*or-0.2*(1-lum)*(1-or))), metal=Math.round(255*(0.45+0.55*or-0.3*(1-sat)*lum)); px[i]=0; px[i+1]=Math.max(0,Math.min(255,rough)); px[i+2]=Math.max(0,Math.min(255,metal)); px[i+3]=255;
+        // l'arc-en-ciel court sur le fond de nuit et l'or, à peine sur la porcelaine (sinon elle vire)
+        const iri=Math.round(255*Math.max(0.15, Math.min(1, 1.1-lum*1.1+0.35*or))); pi[i]=iri; pi[i+1]=iri; pi[i+2]=iri; pi[i+3]=255; }
+      q.putImageData(d,0,0); k.imageSmoothingEnabled=true; k.drawImage(t,0,0,W,H); qi.putImageData(di,0,0); irisC.getContext('2d').drawImage(ti,0,0,W,H);
+      // un voile sombre en haut et en bas pour les textes
+      const vh=g.createLinearGradient(0,BANDE,0,BANDE+420); vh.addColorStop(0,'rgba(5,11,30,.55)'); vh.addColorStop(1,'rgba(5,11,30,0)'); g.fillStyle=vh; g.fillRect(0,BANDE,W,420);
+      const vb=g.createLinearGradient(0,H-BANDE-260,0,H-BANDE); vb.addColorStop(0,'rgba(5,11,30,0)'); vb.addColorStop(1,'rgba(5,11,30,.7)'); g.fillStyle=vb; g.fillRect(0,H-BANDE-260,W,260);
+      filet(BANDE+58,180,844,3); texte(Langue.t('STREETKEEP'),BANDE+238,176,700,26,OR(BANDE+90,BANDE+240),METAL_OR); filet(BANDE+272,180,844,3);
+      texte(Langue.t(PACK_PREMIUM ? 'PACK PREMIUM' : 'PACK DU JOUR'),BANDE+352,62,600,20,'#F3E3BC','rgb(0,60,230)');
+      filet(H-BANDE-212,300,724,2); texte(Langue.t('5 LIEUX · TOUTE LA FRANCE'),H-BANDE-150,46,600,12,OR(H-BANDE-190,H-BANDE-150),METAL_OR);
+      texte(Langue.t('COLLECTIONNE LA FRANCE'),H-BANDE-92,30,600,14,'rgba(243,227,188,.7)','rgb(0,90,200)');
+    } else if(!verso){
       // la France en trait d'or, et ses grandes villes
       const lon0=2.35, lat0=46.4, kx=Math.cos(46.5*Math.PI/180), e=66, cx=W/2, cy=H*0.56; const P=([lo,la])=>[cx+(lo-lon0)*kx*e, cy-(la-lat0)*e];
       g.save(); g.globalAlpha=0.55; g.shadowColor='rgba(255,196,96,.7)'; g.shadowBlur=26; g.lineJoin=k.lineJoin='round';
@@ -1517,10 +1543,11 @@ function dessinPochette(verso){ const W=1024, H=1522, c=document.createElement('
     for(const y0 of [0,H-BANDE]){ const d=g.createLinearGradient(0,y0,0,y0+BANDE); d.addColorStop(0,'#5A3F14'); d.addColorStop(0.5,'#B8913F'); d.addColorStop(1,'#5A3F14'); g.fillStyle=d; g.fillRect(0,y0,W,BANDE);
       for(let y=y0;y<y0+BANDE;y+=6){ g.fillStyle='rgba(255,236,190,.08)'; g.fillRect(0,y,W,2); } k.fillStyle='rgb(0,125,225)'; k.fillRect(0,y0,W,BANDE); }
   };
-  dessiner(); const tc=new THREE.CanvasTexture(c), tm=new THREE.CanvasTexture(m); tc.encoding=THREE.sRGBEncoding; tc.anisotropy=8; tm.anisotropy=4;
+  let tc, tm, tiris; const redessiner=()=>{ if(!tc) return; dessiner(); tc.needsUpdate=true; tm.needsUpdate=true; tiris.needsUpdate=true; };
+  dessiner(); tc=new THREE.CanvasTexture(c); tm=new THREE.CanvasTexture(m); tiris=new THREE.CanvasTexture(irisC); tc.encoding=THREE.sRGBEncoding; tc.anisotropy=8; tm.anisotropy=4;
   // la police des capitales n'est peut-être pas encore chargée : on redessine dès qu'elle l'est
-  if(document.fonts && !document.fonts.check('700 60px "Barlow Condensed"')) Promise.all([document.fonts.load('700 60px "Barlow Condensed"'), document.fonts.load('600 60px "Barlow Condensed"')]).then(()=>{ dessiner(); tc.needsUpdate=true; tm.needsUpdate=true; }).catch(()=>{});
-  return { couleur:tc, metal:tm }; }
+  if(document.fonts && !document.fonts.check('700 60px "Barlow Condensed"')) Promise.all([document.fonts.load('700 60px "Barlow Condensed"'), document.fonts.load('600 60px "Barlow Condensed"')]).then(redessiner).catch(()=>{});
+  return { couleur:tc, metal:tm, iris:tiris }; }
 // l'illustration héroïque de la pochette (Gautier, 6 nov. : « une maquette de porcelaine et d'or, comme sur les cartes ») :
 // la maquette 3D d'un monument (src/maquettes.js), en porcelaine blanche aux arêtes d'or, éclairée comme sur une carte,
 // dessinée une fois dans l'image de la pochette (couleur) et dans son métal (porcelaine lisse, arêtes en or)
@@ -1590,7 +1617,7 @@ function initGL(){ const cv=document.getElementById('pkgl'); const r=new THREE.W
   // le foil (6 nov., Gautier : « holo partout, arc-en-ciel franc qui bouge avec l'inclinaison ») : film irisé à fond, dont
   // l'épaisseur varie sur le sachet (makeEpaisseurHolo), vernis plus présent, froissé plus discret pour ne pas hacher l'arc-en-ciel
   const matiere=(t,iris)=>new THREE.MeshPhysicalMaterial({ map:t.couleur, metalnessMap:t.metal, roughnessMap:t.metal, metalness:1, roughness:1, normalMap:nrm, normalScale:new THREE.Vector2(0.35,0.35),
-    clearcoat:0.7, clearcoatRoughness:0.2, iridescence:iris, iridescenceIOR:1.35, iridescenceThicknessRange:[220,640], iridescenceThicknessMap:epaisseur, envMapIntensity:1.35 });
+    clearcoat:0.4, clearcoatRoughness:0.25, iridescence:iris, iridescenceMap:t.iris, iridescenceIOR:1.35, iridescenceThicknessRange:[220,640], iridescenceThicknessMap:epaisseur, envMapIntensity:1.35 });
   const recto=matiere(art,0.8), verso=matiere(dos,0.45),
     pail=new THREE.MeshBasicMaterial({ map:makePaillettes(), transparent:true, opacity:0.2, blending:THREE.AdditiveBlending, depthWrite:false, polygonOffset:true, polygonOffsetFactor:-1, polygonOffsetUnits:-2 }), dedans=new THREE.MeshStandardMaterial({ color:0x0a1024, roughness:0.55, metalness:0.5, side:THREE.BackSide, polygonOffset:true, polygonOffsetFactor:2, polygonOffsetUnits:6 });
   const pack=new THREE.Group();
@@ -2135,7 +2162,7 @@ function quitterDemo(){ try{ sessionStorage.removeItem('cadastra-demo'); }catch(
 async function geoJSON(chemin){ const r=await fetch('https://data.geopf.fr/geocodage/'+chemin); if(!r.ok) throw new Error('géocodage '+r.status); return r.json(); }
 function estLibre(c){ return !state.owned[c.id] && ownerOf(c)===null; }
 const TIRAGE = Tirage.creer({ geoJSON, celebres:chargerCelebres, france:GEO.france, deps:DEP_BOITES.map(d=>d.code), contours:Object.fromEntries(Object.entries(GEO.deps).map(([k,d])=>[k,d.rings])), standing:STANDING, Celebres, Pack, rarete, estLibre });
-async function ouvrirPack(opts){ opts=opts||{}; const payant=opts.payant; const sc0=document.getElementById('packscene');
+async function ouvrirPack(opts){ opts=opts||{}; const payant=opts.payant; PACK_PREMIUM=!!payant; const sc0=document.getElementById('packscene');
   // un seul pack à la fois : un deuxième toucher (ou l'ouverture automatique) pendant que le serveur tire refermait la scène
   const enVitrine=document.body.classList.contains('vitrine');   // (l'accueil montre déjà le sachet : src/accueil.js)
   if(document.getElementById('packbtn').dataset.ouverture || (sc0.classList.contains('on') && !enVitrine)) return;
