@@ -354,8 +354,17 @@ const FILTRE_BATI = ['all',['!=',['get','construction_legere'],true],['!',['in',
 const toitBati = (libre, moi, autre, mixte) => ['case', MON_BATI, '#E8A317', SEL, '#E0A000', ['match',ST,'me',moi,'other',autre,'mixed',mixte, libre]];
 const COULEUR_TOIT = toitBati('#FFFFFF', '#2C5FD4','#C73E28','#7442C8'), COULEUR_TOIT_NUIT = toitBati('#9AA1AD', '#3567DA','#B13A28','#6A3DC0');
 const OMBRE_BATI = ['interpolate',['linear'],['zoom'],15,['literal',[4,6]],19,['literal',[34,46]]];
+// La vue d'arrivée (Gautier, 6 nov. : « quand on se connecte, on se retrouve au milieu de dizaines, voire de centaines de gros
+// blocs blancs ; ça ne donne pas envie de jouer ») : avant, tout le monde arrivait dans Paris 9e. Maintenant, chez soi : là où
+// l'on s'était arrêté (`cadastra-vue`), sinon sur sa dernière carte gagnée, sinon dans un village (Saint-Cirq-Lapopie) ;
+// la carte s'ouvre un peu plus haut et la caméra descend doucement (au chargement, voir plus bas `descenteArrivee`).
+const VUE_DEPART = (()=>{ let v=null; try{ v=JSON.parse(localStorage.getItem('cadastra-vue')||'null'); }catch(e){}
+  if(v && isFinite(v.lon) && isFinite(v.lat)) return { center:[v.lon, v.lat], zoom:Math.min(19, Math.max(15.5, v.zoom||16.3)), pitch:v.pitch==null ? 45 : v.pitch, bearing:v.bearing||0 };
+  const l=Object.values(state.owned||{}).filter(a=>isFinite(a.lon) && isFinite(a.lat)).sort((a,b)=>(b.depuis||0)-(a.depuis||0))[0];
+  if(l) return { center:[l.lon, l.lat], zoom:16.3, pitch:45, bearing:-17 };
+  return { center:[1.6697, 44.4652], zoom:16.4, pitch:45, bearing:20 }; })();   // (dézoomé : pas le nez dans les immeubles, Gautier)
 const map = new maplibregl.Map({
-  container:'map', center:[2.3396,48.8818], zoom:17, pitch:58, bearing:-17, minZoom:15, maxZoom:19.5, attributionControl:{compact:true}, antialias:true,
+  container:'map', center:VUE_DEPART.center, zoom:Math.max(15, VUE_DEPART.zoom-1.5), pitch:Math.max(0, VUE_DEPART.pitch-28), bearing:VUE_DEPART.bearing-30, minZoom:15, maxZoom:19.5, attributionControl:{compact:true}, antialias:true,
   style:{ version:8,
     glyphs:'https://data.geopf.fr/annexes/ressources/vectorTiles/fonts/{fontstack}/{range}.pbf',
     light:{ anchor:'viewport', color:'#ffffff', intensity:0.7, position:[1.2,220,35] },
@@ -430,6 +439,16 @@ function couleursCarte(){ const n=estNuit(); if(n===CARTE_NUIT_POSEE || !map.isS
     : { 'sky-color':'#5EC2FF', 'horizon-color':'#EAF8FF', 'fog-color':'#E4F4DA', 'sky-horizon-blend':0.6, 'horizon-fog-blend':0.6, 'fog-ground-blend':0.55 }); }catch(e){}
   styleParcelles(map.getPitch()<=5); document.documentElement.classList.toggle('carte-nuit', n); }
 map.on('load', couleursCarte); setInterval(couleursCarte, 60000);
+// l'arrivée : la caméra descend du ciel sur le lieu (si personne n'a encore bougé la carte) ; puis la vue est gardée à chaque
+// arrêt, pour revenir au même endroit à la prochaine connexion (pas pendant une balade, une chasse ou un voyage)
+let ARRIVEE_FAITE=false;
+function descenteArrivee(){ if(ARRIVEE_FAITE) return; ARRIVEE_FAITE=true; const c=map.getCenter();
+  if(Math.abs(c.lng-VUE_DEPART.center[0])>1e-6 || Math.abs(c.lat-VUE_DEPART.center[1])>1e-6) return;
+  map.easeTo({ zoom:VUE_DEPART.zoom, pitch:VUE_DEPART.pitch, bearing:VUE_DEPART.bearing, duration:2600, easing:t=>1-Math.pow(1-t,3) }); }
+map.on('load', ()=>setTimeout(descenteArrivee, 400));
+let vueMinut=null;
+map.on('moveend', ()=>{ clearTimeout(vueMinut); vueMinut=setTimeout(()=>{ if(!ARRIVEE_FAITE || PROM.on || (window.CHASSE && CHASSE.dans) || document.getElementById('voyage').classList.contains('on')) return;
+  const c=map.getCenter(); try{ localStorage.setItem('cadastra-vue', JSON.stringify({ lon:+c.lng.toFixed(6), lat:+c.lat.toFixed(6), zoom:+map.getZoom().toFixed(2), pitch:Math.round(map.getPitch()), bearing:Math.round(map.getBearing()) })); }catch(e){} }, 900); });
 function vue3d(){ map.easeTo({pitch:58, duration:500}); b3d.classList.add('on'); b2d.classList.remove('on'); styleParcelles(false); }
 function vue2d(){ map.easeTo({pitch:0, bearing:0, duration:500}); b2d.classList.add('on'); b3d.classList.remove('on'); styleParcelles(true); }
 b3d.onclick=vue3d; b2d.onclick=vue2d;

@@ -386,6 +386,7 @@ Puis une PR par étape, fusionnée en squash :
 | #155 | 05/11 | L'horloge du serveur : toutes les 10 minutes, enchères, mandats, saisons, monuments et robots tournent sans joueur |
 | #156 | 05/11 | Les travaux des communes s'usent (−10 % par mandat) ; le niveau donne +2 % de loyer par niveau et monte le plafond du Maire (jusqu'à 2 000) |
 | #157 | 05/11 | Documents : les six monuments qui sont des marques (Ritz, Maxim's, Crillon, Negresco, Château Margaux, Train bleu) restent aux enchères (Gautier : « garde-les ») |
+| #177 | 06/11 | La vue d'arrivée : chez soi (là où l'on s'était arrêté, sinon sa dernière carte), plus dézoomée, la caméra qui descend doucement |
 | #176 | 06/11 | Documents : la commune « en mode jeu vidéo » essayée en preuve (village, Paris 9ᵉ) puis écartée par Gautier (« trop chargé ») |
 | #175 | 06/11 | Le nouveau nom : StreetKeep (CityDeck abandonné : city-deck.com est un jeu du même genre) ; nom affiché changé partout, citydeck.fr reste le domaine ; GDD § 12, noms écartés |
 | #174 | 06/11 | La chasse : le premier pas depuis la mairie limité à 80 m (un saut de 150 m restait possible), trésor d'essai à 200-300 m |
