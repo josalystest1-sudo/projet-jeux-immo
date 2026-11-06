@@ -5,7 +5,7 @@
 // verser, part du Maire plafonnée, absence, fin de mandat annoncée une fois ; les classements et les saisons
 // (100_classements.sql) : patrimoine, Maires, saison figée une fois ; les monuments (110_monuments.sql) : entretien,
 // reprise (lot de reprise, alerte, échanges qui tombent) ; la boutique (120_boutique.sql) : gemmes d'essai, pack acheté,
-// Pass, bon ; les ventes et offres en gemmes ; le paiement par carte (130_paiements.sql) ; le classement des pièces (140_classement_pieces.sql) ; le suivi de Gautier (150_suivi.sql) ; l’anti-triche (160_anti_triche.sql) ; le niveau des communes et son usure (170_travaux.sql, 180_usure.sql) ; les robots qui se retirent (050_robots.sql) ; les refus attendus et les droits du jeu.
+// Pass, bon ; les ventes et offres en gemmes ; le paiement par carte (130_paiements.sql) ; le classement des pièces (140_classement_pieces.sql) ; le suivi de Gautier (150_suivi.sql) ; l’anti-triche (160_anti_triche.sql) ; le niveau des communes et son usure (170_travaux.sql, 180_usure.sql) ; les alertes parties par e-mail (190_alertes_email.sql) ; les robots qui se retirent (050_robots.sql) ; les refus attendus et les droits du jeu.
 // Prérequis (une fois, rien n'est ajouté au dépôt) : npm i --no-save --no-package-lock @electric-sql/pglite
 //   node tools/essai_sql.mjs            (000_comptes.sql, qui demande l'extension unaccent, est remplacé par un profil minimal)
 import { PGlite } from '@electric-sql/pglite';
@@ -236,6 +236,13 @@ ok(ancien === A && (await q("select count(*)::int as n from public.lieux where i
 ok((await q('select statut from public.echanges where id = $1', [echX]))[0].statut === 'caduque', 'l’échange qui le donnait tombe');
 ok((await q("select rang, statut from public.encheres where cle = '77:R:QX:1'"))[0].rang === 10, 'il attend aux enchères, dans un lot de reprise');
 ok((await q("select count(*)::int as n from public.alertes where monument = 'QX' and texte = 'à poster'"))[0].n === 1, 'Gautier a son alerte');
+// l'alerte par e-mail (190_alertes_email.sql) : elle attend son e-mail, puis est notée partie, une seule fois
+ok((await q("select count(*)::int as n from public.alertes where monument = 'QX' and envoyee_le is null"))[0].n === 1, 'la nouvelle alerte attend son e-mail');
+const idsAlertes = (await q("select id from public.alertes where monument = 'QX'")).map((x) => x.id);
+await q('select public.jeu_alertes_envoyees($1)', [idsAlertes]);
+const envoi1 = (await q("select envoyee_le from public.alertes where monument = 'QX'"))[0].envoyee_le;
+await q('select public.jeu_alertes_envoyees($1)', [idsAlertes]);
+ok(!!envoi1 && +(await q("select envoyee_le from public.alertes where monument = 'QX'"))[0].envoyee_le === +envoi1, 'partie par e-mail, elle est notée (une seule fois)');
 ok(Number((await q('select dette from public.joueurs where id = $1', [A]))[0].dette) === 0, 'après un impayé, la dette repart à zéro');
 ok((await q("select public.jeu_monument_reprendre('cl1', 'absence', null, null) as p"))[0].p === null && (await q("select count(*)::int as n from public.lieux where id = 'cl1'"))[0].n === 1, 'une adresse n’est jamais reprise');
 
@@ -402,6 +409,7 @@ ok(lies.length === 1 && Number(lies[0].comptes) === 3 && lies[0].pseudos === 'al
 await db.exec(`set role authenticated; set essai.uid = '${A}';`);
 ok(!!(await refus('select * from public.suivi_total')) && !!(await refus('select * from public.suivi_jours')) && !!(await refus('select * from public.visites')), 'le jeu ne lit pas le suivi de Gautier');
 ok(!!(await refus('select public.jeu_vu($1)', [A])), 'le jeu ne peut pas appeler jeu_vu');
+ok(!!(await refus('select public.jeu_alertes_envoyees($1)', [[1]])), 'le jeu ne peut pas appeler jeu_alertes_envoyees');
 ok(!!(await refus('select * from public.empreintes')) && !!(await refus('select * from public.comptes_lies')) && !!(await refus('select * from public.cadence')), 'le jeu ne lit ni les empreintes, ni les comptes liés, ni la cadence');
 ok(!!(await refus('select public.jeu_cadence($1, 999)', [A])) && !!(await refus("select public.jeu_empreinte($1, 'x', 3, 30)", [A])), 'le jeu ne peut pas appeler jeu_cadence ni jeu_empreinte');
 ok(Number((await q("select total from public.travaux where commune = 'Bourg'"))[0].total) > 0 && !!(await refus("update public.travaux set total = 999999")) && !!(await refus("insert into public.travaux (commune, total) values ('Triche', 999999)")), 'le jeu lit les travaux des communes, sans pouvoir les écrire');

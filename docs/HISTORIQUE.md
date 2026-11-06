@@ -193,6 +193,7 @@ Rien d'important ne vit dans une conversation : tout est dans le dépôt ou sur 
 - **contact@citydeck.fr** (PR #164). Gautier choisit l'adresse de contact parmi les suites possibles (bêta, équilibrage, vrais paiements). Le service mail gratuit lié au domaine chez Infomaniak offre une adresse de redirection : contact@citydeck.fr renvoie vers la boîte Gmail de Gautier, qui doit l'accepter dans l'e-mail d'Infomaniak.
 - **Le jeu sur ordinateur** (PR #165). Gautier, sur la version web : « il n'y a pas la vue 3D de la map qui s'affiche en même temps qu'une vue en Street View, l'interface est super espacée, le bandeau de recherche est énorme suivant la taille de la fenêtre ». Le jeu n'était qu'un téléphone étiré ; sur un grand écran, la fiche devient un panneau à gauche avec la carte 3D à côté, les commandes gardent la largeur d'un téléphone, les écrans se resserrent au milieu, et la promenade met Street View et la carte côte à côte.
 - **Sur ordinateur, suite** (PR #166). Gautier : « c'est mieux, tu peux continuer à faire des améliorations ou faire des trucs en autonomie ». Claude relit tous les écrans au format d'un ordinateur : la collection passe à quatre cartes par ligne, Échap ferme fenêtres et fiches, et les consignes du pack parlent de la souris.
+- **L'e-mail d'alerte** (PR #167). Dans la même série autonome : l'alerte promise depuis le 4 nov. (« Gautier est prévenu dès qu'un monument redevient libre ») part enfin par e-mail, à contact@citydeck.fr, avec la phrase prête à poster ; Brevo sert ici aussi.
 - **L'horloge du serveur** (PR #155). Dans la même série : toutes les 10 minutes, GitHub appelle le serveur pour clore les enchères, faire tourner les mandats et les saisons, tenir les monuments et faire jouer les robots, même sans joueur.
 - **L'anti-triche** (PR #150). Dans la foulée : pas plus de 60 actions par minute pour un compte, et une empreinte chiffrée de la connexion (jamais l'adresse IP) ; dès 3 comptes sur une même connexion dans la journée, une alerte pour Gautier, sans rien bloquer (familles, réseaux partagés, multi-comptes tolérés en V1).
 
@@ -378,6 +379,7 @@ Puis une PR par étape, fusionnée en squash :
 | #155 | 05/11 | L'horloge du serveur : toutes les 10 minutes, enchères, mandats, saisons, monuments et robots tournent sans joueur |
 | #156 | 05/11 | Les travaux des communes s'usent (−10 % par mandat) ; le niveau donne +2 % de loyer par niveau et monte le plafond du Maire (jusqu'à 2 000) |
 | #157 | 05/11 | Documents : les six monuments qui sont des marques (Ritz, Maxim's, Crillon, Negresco, Château Margaux, Train bleu) restent aux enchères (Gautier : « garde-les ») |
+| #167 | 06/11 | L'e-mail d'alerte à Gautier : un monument redevenu libre arrive à contact@citydeck.fr (Brevo), avec la phrase prête à poster |
 | #166 | 06/11 | Le jeu sur ordinateur, suite : quatre cartes par ligne dans la collection, Échap ferme fenêtres et fiches, consignes du pack à la souris |
 | #165 | 06/11 | Le jeu sur ordinateur : fiche en panneau à gauche avec la carte 3D à côté, commandes à la largeur d'un téléphone, écrans resserrés, promenade côte à côte |
 | #164 | 06/11 | L'adresse contact@citydeck.fr : une redirection d'Infomaniak vers la boîte de Gautier (citée par les pages légales) |
@@ -437,14 +439,14 @@ Les décisions du 2 novembre (interview) sont dans `CLAUDE.md` § 4 et dans le G
   - 8.2 : le mode serveur par défaut et la fin des joueurs simulés sont faits (PR #148 ; la démo reste par `?demo`). Reste l'inscription des amis : Brevo est prêt (PR #161 : domaine authentifié, expéditeur noreply@citydeck.fr) ; la clé SMTP est posée (secret `BREVO_SMTP_KEY_CITY_DECK`, PR #162).
   - 8.3 : l'anti-triche. Un minimum est fait (PR #150 : cadence, empreintes de connexion, alerte et vue des comptes liés) ; plus tard, si besoin : un plafond de ventes entre comptes liés, l'appareil.
 - **Les graphismes** (phase 10, avant 8.2 : décision de Gautier) : les menus façon Pokémon TCG Pocket (PR #133), puis le logo, l'icône et la pièce d'après le modèle de Gautier (PR #135), faits le 5 nov. ; la promenade et les fenêtres rares relues en 320 px (PR #160) ; la preuve, l'ouverture, les monuments nationaux et 358 monuments régionaux en 3D, plus la Grande Mosquée de Paris et quatre églises ajoutées le 4 nov. (422 maquettes, dont les six marques gardées aux enchères, PR #159 ; les autres n'ont pas de bâtiment à dessiner) ; ensuite l'habillage de la révélation, l'icône et le logo (`docs/BIBLE-GRAPHIQUE.md`).
-- **Le game design du 4 nov. porté dans le jeu** (le Maire par caisse de travaux, PR #119 et #120 ; les saisons et classements, PR #123 et #124 ; les monuments, PR #125 et #126). Reste : l'e-mail d'alerte à Gautier (il faut un service d'envoi), le niveau visuel des communes (fait, PR #153), l'équilibrage (loyer modeste des monuments, § 5 ter) : les saisons et le classement de patrimoine (§ 5 bis), l'entretien et la reprise des monuments, l'alerte à Gautier (§ 5 ter).
+- **Le game design du 4 nov. porté dans le jeu** (le Maire par caisse de travaux, PR #119 et #120 ; les saisons et classements, PR #123 et #124 ; les monuments, PR #125 et #126). Reste : l'e-mail d'alerte à Gautier (fait, PR #167), le niveau visuel des communes (fait, PR #153), l'équilibrage (loyer modeste des monuments, § 5 ter) : les saisons et le classement de patrimoine (§ 5 bis), l'entretien et la reprise des monuments, l'alerte à Gautier (§ 5 ter).
 - **La boutique** (phase 9 ; faite en mode test, PR #127 à #130 : gemmes, packs, Pass et bon, chances affichées, ventes et offres en gemmes, paiement par carte Stripe ; restent, avant les vrais paiements : activer le compte Stripe (Gautier : identité, banque, statut), une clé restreinte de production, les pages légales) : Stripe → gemmes, packs nationaux et régionaux, Pass 15 jours (GDD § 3 et § 9), offres en gemmes au choix du vendeur, probabilités affichées, blocage Belgique et Pays-Bas, CGU (gemmes sans valeur, lieux = licences), confidentialité, mentions légales.
 - **Le domaine citydeck.fr** : branché le 5 nov. (`docs/serveur/GUIDE-DOMAINE.md`). citydeck.app reste à réserver si Gautier le veut.
 - **Ensuite** : les graphismes (phase 10), l'équilibrage et le lancement (phase 11).
 - **Avant la pub** (liste du 5 nov.) :
   - Bloquant :
     - le vrai serveur pour tous (fait, PR #148), sans les outils d'essai (au lancement) ;
-    - un service d'envoi d'e-mails : Brevo prêt (PR #161), attend la clé SMTP de Gautier ;
+    - un service d'envoi d'e-mails : fait (Brevo, PR #161 à #163 ; il envoie aussi les alertes de monument, PR #167) ;
     - le vrai rythme et la remise à zéro (au lancement) ;
     - les pages légales (CGU/CGV, confidentialité, mentions légales ; SIRET de Gautier) ;
     - les vrais paiements (activer Stripe, clé réelle ; la TVA, à voir avec un comptable).
@@ -466,7 +468,6 @@ Les décisions du 2 novembre (interview) sont dans `CLAUDE.md` § 4 et dans le G
   - remettre `jour_secondes` à 86400 et repartir de zéro ;
   - les robots restent, cachés parmi les joueurs (décisions du 5 nov., GDD § 5 quater) : repartir de zéro avec eux ; décider de la phrase des CGU sur les joueurs automatiques ;
   - retirer le pack d'essai (Réglages, `?essai-pack`) ;
-  - brancher un service d'envoi d'e-mails (celui de Supabase n'écrit qu'à l'équipe Supabase) ;
   - le nom est décidé : **CityDeck** (4 nov.) ; vérifier qu'il est libre (marque, nom de domaine, magasins d'applications) avant le lancement.
 - **L'anglais** (PR #146) : faire relire les textes par un anglophone ; les e-mails de connexion (Supabase, puis Brevo) n'existent qu'en une langue ; tout nouveau texte du jeu doit entrer dans `data/langue_en.js` (le test le rappelle pour les bandeaux et les refus du serveur).
 - **Petites choses** :

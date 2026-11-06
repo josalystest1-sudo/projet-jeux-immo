@@ -69,6 +69,9 @@ jobs:
       - name: La clé Stripe pour la fonction (secret GitHub STRIPE_SECRET_KEY, posé par Gautier ; sans elle, pas de paiement)
         if: steps.jeton.outputs.ok == '1' && env.STRIPE_SECRET_KEY != ''
         run: supabase secrets set STRIPE_SECRET_KEY="$STRIPE_SECRET_KEY" --project-ref "$PROJET" --yes
+      - name: La clé SMTP de Brevo pour la fonction (alertes de monument envoyées à Gautier par e-mail ; sans elle, pas d'e-mail)
+        if: steps.jeton.outputs.ok == '1' && env.BREVO_SMTP_KEY != ''
+        run: supabase secrets set BREVO_SMTP_KEY="$BREVO_SMTP_KEY" --project-ref "$PROJET" --yes
       - name: Fonction « jeu »
         if: steps.jeton.outputs.ok == '1'
         run: supabase functions deploy jeu --use-api --no-verify-jwt --project-ref "$PROJET" --yes

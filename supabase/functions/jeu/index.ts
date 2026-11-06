@@ -5,6 +5,7 @@
 import { createClient } from '@supabase/supabase-js';
 import { Regles, Pack, Celebres, Tirage, Encheres, Mairie, Classements, Monuments, Regions, Boutique, Robots } from './_genere/regles.mjs';
 import { ECO, STANDING, FRANCE, DEPARTEMENTS, CONTOURS, CELEBRES, MONUMENTS } from './_genere/donnees.mjs';
+import { envoyer as envoyerSmtp } from './smtp.mjs';
 
 const R = Regles.creer(ECO, STANDING);
 const MAI = Mairie.creer(ECO);   // le Maire par caisse de travaux (src/regles/mairie.js, GDD § 5)
@@ -71,6 +72,7 @@ async function tic(): Promise<Ligne> {
   await pas('raretés', () => tenirRaretes());
   await pas('monuments', () => tenirMonuments());
   await pas('robots', () => robotsTour());
+  await pas('alertes', () => envoyerAlertes());
   return { horloge: new Date().toISOString(), fait, ms: Date.now() - t0 };
 }
 
@@ -709,6 +711,44 @@ async function tenirMonuments() {
       await rpc('jeu_averti', { j: jr.id, quoi: 'impaye' });
     }
   }
+}
+
+// ---------------------------------------------------------------- les alertes par e-mail (GDD § 5 ter, supabase/sql/190_alertes_email.sql)
+// « Gautier est prévenu (e-mail + tableau de bord) dès qu'un monument redevient libre » : l'horloge (toutes les 10 minutes)
+// envoie les nouvelles alertes de monument à contact@citydeck.fr (redirigé vers sa boîte), toutes ensemble, une fois par
+// heure au plus. Par Brevo : la clé SMTP (secret GitHub posé par Gautier) est donnée à la fonction par la publication ;
+// sans elle, rien ne part. Les alertes « comptes » (anti-triche) restent dans le tableau de bord.
+const ALERTES_EMAIL: Record<string, string> = {
+  absence: `Monument repris : son propriétaire n’est pas venu depuis ${MON.M.absence_jours} jours`,
+  impaye: `Monument repris : son entretien n’a pas été payé pendant ${MON.M.impaye_jours} jours`,
+  sans_preneur: 'Lot de reprise sans preneur : il reviendra aux enchères',
+};
+let alertesTenues = 0;
+async function envoyerAlertes() {
+  const cle = Deno.env.get('BREVO_SMTP_KEY') || '';
+  if (!cle || Date.now() - alertesTenues < 5 * 60000) return;
+  alertesTenues = Date.now();
+  const { data: recente } = await admin.from('alertes').select('id').gt('envoyee_le', new Date(Date.now() - 3_600_000).toISOString()).limit(1);
+  if (recente && recente.length) return;   // un e-mail par heure au plus
+  const { data, error } = await admin.from('alertes').select('id, type, monument, nom, commune, fin_enchere, texte').is('envoyee_le', null)
+    .in('type', Object.keys(ALERTES_EMAIL)).order('cree_le').limit(30);
+  if (error) throw error;
+  if (!data || !data.length) return;
+  const jm = await jourMs(), essai = jm < 86_400_000;
+  const blocs = (data as Ligne[]).map((a) => [`${ALERTES_EMAIL[a.type]} :`, `${a.nom || a.monument || 'un monument'}${a.commune ? ` (${a.commune})` : ''}`,
+    ...(a.fin_enchere ? [`Enchères jusqu’au ${dateEnchere(ms(a.fin_enchere), jm)}.`] : []), ...(a.texte ? ['À poster :', a.texte] : [])].join('\n'));
+  const un = data.length === 1 ? (data[0] as Ligne) : null;
+  const sujet = un ? (un.type === 'sans_preneur' ? `CityDeck : ${un.nom} attend un preneur` : `CityDeck : ${un.nom} est de nouveau libre`) : `CityDeck : ${data.length} alertes de monuments`;
+  const texte = ['Bonjour,', '', un ? 'Une nouvelle alerte du jeu :' : `${data.length} nouvelles alertes du jeu :`, '', blocs.join('\n\n---\n\n'), '',
+    ...(essai ? ['(Serveur d’essai : un jour du jeu dure une minute.)', ''] : []),
+    'Toutes les alertes sont aussi dans le tableau de bord de Supabase (table « alertes »).', '— CityDeck'].join('\n');
+  const conn = await Deno.connectTls({ hostname: 'smtp-relay.brevo.com', port: 465 });
+  try {
+    await envoyerSmtp(conn, { login: Deno.env.get('BREVO_SMTP_LOGIN') || 'bbfc16001@smtp-brevo.com', cle, de: 'noreply@citydeck.fr', nomDe: 'CityDeck',
+      a: Deno.env.get('ALERTES_EMAIL') || 'contact@citydeck.fr', sujet, texte });
+  } finally { try { conn.close(); } catch (_) { /* déjà fermée */ } }
+  await rpc('jeu_alertes_envoyees', { ids: data.map((a: Ligne) => a.id) });
+  console.log('alertes envoyées par e-mail :', data.length);
 }
 
 // ---------------------------------------------------------------- la boutique (GDD § 3 et § 9)
