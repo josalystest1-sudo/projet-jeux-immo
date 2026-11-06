@@ -603,8 +603,8 @@ body.promenade{--nav:0px}
 body.promenade #prom{display:block}
 body.promenade #top,body.promenade #ctrls,body.promenade #legend,body.promenade #nav,body.promenade #charge{display:none}
 body.promenade #sheet{max-height:calc(58% - 6px)}
-body.promenade #sheet .svwrap{display:none}
-.prom-vue{position:absolute;left:0;right:0;top:0;height:42%;min-height:220px;background:#17233F;pointer-events:auto;overflow:hidden;border-radius:0 0 22px 22px;box-shadow:0 8px 24px rgba(23,35,63,.28)}
+body.prom-photo #sheet .svwrap{display:none}
+.prom-vue{display:none;position:absolute;left:0;right:0;top:0;height:42%;min-height:220px;background:#17233F;pointer-events:auto;overflow:hidden;border-radius:0 0 22px 22px;box-shadow:0 8px 24px rgba(23,35,63,.28)}
 .prom-sv{position:absolute;inset:0;width:100%;height:100%;border:0;opacity:0;transition:opacity .25s;background:#17233F;pointer-events:none}
 .prom-sv.vu{opacity:1}
 /* La couche qui reçoit les gestes, sur toute la photo. Retour de Gautier (3 nov.) : on ne pouvait plus tourner, le geste
@@ -612,15 +612,15 @@ body.promenade #sheet .svwrap{display:none}
    dessus est vide : les cadres de Street View sont donc inertes (pointer-events:none), et la couche est peinte (fond
    presque transparent) dans son propre calque. Google reste à un toucher : « Google Maps ↗ ». */
 #prom-touche{position:absolute;inset:0;touch-action:none;cursor:grab;background:rgba(23,35,63,.01);will-change:transform;-webkit-user-select:none;user-select:none}
-.prom-google{position:absolute;top:calc(14px + env(safe-area-inset-top));right:58px;background:rgba(23,35,63,.72);color:#fff;font-size:12px;font-weight:800;padding:7px 10px;border-radius:10px;text-decoration:none}
-.prom-quitter{position:absolute;top:calc(10px + env(safe-area-inset-top));right:10px;width:40px;height:40px;border-radius:50%;border:0;background:#fff;color:var(--encre);font-size:18px;font-weight:900;box-shadow:var(--ombre-forte);cursor:pointer}
+.prom-google{position:absolute;bottom:10px;left:10px;background:rgba(23,35,63,.72);color:#fff;font-size:12px;font-weight:800;padding:7px 10px;border-radius:10px;text-decoration:none}
+.prom-quitter{flex:none;width:44px;height:44px;border-radius:50%;border:0;background:#fff;color:var(--encre);font-size:18px;font-weight:900;box-shadow:var(--ombre-forte);cursor:pointer}
 .prom-aide{position:absolute;left:50%;bottom:42px;transform:translateX(-50%);background:rgba(23,35,63,.8);color:#fff;font-weight:800;font-size:13px;padding:8px 12px;border-radius:12px;white-space:nowrap;pointer-events:none;animation:prom-aide 5s forwards}
 @keyframes prom-aide{0%,78%{opacity:1}100%{opacity:0}}
 .prom-charge{position:absolute;left:12px;top:calc(12px + env(safe-area-inset-top));width:34px;height:34px;border-radius:50%;background:rgba(255,255,255,.92);display:flex;align-items:center;justify-content:center;opacity:0;transition:opacity .2s;pointer-events:none;box-shadow:var(--ombre)}
 .prom-charge .pc{width:20px;height:20px;animation:tourne 1.2s linear infinite}
 #prom.charge .prom-charge,#prom.marche .prom-charge{opacity:1}
-.prom-bas{position:absolute;left:0;right:0;bottom:0;padding:10px 12px calc(10px + env(safe-area-inset-bottom));background:#fff;border-radius:22px 22px 0 0;box-shadow:0 -6px 24px rgba(23,35,63,.14);pointer-events:auto}
-.prom-rue{font-family:var(--titre);font-weight:800;color:var(--encre2);font-size:15px;margin:0 2px 6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.prom-bas{position:relative;align-self:stretch;pointer-events:auto;padding:10px 12px calc(10px + env(safe-area-inset-bottom));background:#fff;border-radius:22px 22px 0 0;box-shadow:0 -6px 24px rgba(23,35,63,.14);pointer-events:auto}
+.prom-rue{flex:1;min-width:0;font-family:var(--titre);font-weight:800;color:var(--encre2);font-size:15px;background:#fff;border-radius:16px;padding:11px 14px;box-shadow:var(--ombre-forte);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .prom-vide{font-size:13px;font-weight:700;color:var(--gris);padding:8px 4px 10px}
 .prom-lieu{display:flex;align-items:center;gap:10px;width:100%;background:var(--ciel);border:0;border-radius:14px;padding:7px 10px;margin-bottom:6px;text-align:left;font:inherit;color:inherit;cursor:pointer}
 .prom-lieu .cote{display:flex;flex-direction:column;align-items:center;font-size:17px;line-height:1.1;color:var(--plaque);min-width:46px;font-weight:900}
@@ -634,14 +634,27 @@ body.promenade #sheet .svwrap{display:none}
 .prom-prix{display:inline-flex;align-items:center;gap:3px;font-size:12px;font-weight:900;color:var(--cadre2)}
 .prom-prix .pc{width:13px;height:13px}
 .prom-lieu .aller{font-weight:900;font-size:13px;color:#fff;background:var(--plaque);padding:7px 10px;border-radius:10px;white-space:nowrap;box-shadow:0 2px 0 var(--plaque2)}
-.prom-boutons{display:flex;gap:8px;justify-content:center;margin-top:4px}
-.prom-boutons button{width:54px;height:50px;border-radius:16px;border:0;background:var(--plaque-clair);color:var(--plaque);font-size:23px;font-weight:900;cursor:pointer;box-shadow:0 3px 0 #C8D5F5}
-.prom-boutons button.grand{flex:1;max-width:160px;width:auto;background:var(--plaque);color:#fff;font-size:17px;box-shadow:0 3px 0 var(--plaque2)}
-.prom-boutons button:active{transform:translateY(2px);box-shadow:none}
-#prom.marche #prom-av{opacity:.6}
-.marcheur{width:110px;height:110px;pointer-events:none}
-.marcheur .cone{position:absolute;left:50%;top:0;width:84px;height:55px;transform:translateX(-50%);background:linear-gradient(to top,rgba(79,134,240,.6),rgba(79,134,240,0));clip-path:polygon(50% 100%,0 0,100% 0)}
-.marcheur .pt{position:absolute;left:50%;top:50%;width:20px;height:20px;margin:-10px 0 0 -10px;border-radius:50%;background:#4F86F0;border:3px solid #fff;box-shadow:0 2px 6px rgba(0,0,0,.35)}
+/* la balade au joystick (6 nov.) : la carte en entier, le pion, la manette ; la photo Street View sur demande (📷) */
+#prom.photo .prom-vue{display:block}
+.prom-haut{position:absolute;left:12px;right:12px;top:calc(12px + env(safe-area-inset-top));display:flex;gap:8px;align-items:center;pointer-events:auto;z-index:3}
+.prom-haut button{flex:none;width:44px;height:44px;border-radius:50%;border:0;background:#fff;color:var(--encre);font-size:19px;font-weight:900;box-shadow:var(--ombre-forte);cursor:pointer;display:flex;align-items:center;justify-content:center}
+#prom.photo #prom-photo{background:var(--plaque);color:#fff}
+#prom.photo .prom-haut{top:calc(max(42%, 220px) + 10px)}
+.prom-pied{position:absolute;left:0;right:0;bottom:0;display:flex;flex-direction:column;align-items:center;gap:12px;pointer-events:none}
+.prom-pied .prom-bas:has(#prom-lieux:empty){display:none}
+#prom-joy{position:relative;flex:none;align-self:flex-end;margin-right:18px;width:124px;height:124px;border-radius:50%;background:rgba(255,255,255,.55);border:3px solid rgba(255,255,255,.95);box-shadow:0 6px 18px rgba(23,35,63,.25);pointer-events:auto;touch-action:none;cursor:grab;-webkit-user-select:none;user-select:none}
+#prom-joy i{position:absolute;left:50%;top:50%;width:56px;height:56px;margin:-28px 0 0 -28px;border-radius:50%;background:var(--plaque);border:3px solid #fff;box-shadow:0 4px 10px rgba(0,0,0,.3);pointer-events:none;transition:transform .08s}
+#prom-joy.actif i{transition:none}
+#prom.photo #prom-joy{width:104px;height:104px}
+#prom.photo #prom-joy i{width:48px;height:48px;margin:-24px 0 0 -24px}
+.pion{width:64px;height:84px;pointer-events:none;position:relative}
+.pion .ombre{position:absolute;left:50%;bottom:0;width:34px;height:12px;margin-left:-17px;border-radius:50%;background:rgba(10,30,15,.35)}
+.pion .corps{position:absolute;left:50%;bottom:6px;width:46px;height:46px;margin-left:-23px;border-radius:50%;background:#fff;border:3px solid var(--plaque);box-shadow:0 4px 10px rgba(0,0,0,.35);display:flex;align-items:center;justify-content:center;font-size:26px;font-style:normal;box-sizing:border-box}
+.pion .corps::after{content:'';position:absolute;left:50%;bottom:-11px;margin-left:-8px;border:8px solid transparent;border-top:10px solid var(--plaque);border-bottom:0}
+.pion.marche .corps{animation:pas-pion .32s ease-in-out infinite alternate}
+@keyframes pas-pion{from{transform:translateY(0)}to{transform:translateY(-6px)}}
+.pion .fleche{position:absolute;left:50%;bottom:-14px;width:40px;height:40px;margin-left:-20px}
+.pion .fleche::before{content:'';position:absolute;left:50%;top:-2px;margin-left:-7px;border:7px solid transparent;border-bottom:11px solid var(--plaque);border-top:0}
 
 /* ================================================================ graphismes, la preuve (phase 10, 3 nov. 2026)
    Le pack et les cartes en style « jeu mobile coloré » (choix de Gautier) : contour encre épais, anneau de la rareté en
@@ -1353,7 +1366,10 @@ html.pocket .btn.large{white-space:normal;text-align:center;flex-wrap:wrap;row-g
   #nav{padding-left:max(4px,calc(50% - 320px));padding-right:max(4px,calc(50% - 320px))}
   .screen{padding-left:max(14px,calc(50% - 340px));padding-right:max(14px,calc(50% - 340px))}
   #prom .prom-vue{right:auto;bottom:0;width:50%;height:auto;border-radius:0 22px 22px 0}
-  #prom .prom-bas{left:50%;border-radius:22px 22px 0 0}
+  #prom .prom-pied{left:50%;transform:translateX(-50%);width:480px}
+  #prom.photo .prom-pied{left:50%;right:0;width:auto;transform:none}
+  #prom.photo .prom-haut{top:calc(12px + env(safe-area-inset-top));bottom:auto;left:calc(50% + 12px)}
+  #prom .prom-bas{border-radius:22px 22px 0 0}
   body.promenade #sheet{max-height:calc(100% - 24px);bottom:12px}
   .collection{grid-template-columns:repeat(4,1fr)}   /* quatre cartes par ligne : la taille d'une carte sur téléphone */
 }

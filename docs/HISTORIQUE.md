@@ -196,6 +196,7 @@ Rien d'important ne vit dans une conversation : tout est dans le dépôt ou sur 
 - **L'e-mail d'alerte** (PR #167). Dans la même série autonome : l'alerte promise depuis le 4 nov. (« Gautier est prévenu dès qu'un monument redevient libre ») part enfin par e-mail, à contact@citydeck.fr, avec la phrase prête à poster ; Brevo sert ici aussi. Gautier accepte un essai (« Oui, fais l'essai ») : une fausse alerte « Essai », envoyée à 06 h 21 ; Brevo l'a accepté, mais son journal ne l'affichait pas encore dix minutes plus tard : la réception dans la boîte de Gautier reste à confirmer (la redirection de contact@citydeck.fr doit être acceptée).
 - **Le démarrage** (PR #168). Toujours en autonomie : mesuré sur un téléphone en 4G simulée, le logo de l'accueil mettait plus de 3 secondes à apparaître ; il s'affiche maintenant avant le chargement des bibliothèques.
 - **La carte en plateau de jeu** (PR #169). Gautier, pendant la série : « est-ce qu'il n'est pas possible de rendre la carte 3D plus jeu vidéo ? Là, au final, elle dénote complètement. » Claude lui envoie trois propositions en images, en ville et au village ; il choisit le plateau de jeu (une ville blanche sur l'herbe, que les joueurs colorient), puis demande « tu peux aussi styliser les routes au lieu de laisser blanc » et choisit l'asphalte.
+- **La balade au joystick** (PR #171). Gautier : « est-ce qu'on peut pas, sur la map 3D, rendre la navigation plus fluide, le déplacement entre les rues, comme dans un jeu vidéo, plutôt que comme si c'était Street View ». Claude lui envoie un essai filmé (un pion qui marche à la manette, caméra fixe) ; Gautier répond par une idée de mode de jeu, **la chasse au trésor** (une commune annoncée, une adresse cachée, le premier arrivé gagne, des indices de plus en plus précis), qui se jouera avec ce déplacement, et demande que la caméra suive le personnage « comme une vue FPS, mais en dézoomé ». La promenade devient la balade au joystick ; la chasse est écrite dans le GDD, en propositions.
 - **L'horloge du serveur** (PR #155). Dans la même série : toutes les 10 minutes, GitHub appelle le serveur pour clore les enchères, faire tourner les mandats et les saisons, tenir les monuments et faire jouer les robots, même sans joueur.
 - **L'anti-triche** (PR #150). Dans la foulée : pas plus de 60 actions par minute pour un compte, et une empreinte chiffrée de la connexion (jamais l'adresse IP) ; dès 3 comptes sur une même connexion dans la journée, une alerte pour Gautier, sans rien bloquer (familles, réseaux partagés, multi-comptes tolérés en V1).
 
@@ -381,6 +382,7 @@ Puis une PR par étape, fusionnée en squash :
 | #155 | 05/11 | L'horloge du serveur : toutes les 10 minutes, enchères, mandats, saisons, monuments et robots tournent sans joueur |
 | #156 | 05/11 | Les travaux des communes s'usent (−10 % par mandat) ; le niveau donne +2 % de loyer par niveau et monte le plafond du Maire (jusqu'à 2 000) |
 | #157 | 05/11 | Documents : les six monuments qui sont des marques (Ritz, Maxim's, Crillon, Negresco, Château Margaux, Train bleu) restent aux enchères (Gautier : « garde-les ») |
+| #171 | 06/11 | La balade au joystick : le pion marche en continu dans les rues, la caméra derrière lui, Street View sur demande ; la chasse au trésor écrite dans le GDD |
 | #170 | 06/11 | Documents : l'e-mail d'alerte des monuments essayé en vrai (une fausse alerte « Essai », envoyée par Brevo) |
 | #169 | 06/11 | La carte 3D en « plateau de jeu » : une ville blanche sur l'herbe que les joueurs colorient, toits, ombres, routes en asphalte (choix de Gautier) |
 | #168 | 06/11 | Le démarrage plus rapide : le logo de l'accueil s'affiche avant le chargement des bibliothèques (carte, 3D, serveur) |
@@ -438,6 +440,7 @@ Les décisions du 2 novembre (interview) sont dans `CLAUDE.md` § 4 et dans le G
 | 5 nov. | Les monuments qui sont des marques (Ritz, Maxim's, Crillon, Negresco, Château Margaux, Train bleu) restent aux enchères : « garde-les » (exception à « pas de marque sur un lieu »). |
 | 6 nov. | Brevo : Gautier autorise l'ajout de trois enregistrements DNS chez Infomaniak (« oui, ajoute ces 3 lignes ») pour authentifier citydeck.fr ; les e-mails partent de noreply@citydeck.fr. |
 | 6 nov. | **La carte 3D devient un « plateau de jeu »** : une ville blanche sur l'herbe, que les joueurs colorient (toits, ombres) ; routes en asphalte, chemins en terre battue |
+| 6 nov. | **La promenade devient une balade au joystick** (le pion marche dans les rues, la caméra le suit derrière, Street View sur demande) ; **idée de Gautier : la chasse au trésor** (une commune, une adresse cachée, le premier arrivé gagne, des indices de plus en plus précis ; rythme à régler) |
 
 ## Ce qui reste à faire (au 4 novembre après-midi)
 
@@ -476,6 +479,7 @@ Les décisions du 2 novembre (interview) sont dans `CLAUDE.md` § 4 et dans le G
   - retirer le pack d'essai (Réglages, `?essai-pack`) ;
   - le nom est décidé : **CityDeck** (4 nov.) ; vérifier qu'il est libre (marque, nom de domaine, magasins d'applications) avant le lancement.
 - **L'anglais** (PR #146) : faire relire les textes par un anglophone ; les e-mails de connexion (Supabase, puis Brevo) n'existent qu'en une langue ; tout nouveau texte du jeu doit entrer dans `data/langue_en.js` (le test le rappelle pour les bandeaux et les refus du serveur).
+- **La chasse au trésor** (idée de Gautier du 6 nov., GDD § 5 quinquies) : valider les règles proposées (rythme, départ, indices, récompense), puis les règles pures, le serveur, l'écran de chasse.
 - **Petites choses** :
   - les autres catégories de lieux célèbres : faites (PR #152) ; les marques qui restaient (châteaux au nom de vin, lieux nommés de l'IGN au nom de marque) : faites (PR #158) ;
   - retirer le prototype du dépôt de l'Arena ;

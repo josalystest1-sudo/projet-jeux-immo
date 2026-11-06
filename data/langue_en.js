@@ -280,6 +280,9 @@
     'Pas de photo plus loin par là : tourne-toi': 'No photo further this way: turn around', 'Pas de photo Street View par ici': 'No Street View photo around here',
     'Pas de photo Street View devant ce bâtiment': 'No Street View photo in front of this building',
     'Pas de bâtiment tout près : avance, tourne-toi, ou touche un bâtiment sur la carte.': 'No building nearby: move forward, turn around, or tap a building on the map.',
+    'Pas de bâtiment tout près : marche jusqu’aux maisons, ou touche un bâtiment sur la carte.': 'No building nearby: walk up to the houses, or tap a building on the map.',
+    'Pousse la manette : tout droit, ou à droite et à gauche pour tourner au carrefour': 'Push the joystick: straight ahead, or right and left to turn at the crossroads',
+    'Glisse pour tourner la photo': 'Swipe to turn the photo', 'En promenade': 'Out for a walk', 'La photo de l’endroit (Street View)': 'Photo of this spot (Street View)', 'Manette : pousse pour marcher': 'Joystick: push to walk', 'Touché': 'Tapped',
 
     // ---------------------------------------------------------------- le guide
     'Tu vois ses lieux, leur rareté et leur propriétaire. Chez toi, tu construis ; chez les autres, tu fais une offre.': 'You see its places, their rarity and their owner. On yours, you build; on other players’, you make an offer.',

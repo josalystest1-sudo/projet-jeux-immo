@@ -86,6 +86,7 @@ const VERSION='__VERSION__';
 <script src="src/regles/encheres.js"></script>
 <script src="src/regles/pack.js"></script>
 <script src="src/tirage.js"></script>
+<script src="src/marche.js"></script>
 <script src="src/maquettes.js"></script>
 <script src="src/carte_lieu.js"></script>
 <script src="src/regles/pseudo.js"></script>
@@ -152,20 +153,19 @@ const VERSION='__VERSION__';
   <div class="prom-vue">
     <iframe id="prom-sv-a" class="prom-sv" referrerpolicy="no-referrer-when-downgrade" title="Street View"></iframe>
     <iframe id="prom-sv-b" class="prom-sv" referrerpolicy="no-referrer-when-downgrade" title="Street View"></iframe>
-    <div id="prom-touche" aria-label="Glisse pour tourner, touche pour avancer"></div>
-    <div class="prom-aide" id="prom-aide">👆 Glisse pour tourner · touche pour avancer</div>
+    <div id="prom-touche" aria-label="Glisse pour tourner la photo"></div>
+    <div class="prom-aide" id="prom-aide">👆 Glisse pour tourner la photo</div>
     <div class="prom-charge"><i class="pc"></i></div>
     <a class="prom-google" id="prom-google" target="_blank" rel="noopener">Google Maps ↗</a>
+  </div>
+  <div class="prom-haut">
+    <div class="prom-rue" id="prom-rue">🚶 En promenade</div>
+    <button id="prom-photo" aria-label="La photo de l’endroit (Street View)">📷</button>
     <button class="prom-quitter" onclick="finPromenade()" aria-label="Arrêter la promenade">✕</button>
   </div>
-  <div class="prom-bas">
-    <div id="prom-lieux"></div>
-    <div class="prom-boutons">
-      <button id="prom-g" aria-label="Tourner à gauche">↺</button>
-      <button id="prom-re" aria-label="Reculer">⬇</button>
-      <button id="prom-av" class="grand" aria-label="Avancer">⬆ Avancer</button>
-      <button id="prom-d" aria-label="Tourner à droite">↻</button>
-    </div>
+  <div class="prom-pied">
+    <div id="prom-joy" role="button" aria-label="Manette : pousse pour marcher"><i></i></div>
+    <div class="prom-bas"><div id="prom-lieux"></div></div>
   </div>
 </div>
 <div id="modal"><div class="box" id="modalbox"></div></div>
@@ -782,13 +782,20 @@ async function afficherStreetView(cible, vue){ const svEl=document.getElementByI
     return poser(`https://www.google.com/maps/embed/v1/streetview?key=${encodeURIComponent(CLE_GOOGLE)}&pano=${encodeURIComponent(j.pano_id)}&heading=${Math.round(cap)}&pitch=${leve}&fov=80${SV_LANGUE}`, de.lat, de.lon, cap, j.pano_id); }
   // aucune photo trouvée ou pas de réseau : l'intégration officielle, photos d'extérieur seulement, depuis la rue
   poser(`https://www.google.com/maps/embed/v1/streetview?key=${encodeURIComponent(CLE_GOOGLE)}&location=${vue.lat.toFixed(6)},${vue.lon.toFixed(6)}&heading=${Math.round(vue.cap)}&pitch=${-vue.pente}&fov=80&source=outdoor${SV_LANGUE}`, vue.lat, vue.lon, vue.cap); }
-// =================== la promenade (Street View) ===================
+// =================== la promenade : la balade au joystick (6 nov.) ===================
+// Gautier (6 nov.) : « le déplacement entre les rues comme dans un jeu vidéo, plutôt que comme si c'était Street View »,
+// puis « la caméra suit son personnage pour qu'il voie toujours ce qu'il y a devant, comme une vue FPS, mais en dézoomé ».
+// Le pion (mon icône) marche en continu le long des rues de la BD TOPO, à la manette (src/marche.js : tout droit, à droite
+// ou à gauche au prochain carrefour, demi-tour) ; la caméra se replace derrière lui. Street View ne se charge plus à chaque
+// pas : la photo de l'endroit s'ouvre avec 📷 et se met à jour quand on s'arrête. Ce qu'on longe reste affiché en bas.
+// Avant le 6 nov., la promenade avançait de photo en photo (ci-dessous, l'ancien principe, pour la photo) :
 // Demande de Gautier (3 nov.) : se balader dans les rues en Street View et voir en direct sur la carte devant quel bâtiment
 // on passe, pour l'acheter s'il est à quelqu'un. L'intégration gratuite de Street View (Maps Embed) ne dit jamais où l'on
 // est allé : la promenade a donc ses propres commandes (avancer, reculer, tourner ; glisser sur la photo pour tourner, la
 // toucher pour avancer) et la photo ne bouge pas toute seule. Chaque pas cherche la photo suivante le long de la rue avec
 // la recherche de photo gratuite (streetview/metadata), puis recharge l'intégration gratuite à cet endroit. Jamais d'image
 // fixe (payante). Sans clé Google : on marche sur le tracé IGN des rues et Street View prend la photo la plus proche.
+const MARCHE = Marche.creer({ vitesse:11 });
 const norm360 = c => ((c%360)+360)%360;
 const ecartCap = (a, b) => { const d=norm360(a-b); return d>180 ? 360-d : d; };
 function promAvecCle(){ return !!CLE_GOOGLE && !cleRefusee; }
@@ -819,87 +826,82 @@ async function promPhoto(points, dir){ const autour=batimentsAutour(PROM, 90);
     if(estGoogle(j) ? autour.some(p=>!(pos.lon<p.b[0]||pos.lon>p.b[2]||pos.lat<p.b[1]||pos.lat>p.b[3]) && inside([pos.lon,pos.lat], p.g)) : dansUnBatiment(pos, autour)) continue;
     if(estGoogle(j)) return j; if(!autre) autre=j; }
   return autre; }
-// partir en promenade : depuis la photo de la fiche d'une parcelle, ou depuis la rue au centre de la carte
-async function promenade(depart){ if(PROM.on) return;
+// partir en balade : depuis la fiche d'une parcelle (la photo, sinon l'endroit touché), ou depuis la rue au centre de la carte
+function promenade(depart){ if(PROM.on) return;
   if(document.getElementById('sheet').classList.contains('open')) closeSheet();
-  Object.assign(PROM, { on:true, lat:depart.lat, lon:depart.lon, cap:norm360(depart.cap||0), pano:depart.pano||null, liste:[], cleListe:'', avant:map.getPitch() });
-  document.body.classList.add('promenade'); const box=document.getElementById('prom'); box.setAttribute('aria-hidden','false');
-  document.getElementById('prom-lieux').innerHTML='<div class="prom-rue">🚶 En promenade</div>';
-  map.resize(); vibrer(10);
-  if(!PROM.pano && promAvecCle()){ box.classList.add('charge');
-    const j=await promPhoto([[{lat:PROM.lat, lon:PROM.lon}, 25], [{lat:PROM.lat, lon:PROM.lon}, 60]], null); if(!PROM.on) return;
-    if(j){ PROM.lat=j.location.lat; PROM.lon=j.location.lng; PROM.pano=j.pano_id; }
-    else if(promAvecCle()){ finPromenade(); toast('📷 Pas de photo Street View ici : essaie une autre rue'); return; } }
-  promMontrer();
-  if((state.prefs.astucePromCarte||0)<2){ state.prefs.astucePromCarte=(state.prefs.astucePromCarte||0)+1; save(); setTimeout(()=>{ if(PROM.on) toast('🗺️ Touche un bâtiment sur la carte pour aller devant'); }, 1500); } }
-function promDepuisFiche(){ if(!svCourant){ toast('Street View se charge encore…'); return; } promenade(svCourant); }
+  const m = MARCHE.depart(ruesBalade(true), depart, depart.cap||0, 120);
+  if(!m){ toast('🚧 Pas de rue ici : approche-toi d’une rue'); return; }
+  Object.assign(PROM, m, { on:true, joy:{x:0, y:0}, pano:null, vue:m.cap, photo:false, touche:null, liste:[], cleListe:'', avant:map.getPitch(),
+    zoom:Math.min(19, Math.max(17.6, map.getZoom())), etat:'', envLe:0, envPt:null });
+  document.body.classList.add('promenade'); document.body.classList.remove('prom-photo');
+  const box=document.getElementById('prom'); box.setAttribute('aria-hidden','false'); box.classList.remove('photo','charge');
+  document.getElementById('prom-lieux').innerHTML=''; promManette();
+  map.dragPan.disable(); map.dragRotate.disable(); map.touchZoomRotate.disableRotation(); map.keyboard.disable();
+  map.resize(); vibrer(10); promMarqueur(); promSuivre(); promEnvirons(); promNomRue(); promT=0; requestAnimationFrame(promBoucle);
+  if((state.prefs.astuceBalade||0)<2){ state.prefs.astuceBalade=(state.prefs.astuceBalade||0)+1; save();
+    setTimeout(()=>{ if(PROM.on) toast('🕹️ Pousse la manette : tout droit, ou à droite et à gauche pour tourner au carrefour'); }, 900); } }
+function promDepuisFiche(){ const d = svCourant || (pointVise && { lon:pointVise[0], lat:pointVise[1], cap:norm360(map.getBearing()) });
+  if(!d){ toast('Street View se charge encore…'); return; } promenade(d); }
 function promDepuisCarte(){ if(map.getZoom()<16){ toast('🔍 Approche-toi d’abord d’une rue'); return; }
-  const c=map.getCenter(), r=ruesAutour({lat:c.lat, lon:c.lng}, 150)[0];
-  if(!r){ toast('🚧 Pas de rue ici : approche-toi d’une rue'); return; }
-  const rc=capDeRue({lat:r.lat, lon:r.lon}, norm360(map.getBearing()), 90);
-  promenade({ lat:r.lat, lon:r.lon, cap: rc ? rc.cap : norm360(map.getBearing()) }); }
-function finPromenade(){ if(!PROM.on) return; PROM.on=false; PROM.cadre++; PROM.pas++; PROM.liste=[]; PROM.cleListe='';
-  document.body.classList.remove('promenade'); const box=document.getElementById('prom'); box.setAttribute('aria-hidden','true'); box.classList.remove('charge','marche');
+  const c=map.getCenter(); promenade({ lat:c.lat, lon:c.lng, cap:norm360(map.getBearing()) }); }
+function finPromenade(){ if(!PROM.on) return; PROM.on=false; PROM.cadre++; PROM.pas++; PROM.liste=[]; PROM.cleListe=''; PROM.joy={x:0, y:0}; PROM.touche=null;
+  document.body.classList.remove('promenade','prom-photo'); const box=document.getElementById('prom'); box.setAttribute('aria-hidden','true'); box.classList.remove('charge','marche','photo');
   for(const id of ['prom-sv-a','prom-sv-b']){ const f=document.getElementById(id); f.onload=null; f.src='about:blank'; f.dataset.src=''; f.classList.remove('vu'); f.style.transform=''; }
   if(PROM.marqueur){ PROM.marqueur.remove(); PROM.marqueur=null; }
   if(document.getElementById('sheet').classList.contains('open')) closeSheet();
-  promSurligner([]); map.resize(); map.easeTo({ padding:{top:0, bottom:0, left:0, right:0}, pitch:PROM.avant==null?58:PROM.avant, duration:450 }); vibrer(8); }
-// un pas en avant (sens 1) ou en arrière (sens -1), le long de la rue
-async function promPas(sens){ if(!PROM.on || PROM.occupe) return; PROM.occupe=true; vibrer(8); const box=document.getElementById('prom'); box.classList.add('marche');
-  try{ // la rue toute proche dont l'axe est le plus près du regard (tourné vers une façade, on la longe : on n'entre pas dans les murs)
-    const rue=capDeRue(PROM, PROM.cap, 180), dir=norm360((rue ? rue.cap : PROM.cap) + (sens<0 ? 180 : 0));
-    if(promAvecCle()){
-      const j=await promPhoto([[decale(PROM, dir, 10), 6], [decale(PROM, dir, 18), 10], [decale(PROM, dir, 28), 15]], dir);
-      if(!PROM.on) return;
-      if(j){ PROM.lat=j.location.lat; PROM.lon=j.location.lng; PROM.pano=j.pano_id; }
-      else if(promAvecCle()){ toast('🚧 Pas de photo plus loin par là : tourne-toi'); return; } }
-    if(!promAvecCle()){ const pt=decale(PROM, dir, 12), r=ruesAutour(pt, 20)[0]; PROM.lat=r?r.lat:pt.lat; PROM.lon=r?r.lon:pt.lon; PROM.pano=null; }
-    // en regardant le long de la rue, la vue suit ses virages ; tourné vers les façades, on les longe sans tourner la tête
-    if(sens>0 && rue && rue.e<=35){ const r2=capDeRue(PROM, PROM.cap, 35); if(r2) PROM.cap=r2.cap; }
-    promMontrer();
-  } finally { PROM.occupe=false; box.classList.remove('marche'); } }
-// En promenade, toucher la carte (demande de Gautier, 4 nov.) : Street View nous emmène devant le bâtiment touché, face à
-// lui (un monument : d'où on le voit en entier, comme depuis sa fiche) ; toucher une rue ou une place : on y va, sans
-// changer de regard. La fiche ne s'ouvre pas : le bâtiment apparaît « en face » sous la carte, d'où on l'achète.
-function promToucher(e){ const ici={ lon:e.lngLat.lng, lat:e.lngLat.lat };
-  const mq = COUCHE_MAQ && COUCHE_MAQ.toucher(e.point.x, e.point.y);
-  if(mq){ const m=LISTE_MON.find(x=>x.id===mq.id); return promAller(m ? { lon:m.lon, lat:m.lat, monument:true } : { lon:mq.lon, lat:mq.lat, monument:true }); }
-  let b=null; try{ b=map.queryRenderedFeatures(e.point, {layers:['bati-3d']})[0]; }catch(_){}
-  if(b && b.geometry && (b.geometry.type==='Polygon' || b.geometry.type==='MultiPolygon')){
-    // l'endroit touché s'il tombe sur le bâtiment (un grand bâtiment : la partie touchée), sinon son milieu
-    const c = inside([ici.lon, ici.lat], b.geometry) ? [ici.lon, ici.lat] : centroid(b.geometry);
-    const m = LISTE_MON.find(x=>Math.abs(x.lat-c[1])<0.004 && Math.abs(x.lon-c[0])<0.006 && inside([x.lon, x.lat], b.geometry));
-    return promAller(m ? { lon:m.lon, lat:m.lat, monument:true } : { lon:c[0], lat:c[1], monument:false }); }
-  const mh = monumentDuHalo(e.point); if(mh) return promAller({ lon:mh.lon, lat:mh.lat, monument:true });
-  return promAller(ici, true); }
-async function promAller(cible, rue){ if(!PROM.on || PROM.occupe) return; PROM.occupe=true; vibrer(10); const box=document.getElementById('prom'); box.classList.add('marche');
-  try{ const vue = rue ? null : vueDepuisLaRue(cible);
-    if(promAvecCle()){
-      const j = rue ? await promPhoto([[cible, 15], [cible, 40]], null) : await choisirPhoto(cible, vue);
-      if(!PROM.on) return;
-      if(j){ PROM.lat=j.location.lat; PROM.lon=j.location.lng; PROM.pano=j.pano_id;
-        if(!rue){ const d=dist([PROM.lon,PROM.lat],[cible.lon,cible.lat]); PROM.cap = d>4 ? capVers(PROM, cible) : vue.cap; } }
-      else if(promAvecCle()){ toast(rue ? '📷 Pas de photo Street View par ici' : '📷 Pas de photo Street View devant ce bâtiment'); return; } }
-    if(!promAvecCle()){ const v = rue ? (ruesAutour(cible, 30)[0] || cible) : vue; PROM.lat=v.lat; PROM.lon=v.lon; PROM.pano=null; if(!rue) PROM.cap=vue.cap; }
-    promMontrer();
-  } finally { PROM.occupe=false; box.classList.remove('marche'); } }
-function promTourner(delta){ if(!PROM.on) return; PROM.cap=norm360(PROM.cap+delta); vibrer(6); promMontrer(); }
-function promMontrer(){ const n=++PROM.pas; promMarqueur(); promAfficher(); promCamera(); promEnvirons();
-  map.once('idle', ()=>{ if(PROM.on && n===PROM.pas) promEnvirons(); }); }   // de nouvelles tuiles ont pu arriver
-// le marcheur sur la carte : un point bleu et son cône de regard, à plat sur la carte
-function promMarqueur(){ if(!PROM.marqueur){ const el=document.createElement('div'); el.className='marcheur'; el.innerHTML='<i class="cone"></i><i class="pt"></i>';
-    PROM.marqueur=new maplibregl.Marker({element:el, rotationAlignment:'map', pitchAlignment:'map'}).setLngLat([PROM.lon,PROM.lat]).addTo(map); }
-  PROM.marqueur.setLngLat([PROM.lon,PROM.lat]).setRotation(PROM.cap); }
-// la carte suit : le marcheur au milieu de la partie visible, le regard vers le haut de l'écran. Sur un téléphone, Street
-// View est en haut et le panneau en bas ; sur un grand écran, Street View est à gauche et le panneau sous la carte, à droite
-// (style.css, « grands écrans »)
-function promCamera(){ const v=document.querySelector('#prom .prom-vue').getBoundingClientRect(), b=document.querySelector('#prom .prom-bas').getBoundingClientRect(), z=map.getZoom();
-  const cote = v.width < innerWidth*0.9, padding = cote ? { top:0, bottom:Math.max(0, innerHeight-b.top), left:v.right, right:0 } : { top:v.height, bottom:b.height, left:0, right:0 };
-  map.easeTo({ center:[PROM.lon,PROM.lat], bearing:PROM.cap, pitch:50, zoom: z<17.4 || z>19 ? 18 : z, padding, duration:650 }); }
-function promSrc(){ const c=Math.round(PROM.cap), k=encodeURIComponent(CLE_GOOGLE);
+  map.dragPan.enable(); map.dragRotate.enable(); map.touchZoomRotate.enableRotation(); map.keyboard.enable();
+  promSurligner([]); promManette(); map.resize(); map.easeTo({ padding:{top:0, bottom:0, left:0, right:0}, pitch:PROM.avant==null?58:PROM.avant, duration:450 }); vibrer(8); }
+// les rues chargées (tronçons de la BD TOPO, relus toutes les 2 s : de nouvelles tuiles arrivent en marchant)
+let RUES_BAL = { liste:[], lu:0 };
+function ruesBalade(force){ if(!force && RUES_BAL.liste.length && performance.now()-RUES_BAL.lu<2000) return RUES_BAL.liste; const l=[];
+  try{ for(const f of map.querySourceFeatures('topo',{sourceLayer:'troncon_de_route'})){ const p=f.properties||{}; if(p.nature==='Bac ou liaison maritime') continue;
+      const lignes = f.geometry.type==='LineString' ? [f.geometry.coordinates] : (f.geometry.type==='MultiLineString' ? f.geometry.coordinates : []);
+      for(const g of lignes) for(let i=0;i<g.length-1;i++) l.push([g[i][0], g[i][1], g[i+1][0], g[i+1][1], p.nom_voie_ban_droite||p.nom_voie_ban_gauche||'']); } }catch(e){}
+  RUES_BAL={ liste:l, lu:performance.now() }; return l; }
+// à chaque image : un pas (src/marche.js), puis la carte et le pion seulement s'ils ont bougé (la carte doit pouvoir se reposer)
+let promT=0;
+function promBoucle(t){ if(!PROM.on) return; const dt=Math.min(0.05, promT ? (t-promT)/1000 : 0.016); promT=t;
+  const avant=PROM.bouge; MARCHE.pas(PROM, ruesBalade(), PROM.joy, dt);
+  const etat=[PROM.lon.toFixed(7), PROM.lat.toFixed(7), PROM.camCap.toFixed(1), Math.round(PROM.cap), PROM.zoom].join();
+  if(etat!==PROM.etat){ PROM.etat=etat; promMarqueur(); promSuivre(); }
+  if(PROM.marqueur) PROM.marqueur.getElement().classList.toggle('marche', !!PROM.bouge);
+  if(PROM.bouge){ const n=Date.now(); if(!PROM.envPt || dist([PROM.lon,PROM.lat], PROM.envPt)>4 || n-PROM.envLe>700){ PROM.envPt=[PROM.lon,PROM.lat]; PROM.envLe=n; promEnvirons(); promNomRue(); } }
+  if(avant && !PROM.bouge){ promEnvirons(); promNomRue(); if(PROM.photo) promPhotoIci(); }   // à l'arrêt : ce qu'on longe, et la photo de l'endroit
+  requestAnimationFrame(promBoucle); }
+// la caméra derrière le pion (Gautier : « comme une vue FPS, mais en dézoomé »), le pion dans la partie visible de la carte
+function promSuivre(){ const v=document.querySelector('#prom .prom-vue').getBoundingClientRect(), b=document.querySelector('#prom .prom-bas').getBoundingClientRect();   // (la manette est sur le côté : le pion reste au milieu)
+  const cote = PROM.photo && v.width < innerWidth*0.9;
+  const padding = { top: PROM.photo && !cote ? v.height : 0, bottom: b.height ? Math.max(0, innerHeight-b.top) : 0, left: cote ? v.right : 0, right:0 };
+  const devant = Marche.decale(PROM, PROM.camCap, 30);
+  map.jumpTo({ center:[devant.lon, devant.lat], bearing:PROM.camCap, pitch:60, zoom:PROM.zoom, padding }); }
+// le pion : mon icône, debout sur la carte (toujours visible, même derrière un bâtiment), une flèche vers où il va
+function promMarqueur(){ if(!PROM.marqueur){ const el=document.createElement('div'); el.className='pion'; el.innerHTML=`<i class="fleche"></i><i class="ombre"></i><i class="corps">${echapper(state.avatar||'🙂')}</i>`;
+    PROM.marqueur=new maplibregl.Marker({element:el, anchor:'bottom'}).setLngLat([PROM.lon,PROM.lat]).addTo(map); }
+  PROM.marqueur.setLngLat([PROM.lon,PROM.lat]); PROM.marqueur.getElement().querySelector('.fleche').style.transform=`scaleY(.45) rotate(${norm360(PROM.cap-PROM.camCap)}deg)`; }
+function promNomRue(){ const r=MARCHE.nomDeRue(ruesBalade(), PROM); document.getElementById('prom-rue').textContent='🚶 '+(r || 'En promenade'); }
+// En balade, toucher la carte (Gautier, 4 nov. : ne pas ouvrir de fiche) : le bâtiment touché s'affiche en bas, avec
+// ses lieux (Voir, Offre, Acheter) ; on n'y est pas emmené (on y marche, ce qui vaudra aussi pour la chasse au trésor)
+function promToucher(e){ let f=null;
+  const mq = COUCHE_MAQ && COUCHE_MAQ.toucher(e.point.x, e.point.y), mh = mq ? null : monumentDuHalo(e.point), m = mq ? (LISTE_MON.find(x=>x.id===mq.id) || mq) : mh;
+  if(m) f = parcelleDe(m.lon, m.lat) || parcelleProche(m.lon, m.lat, 40);
+  if(!f) f = parcellesRendues(e.point)[0];
+  if(!f) return;
+  vibrer(8); PROM.touche={ cote:'touche', f, pt:m ? [m.lon, m.lat] : [e.lngLat.lng, e.lngLat.lat], depuis:[PROM.lon, PROM.lat] }; PROM.cleListe=''; promEnvirons(); }
+// la photo de l'endroit (Street View), seulement sur demande : 📷 ; elle se met à jour quand on s'arrête
+async function promPhotoIci(){ if(!PROM.on || !PROM.photo) return; PROM.vue=PROM.cap; PROM.pano=null; PROM.svLat=PROM.lat; PROM.svLon=PROM.lon; const box=document.getElementById('prom'), n=++PROM.pas;
+  if(promAvecCle()){ box.classList.add('charge'); const j=await promPhoto([[{lat:PROM.lat, lon:PROM.lon}, 20], [{lat:PROM.lat, lon:PROM.lon}, 50]], null);
+    if(!PROM.on || !PROM.photo || n!==PROM.pas) return;
+    if(!j){ box.classList.remove('charge'); toast('📷 Pas de photo Street View par ici'); return; }
+    PROM.pano=j.pano_id; PROM.svLat=j.location.lat; PROM.svLon=j.location.lng; const d=dist([PROM.lon,PROM.lat],[PROM.svLon,PROM.svLat]); if(d>6) PROM.vue=capVers({lat:PROM.svLat, lon:PROM.svLon}, decale(PROM, PROM.cap, 25)); }
+  promAfficher(); }
+function promBasculerPhoto(){ if(!PROM.on) return; PROM.photo=!PROM.photo; vibrer(8);
+  document.getElementById('prom').classList.toggle('photo', PROM.photo); document.body.classList.toggle('prom-photo', PROM.photo);
+  if(PROM.photo) promPhotoIci(); else { PROM.cadre++; for(const id of ['prom-sv-a','prom-sv-b']){ const f=document.getElementById(id); f.onload=null; f.src='about:blank'; f.dataset.src=''; f.classList.remove('vu'); f.style.transform=''; } document.getElementById('prom').classList.remove('charge'); }
+  map.resize(); PROM.etat=''; promSuivre(); }
+function promSrc(){ const c=Math.round(PROM.vue==null ? PROM.cap : PROM.vue), k=encodeURIComponent(CLE_GOOGLE), la=(PROM.svLat||PROM.lat), lo=(PROM.svLon||PROM.lon);
   if(promAvecCle() && PROM.pano) return `https://www.google.com/maps/embed/v1/streetview?key=${k}&pano=${encodeURIComponent(PROM.pano)}&heading=${c}&pitch=0&fov=90${SV_LANGUE}`;
-  if(promAvecCle()) return `https://www.google.com/maps/embed/v1/streetview?key=${k}&location=${PROM.lat.toFixed(6)},${PROM.lon.toFixed(6)}&heading=${c}&pitch=0&fov=90&source=outdoor${SV_LANGUE}`;
-  return `https://maps.google.com/maps?q=&layer=c&cbll=${PROM.lat.toFixed(6)},${PROM.lon.toFixed(6)}&cbp=12,${c},0,0,0&output=svembed${SV_HL}`; }
+  if(promAvecCle()) return `https://www.google.com/maps/embed/v1/streetview?key=${k}&location=${la.toFixed(6)},${lo.toFixed(6)}&heading=${c}&pitch=0&fov=90&source=outdoor${SV_LANGUE}`;
+  return `https://maps.google.com/maps?q=&layer=c&cbll=${la.toFixed(6)},${lo.toFixed(6)}&cbp=12,${c},0,0,0&output=svembed${SV_HL}`; }
 // deux cadres l'un sur l'autre : la nouvelle vue se charge sous l'ancienne, puis prend sa place (pas d'écran vide à chaque pas)
 function promAfficher(){ const a=document.getElementById('prom-sv-a'), b=document.getElementById('prom-sv-b'), box=document.getElementById('prom');
   const vu = a.classList.contains('vu') ? a : (b.classList.contains('vu') ? b : null), src=promSrc();
@@ -910,7 +912,7 @@ function promAfficher(){ const a=document.getElementById('prom-sv-a'), b=documen
   neuf.onload=()=>setTimeout(montrer, 450); setTimeout(montrer, 5000);
   neuf.style.transform=''; neuf.dataset.src=src; neuf.src=src;
   // la même vue dans Google Maps (les cadres sont inertes : on ne touche pas l'intégration elle-même)
-  document.getElementById('prom-google').href=`https://www.google.com/maps/@?api=1&map_action=pano&viewpoint=${PROM.lat.toFixed(6)},${PROM.lon.toFixed(6)}&heading=${Math.round(PROM.cap)}${PROM.pano ? '&pano='+encodeURIComponent(PROM.pano) : ''}`; }
+  document.getElementById('prom-google').href=`https://www.google.com/maps/@?api=1&map_action=pano&viewpoint=${(PROM.svLat||PROM.lat).toFixed(6)},${(PROM.svLon||PROM.lon).toFixed(6)}&heading=${Math.round(PROM.vue==null ? PROM.cap : PROM.vue)}${PROM.pano ? '&pano='+encodeURIComponent(PROM.pano) : ''}`; }
 // Ce qu'on longe. En regardant le long de la rue : la parcelle de gauche et celle de droite ; tourné vers une façade :
 // celle d'en face. Elles sont surlignées sur la carte, et leurs lieux s'affichent sous la carte (le propriétaire, le prix
 // s'il est en vente) ; les toucher ouvre la fiche, d'où l'on achète ou fait une offre.
@@ -928,7 +930,9 @@ function promEnvirons(){ if(!PROM.on) return; const autour=parcellesAutour(PROM,
   const liste = face ? [Object.assign({cote:'face'}, face)]
     : [['gauche',-90],['droite',90]].map(([cote,d])=>{ const v=viser(autour, ici, norm360(PROM.cap+d), 26); return v && Object.assign({cote}, v); }).filter(Boolean);
   if(liste.length===2 && liste[0].f.id===liste[1].f.id) liste.pop();
-  const cle=liste.map(e=>e.cote+':'+e.f.id).join('|')+'|'+nomDeRue(PROM);
+  if(PROM.touche && dist([PROM.lon,PROM.lat], PROM.touche.depuis)>40) PROM.touche=null;   // touché, puis laissé derrière
+  if(PROM.touche){ for(let i=liste.length-1;i>=0;i--) if(liste[i].f.id===PROM.touche.f.id) liste.splice(i,1); liste.unshift(PROM.touche); if(liste.length>2) liste.length=2; }
+  const cle=liste.map(e=>e.cote+':'+e.f.id).join('|');
   if(cle!==PROM.cleListe){ PROM.cleListe=cle; PROM.liste=liste; promSurligner(liste.map(e=>e.f.id)); promCarte(); }
   for(const e of PROM.liste) if(!parcelAddrs[e.f.id] || parcelAddrs[e.f.id].erreur) lieuxDeParcelle(e.f).then(()=>{ if(PROM.on && PROM.liste.includes(e)) promCarte(); }).catch(()=>{}); }
 function promSurligner(ids){ const neufs=new Set(ids); let change=false;
@@ -941,10 +945,10 @@ function lieuxConnus(f){ const base=parcelAddrs[f.id]; if(!base) return null; co
   return l; }
 // le lieu à montrer d'une parcelle : d'abord ce qui est en vente chez un autre joueur, puis ce qui est à un autre, à moi, libre
 function lieuPhare(addrs){ const note=a=>{ const o=ownerOf(a); return o && o!==ME ? (enVente(a) ? 0 : 1) : (o===ME ? 2 : 3); }; return addrs.reduce((m,a)=>note(a)<note(m) ? a : m, addrs[0]); }
-const COTES = { gauche:['◀','À gauche'], droite:['▶','À droite'], face:['▲','En face'] };
-function promCarte(){ const box=document.getElementById('prom-lieux'); if(!box || !PROM.on) return; const rue=nomDeRue(PROM);
-  let h=`<div class="prom-rue">🚶 ${echapper(rue || 'En promenade')}</div>`;
-  if(!PROM.liste.length) h+='<div class="prom-vide">Pas de bâtiment tout près : avance, tourne-toi, ou touche un bâtiment sur la carte.</div>';
+const COTES = { gauche:['◀','À gauche'], droite:['▶','À droite'], face:['▲','En face'], touche:['👆','Touché'] };
+function promCarte(){ const box=document.getElementById('prom-lieux'); if(!box || !PROM.on) return;
+  let h='';
+  if(!PROM.liste.length) h+='<div class="prom-vide">Pas de bâtiment tout près : marche jusqu’aux maisons, ou touche un bâtiment sur la carte.</div>';
   PROM.liste.forEach((e, i)=>{ const [fleche, texte]=COTES[e.cote], addrs=lieuxConnus(e.f); let corps, action='Voir';
     if(!addrs) corps='<b class="attente">Je regarde…</b>';
     else if(!addrs.length) corps='<b>Pas d’adresse</b><small><span class="gris">Cour, jardin ou voirie</span></small>';
@@ -957,25 +961,35 @@ function promCarte(){ const box=document.getElementById('prom-lieux'); if(!box |
   box.querySelectorAll('.prom-lieu').forEach(b=>b.onclick=()=>{ const e=PROM.liste[+b.dataset.i]; if(!e) return; vibrer(8); pointVise=e.pt; selectParcel(e.f); }); }
 // les commandes : les boutons, glisser sur la photo pour tourner, la toucher pour avancer ; au clavier, les flèches
 document.getElementById('bprom').onclick=promDepuisCarte;
-document.getElementById('prom-av').onclick=()=>promPas(1);
-document.getElementById('prom-re').onclick=()=>promPas(-1);
-document.getElementById('prom-g').onclick=()=>promTourner(-45);
-document.getElementById('prom-d').onclick=()=>promTourner(45);
-document.addEventListener('keydown', e=>{ if(!PROM.on || document.getElementById('modal').classList.contains('on') || (e.target && e.target.closest && e.target.closest('input,textarea,select'))) return;
-  const f={ ArrowUp:()=>promPas(1), ArrowDown:()=>promPas(-1), ArrowLeft:()=>promTourner(-45), ArrowRight:()=>promTourner(45), Escape:finPromenade }[e.key]; if(f){ e.preventDefault(); f(); } });
-(()=>{ const t=document.getElementById('prom-touche'); let x0=null, y0=0, dx=0, t0=0; const cadre=()=>document.querySelector('.prom-sv.vu');
-  t.addEventListener('pointerdown', e=>{ if(!PROM.on) return; x0=e.clientX; y0=e.clientY; dx=0; t0=Date.now(); try{ t.setPointerCapture(e.pointerId); }catch(_){} });
-  t.addEventListener('pointermove', e=>{ if(x0==null) return; dx=e.clientX-x0; const f=cadre(); if(f) f.style.transform=`translateX(${dx}px)`;
-    if(PROM.marqueur) PROM.marqueur.setRotation(PROM.cap - dx*90/(t.offsetWidth||360)); });
-  const fin=(e, annule)=>{ if(x0==null) return; const bouge=Math.abs(dx)>12 || Math.abs(e.clientY-y0)>12, w=t.offsetWidth||360; x0=null;
-    if(!annule && Math.abs(dx)>12) return promTourner(-dx*90/w);
-    const f=cadre(); if(f) f.style.transform=''; if(PROM.marqueur) PROM.marqueur.setRotation(PROM.cap);
-    if(!annule && !bouge && Date.now()-t0<600) promPas(1); };
-  t.addEventListener('pointerup', e=>fin(e, false)); t.addEventListener('pointercancel', e=>fin(e, true)); })();
+document.getElementById('prom-photo').onclick=promBasculerPhoto;
+// la manette : le pouce sur le rond (tout droit vers le haut, à droite ou à gauche pour tourner au carrefour, vers le bas
+// pour faire demi-tour) ; sur un ordinateur, les flèches du clavier ; Échap arrête la balade
+(()=>{ const z=document.getElementById('prom-joy'), k=z.querySelector('i'); let actif=null;
+  const montrer=()=>{ const j=PROM.joy||{x:0, y:0}; k.style.transform=`translate(${j.x*34}px, ${j.y*34}px)`; z.classList.toggle('actif', !!(j.x||j.y)); };
+  const poser=e=>{ const b=z.getBoundingClientRect(), R=b.width/2; let x=(e.clientX-b.left-R)/R, y=(e.clientY-b.top-R)/R; const n=Math.hypot(x,y); if(n>1){ x/=n; y/=n; } PROM.joy={x, y}; montrer(); };
+  z.addEventListener('pointerdown', e=>{ if(!PROM.on) return; e.preventDefault(); actif=e.pointerId; try{ z.setPointerCapture(e.pointerId); }catch(_){} poser(e); vibrer(6); });
+  z.addEventListener('pointermove', e=>{ if(actif===e.pointerId) poser(e); });
+  const lacher=e=>{ if(actif!==e.pointerId) return; actif=null; PROM.joy={x:0, y:0}; montrer(); };
+  z.addEventListener('pointerup', lacher); z.addEventListener('pointercancel', lacher);
+  const FLECHES={ ArrowUp:[0,-1], ArrowDown:[0,1], ArrowLeft:[-1,0], ArrowRight:[1,0] }, tenues=new Set();
+  const clavier=()=>{ let x=0, y=0; for(const t of tenues){ x+=FLECHES[t][0]; y+=FLECHES[t][1]; } PROM.joy={ x:Math.max(-1,Math.min(1,x)), y:Math.max(-1,Math.min(1,y)) }; montrer(); };
+  document.addEventListener('keydown', e=>{ if(!PROM.on || document.getElementById('modal').classList.contains('on') || (e.target && e.target.closest && e.target.closest('input,textarea,select'))) return;
+    if(e.key==='Escape'){ e.preventDefault(); finPromenade(); return; }
+    if(FLECHES[e.key]){ e.preventDefault(); tenues.add(e.key); clavier(); } });
+  document.addEventListener('keyup', e=>{ if(FLECHES[e.key] && tenues.delete(e.key)) clavier(); });
+  window.promManette=()=>{ tenues.clear(); montrer(); }; })();
+// pincer pour s'approcher ou s'éloigner : la caméra garde ce zoom
+map.on('zoom', e=>{ if(PROM.on && e.originalEvent) PROM.zoom=Math.min(19.2, Math.max(17, map.getZoom())); });
+(()=>{ const t=document.getElementById('prom-touche'); let x0=null, dx=0; const cadre=()=>document.querySelector('.prom-sv.vu');
+  t.addEventListener('pointerdown', e=>{ if(!PROM.on) return; x0=e.clientX; dx=0; try{ t.setPointerCapture(e.pointerId); }catch(_){} });
+  t.addEventListener('pointermove', e=>{ if(x0==null) return; dx=e.clientX-x0; const f=cadre(); if(f) f.style.transform=`translateX(${dx}px)`; });
+  const fin=annule=>{ if(x0==null) return; x0=null; const f=cadre();
+    if(!annule && Math.abs(dx)>12){ PROM.vue=norm360((PROM.vue==null ? PROM.cap : PROM.vue) - dx*90/(t.offsetWidth||360)); vibrer(6); promAfficher(); } else if(f) f.style.transform=''; };
+  t.addEventListener('pointerup', ()=>fin(false)); t.addEventListener('pointercancel', ()=>fin(true)); })();
 function mkAddr(x, idu){ const p=x.properties; return { id:p.id, label:p.name, lon:x.geometry.coordinates[0], lat:x.geometry.coordinates[1], citycode:p.citycode, city:p.city, postcode:p.postcode, idu, type:'adresse' }; }
 function renderAddrs(){ const {p, idu, geometry} = currentParcel; const addrs = [...(currentParcel.extra||[]), ...(parcelAddrs[idu]||[])]; const nb=addrs.length; const c = centroid(geometry);
   document.getElementById('nb').textContent = nb;
-  if(!PROM.on){ const cible = cibleStreetView(addrs, geometry, c); const vue = vueDepuisLaRue(cible); afficherStreetView(cible, vue); }   // en promenade, Street View est déjà en haut de l'écran
+  if(!PROM.on || !PROM.photo){ const cible = cibleStreetView(addrs, geometry, c); const vue = vueDepuisLaRue(cible); afficherStreetView(cible, vue); }   // en promenade, Street View est déjà en haut de l'écran
   const box = document.getElementById('addrs'); box.innerHTML='';
   document.getElementById('plafond').textContent = addrs[0] ? NIVEAUX[plafond(addrs[0])].nom : '—';
   const adr = addrs.find(x=>x.type==='adresse'), rue = adr ? String(adr.label).replace(/^\s*\d+\s*(bis|ter|[a-z])?\s+/i,'') : (addrs[0] ? addrs[0].label : '');
