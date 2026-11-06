@@ -79,7 +79,7 @@
     'Tu n’as pas encore de lieu à échanger : ouvre ton pack du jour': 'You don’t have a place to trade yet: open your daily pack',
     'Une belle proposition !': 'A nice offer!', 'À peu près la même valeur : la réponse peut être non.': 'About the same value: the answer may be no.',
     'Choisis un ou plusieurs de tes lieux': 'Choose one or more of your places', 'Choisis ce que tu donnes : un lieu, ou plusieurs.': 'Choose what you give: one place, or several.',
-    'Envoyer la proposition': 'Send the proposal', 'Pièces en plus': 'Extra coins',
+    'Envoyer la proposition': 'Send the proposal', 'Proposer mes {n} lieux': 'Offer my {n} places', 'À': 'To', 'Pièces en plus': 'Extra coins',
     'Ce lieu est déjà à quelqu’un : fais-lui une offre': 'This place already belongs to someone: make them an offer',
     'Un bon prend une adresse (pas un lieu nommé ni un monument), jusqu’à Épique': 'A voucher takes an address (not a named place or a monument), up to Epic',
     'Il te faut un bon : le Pass {n} jours en donne un': 'You need a voucher: the {n}-day Pass gives one',
@@ -164,7 +164,7 @@
     'Maire ({n} semaines)': 'Mayor ({n} weeks)', 'Maires ({n} semaines)': 'Mayors ({n} weeks)', 'Deviens Maire': 'Become Mayor',
     'Verse le plus de pièces à la caisse de travaux d’une commune : tu en deviens le Maire pour {n} semaines.': 'Pay the most coins into a town’s public works fund: you become its Mayor for {n} weeks.',
     'Chaque commune a une caisse de travaux. Toutes les {n} semaines, le joueur qui y a versé le plus de pièces devient Maire : il touche {n} % des loyers des autres joueurs de la commune.': 'Every town has a public works fund. Every {n} weeks, the player who paid the most coins into it becomes Mayor: they get {n}% of the other players’ rents in the town.',
-    'Caisse de travaux': 'Public works fund', 'Chargement de la caisse de travaux…': 'Loading the public works fund…',
+    'Caisse de travaux': 'Public works fund', 'Je verse': 'I pay in', 'Chargement de la caisse de travaux…': 'Loading the public works fund…',
     'Versé ce mandat': 'Paid in this term',
     'Les travaux de la commune': 'The town’s works', 'Niveau {n}': 'Level {n}', 'État des travaux': 'State of the works', 'Loyers de la commune': 'Rents in the town', 'La mairie rapporte jusqu’à': 'Being Mayor pays up to', 'La commune': 'The town',
     'Des arbres plantés': 'Trees planted', 'Des lampadaires': 'Street lamps', 'Des massifs de fleurs': 'Flower beds', 'Une fontaine': 'A fountain', 'Un kiosque à musique': 'A bandstand',
@@ -272,7 +272,7 @@
 
     // ---------------------------------------------------------------- la promenade
     'Arrêter la promenade': 'Stop walking', 'Avancer': 'Forward', 'Reculer': 'Back', 'Tourner à droite': 'Turn right', 'Tourner à gauche': 'Turn left',
-    'À droite': 'Right', 'À gauche': 'Left', 'Glisse pour tourner · touche pour avancer': 'Swipe to turn · tap to move forward',
+    'À droite': 'Right', 'À gauche': 'Left', 'En face': 'Ahead', '+{n} lieu': '+{n} place', '+{n} lieux': '+{n} places', 'Glisse pour tourner · touche pour avancer': 'Swipe to turn · tap to move forward',
     'Glisse pour tourner, touche pour avancer': 'Swipe to turn, tap to move forward', 'Plein écran': 'Full screen',
     'Pas de photo Street View ici : essaie une autre rue': 'No Street View photo here: try another street',
     'Touche un bâtiment sur la carte pour aller devant': 'Tap a building on the map to go in front of it', 'Street View se charge encore…': 'Street View is still loading…',
@@ -421,7 +421,9 @@
     [/^(.+) versées à la caisse de (.+)$/, '$1 paid into the fund of $2'],
     [/^🏆 Fin de la saison (\d+) : tu finis (.+) des Maires et (.+) en patrimoine\. Une nouvelle saison commence !$/, (T, m, n, a, b) => `🏆 End of season ${n}: you finish ${rang(T, a)} among Mayors and ${rang(T, b)} in portfolio. A new season begins!`],
     [/^Toi : (.+) des Maires, (.+) en patrimoine\.$/, (T, m, a, b) => `You: ${rang(T, a)} among Mayors, ${rang(T, b)} in portfolio.`],
-    [/^Saison (\d+) · fin dans (.+)$/, 'Season $1 · ends in $2'],
+    // (les durées : « 3 j 4 h » → « 3 d 4 h »)
+    [/^Saison (\d+) · fin dans (.+)$/, (T, m, s, d) => `Season ${s} · ends in ${d.replace(/(\d) j /, '$1 d ')}`],
+    [/^(.+) · fin du mandat dans (.+)$/, (T, m, k, d) => `${k} · term ends in ${d.replace(/(\d) j /, '$1 d ')}`],
     [/^(\d+)(?:er|re|e)$/, (T, m, n) => ord(n)],
 
     // les monuments

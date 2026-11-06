@@ -1805,6 +1805,11 @@ function carteSuivante(k, sens){ const el=k.el; cancelAnimationFrame(PK.anim); i
 // =================== le serveur (mode serveur) : toute action passe par la fonction « jeu » ===================
 // Réponse : { ok:true, ..., etat } (ma partie à jour, sur laquelle le jeu se recale) ou { ok:false, code, message }.
 let serveurOccupe=false;
+// Les grands montants (relecture en 320 px du 6 nov. 2026 : « 1 245 500 » sortait du champ du prix) : le chiffre rapetisse
+// pour tenir dans son champ, quand on tape et après chaque toucher (les raccourcis « +10 % » remplissent le champ)
+function ajusterChiffres(inp){ const n=(inp.value||'').length; inp.style.fontSize = n>7 ? Math.max(16, Math.round(28*7/n))+'px' : ''; }
+document.addEventListener('input', (e)=>{ if(e.target.matches && e.target.matches('.champ-prix input')) ajusterChiffres(e.target); });
+document.addEventListener('click', ()=>setTimeout(()=>document.querySelectorAll('#modal .champ-prix input').forEach(ajusterChiffres), 0));
 function bientot(){ toast('Pas encore en mode serveur : cette action arrive aux prochaines étapes'); vibrer(20); }
 async function appelServeur(action, corps){
   if(!(window.Compte && Compte.client && Compte.session)) return { ok:false, code:'non_connecte', message:'Connecte-toi pour jouer.' };
