@@ -1,7 +1,7 @@
 // Les fonctions qui se débloquent en jouant (6 nov. 2026, interview de Gautier : « à débloquer en jouant », « selon les
 // actions »). Au premier lancement, il n'y a que l'accueil et le pack du jour ; chaque fonction s'ouvre quand le joueur a
 // fait ce qu'il faut (ouvrir son premier pack, construire, économiser…) et reste ouverte ensuite. Les conditions sont dans
-// ECO.deblocages [Proposé] : `si` (toutes doivent tenir) et `ou` (une seule suffit).
+// ECO.deblocages (proposés par Claude, gardés par Gautier le 6 nov.) : `si` (toutes doivent tenir) et `ou` (une seule suffit).
 // Les faits du joueur : packs ouverts, lieux, constructions (lieux bâtis), pièces. Module pur : l'appelant les donne.
 (function (racine) {
   function creer(eco) {

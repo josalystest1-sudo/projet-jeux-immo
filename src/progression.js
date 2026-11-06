@@ -1,7 +1,7 @@
 // La progression (6 nov. 2026, interview de Gautier : « à débloquer en jouant », « selon les actions »). Au premier
 // lancement, il n'y a que l'accueil et le pack du jour ; les autres écrans portent un cadenas dans la barre du bas et
 // s'ouvrent quand le joueur a fait ce qu'il faut ; une fenêtre « Nouveau ! » le fête. Règles et seuils :
-// src/regles/deblocages.js et ECO.deblocages [Proposé].
+// src/regles/deblocages.js et ECO.deblocages (gardés par Gautier le 6 nov.).
 //   - state.deblocages : clé → instant où elle s'est ouverte (une fonction ouverte le reste) ;
 //   - state.nouveautes : les fêtes pas encore montrées (montrées quand rien d'autre n'est à l'écran) ;
 //   - state.packsOuverts : compté par ouvrirPack (un autre téléphone le déduit des lieux).
