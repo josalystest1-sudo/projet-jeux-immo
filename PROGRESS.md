@@ -510,6 +510,11 @@
   - **Échap** ferme la fenêtre ouverte, sinon la fiche du lieu (en promenade, Échap ferme d'abord la fenêtre, puis la promenade) ;
   - les consignes du pack parlent de la souris quand l'appareil en a une (`SOURIS`, `aideOuvrir`, `aideReveler` : « Fais glisser la souris sur le haut du pack », « Clique sur la carte pour la révéler », traduites) ;
   - le reste tenait déjà : fenêtres centrées à 440 px, Enchères, Communes, classements, vente, échange, caisse, ouverture du pack. 100 tests.
+- 6 nov. 2026 (PR #167) : **l'e-mail d'alerte à Gautier** (GDD § 5 ter : « prévenu, e-mail + tableau de bord, dès qu'un monument redevient libre » ; il attendait un service d'envoi, Brevo l'est depuis la PR #161) :
+  - `supabase/sql/190_alertes_email.sql` : colonne `alertes.envoyee_le` (les alertes d'avant restent sans e-mail) et `jeu_alertes_envoyees` ;
+  - la fonction « jeu » : `envoyerAlertes` dans l'horloge (`tic`, toutes les 10 minutes) envoie les nouvelles alertes de monument (reprise pour absence, impayé, lot de reprise sans preneur ; pas les alertes `comptes`) à contact@citydeck.fr, toutes ensemble, une fois par heure au plus : le nom, la commune, la fin de l'enchère et la phrase prête à poster ;
+  - l'envoi : Brevo en SMTP, port 465 (Supabase bloque 25 et 587), par un petit client sans bibliothèque (`supabase/functions/jeu/smtp.mjs`, essayé par `tests/smtp.test.js` contre un serveur simulé) ; la publication du serveur passe la clé SMTP du secret GitHub aux secrets de la fonction ;
+  - `tools/essai_sql.mjs` essaie la colonne et la fonction ; `deno check` passe. 102 tests.
 
 ## Bugs connus
 - Les badges 💰 des joueurs simulés n'apparaissent qu'après ouverture de leur parcelle (limite du prototype local).
