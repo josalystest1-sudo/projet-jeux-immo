@@ -3,8 +3,8 @@
 // serveur d'envoi de Brevo, l'expéditeur noreply@citydeck.fr et des e-mails en français (avec l'anglais dessous).
 // Lancé par la publication du serveur ; n'affiche aucun secret.
 //   node tools/serveur_emails.js <référence du projet>
-// Besoin : SUPABASE_ACCESS_TOKEN, et le secret GitHub BREVO_SMTP_KEY posé par Gautier (Brevo → SMTP et API → Générer une
-// clé SMTP). Sans lui, rien ne change. L'identifiant de connexion n'est pas un secret (BREVO_SMTP_LOGIN peut le remplacer).
+// Besoin : SUPABASE_ACCESS_TOKEN, et la clé SMTP de Brevo, posée par Gautier dans le secret GitHub BREVO_SMTP_KEY_CITY_DECK
+// (Brevo → SMTP et API → Générer une clé SMTP ; la publication la passe ici sous le nom BREVO_SMTP_KEY). Sans lui, rien ne change. L'identifiant de connexion n'est pas un secret (BREVO_SMTP_LOGIN peut le remplacer).
 // citydeck.fr est authentifié chez Brevo depuis le 6 nov. 2026 (code, deux clés DKIM dans la zone d'Infomaniak) : sans
 // cela, la règle DMARC du domaine (p=reject) ferait refuser tout e-mail de citydeck.fr envoyé par Brevo.
 const REF = process.argv[2] || 'hxtyecwofajiozmnfyxt';
@@ -39,7 +39,7 @@ const REGLAGES = {
 
 (async () => {
   if (!JETON) { console.log('SUPABASE_ACCESS_TOKEN absent : e-mails sautés.'); return; }
-  if (!CLE) { console.log('Secret BREVO_SMTP_KEY absent : les e-mails restent ceux de Supabase.'); return; }
+  if (!CLE) { console.log('Clé SMTP de Brevo absente (secret BREVO_SMTP_KEY_CITY_DECK) : les e-mails restent ceux de Supabase.'); return; }
   const url = `https://api.supabase.com/v1/projects/${REF}/config/auth`, H = { Authorization: `Bearer ${JETON}`, 'Content-Type': 'application/json' };
   const r = await fetch(url, { method: 'PATCH', headers: H, body: JSON.stringify({ ...REGLAGES, smtp_user: LOGIN, smtp_pass: CLE }) });
   if (!r.ok) { console.log(`::warning::e-mails de connexion non branchés sur Brevo (HTTP ${r.status})`); return; }
