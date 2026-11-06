@@ -275,7 +275,7 @@
 - Phase 1.1 à 1.4 : la carte et le modèle des lieux reconstruits en modules (`src/`) à partir du prototype ; puis le marché (phase 4 : historique des ventes d'un lieu) et les communes et Maires (phase 6). Ensuite : Signaler envoyé au serveur dès qu'il y aura de vrais joueurs à l'écran ; Google ; un service d'envoi d'e-mails avant le lancement (le service de Supabase n'écrit qu'aux membres de l'équipe Supabase, deux e-mails par heure).
 
 ## À faire
-- Les graphismes (phase 10, avant 8.2 : décision de Gautier) : la preuve, l'ouverture, les monuments nationaux et 358 monuments régionaux en 3D (411 maquettes ; les autres n'ont pas de bâtiment à dessiner ou portent une marque) ; ensuite l'habillage de la révélation, l'icône et le logo (`docs/BIBLE-GRAPHIQUE.md` § 5).
+- Les graphismes (phase 10, avant 8.2 : décision de Gautier) : la preuve, l'ouverture, les monuments nationaux et régionaux en 3D (422 maquettes ; les autres n'ont pas de bâtiment à dessiner) ; ensuite l'habillage de la révélation, l'icône et le logo (`docs/BIBLE-GRAPHIQUE.md` § 5).
 - La suite du serveur : 8.2 (le mode serveur par défaut et la fin des joueurs simulés : faits, PR #148 ; reste l'inscription des amis, qui attend le service d'e-mails Brevo), 8.3 (anti-triche) ; puis la boutique (phase 9). Liste complète, avec ce qu'il faudra faire au lancement : `docs/HISTORIQUE.md` § « Ce qui reste à faire » ; l'ordre : `docs/PLAN.md` (phases 1 à 11).
 
 ## Questions ouvertes
@@ -483,6 +483,14 @@
   - **Les lieux célèbres** : 8 marques de plus écartées à la main (`CELEBRES_EXCLUS`) : les châteaux Jacquesson (maison de champagne) et Bouvet-Ladubay (vin de Saumur), le stade Dunlop, le Matmut Stadium, les musées de la Vache qui rit, Safran, Christofle et Yves Saint Laurent (comme le musée Dior). Relu : les autres châteaux « Château X » des vignobles sont des monuments historiques au nom de famille ou de lieu (Château Pichon de Parempuyre n'est pas Pichon-Longueville), pas des marques. 30 900 lieux célèbres.
   - Rangé : la question du nom (« Cadastra ») retirée des questions ouvertes (CityDeck, décidé le 4 nov.).
   - **Vérifié** : 1 test de plus (noms de marque et noms ordinaires) ; `deno check`. 100 tests.
+- 6 nov. 2026 (PR #159) : **les six monuments qui sont des marques ont leur maquette 3D** (suite de « garde-les », 5 nov. ; Claude enchaîne ce qui ne demande pas Gautier). D'après les emprises de l'IGN (outil de plan refait sur le PC : bâtiments de la BD TOPO autour d'un point, vue du ciel), avec un repère de façade partagé (`facade(a, b, dehors)` : le long d'une façade et vers l'extérieur ; arches, colonnes, frontons, store) :
+  - **l'hôtel Ritz** : la façade de Mansart sur la place Vendôme (neuf arcades, lucarnes, grand comble d'ardoise, marquise dorée) et l'aile jusqu'à la rue Cambon ;
+  - **l'hôtel de Crillon** : le palais de Gabriel sur la Concorde (trois bâtiments de l'IGN derrière la même façade) : le rez-de-chaussée à arcades, la colonnade de douze colonnes devant une loggia dans l'ombre, les deux pavillons à fronton et leurs quatre colonnes, la balustrade. Sans la loggia sombre, les colonnes, de la même pierre que le mur, ne se voyaient pas ;
+  - **Maxim's** : l'immeuble du 3 rue Royale et sa devanture rouge et or qui avance sur le trottoir (un petit bâtiment de l'IGN sans hauteur, qui la recouvrait en orange : il est masqué et devient la devanture), son store, ses lanternes ;
+  - **l'hôtel Negresco** : le palace blanc, ses fenêtres sur la promenade des Anglais, et à l'angle de la rue de Rivoli la rotonde et sa coupole rose à lanterne verte (OpenStreetMap dit où est la coupole) ;
+  - **Château Margaux** : le château néo-palladien, son portique de quatre colonnes ioniques et son fronton en haut d'un perron, ses fenêtres, son toit d'ardoise (les chais restent ceux de l'IGN : sur la carte du monument, ils écrasaient le château) ;
+  - **le Train bleu** : le bâtiment de tête de la gare de Lyon, ses grandes baies cintrées bleues sur la place Louis-Armand, et la tour de l'Horloge (67 m, seul son socle est dans l'IGN) et ses quatre cadrans.
+  - 422 maquettes. Vérifié à l'image sur la carte (face aux façades) et sur les cartes des monuments (porcelaine) : planche `docs/bible/monuments-59.jpg`. 100 tests.
 
 ## Bugs connus
 - Les badges 💰 des joueurs simulés n'apparaissent qu'après ouverture de leur parcelle (limite du prototype local).

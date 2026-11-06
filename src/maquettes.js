@@ -5134,6 +5134,155 @@
 
   // les maquettes connues : le monument (identifiant de data/monuments.json), où et comment la poser, et les
   // bâtiments de l'IGN qu'elle remplace (sinon les blocs gris de la BD TOPO resteraient dedans)
+  // ---------------------------------------------------------------- les monuments qui sont des marques
+  // Gardés aux enchères (décision de Gautier du 5 nov. 2026 : « garde-les ») ; leurs maquettes datent du 6 nov., d'après les
+  // emprises de l'IGN (repère : le point du monument, x vers l'est, z vers le sud).
+
+  // un repère le long d'une façade, de a vers b : s (mètres le long de la façade), t (mètres vers l'extérieur ; dehors = -1
+  // quand l'extérieur est à droite en allant de a vers b). rot : l'angle des pièces dont le x suit la façade ; rotZ : celui
+  // des pièces dont le z sort de la façade (arches, store) ; rotN : celui des frontons (le faîte sort de la façade)
+  function facade(a, b, dehors) {
+    const L = Math.hypot(b[0] - a[0], b[1] - a[1]), u = [(b[0] - a[0]) / L, (b[1] - a[1]) / L], k = dehors || 1, n = [-u[1] * k, u[0] * k];
+    return { L, u, n, rot: Math.atan2(-u[1], u[0]), rotZ: Math.atan2(n[0], n[1]), rotN: Math.atan2(-n[1], n[0]),
+      pt: (s, t) => [a[0] + u[0] * s + n[0] * t, a[1] + u[1] * s + n[1] * t] };
+  }
+
+  // l'hôtel Ritz : l'hôtel de Gramont sur la place Vendôme, l'ordonnance de Mansart (arcades au rez-de-chaussée, grand comble
+  // d'ardoise et ses lucarnes), la marquise dorée de l'entrée, et l'aile qui file jusqu'à la rue Cambon
+  function ritz(THREE) {
+    const A = atelier(THREE);
+    const pierre = A.matiere(0xF2ECDD), pierreFoncee = A.matiere(0xD9CFB8), ardoise = A.matiere(0x5A6378), ombre = A.matiere(0x8C8370), or = A.matiere(0xFFC233, 0x7A4A00);
+    pave(A, [[17.5, -20.5], [22, -21.5], [20.5, -28.5], [5.5, -38], [2, -32.5], [0, -33.5], [-4.5, -27], [-6, -27.5], [-8.5, -26.5], [-9.5, -25], [-26.5, -35.5], [-28.5, -36.5],
+      [-32.5, -30], [-61.5, -49], [-68, -38.5], [-65, -37], [-46, -24.5], [-15, -2], [-20.5, 6.5], [-19.5, 7], [-6.5, 15], [-5.5, 16]], 18, pierre, ardoise, 6, pierreFoncee);
+    const F = facade([-5.5, 16], [17.5, -20.5]);   // la façade sur la place
+    const lucarnes = [], toitsL = [];
+    for (let k = 0; k < 9; k++) {
+      const [x, z] = F.pt(3 + k * 4.6, 0.15); A.extrusion(A.formeArche(3, 4.8), 0.3, x, 0, z, ombre, F.rotZ, true);
+      const [lx, lz] = F.pt(3 + k * 4.6, -0.9); lucarnes.push([1.6, 2.2, 1.6, lx, 18.8, lz, F.rot]); toitsL.push([1.9, 1, 1.9, lx, 21, lz, F.rotN]);
+    }
+    A.boites(lucarnes, pierre); A.toits(toitsL, ardoise);
+    const [mx, mz] = F.pt(F.L / 2, 1.1); A.plaque(5, 0.25, 2.2, mx, 4.7, mz, or, F.rotZ);
+    return A.groupe;
+  }
+
+  // l'hôtel de Crillon : le palais de Gabriel sur la place de la Concorde (trois bâtiments de l'IGN derrière une même
+  // façade) : le rez-de-chaussée à arcades, la colonnade de douze colonnes entre deux pavillons à fronton, la balustrade
+  function crillon(THREE) {
+    const A = atelier(THREE);
+    const pierre = A.matiere(0xF2ECDD), pierreFoncee = A.matiere(0xDCD2BC), ombre = A.matiere(0x8C8370);
+    pave(A, [[4.5, 6.5], [13, 10.5], [15, 6.5], [29, -23.5], [29.5, -23.5], [31, -26], [41.5, -48], [42.5, -50], [47, -59], [48.5, -63], [52, -69.5], [23, -82], [-1, -27], [-1.5, -27],
+      [-7.5, -15.5], [-7.5, -16], [-8, -15.5], [-9.5, -16], [-14, -7], [-16, -3], [-14.5, -2.5], [-14.5, -2], [-11.5, -0.5], [-12, 0.5], [1, 6.5], [1.5, 5.5], [4.5, 7]], 21, pierre, null, 0, pierreFoncee,
+    [[[34, -47.5], [24, -52], [27, -59.5], [28.5, -58.5], [29, -59.5], [28.5, -59.5], [31.5, -65.5], [32, -66], [30.5, -67], [32.5, -71], [36.5, -69.5], [36, -69], [36, -68.5], [39, -67.5], [39.5, -67.5], [40, -68], [43.5, -66.5], [42.5, -65], [42, -65], [41.5, -65], [34, -50], [34.5, -49.5]],
+      [[19.5, -17.5], [18, -18.5], [12.5, -21.5], [12.5, -21], [11, -22], [18, -36], [19, -35], [24.5, -32.5], [26, -32]],
+      [[35.5, -40], [34.5, -38], [33, -37.5], [30.5, -38.5], [32, -41.5], [34.5, -40.5]]]);
+    pave(A, [[13, 10.5], [43.5, 25.5], [45.5, 21.5], [59, -7], [59.5, -7.5], [54.5, -9.5], [60, -20], [57, -21.5], [65.5, -38.5], [59, -41.5], [50.5, -46], [50.5, -46.5], [48.5, -47], [48, -47.5],
+      [47, -45.5], [41.5, -48], [31, -26], [35, -24], [34, -21.5], [29.5, -23.5], [29, -23.5], [15, 6.5]], 21, pierre, null, 0, pierreFoncee,
+    [[[40, 1], [40, 0.5], [40, 0], [39.5, -0.5], [39.5, -1], [39, -1], [36.5, -2.5], [35.5, -1], [33.5, -2], [33, -1], [28.5, -3], [31.5, -10], [37, -7.5], [38.5, -10.5], [38.5, -11], [40.5, -10], [40.5, -9], [42, -8], [43, -8.5], [45, -7.5], [45.5, -8.5], [46, -8], [41.5, 1.5]]]);
+    pave(A, [[82, 4], [59, -7], [45.5, 21.5], [43.5, 25.5], [48, 27.5], [48, 28], [51, 29.5], [50.5, 30.5], [63.5, 36.5], [63.5, 36], [67, 37], [67, 36.5], [68.5, 37.5], [70.5, 34], [78.5, 17],
+      [77, 16.5], [77, 16], [76.5, 15.5]], 21, pierre, null, 0, pierreFoncee);
+    // la façade sur la place : s le long de la façade (0 à 93,7 m), t vers la place ; le nu de la colonnade est à t = 0,
+    // les deux pavillons (s de 5 à 19,5 et de 74,5 à 90) avancent de 1,4 m (l'emprise de l'IGN)
+    const F = facade([-15.7, -3.6], [68.4, 37.7]);
+    const [bx, bz] = F.pt(F.L / 2, 1.05); A.boite(F.L, 8, 3.1, bx, 0, bz, pierreFoncee, F.rot);   // le rez-de-chaussée à arcades
+    for (let k = 0; k < 19; k++) { const [x, z] = F.pt(2.6 + k * 4.9, 2.65); A.extrusion(A.formeArche(2.8, 5.6), 0.2, x, 0.4, z, ombre, F.rotZ, true); }
+    // la loggia derrière la colonnade, dans l'ombre, et les fenêtres des pavillons : sans elles, les colonnes, de la même
+    // pierre que le mur, s'y perdaient
+    const fonds = []; { const [x, z] = F.pt(47, 0.05); fonds.push([52, 11.2, 0.2, x, 8.2, z, F.rot]); }
+    for (const s of [8.6, 12.2, 15.8, 78.6, 82.2, 85.8]) { const [x, z] = F.pt(s, 1.45); fonds.push([1.6, 5.5, 0.2, x, 9.5, z, F.rot]); }
+    A.plaques(fonds, ombre);
+    const cols = [6.8, 10.4, 14, 17.6, 76.8, 80.4, 84, 87.6].map((s) => [s, 2.05]);
+    for (let k = 0; k < 12; k++) cols.push([23.5 + k * 47 / 11, 1.2]);
+    A.cylindres(cols.map(([s, t]) => { const [x, z] = F.pt(s, t); return [x, z, 0.55, 11.5, 8]; }), pierre, 12);
+    const [ex, ez] = F.pt(F.L / 2, 1.25); A.boite(F.L, 1.6, 2.7, ex, 19.5, ez, pierreFoncee, F.rot);
+    for (const s of [12.2, 82.2]) { const [x, z] = F.pt(s, 1.25); A.toit(15.4, 3, 2.7, x, 21.1, z, pierre, F.rotN); }   // les frontons des pavillons
+    const [cx, cz] = F.pt(47, 2.3); A.boite(52, 1.1, 0.5, cx, 21.1, cz, pierreFoncee, F.rot);   // la balustrade
+    return A.groupe;
+  }
+
+  // Maxim's : l'immeuble du 3 rue Royale, et au rez-de-chaussée la devanture Belle Époque, rouge et or, son store et ses
+  // lanternes
+  function maxims(THREE) {
+    const A = atelier(THREE);
+    const pierre = A.matiere(0xF2ECDD), pierreFoncee = A.matiere(0xD9CFB8), ardoise = A.matiere(0x5A6378), rouge = A.matiere(0x9A1E26), or = A.matiere(0xFFC233, 0x7A4A00);
+    pave(A, [[-20.5, -20], [-26, -9.5], [-21, -7.5], [-21.5, -7], [1, 4], [1.5, 4], [1.5, 3.5], [6.5, -7], [-6.5, -13], [-19.5, -19.5]], 19, pierre, ardoise, 5, pierreFoncee);
+    const F = facade([1.5, 3.5], [6.5, -7]);   // sur la rue Royale
+    // la devanture, qui avance sur le trottoir (un petit bâtiment de l'IGN sans hauteur), son bandeau doré, son store
+    const devanture = [[8, -6.5], [6.5, -7], [1.5, 3.5], [2.5, 4], [3.5, 3], [4, 1.5]];
+    emprise(A, devanture, 4.4, rouge); emprise(A, devanture, 0.4, or, 4.4);
+    const [sx, sz] = F.pt(F.L / 2, 2.7);
+    A.piece((e) => new THREE.BoxGeometry(F.L - 1 + 2 * e, 0.14 + 2 * e, 2 + 2 * e), rouge, A.V(sx, 4.1, sz), new THREE.Quaternion().setFromEuler(new THREE.Euler(0.38, F.rotZ, 0, 'YXZ')));
+    for (const s of [1.2, F.L - 1.2]) { const [lx, lz] = F.pt(s, 2.1); A.boule(0.35, lx, 3.2, lz, or); }
+    return A.groupe;
+  }
+
+  // l'hôtel Negresco (Nice) : le palace blanc de la promenade des Anglais, et à l'angle de la rue de Rivoli la rotonde et sa
+  // coupole rose, sa lanterne verte
+  function negresco(THREE) {
+    const A = atelier(THREE);
+    const blanc = A.matiere(0xF7F3EA), blancFonce = A.matiere(0xE2DACB), ardoise = A.matiere(0x5A6378), rose = A.matiere(0xF09AA2), vert = A.matiere(0x6FB59A), or = A.matiere(0xFFC233, 0x7A4A00);
+    pave(A, [[3, -11.5], [3.5, -59.5], [3, -61.5], [2.5, -62.5], [1.5, -63], [1, -64], [0, -64.5], [-0.5, -65], [-1.5, -65.5], [-2.5, -66], [-3.5, -66], [-5, -66], [-6, -65.5], [-27.5, -59], [-43, -54],
+      [-55, -50], [-56, -51], [-57, -51.5], [-58, -51.5], [-59, -52], [-60.5, -51.5], [-61.5, -51.5], [-62.5, -51], [-63.5, -50.5], [-64, -49.5], [-64.5, -48.5], [-65, -47.5], [-65, -46.5], [-65, -45.5],
+      [-65, -44.5], [-64.5, -43.5], [-64, -42.5], [-63, -41.5], [-62.5, -41], [-62.5, 10.5], [-62, 11.5], [-62, 13], [-61, 14], [-60.5, 14.5], [-60, 15.5], [-59, 16], [-58, 16.5], [-57, 17], [-56, 17.5],
+      [-54.5, 17.5], [-53.5, 17.5], [-51.5, 17], [-24.5, 8.5], [-24, 9.5], [-22, 9], [-22, 8], [-9, 3.5], [-9.5, 1.5], [-9, 1], [-8, 1.5], [-7, 2], [-6, 2], [-5, 2.5], [-4.5, 2], [-3.5, 2], [-2.5, 2],
+      [-1.5, 1.5], [-0.5, 1], [0, 0.5], [1, 0], [1, -0.5], [1.5, -1.5], [2, -2], [2.5, -2.5], [2.5, -3], [3, -4], [3, -4.5], [3, -5.5], [3, -6], [3, -7], [3, -7.5], [2.5, -8], [2.5, -8.5], [2.5, -9], [2, -9.5],
+      [2, -10], [1.5, -10.5], [1, -11], [1, -11.5], [1, -12]], 21, blanc, ardoise, 4, blancFonce);
+    // les fenêtres et balcons de la façade sur la promenade (six étages)
+    const F = facade([-51.5, 17], [-9, 3.5]), fen = [];
+    for (let k = 0; k < 11; k++) for (let e = 0; e < 6; e++) { const [fx, fz] = F.pt(3 + k * 3.8, 0.05); fen.push([1.5, 2, 0.2, fx, 2.5 + e * 3.1, fz, F.rot]); }
+    A.plaques(fen, A.matiere(0x7C8BA6));
+    const x = -4, z = -5.5;   // la rotonde, qui suit l'angle arrondi (OpenStreetMap : la coupole est à l'angle sud-est)
+    A.cylindre(7.6, 7.6, 21, 32, x, 0, z, blanc); A.cylindre(8.1, 8.1, 0.9, 32, x, 21, z, blancFonce);
+    A.cylindre(6.6, 6.6, 5.2, 32, x, 21.9, z, blanc); A.cylindre(7.1, 7.1, 0.8, 32, x, 27.1, z, blancFonce);
+    A.dome(6.8, 1.3, x, 27.9, z, rose);
+    A.cylindre(1.2, 1.2, 1.8, 12, x, 36.6, z, vert); A.dome(1.4, 1.2, x, 38.4, z, vert); A.boule(0.45, x, 40.2, z, or);
+    return A.groupe;
+  }
+
+  // Château Margaux : le château néo-palladien (Combes, 1815), son portique de quatre colonnes ioniques sous un fronton, en
+  // haut d'un perron, son toit d'ardoise (les chais restent ceux de l'IGN : sur la carte du monument, ils écrasaient le château)
+  function chateauMargaux(THREE) {
+    const A = atelier(THREE);
+    const pierre = A.matiere(0xF3EBD6), pierreFoncee = A.matiere(0xDCD0B4), ardoise = A.matiere(0x5A6378), vitre = A.matiere(0x3E5C58);
+    const corps = [[-13.5, -11], [-22.5, -8.5], [-17, 10], [1.5, 4.5], [9.5, 2], [4, -16.5], [-4.5, -14], [-5, -15], [-14, -12.5]];   // (sans le portique)
+    emprise(A, corps, 12.5, pierre); emprise(A, corps, 0.8, pierreFoncee, 12.5);
+    const F = facade([-17, 10], [9.5, 2]);   // la façade au sud
+    const [rx, rz] = F.pt(F.L / 2, -9.6); A.comblesN([[F.L + 0.8, 5.5, 20.2, rx, 13.3, rz, F.rot]], ardoise);
+    const [px, pz] = F.pt(14.1, 1.6);
+    A.boite(10.6, 2.2, 3.4, px, 0, pz, pierreFoncee, F.rot);
+    for (let k = 0; k < 3; k++) { const [mx, mz] = F.pt(14.1, 3.75 + k * 0.9); A.boite(8, 2.2 - (k + 1) * 0.55, 0.9, mx, 0, mz, pierreFoncee, F.rot); }
+    A.cylindres([9.6, 12.6, 15.6, 18.6].map((s) => { const [x, z] = F.pt(s, 2.6); return [x, z, 0.5, 9.4, 2.2]; }), pierre, 12);
+    A.boite(10.8, 1.1, 3.6, px, 11.6, pz, pierreFoncee, F.rot); A.toit(11, 2.6, 3.6, px, 12.7, pz, pierre, F.rotN);
+    const fen = []; for (const s of [2.6, 5.6, 11.1, 14.1, 17.1, 22.2, 25.1]) for (const y of [3.2, 7.8]) { const [x, z] = F.pt(s, 0.05); fen.push([1.4, 2.6, 0.2, x, y, z, F.rot]); }
+    A.plaques(fen, vitre);
+    return A.groupe;
+  }
+
+  // le Train bleu : le restaurant de la gare de Lyon, au premier étage du bâtiment de tête ; ses grandes baies cintrées sur la
+  // place Louis-Armand, le comble d'ardoise, et à l'angle la tour de l'Horloge (67 m) et ses quatre cadrans
+  function trainBleu(THREE) {
+    const A = atelier(THREE);
+    const pierre = A.matiere(0xF2ECDD), pierreFoncee = A.matiere(0xD9CFB8), ardoise = A.matiere(0x5A6378), or = A.matiere(0xFFC233, 0x7A4A00), vitre = A.matiere(0x2F4F8A),
+      cadran = A.matiere(0xFBF8EE), aiguille = A.matiere(0x2A2A33);
+    pave(A, [[-27, 41], [-25.5, 42.5], [-24.5, 43.5], [-20, 47], [35, -20.5], [25, -28.5], [23, -30.5], [17.5, -23.5], [18, -23], [-20, 22.5], [-23.5, 26], [-25.5, 29], [-20.5, 33.5]], 17, pierre, ardoise, 6, pierreFoncee);
+    const F = facade([-20, 22.5], [18, -23], -1);   // sur la place Louis-Armand
+    for (let k = 0; k < 9; k++) { const [x, z] = F.pt(8 + k * 5.4, 0.15); A.extrusion(A.formeArche(3.6, 6.5), 0.3, x, 6, z, vitre, F.rotZ, true); }
+    const [bx, bz] = F.pt(F.L / 2, 0.25); A.plaque(F.L - 4, 0.4, 0.5, bx, 12.9, bz, or, F.rotZ);
+    // la tour de l'Horloge (le socle seul est dans l'IGN, haut de 0,9 m)
+    const c = [-27.3, 34.8], r = F.rot, q = (a) => new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), a);
+    A.boite(9, 50, 9, c[0], 0, c[1], pierre, r); A.boite(10, 1.2, 10, c[0], 50, c[1], pierreFoncee, r);
+    for (let k = 0; k < 4; k++) {
+      const a = r + k * Math.PI / 2, nx = Math.sin(a), nz = Math.cos(a), ax = Math.cos(a), az = -Math.sin(a);
+      A.piece((e) => new THREE.CylinderGeometry(3.3 + e, 3.3 + e, 0.4 + 2 * e, 28).rotateX(Math.PI / 2), or, A.V(c[0] + nx * 4.6, 43, c[1] + nz * 4.6), q(a));
+      A.piece((e) => new THREE.CylinderGeometry(2.8 + e, 2.8 + e, 0.3 + 2 * e, 28).rotateX(Math.PI / 2), cadran, A.V(c[0] + nx * 4.85, 43, c[1] + nz * 4.85), q(a));
+      A.plaque(0.3, 2.1, 0.12, c[0] + nx * 5.05, 43, c[1] + nz * 5.05, aiguille, a);
+      A.plaque(2.4, 0.28, 0.12, c[0] + nx * 5.05 + ax * 1.15, 42.86, c[1] + nz * 5.05 + az * 1.15, aiguille, a);
+    }
+    A.piece((e) => new THREE.SphereGeometry(Math.SQRT1_2, 4, 8, 0, Math.PI * 2, 0, Math.PI / 2).rotateY(Math.PI / 4).scale(9 + 2 * e, (9 + 2 * e) / Math.SQRT1_2, 9 + 2 * e).translate(0, -e, 0),
+      ardoise, A.V(c[0], 51.2, c[1]), q(r));
+    A.cylindre(1.2, 1.2, 3, 12, c[0], 59.5, c[1], pierre); A.dome(1.4, 1.3, c[0], 62.5, c[1], ardoise); A.pyramide(0.35, 2.4, 8, c[0], 64.2, c[1], or);
+    return A.groupe;
+  }
+
   const MODELES = {
     'manuel-tour-eiffel': {
       construire: tourEiffel,
@@ -6409,6 +6558,25 @@
     Q2212725: {   // l'église Saint-Pierre-le-Vieux de Strasbourg (les deux églises et le clocher, d'après l'IGN)
       construire: saintPierreLeVieux, centre: [7.74, 48.58278], orientation: 0, masquer: ['BATIMENT0000002223284761', 'BATIMENT0000002223284762', 'BATIMENT0000002223284763'],
     },
+    // les monuments qui sont des marques, gardés aux enchères (décision de Gautier du 5 nov. 2026) : maquettes du 6 nov.
+    Q656054: {   // l'hôtel Ritz : la façade sur la place Vendôme, l'aile jusqu'à la rue Cambon
+      construire: ritz, centre: [2.3289, 48.868], orientation: 0, masquer: ['BATIMENT0000002011659551'],
+    },
+    Q692768: {   // l'hôtel de Crillon : le palais de Gabriel sur la Concorde (trois bâtiments de l'IGN derrière la colonnade)
+      construire: crillon, centre: [2.3211, 48.8673], orientation: 0, masquer: ['BATIMENT0000000245198914', 'BATIMENT0000000245198912', 'BATIMENT0000000245198913'],
+    },
+    Q1235554: {   // Maxim's : l'immeuble du 3 rue Royale et sa devanture
+      construire: maxims, centre: [2.3222, 48.8673], orientation: 0, masquer: ['BATIMENT0000000245199094', 'BATIMENT0000000245199091'],
+    },
+    Q743147: {   // l'hôtel Negresco : le palace et sa coupole rose
+      construire: negresco, centre: [7.2584, 43.6945], orientation: 0, masquer: ['BATIMENT0000000327868532'],
+    },
+    Q1063236: {   // Château Margaux : le château, son portique
+      construire: chateauMargaux, centre: [-0.6687, 45.0444], orientation: 0, masquer: ['BATIMENT0000000255916855'],
+    },
+    Q1810254: {   // le Train bleu : le bâtiment de tête de la gare de Lyon et la tour de l'Horloge
+      construire: trainBleu, centre: [2.3733, 48.845], orientation: 0, masquer: ['BATIMENT0000000240741690', 'BATIMENT0000000240741689'],
+    },
   };
   const MASQUES = Object.values(MODELES).flatMap((m) => m.masquer);
 
@@ -6549,6 +6717,7 @@
     bicetre, champmol,
     placeAlliance,
     troisGaules,
-    fortDouaumont, fortVaux, pereLachaise, grandeMosquee, saintFrancoisXavier, saintAmbroise, saintMartinTours, saintPierreLeVieux };
+    fortDouaumont, fortVaux, pereLachaise, grandeMosquee, saintFrancoisXavier, saintAmbroise, saintMartinTours, saintPierreLeVieux,
+    ritz, crillon, maxims, negresco, chateauMargaux, trainBleu };
   if (typeof module !== 'undefined' && module.exports) module.exports = api; else racine.Maquettes = api;
 })(typeof globalThis !== 'undefined' ? globalThis : this);
