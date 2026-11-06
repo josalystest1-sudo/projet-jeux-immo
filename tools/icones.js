@@ -1,4 +1,4 @@
-// Dessine les icônes de CityDeck d'après le logo de Gautier (5 nov. 2026 ; src/logo.js : la plaque « CITY DECK », les
+// Dessine les icônes de StreetKeep d'après le logo de Gautier (5 nov. 2026 ; src/logo.js : la plaque « CITY DECK », les
 // cartes en éventail, la pièce à la maison) et les enregistre dans icones/ : 512 et 192 (coins arrondis, fond transparent), 180 pour l'iPhone (carré
 // plein : l'iPhone arrondit lui-même), 512 « masquable » pour Android (fond plein, dessin réduit dans la zone sûre).
 //   node tools/icones.js            (Chrome installé ; sans bibliothèque : le protocole DevTools de Chrome sans fenêtre)

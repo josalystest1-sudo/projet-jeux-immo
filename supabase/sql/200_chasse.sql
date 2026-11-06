@@ -1,4 +1,4 @@
--- CityDeck : la chasse au trésor (idée de Gautier du 6 nov. 2026, GDD § 5 quinquies). Une chasse par heure : une commune,
+-- StreetKeep : la chasse au trésor (idée de Gautier du 6 nov. 2026, GDD § 5 quinquies). Une chasse par heure : une commune,
 -- une adresse cachée (« cible », jamais lue par le jeu), un départ commun (la mairie). Les chasseurs marchent dans les rues ;
 -- la fonction « jeu » reçoit leur position toutes les 2 secondes, refuse les sauts (règles : src/regles/chasse.js) et
 -- donne la victoire au premier arrivé, une seule fois (jeu_chasse_gagner).

@@ -1,4 +1,4 @@
--- CityDeck : les alertes de monument partent aussi par e-mail (GDD § 5 ter : « Gautier est prévenu, e-mail + tableau de
+-- StreetKeep : les alertes de monument partent aussi par e-mail (GDD § 5 ter : « Gautier est prévenu, e-mail + tableau de
 -- bord, dès qu'un monument redevient libre »). L'horloge de la fonction « jeu » (toutes les 10 minutes) envoie les nouvelles
 -- alertes à contact@citydeck.fr par Brevo, une fois par heure au plus, puis les note envoyées ici.
 -- Envoyé au serveur par la publication ; peut être relancé sans danger. Seule la fonction « jeu » écrit.

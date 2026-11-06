@@ -1,4 +1,4 @@
-// CityDeck : les joueurs de la maison (les robots), règles pures (GDD § 5 quater ; décision de Gautier du 5 nov. 2026 :
+// StreetKeep : les joueurs de la maison (les robots), règles pures (GDD § 5 quater ; décision de Gautier du 5 nov. 2026 :
 // « laisser les robots au début du jeu, mais leur donner des consignes pour jouer comme des humains et ne pas abuser ;
 // on les retirera progressivement avec la montée des joueurs »). Aucun accès réseau, aucun hasard sans graine.
 //   const ROB = Robots.creer(ECO)   (réglages : ECO.robots)

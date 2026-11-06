@@ -1,6 +1,6 @@
 # Cadastra — Document de conception V1
 
-Nom du jeu : **CityDeck** (décidé par Gautier le 4 nov. 2026 ; avant : Cadastra, le nom de travail du 2 nov.). Version du 2 novembre 2026, issue de l'interview de Gautier et du prototype `proto/`.
+Nom du jeu : **StreetKeep** (décidé par Gautier le 4 nov. 2026 ; avant : Cadastra, le nom de travail du 2 nov.). Version du 2 novembre 2026, issue de l'interview de Gautier et du prototype `proto/`.
 
 Étiquettes : **[Décidé]** = tranché par Gautier · **[Proposé]** = choix de Claude, à valider · **[V2]** = pas en version 1.
 
@@ -301,9 +301,13 @@ Tout le game design d'abord (fonctions complètes, serveur simulé → vrai serv
 ## 12. Nom, monnaie, style, lancement **[Décidé le 2 nov.]**
 
 - **Monnaie : les « pièces »**. Son signe : une pièce d'or en forme de maison, frappée d'un C (demande de Gautier le 3 nov. : « un signe plus original » ; dessin proposé par Claude). **[Proposé]**
-- **Nom : CityDeck.** **[Décidé par Gautier le 4 nov. 2026 : « ok validons citydeck »]** Vérifications du 4 nov. (Claude, dans le Chrome de Gautier) :
-  - Marques (base INPI, françaises + européennes + internationales) : **aucune marque « CityDeck »**, aucune société. 
-  - Domaines : **citydeck.fr libre** (Afnic), citydeck.io et citydeck.app libres ; citydeck.com a priori pris. À réserver par Gautier (OVH ou Gandi). Dépôt INPI (classes 9 + 41, ~230 €) quand le jeu aura des joueurs.
+- **Nom : StreetKeep.** **[Décidé par Gautier le 6 nov. 2026 : « Ok partons pour streetkeep »]** « Street » (la rue, l'adresse) + « keep » (garder sa collection ; le donjon, le lieu qu'on tient). Vérification complète du 6 nov. (Claude, dans le Chrome de Gautier, dans l'ordre Google → stores → INPI → domaines) :
+  - Google, App Store, Play Store, Steam, itch : **aucun jeu ni produit « Streetkeep »**.
+  - Marques (base INPI, françaises + européennes + internationales) : **0 marque, 0 société**.
+  - Domaines : **streetkeep.fr libre** (Afnic) ; streetkeep.io et streetkeep.app a priori libres (à confirmer chez le bureau d'enregistrement) ; **streetkeep.com pris** depuis 2022 (site hébergé, pas un revendeur). Pseudos Instagram / TikTok / X : à vérifier par Gautier avant de les créer.
+  - **Le domaine citydeck.fr reste l'adresse du jeu** (acheté par Gautier le 5 nov., e-mails Brevo, clé Google, GitHub Pages) **tant que streetkeep.fr n'est pas acheté et branché** : seul le nom affiché change dans cette étape ; les clés internes (`citydeck-langue`, secret `BREVO_SMTP_KEY_CITY_DECK`) ne changent pas. Dépôt INPI (classes 9 + 41, ~230 €) quand le jeu aura des joueurs.
+  - **CityDeck, abandonné le 6 nov.** : city-deck.com (JEMA Games) est un jeu de collection de villes par packs, enchères et ligue hebdomadaire, du même nom et du même genre. Vérifié le 4 nov. à l'INPI et à l'Afnic seulement, pas à Google : erreur de méthode, corrigée (Google d'abord, toujours).
+  - Écartés le 6 nov. : Patrimo, Adresso, Streetopia, Hectares, Macadam, Streetfolio, Parcelia (marque européenne 2026), les noms en « rue » (sonnent mal), Vicus (jeu Steam « Operation: VICUS » + marques VICUS actives), Platea (nom commun espagnol/italien), Pagus (net à l'INPI mais pagus.fr et .com pris), Citybang (net mais « bang » = tir / argot), City Pocket, Pocketland, Street Pocket (« Pocket » = signature de Pokémon TCG Pocket, le modèle des menus), Streetbox, Citybox, Citykit, Citygame, Streetgame, Cityplay, Streetplay (tous pris : « City/Street + mot anglais courant » est toujours pris), Citynext (Microsoft), Citypal (appli), Streetgrip (poignées de moto), Streetnext et Streetaround (nets mais moins bons).
   - Écartés le 4 nov. : City Hunter (manga), ImmoQuest (marque « IMMO Quest » déposée en 2024 en classe 41, divertissement), DropCity (marque européenne « DROP CITY », classes 41-42), CityPack / PackCity (marque « CITY PACK » de Réside Études, classes 36 et 41), CityDrop (marque libre mais citydrop.fr, .com et .app pris), Immo Hunter, ImmoChasse, RueQuest, CityLord (libres, non retenus).
   - Dans le code, « Cadastra » reste (clés de stockage, noms internes) : ne pas renommer, les parties seraient perdues.
   - Vocabulaire ouvert par le nom : le patrimoine = « mon deck », un lieu = « une carte », le pack du jour = « le booster ». **[Proposé]**

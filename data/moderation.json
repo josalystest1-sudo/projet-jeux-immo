@@ -10,6 +10,6 @@
     "chatte", "couille", "couilles", "viol", "violeur", "sexe", "sex", "negro", "shit", "dick", "cock", "cunt",
     "slut", "isis", "ss", "kkk", "merde", "salaud", "abruti", "debile", "gouine", "travelo", "fiotte", "zob", "teub"
   ],
-  "reserves_racines": ["admin", "moderat", "cadastra", "citydeck", "officiel", "support", "staff"],
+  "reserves_racines": ["admin", "moderat", "cadastra", "citydeck", "streetkeep", "officiel", "support", "staff"],
   "reserves_mots": ["modo", "mod", "systeme", "bot", "equipe"]
 }

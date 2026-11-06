@@ -30,7 +30,7 @@ test('la page charge les icônes et pose le style', () => {
 
 test('le logo de Gautier (src/logo.js) et la pièce ronde à la maison (5 nov.)', () => {
   const Logo = require('../src/logo.js');
-  assert.match(Logo.svg(), /CITYDECK/);
+  assert.match(Logo.svg(), /STREETKEEP/);
   const ic = Logo.icone({ plein: true, zone: true });
   assert.match(ic, />CITY</); assert.match(ic, />DECK</); assert.match(ic, /scale\(0\.8\)/);
   // une seule pièce partout : le fichier, l'image de fond des montants (.pc) et le logo dessinent la même maison

@@ -1,4 +1,4 @@
-// Le dictionnaire anglais de CityDeck (src/langue.js ; demande de Gautier du 5 nov. 2026). Clé : le texte français tel qu'il
+// Le dictionnaire anglais de StreetKeep (src/langue.js ; demande de Gautier du 5 nov. 2026). Clé : le texte français tel qu'il
 // s'affiche, sans les espaces autour, les nombres remplacés par {n} ({n} dans l'anglais : les nombres dans l'ordre ; {n2} :
 // le 2e nombre du français). Un émoji ou un symbole devant (🏆, ⚙️) et une flèche derrière (›, ↗) n'ont pas besoin d'entrée :
 // le traducteur les met de côté. Les motifs servent aux phrases qui contiennent un nom (un joueur, un lieu) :
@@ -16,15 +16,15 @@
     'Plus tôt': 'Earlier', 'Ouvrir !': 'Open!', 'Ouvrir': 'Open', 'Ouvrir · 💎 {n}': 'Open · 💎 {n}', 'toi': 'you', 'personne': 'nobody',
     'Maire': 'Mayor', 'Maires': 'Mayors', 'démo': 'demo', 'serveur d’essai': 'test server', 'élu': 'elected', 'réélu': 're-elected',
     'un lieu': 'a place', 'ton lieu': 'your place', 'le plus cher': 'the most expensive one', 'ton monument le plus cher': 'your most expensive monument',
-    'L’acheteur': 'The buyer', 'Le joueur': 'The player', 'hors classement': 'unranked', 'France': 'France', 'CityDeck': 'CityDeck',
-    'CityDeck — Collectionne la France': 'CityDeck — Collect France', 'Comment ça marche ?': 'How does it work?',
+    'L’acheteur': 'The buyer', 'Le joueur': 'The player', 'hors classement': 'unranked', 'France': 'France', 'StreetKeep': 'StreetKeep',
+    'StreetKeep — Collectionne la France': 'StreetKeep — Collect France', 'Comment ça marche ?': 'How does it work?',
     'Collectionne les lieux réels de France : ta rue, l’église du village, les monuments. Construis, échange et deviens Maire de ta commune.': 'Collect real places in France: your street, the village church, the monuments. Build, trade and become Mayor of your town.',
     'Collectionne les lieux réels de France, construis et deviens Maire de ta commune.': 'Collect real places in France, build and become Mayor of your town.',
     // les pourcentages : pas d'espace en anglais (+14 % → +14%)
     '{n} %': '{n}%', '+{n} %': '+{n}%', '-{n} %': '-{n}%', '−{n} %': '−{n}%',
     '{n} min {n} s': '{n} min {n} s', '{n} h {n}': '{n} h {n}', '{n} pts': '{n} pts',
     'Moi': 'Me', '{n} lieu · serveur': '{n} place · server', '{n} lieux · serveur': '{n} places · server',
-    'Le logo CityDeck : une plaque de rue, des cartes à collectionner et une pièce d’or': 'The CityDeck logo: a street sign, collectible cards and a gold coin',
+    'Le logo StreetKeep : une plaque de rue, des cartes à collectionner et une pièce d’or': 'The StreetKeep logo: a street sign, collectible cards and a gold coin',
 
     // ---------------------------------------------------------------- les raretés et les bâtiments
     'Commun': 'Common', 'Peu commun': 'Uncommon', 'Rare': 'Rare', 'Épique': 'Epic', 'Épiques': 'Epic', 'Légendaire': 'Legendary',
@@ -118,7 +118,7 @@
 
     // ---------------------------------------------------------------- les packs
     'Pack du jour': 'Daily pack', 'PACK DU JOUR': 'DAILY PACK', 'Ton pack du jour': 'Your daily pack', '{n} LIEUX · TOUTE LA FRANCE': '{n} PLACES · ALL OF FRANCE',
-    'COLLECTIONNE LA FRANCE': 'COLLECT FRANCE', 'CINQ LIEUX DE FRANCE À COLLECTIONNER': 'FIVE PLACES IN FRANCE TO COLLECT', 'CITYDECK': 'CITYDECK',
+    'COLLECTIONNE LA FRANCE': 'COLLECT FRANCE', 'CINQ LIEUX DE FRANCE À COLLECTIONNER': 'FIVE PLACES IN FRANCE TO COLLECT', 'STREETKEEP': 'STREETKEEP',
     'Pack national': 'National pack', 'Pack régional': 'Regional pack', 'Pack d’essai': 'Test pack', 'Pack d’essai…': 'Test pack…',
     'Pack d’essai : ces lieux ne sont pas à toi · touche une carte pour la voir': 'Test pack: these places aren’t yours · tap a card to see it',
     'Pack d’essai : rien n’a été ajouté à ton patrimoine': 'Test pack: nothing was added to your portfolio',
@@ -229,7 +229,7 @@
     'Se déconnecter': 'Log out', 'Supprimer mon compte': 'Delete my account', 'Supprimer définitivement': 'Delete permanently',
     'Pour confirmer, écris': 'To confirm, type', 'SUPPRIMER': 'DELETE', 'Écris SUPPRIMER pour confirmer.': 'Type DELETE to confirm.',
     'C’est définitif : ton compte, ton pseudo, tes {n} lieux, tes pièces et tes gemmes (même achetées) seront effacés. Tes lieux redeviendront libres pour les autres joueurs.': 'This is permanent: your account, your username, your {n} places, your coins and your gems (even purchased ones) will be erased. Your places will become free for other players.',
-    'Compte supprimé': 'Account deleted', 'Ton compte et ta partie sont effacés. Merci d’avoir joué à CityDeck.': 'Your account and your game are erased. Thanks for playing CityDeck.',
+    'Compte supprimé': 'Account deleted', 'Ton compte et ta partie sont effacés. Merci d’avoir joué à StreetKeep.': 'Your account and your game are erased. Thanks for playing StreetKeep.',
 
     // ---------------------------------------------------------------- le pseudo et l'icône
     'Choisis ton pseudo et ton icône, visibles par les autres joueurs.': 'Choose your username and your icon, visible to other players.',
