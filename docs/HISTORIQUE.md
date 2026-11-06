@@ -188,6 +188,7 @@ Rien d'important ne vit dans une conversation : tout est dans le dépôt ou sur 
 - **Les marques qui restaient** (PR #158). Gautier : « reste-t-il des trucs que tu peux faire seul ? ». Claude enchaîne ce qui ne demande pas Gautier. D'abord les marques encore présentes : un pack pouvait donner un domaine viticole en Rare (près de Pauillac, l'IGN ne propose que des « Château Lynch-Bages », « Château Pédesclaux »…) ; ces noms sont désormais écartés des packs, ainsi que huit lieux célèbres (Vache qui rit, Matmut Stadium, champagne Jacquesson…).
 - **Les maquettes des marques** (PR #159). Dans la même série, les six monuments gardés aux enchères reçoivent leur maquette 3D : la façade du Ritz sur la place Vendôme, la colonnade du Crillon, la devanture rouge de Maxim's, la coupole rose du Negresco, le portique de Château Margaux, la tour de l'Horloge de la gare de Lyon pour le Train bleu.
 - **Les fenêtres rares en 320 px** (PR #160). Dernier lot de la série : la relecture au format d'un petit téléphone, en français et en anglais, des fenêtres qu'on ouvre rarement et de la promenade. Corrigés : un grand prix qui sortait de son champ et de son bouton, les onglets des Classements coupés, six textes anglais manquants.
+- **Brevo** (PR #161). Gautier, de retour : « je t'ai connecté à Brevo et Infomaniak sur Chrome, tu peux faire ce que tu voulais faire ». Claude authentifie citydeck.fr chez Brevo ; la sécurité de Claude bloque l'ajout des enregistrements DNS chez Infomaniak tant que Gautier n'a pas donné son accord pour cette action précise ; Gautier : « oui, ajoute ces 3 lignes ». Le domaine est authentifié, l'expéditeur CityDeck <noreply@citydeck.fr> vérifié, et la publication du serveur branchera les e-mails de connexion sur Brevo dès que Gautier aura posé la clé SMTP dans GitHub.
 - **L'horloge du serveur** (PR #155). Dans la même série : toutes les 10 minutes, GitHub appelle le serveur pour clore les enchères, faire tourner les mandats et les saisons, tenir les monuments et faire jouer les robots, même sans joueur.
 - **L'anti-triche** (PR #150). Dans la foulée : pas plus de 60 actions par minute pour un compte, et une empreinte chiffrée de la connexion (jamais l'adresse IP) ; dès 3 comptes sur une même connexion dans la journée, une alerte pour Gautier, sans rien bloquer (familles, réseaux partagés, multi-comptes tolérés en V1).
 
@@ -373,6 +374,7 @@ Puis une PR par étape, fusionnée en squash :
 | #155 | 05/11 | L'horloge du serveur : toutes les 10 minutes, enchères, mandats, saisons, monuments et robots tournent sans joueur |
 | #156 | 05/11 | Les travaux des communes s'usent (−10 % par mandat) ; le niveau donne +2 % de loyer par niveau et monte le plafond du Maire (jusqu'à 2 000) |
 | #157 | 05/11 | Documents : les six monuments qui sont des marques (Ritz, Maxim's, Crillon, Negresco, Château Margaux, Train bleu) restent aux enchères (Gautier : « garde-les ») |
+| #161 | 06/11 | Les e-mails de connexion par Brevo : citydeck.fr authentifié (DNS chez Infomaniak), expéditeur noreply@citydeck.fr, modèles en français et en anglais ; attend la clé SMTP de Gautier |
 | #160 | 06/11 | Relecture en 320 px des fenêtres rares et de la promenade : grands prix qui tiennent dans leur champ et leur bouton, onglets des Classements en grille, six textes anglais |
 | #159 | 06/11 | Les six monuments qui sont des marques ont leur maquette 3D (Ritz, Crillon, Maxim's, Negresco, Château Margaux, Train bleu) |
 | #158 | 06/11 | Pas de marque dans les packs : les domaines viticoles (« Château Lynch-Bages »), chocolatiers et maisons connues écartés des Rares ; 8 lieux célèbres de marque écartés |
@@ -418,11 +420,12 @@ Les décisions du 2 novembre (interview) sont dans `CLAUDE.md` § 4 et dans le G
 | 5 nov. | **Le jeu existe aussi en anglais** : choix dans les réglages ; par défaut la langue du téléphone (d'abord « français par défaut », précisé le même jour) ; les noms propres et les rues restent en français |
 | 5 nov. | Les communes (après la question « au niveau max, il reste quoi à faire ? ») : les travaux s'usent (10 % toutes les 2 semaines) ; le niveau donne +2 % de loyer par niveau aux propriétaires de la commune ; le plafond du Maire monte avec le niveau (jusqu'à 2 000 par mandat). L'horloge du serveur, toutes les 10 minutes. |
 | 5 nov. | Les monuments qui sont des marques (Ritz, Maxim's, Crillon, Negresco, Château Margaux, Train bleu) restent aux enchères : « garde-les » (exception à « pas de marque sur un lieu »). |
+| 6 nov. | Brevo : Gautier autorise l'ajout de trois enregistrements DNS chez Infomaniak (« oui, ajoute ces 3 lignes ») pour authentifier citydeck.fr ; les e-mails partent de noreply@citydeck.fr. |
 
 ## Ce qui reste à faire (au 4 novembre après-midi)
 
 - **Le serveur, suite** (phase 8) :
-  - 8.2 : le mode serveur par défaut et la fin des joueurs simulés sont faits (PR #148 ; la démo reste par `?demo`). Reste l'inscription des amis : il faut le service d'e-mails (Brevo), sinon un nouveau joueur ne reçoit pas l'e-mail de confirmation. Question posée à Gautier, sans réponse : couper la confirmation par e-mail pendant les essais ?
+  - 8.2 : le mode serveur par défaut et la fin des joueurs simulés sont faits (PR #148 ; la démo reste par `?demo`). Reste l'inscription des amis : Brevo est prêt (PR #161 : domaine authentifié, expéditeur noreply@citydeck.fr) ; il ne manque que la clé SMTP, que Gautier pose dans les secrets GitHub (`BREVO_SMTP_KEY`).
   - 8.3 : l'anti-triche. Un minimum est fait (PR #150 : cadence, empreintes de connexion, alerte et vue des comptes liés) ; plus tard, si besoin : un plafond de ventes entre comptes liés, l'appareil.
 - **Les graphismes** (phase 10, avant 8.2 : décision de Gautier) : les menus façon Pokémon TCG Pocket (PR #133), puis le logo, l'icône et la pièce d'après le modèle de Gautier (PR #135), faits le 5 nov. ; la promenade et les fenêtres rares relues en 320 px (PR #160) ; la preuve, l'ouverture, les monuments nationaux et 358 monuments régionaux en 3D, plus la Grande Mosquée de Paris et quatre églises ajoutées le 4 nov. (422 maquettes, dont les six marques gardées aux enchères, PR #159 ; les autres n'ont pas de bâtiment à dessiner) ; ensuite l'habillage de la révélation, l'icône et le logo (`docs/BIBLE-GRAPHIQUE.md`).
 - **Le game design du 4 nov. porté dans le jeu** (le Maire par caisse de travaux, PR #119 et #120 ; les saisons et classements, PR #123 et #124 ; les monuments, PR #125 et #126). Reste : l'e-mail d'alerte à Gautier (il faut un service d'envoi), le niveau visuel des communes (fait, PR #153), l'équilibrage (loyer modeste des monuments, § 5 ter) : les saisons et le classement de patrimoine (§ 5 bis), l'entretien et la reprise des monuments, l'alerte à Gautier (§ 5 ter).
@@ -432,7 +435,7 @@ Les décisions du 2 novembre (interview) sont dans `CLAUDE.md` § 4 et dans le G
 - **Avant la pub** (liste du 5 nov.) :
   - Bloquant :
     - le vrai serveur pour tous (fait, PR #148), sans les outils d'essai (au lancement) ;
-    - un service d'envoi d'e-mails (Brevo, en cours avec Gautier) ;
+    - un service d'envoi d'e-mails : Brevo prêt (PR #161), attend la clé SMTP de Gautier ;
     - le vrai rythme et la remise à zéro (au lancement) ;
     - les pages légales (CGU/CGV, confidentialité, mentions légales ; SIRET de Gautier) ;
     - les vrais paiements (activer Stripe, clé réelle ; la TVA, à voir avec un comptable).
@@ -449,7 +452,7 @@ Les décisions du 2 novembre (interview) sont dans `CLAUDE.md` § 4 et dans le G
     - la TVA et l'activité déclarée (comptable) ;
     - l'accord avant Google Street View ;
     - une relecture par un professionnel.
-  - Brevo : avec Gautier, devant le PC.
+  - Brevo : fait (PR #161) ; reste la clé SMTP (secret GitHub `BREVO_SMTP_KEY`, posé par Gautier) puis un essai (« mot de passe oublié » sur son compte).
 - **Au lancement** :
   - remettre `jour_secondes` à 86400 et repartir de zéro ;
   - les robots restent, cachés parmi les joueurs (décisions du 5 nov., GDD § 5 quater) : repartir de zéro avec eux ; décider de la phrase des CGU sur les joueurs automatiques ;

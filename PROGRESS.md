@@ -276,7 +276,7 @@
 
 ## À faire
 - Les graphismes (phase 10, avant 8.2 : décision de Gautier) : la preuve, l'ouverture, les monuments nationaux et régionaux en 3D (422 maquettes ; les autres n'ont pas de bâtiment à dessiner) ; ensuite l'habillage de la révélation, l'icône et le logo (`docs/BIBLE-GRAPHIQUE.md` § 5).
-- La suite du serveur : 8.2 (le mode serveur par défaut et la fin des joueurs simulés : faits, PR #148 ; reste l'inscription des amis, qui attend le service d'e-mails Brevo), 8.3 (anti-triche) ; puis la boutique (phase 9). Liste complète, avec ce qu'il faudra faire au lancement : `docs/HISTORIQUE.md` § « Ce qui reste à faire » ; l'ordre : `docs/PLAN.md` (phases 1 à 11).
+- La suite du serveur : 8.2 (le mode serveur par défaut et la fin des joueurs simulés : faits, PR #148 ; reste l'inscription des amis : Brevo est prêt, PR #161, il attend la clé SMTP de Gautier), 8.3 (anti-triche) ; puis la boutique (phase 9). Liste complète, avec ce qu'il faudra faire au lancement : `docs/HISTORIQUE.md` § « Ce qui reste à faire » ; l'ordre : `docs/PLAN.md` (phases 1 à 11).
 
 ## Questions ouvertes
 - Relire la liste des 60 monuments nationaux (`data/monuments.json`, `palier: national`).
@@ -498,6 +498,7 @@
   - en anglais, six textes restaient en français : « Proposer mes 2 lieux », « À » (Chloé), « Je verse », « … · fin du mandat dans … », « En face », « +1 lieu » ; et une durée en jours (« 3 j 4 h ») restait « j » dans « Season 1 · ends in » : « 3 d 4 h ».
   - Passent sans défaut : la fiche d'un autre joueur, l'échange, Signaler, la boutique (la rangée des régions défile, c'est voulu), la légende, la promenade.
   - 100 tests.
+- 6 nov. 2026 (PR #161) : **les e-mails de connexion passent par Brevo** (Gautier : « je t'ai connecté à Brevo et Infomaniak sur Chrome, tu peux faire ce que tu voulais faire »). Chez Brevo, citydeck.fr est authentifié : trois enregistrements ajoutés dans la zone DNS d'Infomaniak avec l'accord explicite de Gautier (TXT `brevo-code:…` à la racine, CNAME `brevo1._domainkey` et `brevo2._domainkey` vers les clés DKIM de Brevo ; rien de supprimé ; le SPF d'Infomaniak et la règle DMARC « p=reject » gardés, acceptés par Brevo) ; l'expéditeur **CityDeck <noreply@citydeck.fr>** est vérifié (DKIM, DMARC). Côté serveur : `tools/serveur_emails.js` (lancé par la publication du serveur) pose dans Supabase Auth le serveur d'envoi de Brevo (smtp-relay.brevo.com:587), l'expéditeur, 100 e-mails par heure et des e-mails de confirmation et de mot de passe oublié en français avec l'anglais dessous, **dès que le secret GitHub `BREVO_SMTP_KEY` existe** (posé par Gautier : la clé ne passe jamais par Claude). Confidentialité (FR, EN) : Brevo nommé parmi les prestataires. Mode d'emploi : `docs/serveur/GUIDE-SUPABASE.md`. 100 tests.
 
 ## Bugs connus
 - Les badges 💰 des joueurs simulés n'apparaissent qu'après ouverture de leur parcelle (limite du prototype local).
