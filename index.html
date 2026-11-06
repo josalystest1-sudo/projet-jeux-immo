@@ -1480,8 +1480,11 @@ function dessinPochette(verso){ const W=1024, H=1522, c=document.createElement('
   const METAL_OR='rgb(0,80,215)', METAL_FOND='rgb(0,110,185)';
   // un texte en capitales espacées, centré, dessiné lettre par lettre (sur la couleur et sur le métal)
   const ir=irisC.getContext('2d');   // (le texte garde peu d'arc-en-ciel : il reste lisible)
-  const texte=(t,y,taille,poids,espace,style,metal)=>{ g.font=k.font=ir.font=`${poids} ${taille}px "Barlow Condensed", "Arial Narrow", sans-serif`; const ls=[...t], w=ls.map(ch=>g.measureText(ch).width);
-    let x=W/2-(w.reduce((a,b)=>a+b,0)+espace*(ls.length-1))/2; g.fillStyle=style; k.fillStyle=metal; ir.fillStyle='#3a3a3a'; g.textBaseline=k.textBaseline=ir.textBaseline='alphabetic';
+  const texte=(t,y,taille,poids,espace,style,metal,contour)=>{ g.font=k.font=ir.font=`${poids} ${taille}px "Barlow Condensed", "Arial Narrow", sans-serif`; const ls=[...t], w=ls.map(ch=>g.measureText(ch).width);
+    // jamais plus large que le sachet moins ses marges (Gautier, 6 nov. : « il déborde sur les côtés du pack »)
+    let largeur=w.reduce((a,b)=>a+b,0)+espace*(ls.length-1); if(largeur>W-140){ const f=(W-140)/largeur; return texte(t,y,Math.floor(taille*f),poids,Math.floor(espace*f),style,metal,contour); }
+    let x=W/2-largeur/2; g.fillStyle=style; k.fillStyle=metal; ir.fillStyle='#3a3a3a'; g.textBaseline=k.textBaseline=ir.textBaseline='alphabetic';
+    if(contour){ g.save(); g.strokeStyle=contour; g.lineJoin='round'; g.lineWidth=Math.max(6,taille*0.09); let xs=x; ls.forEach((ch,i)=>{ g.strokeText(ch,xs,y); xs+=w[i]+espace; }); g.restore(); }
     ls.forEach((ch,i)=>{ g.fillText(ch,x,y); k.fillText(ch,x,y); ir.fillText(ch,x,y); x+=w[i]+espace; }); };
   const filet=(y,x0,x1,ep)=>{ const d=g.createLinearGradient(x0,0,x1,0); d.addColorStop(0,'rgba(233,199,123,0)'); d.addColorStop(0.5,'#E9C77B'); d.addColorStop(1,'rgba(233,199,123,0)');
     g.fillStyle=d; g.fillRect(x0,y,x1-x0,ep); k.fillStyle=METAL_OR; k.fillRect(x0,y,x1-x0,ep); };
@@ -1498,8 +1501,8 @@ function dessinPochette(verso){ const W=1024, H=1522, c=document.createElement('
     if(illus){
       // l'illustration couvre tout le sachet ; son métal se déduit de l'image (l'or brille, la porcelaine est mate, le fond satiné)
       const sx=illus.naturalWidth, sy=illus.naturalHeight, ech=Math.max(W/sx, H/sy), dw=sx*ech, dh=sy*ech; g.drawImage(illus, (W-dw)/2, (H-dh)/2, dw, dh);
-      const t=document.createElement('canvas'); t.width=256; t.height=380; const q=t.getContext('2d'); q.drawImage(g.canvas,0,0,W,H,0,0,256,380); const d=q.getImageData(0,0,256,380), px=d.data;
-      const ti=document.createElement('canvas'); ti.width=256; ti.height=380; const qi=ti.getContext('2d'), di=qi.createImageData(256,380), pi=di.data;
+      const t=document.createElement('canvas'); t.width=512; t.height=761; const q=t.getContext('2d'); q.drawImage(g.canvas,0,0,W,H,0,0,512,761); const d=q.getImageData(0,0,512,761), px=d.data;
+      const ti=document.createElement('canvas'); ti.width=512; ti.height=761; const qi=ti.getContext('2d'), di=qi.createImageData(512,761), pi=di.data;
       for(let i=0;i<px.length;i+=4){ const r=px[i]/255, v=px[i+1]/255, b=px[i+2]/255, lum=0.3*r+0.59*v+0.11*b, sat=Math.max(r,v,b)-Math.min(r,v,b), chaud=Math.max(0,r-b);
         const or=Math.min(1, sat*2.2*chaud*3), rough=Math.round(255*(0.62-0.45*or-0.2*(1-lum)*(1-or))), metal=Math.round(255*(0.45+0.55*or-0.3*(1-sat)*lum)); px[i]=0; px[i+1]=Math.max(0,Math.min(255,rough)); px[i+2]=Math.max(0,Math.min(255,metal)); px[i+3]=255;
         // l'arc-en-ciel court sur le fond de nuit et l'or, à peine sur la porcelaine (sinon elle vire)
@@ -1508,10 +1511,11 @@ function dessinPochette(verso){ const W=1024, H=1522, c=document.createElement('
       // un voile sombre en haut et en bas pour les textes
       const vh=g.createLinearGradient(0,BANDE,0,BANDE+420); vh.addColorStop(0,'rgba(5,11,30,.55)'); vh.addColorStop(1,'rgba(5,11,30,0)'); g.fillStyle=vh; g.fillRect(0,BANDE,W,420);
       const vb=g.createLinearGradient(0,H-BANDE-260,0,H-BANDE); vb.addColorStop(0,'rgba(5,11,30,0)'); vb.addColorStop(1,'rgba(5,11,30,.7)'); g.fillStyle=vb; g.fillRect(0,H-BANDE-260,W,260);
-      filet(BANDE+58,180,844,3); texte(Langue.t('STREETKEEP'),BANDE+238,176,700,26,OR(BANDE+90,BANDE+240),METAL_OR); filet(BANDE+272,180,844,3);
-      texte(Langue.t(PACK_PREMIUM ? 'PACK PREMIUM' : 'PACK DU JOUR'),BANDE+352,62,600,20,'#F3E3BC','rgb(0,60,230)');
-      filet(H-BANDE-212,300,724,2); texte(Langue.t('5 LIEUX · TOUTE LA FRANCE'),H-BANDE-150,46,600,12,OR(H-BANDE-190,H-BANDE-150),METAL_OR);
-      texte(Langue.t('COLLECTIONNE LA FRANCE'),H-BANDE-92,30,600,14,'rgba(243,227,188,.7)','rgb(0,90,200)');
+      const CREME=(y0,y1)=>{ const d=g.createLinearGradient(0,y0,0,y1); d.addColorStop(0,'#FFFFFF'); d.addColorStop(0.55,'#FFF4D2'); d.addColorStop(1,'#E9C77B'); return d; };
+      filet(BANDE+58,220,804,3); texte(Langue.t('STREETKEEP'),BANDE+222,138,700,16,CREME(BANDE+100,BANDE+222),METAL_OR,'rgba(6,12,34,.92)'); filet(BANDE+256,220,804,3);
+      texte(Langue.t(PACK_PREMIUM ? 'PACK PREMIUM' : 'PACK DU JOUR'),BANDE+330,56,600,16,'#FFF4D2','rgb(0,60,230)','rgba(6,12,34,.85)');
+      filet(H-BANDE-212,300,724,2); texte(Langue.t('5 LIEUX · TOUTE LA FRANCE'),H-BANDE-150,44,600,10,CREME(H-BANDE-190,H-BANDE-150),METAL_OR,'rgba(6,12,34,.85)');
+      texte(Langue.t('COLLECTIONNE LA FRANCE'),H-BANDE-92,30,600,12,'rgba(255,244,210,.85)','rgb(0,90,200)','rgba(6,12,34,.7)');
     } else if(!verso){
       // la France en trait d'or, et ses grandes villes
       const lon0=2.35, lat0=46.4, kx=Math.cos(46.5*Math.PI/180), e=66, cx=W/2, cy=H*0.56; const P=([lo,la])=>[cx+(lo-lon0)*kx*e, cy-(la-lat0)*e];
