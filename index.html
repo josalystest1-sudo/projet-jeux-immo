@@ -1399,7 +1399,7 @@ function dessinPochette(verso){ const W=1024, H=1522, c=document.createElement('
     if(!verso){
       // la France en trait d'or, et ses grandes villes
       const lon0=2.35, lat0=46.4, kx=Math.cos(46.5*Math.PI/180), e=66, cx=W/2, cy=H*0.56; const P=([lo,la])=>[cx+(lo-lon0)*kx*e, cy-(la-lat0)*e];
-      g.save(); g.shadowColor='rgba(255,196,96,.7)'; g.shadowBlur=26; g.lineJoin=k.lineJoin='round';
+      g.save(); g.globalAlpha=0.55; g.shadowColor='rgba(255,196,96,.7)'; g.shadowBlur=26; g.lineJoin=k.lineJoin='round';
       for(const r of (GEO && GEO.france) || []){ g.beginPath(); k.beginPath(); r.forEach((q,i)=>{ const [x,y]=P(q); if(i){ g.lineTo(x,y); k.lineTo(x,y); } else { g.moveTo(x,y); k.moveTo(x,y); } }); g.closePath(); k.closePath();
         g.fillStyle='rgba(233,199,123,.07)'; g.fill(); g.strokeStyle=OR(cy-330,cy+330); g.lineWidth=5; g.stroke(); k.strokeStyle=METAL_OR; k.lineWidth=7; k.stroke(); }
       g.restore();
@@ -1407,6 +1407,8 @@ function dessinPochette(verso){ const W=1024, H=1522, c=document.createElement('
       for(const [lo,la,r] of villes){ const [x,y]=P([lo,la]); g.save(); g.shadowColor='rgba(255,220,150,.95)'; g.shadowBlur=18; g.fillStyle='#FFF1C9'; g.beginPath(); g.arc(x,y,r,0,Math.PI*2); g.fill(); g.restore();
         k.fillStyle=METAL_OR; k.beginPath(); k.arc(x,y,r,0,Math.PI*2); k.fill(); }
       const [px,py]=P([2.35,48.86]); g.strokeStyle='rgba(255,236,190,.8)'; g.lineWidth=2.5; g.beginPath(); g.arc(px,py,22,0,Math.PI*2); g.stroke();
+      // la maquette de porcelaine et d'or (la tour Eiffel), posée sur la France
+      imageMaquette('manuel-tour-eiffel', g, k, W/2, cy-40, 860);
       // le nom, le titre, la promesse
       filet(BANDE+58,180,844,3); texte(Langue.t('STREETKEEP'),BANDE+238,176,700,26,OR(BANDE+90,BANDE+240),METAL_OR); filet(BANDE+272,180,844,3);
       texte(Langue.t('PACK DU JOUR'),BANDE+352,62,600,20,'#F3E3BC','rgb(0,60,230)');
@@ -1429,6 +1431,33 @@ function dessinPochette(verso){ const W=1024, H=1522, c=document.createElement('
   // la police des capitales n'est peut-être pas encore chargée : on redessine dès qu'elle l'est
   if(document.fonts && !document.fonts.check('700 60px "Barlow Condensed"')) Promise.all([document.fonts.load('700 60px "Barlow Condensed"'), document.fonts.load('600 60px "Barlow Condensed"')]).then(()=>{ dessiner(); tc.needsUpdate=true; tm.needsUpdate=true; }).catch(()=>{});
   return { couleur:tc, metal:tm }; }
+// l'illustration héroïque de la pochette (Gautier, 6 nov. : « une maquette de porcelaine et d'or, comme sur les cartes ») :
+// la maquette 3D d'un monument (src/maquettes.js), en porcelaine blanche aux arêtes d'or, éclairée comme sur une carte,
+// dessinée une fois dans l'image de la pochette (couleur) et dans son métal (porcelaine lisse, arêtes en or)
+function imageMaquette(id, g, k, cx, cy, taille){
+  const M=window.Maquettes, m=M && M.MODELES && M.MODELES[id]; if(!m) return false;
+  let r=null; try{
+    const S=1024; r=new THREE.WebGLRenderer({ antialias:true, alpha:true }); r.setPixelRatio(1); r.setSize(S,S,false); r.setClearColor(0x000000,0); r.outputEncoding=THREE.sRGBEncoding;
+    const sc=new THREE.Scene(), o=m.construire(THREE); o.rotation.y=(m.orientation||0)*Math.PI/180;
+    const porcelaine=new THREE.MeshStandardMaterial({ color:0xF6F0E4, roughness:0.5, metalness:0.05, side:THREE.DoubleSide }), aretes=new THREE.LineBasicMaterial({ color:0xE2B860, transparent:true, opacity:0.85 });
+    const coques=[], pieces=[]; o.traverse((x)=>{ if(!x.isMesh) return; if(x.userData.contour) coques.push(x); else { x.material=porcelaine; pieces.push(x); } });
+    for(const x of coques) x.parent.remove(x);
+    for(const x of pieces){ const n=(x.geometry.index ? x.geometry.index.count : x.geometry.attributes.position.count)/3; if(n<=1500) x.add(new THREE.LineSegments(new THREE.EdgesGeometry(x.geometry,35), aretes)); }
+    sc.add(o); o.updateMatrixWorld(true);
+    const bb=new THREE.Box3().setFromObject(o), c=bb.getCenter(new THREE.Vector3()), d=bb.getSize(new THREE.Vector3()), ray=d.length()/2;
+    sc.add(new THREE.HemisphereLight(0xFFF6E6, 0x1A2650, 0.45)); const sol=new THREE.DirectionalLight(0xFFF1DA, 1.9); sol.position.copy(c).add(new THREE.Vector3(-1.4,1.8,1.2).multiplyScalar(ray)); sc.add(sol);
+    const reflet=new THREE.DirectionalLight(0xE9C77B, 1.1); reflet.position.copy(c).add(new THREE.Vector3(1.6,0.2,-1.0).multiplyScalar(ray)); sc.add(reflet);
+    const bas=new THREE.DirectionalLight(0xB8862F, 0.5); bas.position.copy(c).add(new THREE.Vector3(0.3,-1,0.8).multiplyScalar(ray)); sc.add(bas);
+    const cam=new THREE.PerspectiveCamera(28, 1, ray*0.05, ray*20); const dist=ray/Math.sin(14*Math.PI/180)*1.02, el=0.3, az=-0.55;
+    cam.position.set(c.x+Math.cos(el)*Math.cos(az)*dist, c.y+Math.sin(el)*dist, c.z+Math.cos(el)*Math.sin(az)*dist); cam.lookAt(c.x, c.y-d.y*0.04, c.z);
+    r.render(sc,cam);
+    // la couleur : une lueur d'or sous la maquette, puis la maquette ; le métal : porcelaine lisse et peu métallique
+    const lueur=g.createRadialGradient(cx,cy+taille*0.28,10,cx,cy+taille*0.28,taille*0.55); lueur.addColorStop(0,'rgba(233,199,123,.45)'); lueur.addColorStop(1,'rgba(233,199,123,0)'); g.fillStyle=lueur; g.fillRect(cx-taille,cy-taille,taille*2,taille*2);
+    g.save(); g.shadowColor='rgba(255,210,120,.85)'; g.shadowBlur=40; g.drawImage(r.domElement, cx-taille/2, cy-taille/2, taille, taille); g.restore();
+    k.save(); k.globalCompositeOperation='source-over'; const mk=document.createElement('canvas'); mk.width=mk.height=S; const q=mk.getContext('2d'); q.drawImage(r.domElement,0,0); q.globalCompositeOperation='source-in'; q.fillStyle='rgb(0,45,120)'; q.fillRect(0,0,S,S); k.drawImage(mk, cx-taille/2, cy-taille/2, taille, taille); k.restore();
+    sc.traverse((x)=>{ if(x.geometry) x.geometry.dispose(); }); porcelaine.dispose(); aretes.dispose();
+    return true;
+  }catch(e){ return false; } finally{ if(r){ try{ r.dispose(); r.forceContextLoss(); }catch(e){} } } }
 function makeArt(){ return dessinPochette(false); }
 function makeArtDos(){ return dessinPochette(true); }
 function makeNormal(){ // reliefs du foil : micro-plis + crantage des bords, générés
