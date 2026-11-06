@@ -149,6 +149,9 @@ CELEBRES_EXCLUS = {
     'Q16038744', 'Q3075489', 'Q3329250', 'Q3329325', 'Q2994467',          # Pathé, Louis Vuitton (×2), Renault, Citroën
     'Q3396700', 'Q3113504', 'Q686045', 'Q3096140', 'Q2967866',            # pont Renault, Arkéa Arena, gares Futuroscope et Casino, château Dassault
     'Q1367990',                                                           # fondation Fernet-Branca
+    'Q19406888', 'Q2967847',                                              # châteaux Jacquesson (champagne), Bouvet-Ladubay (vin de Saumur)
+    'Q30740504', 'Q9491',                                                 # stade Dunlop, Matmut Stadium
+    'Q106692839', 'Q20971130', 'Q3329847', 'Q43688220',                   # musées Vache qui rit, Safran, Christofle, Yves Saint Laurent
 }
 
 

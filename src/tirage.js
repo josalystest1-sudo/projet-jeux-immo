@@ -58,9 +58,10 @@
       const demandes = k === 'culte' ? CULTES.map(([q, c]) => `search?index=poi&q=${q}&category=${encodeURIComponent(c)}&lat=${lat}&lon=${lon}&limit=10`)
         : [`search?index=poi&q=${k}&lat=${lat}&lon=${lon}&limit=10`];
       const reponses = await Promise.all(demandes.map((d) => o.geoJSON(d).catch(() => ({}))));
-      // seulement les lieux qui ont un vrai nom (pas « Zone d'activité ou d'intérêt » ni « Mairie » tout court)
+      // seulement les lieux qui ont un vrai nom (pas « Zone d'activité ou d'intérêt » ni « Mairie » tout court), et pas une
+      // marque (« Château Lynch-Bages », un domaine viticole ; « Musée du chocolat Puyodebat » : Celebres.marque)
       let f = reponses.flatMap((j) => j.features || []).filter((x) => { const n = (x.properties.toponym || '').trim(), cats = (x.properties.category || []).map((t) => t.toLowerCase());
-        return n.length > 3 && !cats.includes(n.toLowerCase()) && !/^zone d.activit/i.test(n) && o.Celebres.significatifs(n).filter((m) => !/^(gares|eglises|mairies|musees|chateaux|chapelles|mosquees|synagogues|temples)$/.test(m)).length > 0; });
+        return n.length > 3 && !cats.includes(n.toLowerCase()) && !/^zone d.activit/i.test(n) && !o.Celebres.marque(n) && o.Celebres.significatifs(n).filter((m) => !/^(gares|eglises|mairies|musees|chateaux|chapelles|mosquees|synagogues|temples)$/.test(m)).length > 0; });
       // lieux de culte : les dix plus proches du point, toutes religions confondues (un même lieu n'est compté qu'une fois)
       if (k === 'culte') { const vus = new Set(), d = (x) => o.Celebres.distance([lon, lat], x.geometry.coordinates);
         f = f.filter((x) => { const c = x.properties.toponym + x.geometry.coordinates; if (vus.has(c)) return false; vus.add(c); return true; }).sort((a, b) => d(a) - d(b)).slice(0, 10); }

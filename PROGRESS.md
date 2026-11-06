@@ -281,7 +281,6 @@
 ## Questions ouvertes
 - Relire la liste des 60 monuments nationaux (`data/monuments.json`, `palier: national`).
 - Seuils du standing (4 500 et 2 500 €/m²) : à valider.
-- Nom : « Cadastra » a des domaines pris (.fr, .com, .app) et une marque française « CadastrA » en immobilier/logiciel (voir GDD § 12) : garder ou changer, à décider par Gautier.
 - Capacité de gestion (limite de lieux par niveau) : à valider après simulation.
 - Fin de l'interview : volets 3 à 6 (lieux et packs, technique, graphismes, lancement).
 - Inscription des amis pendant les essais (8.2) : couper la confirmation par e-mail le temps des essais (le service d'e-mails de Supabase n'écrit qu'à l'équipe) ? Question posée, sans réponse.
@@ -479,6 +478,11 @@
   - **Écran** : la commune montre l'état des travaux, ce qu'il manque, « Loyers de la commune +X % », « La mairie rapporte jusqu'à … », et l'usure.
   - **Vérifié** : 2 tests (règles), `tools/essai_sql.mjs` (206 vérifications : usure par mandat, versement ajouté, total gardé ; même usure qu'en JavaScript, vérifiée aussi par `npm test`) ; `deno check` ; à l'image en français et en anglais. 99 tests.
 - 5 nov. 2026 (PR #157, documents seulement) : **les monuments qui sont des marques restent aux enchères** (Gautier : « garde-les »). Le Ritz, Maxim's, le Crillon, le Negresco, Château Margaux et le Train bleu gardent leur place dans la liste des monuments, par exception à « pas de marque sur un lieu » (3 nov.) ; ils restent sans maquette pour l'instant (halo doré). Les marques écartées des lieux célèbres (PR #152 : Olympia, Lido, grands vins, musées de marque…) restent écartées.
+- 6 nov. 2026 (PR #158) : **les marques qui restaient dans les lieux** (Gautier : « reste-t-il des trucs que tu peux faire seul ? » ; Claude enchaîne ce qui ne demande pas Gautier, en commençant par la liste « Petites choses »).
+  - **Les packs** : un tirage Rare (lieu nommé de l'IGN : château, musée, mairie, lieu de culte) écarte désormais les noms de marque (`Celebres.marque`, `src/regles/celebres.js`, appelée par `lieuNommeProche` de `src/tirage.js`, donc dans la démo et sur le serveur). Trois signes : un château qui ne porte pas le nom d'un lieu (« Château Lynch-Bages », « Château la Bécasse » : dans les vignobles, presque toujours un domaine viticole ; un château historique se nomme « Château de … ») ; un commerce en tête du nom (« Distillerie … ») ou un produit suivi d'un nom propre (« Musée du chocolat Puyodebat ») ; une liste de marques connues (maisons de champagne et de cognac, chocolatiers, constructeurs, luxe), sans les noms qui sont aussi ceux d'un saint, d'une ville ou d'une personne (Chanel, Hermès, Baccarat, Renault, Cartier…). Essayé sur de vraies réponses de l'IGN : à Pauillac, Margaux et Saint-Émilion, les 25 domaines viticoles proposés sont écartés ; à Saumur, Nantes, Dijon et Paris, les châteaux et musées gardent leur place (seuls Château Bouvet-Ladubay, Château Perrier, Château Pouilly, Château Rouge et le musée Grévin partent).
+  - **Les lieux célèbres** : 8 marques de plus écartées à la main (`CELEBRES_EXCLUS`) : les châteaux Jacquesson (maison de champagne) et Bouvet-Ladubay (vin de Saumur), le stade Dunlop, le Matmut Stadium, les musées de la Vache qui rit, Safran, Christofle et Yves Saint Laurent (comme le musée Dior). Relu : les autres châteaux « Château X » des vignobles sont des monuments historiques au nom de famille ou de lieu (Château Pichon de Parempuyre n'est pas Pichon-Longueville), pas des marques. 30 900 lieux célèbres.
+  - Rangé : la question du nom (« Cadastra ») retirée des questions ouvertes (CityDeck, décidé le 4 nov.).
+  - **Vérifié** : 1 test de plus (noms de marque et noms ordinaires) ; `deno check`. 100 tests.
 
 ## Bugs connus
 - Les badges 💰 des joueurs simulés n'apparaissent qu'après ouverture de leur parcelle (limite du prototype local).

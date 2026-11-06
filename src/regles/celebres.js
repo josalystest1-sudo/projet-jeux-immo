@@ -87,6 +87,39 @@
       citycode: entree[5], type: 'lieu', notoriete: 'celebre' };
   }
 
+  // Pas de marque sur un lieu (décision de Gautier du 3 nov. 2026) : vrai si le nom d'un lieu nommé de l'IGN est celui
+  // d'une marque, et le lieu n'entre pas dans les packs. Trois signes :
+  // - un château qui ne porte pas le nom d'un lieu (« Château Lynch-Bages », « Château la Bécasse » : dans les vignobles,
+  //   presque toujours un domaine viticole ; un château historique se nomme « Château de … », « du … », « des … », « d'… ») ;
+  // - un commerce en tête du nom (« Distillerie … »), ou un produit suivi d'un nom propre (« Musée du chocolat Puyodebat ») ;
+  // - une marque connue (maisons de champagne et de cognac, chocolatiers, constructeurs, luxe…).
+  const PRODUITS = new Set(['chocolat', 'chocolats', 'bonbon', 'bonbons', 'biscuit', 'biscuits', 'confiserie', 'nougat',
+    'moutarde', 'liqueur', 'liqueurs', 'parfum', 'parfums', 'savon', 'savons', 'biere', 'bieres', 'cognac', 'armagnac',
+    'whisky', 'cidre', 'champagne', 'champagnes', 'vin', 'vins', 'fromage', 'fromages', 'pastis', 'absinthe', 'automobile',
+    'automobiles', 'couteau', 'couteaux']);
+  const PETITS_MOTS = new Set(['de', 'du', 'des', 'la', 'le', 'les', 'et', 'en', 'au', 'aux', 'd', 'l', 'a', 'sur']);
+  const COMMERCE = /^(distillerie|brasserie|chocolaterie|biscuiterie|confiserie|parfumerie|savonnerie|fromagerie|caves?|cellier|chais?|maison de (champagne|cognac))\b/;
+  const CHATEAU_DE_LIEU = /^chateaux?( (fort|vieux|neuf|royal|ducal|comtal|seigneurial|episcopal))? (de |du |des |d')/;
+  // (pas les noms qui sont aussi ceux d'un saint, d'une ville ou d'une personne : Chanel, Hermès, Baccarat, Renault,
+  // Cartier, Mercier, Fragonard, « abbaye bénédictine »…)
+  const MARQUES = new RegExp('\\b(' + ['hennessy', 'martell', 'remy martin', 'courvoisier', 'cointreau', 'palais benedictine',
+    'byrrh', 'noilly', 'ricard', 'pernod', 'suchard', 'menier', 'banania', 'haribo', 'valrhona', 'michelin', 'peugeot',
+    'citroen', 'bugatti', 'christian dior', 'louis vuitton', 'yves saint laurent', 'parfumerie fragonard', 'molinard',
+    'galimard', 'opinel', 'christofle', 'bernardaud', 'haviland', 'lalique', 'musee baccarat', 'cristallerie', 'kronenbourg', 'moet',
+    'chandon', 'clicquot', 'ruinart', 'pommery', 'taittinger', 'mumm', 'krug', 'bollinger', 'roederer', 'lanson',
+    'heidsieck', 'jacquesson', 'bouvet ladubay', 'vache qui rit', 'grevin', 'safran', 'airbus', 'dassault', 'matmut',
+    'allianz', 'groupama', 'disney', 'asterix', 'futuroscope', 'center parcs'].join('|') + ')\\b');
+  function marque(nom) {
+    const n = sansAccents(nom).replace(/[’`]/g, "'").trim(), b = n.toLowerCase().replace(/-/g, ' ').replace(/\s+/g, ' ');
+    if (/^chateaux? /i.test(n) && !CHATEAU_DE_LIEU.test(b)) return true;   // (« Château-Thierry » est une ville)
+    if (COMMERCE.test(b) || MARQUES.test(b)) return true;
+    const m = n.split(/[\s']+/);   // (« Champagne-Vigny » est une commune : le trait d'union lie les mots)
+    for (let i = 0; i + 1 < m.length; i++) {
+      if (PRODUITS.has(m[i].toLowerCase()) && /^[A-Z]/.test(m[i + 1]) && !PETITS_MOTS.has(m[i + 1].toLowerCase())) return true;
+    }
+    return false;
+  }
+
   // le département d'un code INSEE (fichier data/celebres/<département>.json)
   function departement(insee) {
     const c = String(insee || '');
@@ -94,6 +127,6 @@
     return c.slice(0, 2);
   }
 
-  const api = { mots, significatifs, categorieDuNom, famille, distance, memeLieu, trouver, lieuDe, departement, DISTANCE_MAX, DISTANCE_FAMILLE };
+  const api = { mots, significatifs, categorieDuNom, famille, distance, memeLieu, trouver, lieuDe, departement, marque, DISTANCE_MAX, DISTANCE_FAMILLE };
   if (typeof module !== 'undefined' && module.exports) module.exports = api; else racine.Celebres = api;
 })(typeof globalThis !== 'undefined' ? globalThis : this);
