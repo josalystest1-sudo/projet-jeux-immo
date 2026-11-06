@@ -491,6 +491,13 @@
   - **Château Margaux** : le château néo-palladien, son portique de quatre colonnes ioniques et son fronton en haut d'un perron, ses fenêtres, son toit d'ardoise (les chais restent ceux de l'IGN : sur la carte du monument, ils écrasaient le château) ;
   - **le Train bleu** : le bâtiment de tête de la gare de Lyon, ses grandes baies cintrées bleues sur la place Louis-Armand, et la tour de l'Horloge (67 m, seul son socle est dans l'IGN) et ses quatre cadrans.
   - 422 maquettes. Vérifié à l'image sur la carte (face aux façades) et sur les cartes des monuments (porcelaine) : planche `docs/bible/monuments-59.jpg`. 100 tests.
+- 6 nov. 2026 (PR #160) : **relecture en 320 px des fenêtres rares et de la promenade** (dernier point « graphismes » de la liste ; français et anglais) : mettre en vente, la fiche du lieu d'un autre joueur (offre), proposer un échange, verser à la caisse de travaux, les quatre onglets des Classements, Signaler, le bas de la boutique (pack régional, Pass, gemmes, chances), la légende, la promenade. Défauts corrigés :
+  - un grand prix (« 1 245 500 ») sortait de son champ : le chiffre rapetisse pour tenir (`ajusterChiffres`, pour tous les champs `.champ-prix` : en tapant, et après chaque toucher, car les raccourcis « +10 % » remplissent le champ) ;
+  - « Mettre en vente à 1 245 500 » sortait du bouton : un grand bouton (`.btn.large`) passe sur deux lignes, le montant dessous ;
+  - les onglets des Classements étaient coupés à droite (Maires, Passées cachés) : ils se rangent en grille, deux par ligne ;
+  - en anglais, six textes restaient en français : « Proposer mes 2 lieux », « À » (Chloé), « Je verse », « … · fin du mandat dans … », « En face », « +1 lieu » ; et une durée en jours (« 3 j 4 h ») restait « j » dans « Season 1 · ends in » : « 3 d 4 h ».
+  - Passent sans défaut : la fiche d'un autre joueur, l'échange, Signaler, la boutique (la rangée des régions défile, c'est voulu), la légende, la promenade.
+  - 100 tests.
 
 ## Bugs connus
 - Les badges 💰 des joueurs simulés n'apparaissent qu'après ouverture de leur parcelle (limite du prototype local).
