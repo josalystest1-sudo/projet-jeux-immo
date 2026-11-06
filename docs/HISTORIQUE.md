@@ -374,6 +374,7 @@ Puis une PR par étape, fusionnée en squash :
 | #155 | 05/11 | L'horloge du serveur : toutes les 10 minutes, enchères, mandats, saisons, monuments et robots tournent sans joueur |
 | #156 | 05/11 | Les travaux des communes s'usent (−10 % par mandat) ; le niveau donne +2 % de loyer par niveau et monte le plafond du Maire (jusqu'à 2 000) |
 | #157 | 05/11 | Documents : les six monuments qui sont des marques (Ritz, Maxim's, Crillon, Negresco, Château Margaux, Train bleu) restent aux enchères (Gautier : « garde-les ») |
+| #162 | 06/11 | Les e-mails par Brevo branchés : la publication lit la clé SMTP sous le nom choisi par Gautier (`BREVO_SMTP_KEY_CITY_DECK`) |
 | #161 | 06/11 | Les e-mails de connexion par Brevo : citydeck.fr authentifié (DNS chez Infomaniak), expéditeur noreply@citydeck.fr, modèles en français et en anglais ; attend la clé SMTP de Gautier |
 | #160 | 06/11 | Relecture en 320 px des fenêtres rares et de la promenade : grands prix qui tiennent dans leur champ et leur bouton, onglets des Classements en grille, six textes anglais |
 | #159 | 06/11 | Les six monuments qui sont des marques ont leur maquette 3D (Ritz, Crillon, Maxim's, Negresco, Château Margaux, Train bleu) |
@@ -425,7 +426,7 @@ Les décisions du 2 novembre (interview) sont dans `CLAUDE.md` § 4 et dans le G
 ## Ce qui reste à faire (au 4 novembre après-midi)
 
 - **Le serveur, suite** (phase 8) :
-  - 8.2 : le mode serveur par défaut et la fin des joueurs simulés sont faits (PR #148 ; la démo reste par `?demo`). Reste l'inscription des amis : Brevo est prêt (PR #161 : domaine authentifié, expéditeur noreply@citydeck.fr) ; il ne manque que la clé SMTP, que Gautier pose dans les secrets GitHub (`BREVO_SMTP_KEY`).
+  - 8.2 : le mode serveur par défaut et la fin des joueurs simulés sont faits (PR #148 ; la démo reste par `?demo`). Reste l'inscription des amis : Brevo est prêt (PR #161 : domaine authentifié, expéditeur noreply@citydeck.fr) ; la clé SMTP est posée (secret `BREVO_SMTP_KEY_CITY_DECK`, PR #162).
   - 8.3 : l'anti-triche. Un minimum est fait (PR #150 : cadence, empreintes de connexion, alerte et vue des comptes liés) ; plus tard, si besoin : un plafond de ventes entre comptes liés, l'appareil.
 - **Les graphismes** (phase 10, avant 8.2 : décision de Gautier) : les menus façon Pokémon TCG Pocket (PR #133), puis le logo, l'icône et la pièce d'après le modèle de Gautier (PR #135), faits le 5 nov. ; la promenade et les fenêtres rares relues en 320 px (PR #160) ; la preuve, l'ouverture, les monuments nationaux et 358 monuments régionaux en 3D, plus la Grande Mosquée de Paris et quatre églises ajoutées le 4 nov. (422 maquettes, dont les six marques gardées aux enchères, PR #159 ; les autres n'ont pas de bâtiment à dessiner) ; ensuite l'habillage de la révélation, l'icône et le logo (`docs/BIBLE-GRAPHIQUE.md`).
 - **Le game design du 4 nov. porté dans le jeu** (le Maire par caisse de travaux, PR #119 et #120 ; les saisons et classements, PR #123 et #124 ; les monuments, PR #125 et #126). Reste : l'e-mail d'alerte à Gautier (il faut un service d'envoi), le niveau visuel des communes (fait, PR #153), l'équilibrage (loyer modeste des monuments, § 5 ter) : les saisons et le classement de patrimoine (§ 5 bis), l'entretien et la reprise des monuments, l'alerte à Gautier (§ 5 ter).
@@ -452,7 +453,7 @@ Les décisions du 2 novembre (interview) sont dans `CLAUDE.md` § 4 et dans le G
     - la TVA et l'activité déclarée (comptable) ;
     - l'accord avant Google Street View ;
     - une relecture par un professionnel.
-  - Brevo : fait (PR #161) ; reste la clé SMTP (secret GitHub `BREVO_SMTP_KEY`, posé par Gautier) puis un essai (« mot de passe oublié » sur son compte).
+  - Brevo : fait (PR #161 et #162 ; clé SMTP posée par Gautier dans le secret `BREVO_SMTP_KEY_CITY_DECK`) ; reste un essai (« mot de passe oublié » sur son compte).
 - **Au lancement** :
   - remettre `jour_secondes` à 86400 et repartir de zéro ;
   - les robots restent, cachés parmi les joueurs (décisions du 5 nov., GDD § 5 quater) : repartir de zéro avec eux ; décider de la phrase des CGU sur les joueurs automatiques ;

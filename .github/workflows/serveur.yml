@@ -34,7 +34,7 @@ jobs:
       SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
       STRIPE_SECRET_KEY: ${{ secrets.STRIPE_SECRET_KEY }}
       BREVO_SMTP_LOGIN: ${{ secrets.BREVO_SMTP_LOGIN }}
-      BREVO_SMTP_KEY: ${{ secrets.BREVO_SMTP_KEY }}
+      BREVO_SMTP_KEY: ${{ secrets.BREVO_SMTP_KEY_CITY_DECK || secrets.BREVO_SMTP_KEY }}   # (posée par Gautier sous ce nom, 6 nov.)
       PROJET: hxtyecwofajiozmnfyxt
     steps:
       - uses: actions/checkout@v4
@@ -75,7 +75,7 @@ jobs:
       - name: Les adresses du jeu pour les liens des e-mails (citydeck.fr et l'ancienne adresse)
         if: steps.jeton.outputs.ok == '1'
         run: node tools/serveur_adresses.js "$PROJET" https://citydeck.fr/
-      - name: Les e-mails de connexion par Brevo (secret BREVO_SMTP_KEY, posé par Gautier ; sans lui, rien ne change)
+      - name: Les e-mails de connexion par Brevo (secret BREVO_SMTP_KEY_CITY_DECK, posé par Gautier ; sans lui, rien ne change)
         if: steps.jeton.outputs.ok == '1'
         run: node tools/serveur_emails.js "$PROJET"
       - name: Joueurs robots (serveur d'essai)
