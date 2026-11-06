@@ -1456,3 +1456,23 @@ body.vitrine #packscene .hint,body.vitrine #packscene #pkload,body.vitrine #pack
 .acc-sous{font-weight:800;font-size:13px;color:var(--gris);text-align:center}
 #s-accueil.vitrine .acc-sous{color:#fff;opacity:.85}
 @media (min-width:900px){ #s-accueil{align-items:center} #s-accueil>*{width:min(100%,520px)} }   /* (sur ordinateur, l'accueil au milieu) */
+
+/* ---------------------------------------------------------------- la progression (6 nov. : les écrans s'ouvrent en jouant, src/progression.js) */
+html.pocket #nav button.verrou{opacity:.5}
+#nav button.verrou .cnt{display:none}
+body.verrou-communes #commune-chip{display:none!important}
+.prog-fen{text-align:center}
+.prog-ic{font-size:56px;line-height:1;margin:4px auto 6px;position:relative;width:84px;height:84px;border-radius:26px;background:var(--plaque-clair,#EEF2FA);display:flex;align-items:center;justify-content:center}
+.prog-ic .ico-svg{width:46px;height:46px}
+.prog-ic.verrou{filter:grayscale(1);opacity:.85}
+.prog-ic span{position:absolute;right:-8px;bottom:-8px;font-size:26px;background:#fff;border-radius:50%;width:38px;height:38px;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(23,35,63,.18)}
+.prog-ic span .ico-svg{width:20px;height:20px}
+.prog-nouveau{color:var(--plaque,#2453B3);font-weight:900;letter-spacing:.14em;text-transform:uppercase;font-size:12px;margin-top:6px}
+.prog-titre{font-weight:900;margin:14px 0 6px;text-align:left}
+.prog-etape{background:#F3F5F9;border-radius:14px;padding:10px 12px;text-align:left;display:grid;grid-template-columns:1fr auto;gap:6px 10px;align-items:center}
+.prog-etape b{min-width:0}
+.prog-etape .prog-barre{grid-column:1/-1;height:8px;border-radius:4px;background:#DDE3EE;overflow:hidden}
+.prog-etape .prog-barre i{display:block;height:100%;background:var(--plaque,#2453B3);border-radius:4px}
+.prog-etape small{font-weight:800;color:var(--gris);grid-row:1;grid-column:2}
+.prog-etape small.prog-aide{grid-row:auto;grid-column:1/-1;font-weight:700}
+.prog-ou{font-weight:900;color:var(--gris);margin:6px 0;text-transform:uppercase;font-size:12px;letter-spacing:.1em}

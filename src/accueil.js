@@ -58,7 +58,7 @@
       const a = b.dataset.a; if (a === 'gros') return act.f(); if (a === 'profil') return showPlayer(ME); if (a === 'gemmes') return ouvrirBoutique(); if (a === 'pieces') return recolter(); };
   };
   // après un pack : retour à l'accueil, avec les cartes du jour
-  A.apresPack = () => { if (visible()) A.render(); };
+  A.apresPack = () => { if (window.PROGRESSION) PROGRESSION.verifier(); if (visible()) A.render(); };
   // le compte à rebours et le bouton suivent le temps (toutes les secondes, seulement à l'écran)
   let derniereCle = '';
   setInterval(() => { if (!visible()) return; const c = ecran().querySelector('.acc-compte');
