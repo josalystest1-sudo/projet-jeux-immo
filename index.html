@@ -1454,7 +1454,7 @@ function imageMaquette(id, g, k, cx, cy, taille){
     // la couleur : une lueur d'or sous la maquette, puis la maquette ; le métal : porcelaine lisse et peu métallique
     const lueur=g.createRadialGradient(cx,cy+taille*0.28,10,cx,cy+taille*0.28,taille*0.55); lueur.addColorStop(0,'rgba(233,199,123,.45)'); lueur.addColorStop(1,'rgba(233,199,123,0)'); g.fillStyle=lueur; g.fillRect(cx-taille,cy-taille,taille*2,taille*2);
     g.save(); g.shadowColor='rgba(255,210,120,.85)'; g.shadowBlur=40; g.drawImage(r.domElement, cx-taille/2, cy-taille/2, taille, taille); g.restore();
-    k.save(); k.globalCompositeOperation='source-over'; const mk=document.createElement('canvas'); mk.width=mk.height=S; const q=mk.getContext('2d'); q.drawImage(r.domElement,0,0); q.globalCompositeOperation='source-in'; q.fillStyle='rgb(0,45,120)'; q.fillRect(0,0,S,S); k.drawImage(mk, cx-taille/2, cy-taille/2, taille, taille); k.restore();
+    k.save(); k.globalCompositeOperation='source-over'; const mk=document.createElement('canvas'); mk.width=mk.height=S; const q=mk.getContext('2d'); q.drawImage(r.domElement,0,0); q.globalCompositeOperation='source-in'; q.fillStyle='rgb(0,115,60)'; q.fillRect(0,0,S,S); k.drawImage(mk, cx-taille/2, cy-taille/2, taille, taille); k.restore();
     sc.traverse((x)=>{ if(x.geometry) x.geometry.dispose(); }); porcelaine.dispose(); aretes.dispose();
     return true;
   }catch(e){ return false; } finally{ if(r){ try{ r.dispose(); r.forceContextLoss(); }catch(e){} } } }
