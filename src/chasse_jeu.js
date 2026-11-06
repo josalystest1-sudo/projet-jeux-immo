@@ -43,7 +43,7 @@
     return b; }
   function majBandeau() {
     const b = bandeau(), v = CH.vue, t = maintenant(); clearInterval(CH.tic);
-    const voir = v && !CH.dans && (v.etat === 'annonce' || v.etat === 'en_cours' || ((v.etat === 'trouvee' || v.etat === 'finie') && CH.inscrit));
+    const voir = v && !CH.dans && !(window.debloque && !debloque('chasse')) && (v.etat === 'annonce' || v.etat === 'en_cours' || ((v.etat === 'trouvee' || v.etat === 'finie') && CH.inscrit));
     b.hidden = !voir; document.body.classList.toggle('avec-chasse', !!voir); if (!voir) return;
     const nom = echapper(v.commune), ins = CH.inscrits ? ` · ${nb(CH.inscrits)} inscrit${CH.inscrits > 1 ? 's' : ''}` : '';
     let h = '';
@@ -269,6 +269,6 @@
   function demarrer() { suivre(); setInterval(suivre, 60000); document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') suivre(); }); }
   if (MODE_SERVEUR) setTimeout(demarrer, 4000); else setTimeout(() => { majBandeau(); }, 1000);
   CH.suivre = suivre; CH.entrer = entrer;
-  CH.inscrire = () => actionBandeau('inscrire');   // (le gros bouton de l’accueil)
+  CH.inscrire = () => actionBandeau('inscrire'); CH.majBandeau = () => majBandeau();   // (src/progression.js : la chasse s'ouvre en jouant)   // (le gros bouton de l’accueil)
   CH._demo = D;   // (les outils d’essai : tools/visite_ecrans.js)
 })();

@@ -269,6 +269,36 @@ const ECO = {
   "recompense_pieces": 500,
   "recompense_cartes": 1
  },
+ "deblocages": {
+  "carte": {
+   "si": {
+    "packs": 1
+   },
+   "silencieux": true
+  },
+  "patrimoine": {
+   "si": {
+    "packs": 1
+   },
+   "silencieux": true
+  },
+  "communes": {
+   "si": {
+    "constructions": 1
+   }
+  },
+  "chasse": {
+   "si": {
+    "packs": 2
+   }
+  },
+  "encheres": {
+   "ou": {
+    "pieces": 5000,
+    "packs": 4
+   }
+  }
+ },
  "monuments": {
   "entretien_base": 300,
   "entretien_jours": 30,

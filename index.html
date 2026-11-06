@@ -86,6 +86,7 @@ const VERSION='__VERSION__';
 <script src="src/regles/encheres.js"></script>
 <script src="src/regles/pack.js"></script>
 <script src="src/regles/chasse.js"></script>
+<script src="src/regles/deblocages.js"></script>
 <script src="src/tirage.js"></script>
 <script src="src/marche.js"></script>
 <script src="src/maquettes.js"></script>
@@ -1052,7 +1053,7 @@ function carteArt(a, bandeau){ const adr=estAdresse(a), commune=echapper(commune
 function icoLieuHTML(a){ if(!estAdresse(a)) return iconeLieu(a); const { numero } = Regles.numeroEtVoie(a.label); return numero ? `<span class="numero">${echapper(numero.split(' ')[0])}</span>` : '<span class="mini-plaque"></span>'; }
 function echapper(t){ return String(t==null?'':t).replace(/[&<>"]/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
 // après une action sur un lieu : tout ce qui l'affiche se redessine
-function apresAction(){ if(window.ACCUEIL) ACCUEIL.render(); if(currentParcel) renderAddrs(); if(PROM.on) promCarte(); if(document.getElementById('s-patrimoine').classList.contains('on')) renderPatrimoine(); if(ficheOuverte) ouvrirFicheLieu(ficheOuverte); }
+function apresAction(){ if(window.PROGRESSION) PROGRESSION.verifier(); if(window.ACCUEIL) ACCUEIL.render(); if(currentParcel) renderAddrs(); if(PROM.on) promCarte(); if(document.getElementById('s-patrimoine').classList.contains('on')) renderPatrimoine(); if(ficheOuverte) ouvrirFicheLieu(ficheOuverte); }
 let ficheOuverte=null;
 function echelleHTML(a, lv, pl, moi, rec){
   // Terrain → Tour pour tous (le reste grisé « Hors plafond ») ; au-delà, jusqu'au bâtiment de sa rareté. Une longue échelle
@@ -1890,7 +1891,8 @@ async function appelServeur(action, corps){
     return data; }
   catch(e){ return { ok:false, code:'reseau', message:'Serveur injoignable : vérifie ta connexion et réessaie.' }; } }
 // ma partie, telle que le serveur la donne : pièces, dernière récolte, pack du jour, lieux
-function appliquerEtat(e){ if(!e) return; state.wallet=e.pieces; if(e.gemmes!=null) state.gemmes=e.gemmes; if(e.pass) state.pass=e.pass; if(e.entretien) state.entretien=Object.assign({}, state.entretien, e.entretien); state.encaisse=e.encaisse; state.dernierJour = e.dernierJour==null ? null : e.dernierJour;
+function appliquerEtat(e){ if(!e) return; window.ETAT_RECU=true;   // (src/progression.js : ce qui s'ouvre avant n'est pas fêté)
+  state.wallet=e.pieces; if(e.gemmes!=null) state.gemmes=e.gemmes; if(e.pass) state.pass=e.pass; if(e.entretien) state.entretien=Object.assign({}, state.entretien, e.entretien); state.encaisse=e.encaisse; state.dernierJour = e.dernierJour==null ? null : e.dernierJour;
   if(e.jourMs){ state.jourMs=e.jourMs; JOUR=e.jourMs; SEMAINE=7*JOUR; }
   if(e.niveauxCommunes) Object.assign(NIV_SERVEUR, e.niveauxCommunes);
   if(e.offresRecues) state.offersIn=e.offresRecues; if(e.offresEnvoyees) state.offersOut=e.offresEnvoyees; if(e.notifs) state.notifs=e.notifs;
@@ -1992,7 +1994,7 @@ async function ouvrirPack(opts){ opts=opts||{}; const payant=opts.payant; const 
   else { const base=(state.pseudo||'?')+':'+jour(); cards=await TIRAGE.tirerPack(base, ECO.pack.chances, BOU.cartesDuJour(state.pass, now())); }
   delete btn.dataset.ouverture; refreshPack();
   if(!cards.length){ finPack(); return toast('Pack impossible à tirer : vérifie ta connexion'); }
-  encaisser(true); if(!payant) state.lastPack=jour(); state.cartesDuJour={ le:now(), ids:cards.map(c=>c.id) }; for(const c of cards){ if(!MODE_SERVEUR) state.owned[c.id]=Object.assign({}, c, {niveau:0, depuis:now()}); state.seen[c.id]='libre'; setBadge(c,0); } save(); refreshTop();
+  encaisser(true); if(!payant) state.lastPack=jour(); state.cartesDuJour={ le:now(), ids:cards.map(c=>c.id) }; state.packsOuverts=(state.packsOuverts||0)+1; for(const c of cards){ if(!MODE_SERVEUR) state.owned[c.id]=Object.assign({}, c, {niveau:0, depuis:now()}); state.seen[c.id]='libre'; setBadge(c,0); } save(); refreshTop();
   // tri : les communes d'abord, la meilleure carte en dernier (suspense)
   cards.sort((a,b)=>rarete(a)-rarete(b)); packCards=cards; cards.forEach(c=>fetchCommune(c)); document.getElementById('pkload').textContent=''; if(GL.uni) GL.uni.uReady.value=1; document.getElementById('pkhint').textContent=aideOuvrir(); }
 // =================== la boutique (GDD § 3 et § 9) ===================
@@ -2121,7 +2123,8 @@ function refreshPack(){ const b=document.getElementById('packbtn'), t=document.g
 function dureeCourte(s){ return s>=3600 ? `${Math.floor(s/3600)} h ${String(Math.floor(s%3600/60)).padStart(2,'0')}` : (s>=60 ? `${Math.floor(s/60)} min ${String(s%60).padStart(2,'0')}` : `${s} s`); }
 
 // =================== écrans ===================
-function showScreen(name){ vibrer(8); if(name!=='accueil' && window.ACCUEIL) ACCUEIL.fermerVitrine(); document.querySelectorAll('.screen').forEach(s=>s.classList.remove('on')); document.querySelectorAll('#nav button[data-s]').forEach(b=>b.classList.toggle('on', b.dataset.s===name));
+function showScreen(name){ vibrer(8); if(window.PROGRESSION && !PROGRESSION.ouvert(name)) return PROGRESSION.ferme(name);   // (un écran fermé d'un cadenas : src/progression.js)
+  if(name!=='accueil' && window.ACCUEIL) ACCUEIL.fermerVitrine(); document.querySelectorAll('.screen').forEach(s=>s.classList.remove('on')); document.querySelectorAll('#nav button[data-s]').forEach(b=>b.classList.toggle('on', b.dataset.s===name));
   const hide = name!=='carte'; ['top','ctrls','legend'].forEach(id=>document.getElementById(id).style.display = hide?'none':''); closeSheet(); if(!(window.Compte && Compte.bloque && Compte.bloque())) closeModal();
   if(name==='patrimoine') renderPatrimoine(); if(name==='encheres') renderEncheres(); if(name==='communes'){ if(MODE_SERVEUR){ for(const k of Object.keys(CAISSES)) delete CAISSES[k]; CLASSES.lu=0; CLASSES.communes={}; } renderCommunes(); } if(name==='notifs') renderNotifs();
   if(hide) document.getElementById('s-'+name).classList.add('on'); else { map.resize(); if(!ARRIVEE_FAITE){ const go=()=>setTimeout(descenteArrivee, 150); if(map.loaded()) go(); else { map.once('idle', go); setTimeout(go, 2500); } } }
@@ -2721,6 +2724,8 @@ function demarrageLocal(){ if(!state.pseudo) setTimeout(creationProfil, 600); el
 refreshTop(); if(!MODE_SERVEUR) tickAuction();
 </script>
 <script src="src/accueil.js"></script>
+<script src="src/progression.js"></script>
+<script>PROGRESSION.verifier();</script>
 <script>showScreen('accueil');   // le jeu s'ouvre sur l'accueil, la carte à la demande (6 nov.)</script>
 <script src="src/chasse_jeu.js"></script>
 <script src="src/compte.js?v=20261103b"></script>
