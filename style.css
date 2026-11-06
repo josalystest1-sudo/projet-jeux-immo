@@ -1355,4 +1355,5 @@ html.pocket .btn.large{white-space:normal;text-align:center;flex-wrap:wrap;row-g
   #prom .prom-vue{right:auto;bottom:0;width:50%;height:auto;border-radius:0 22px 22px 0}
   #prom .prom-bas{left:50%;border-radius:22px 22px 0 0}
   body.promenade #sheet{max-height:calc(100% - 24px);bottom:12px}
+  .collection{grid-template-columns:repeat(4,1fr)}   /* quatre cartes par ligne : la taille d'une carte sur téléphone */
 }

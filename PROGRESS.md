@@ -505,6 +505,11 @@
   - la barre du bas et le contenu des écrans (Patrimoine, Enchères, Communes…) se resserrent au milieu (640 et 680 px) ;
   - en promenade, Street View à gauche (la moitié de l'écran), la carte à droite avec le panneau dessous ; `promCamera` cadre le marcheur dans la partie visible de la carte, sur téléphone (Street View en haut) comme sur ordinateur (à gauche).
   - Vérifié à l'image en 1440 × 900 et 1920 × 1080 (carte, fiche, promenade, Patrimoine, Communes, boutique) ; le téléphone ne change pas. 100 tests.
+- 6 nov. 2026 (PR #166) : **le jeu sur ordinateur, suite** (Gautier : « c'est mieux, tu peux continuer à faire des améliorations en autonomie »). Tous les écrans et toutes les fenêtres relus en 1440 × 900 :
+  - la collection montre **quatre cartes par ligne** (au lieu de deux cartes énormes) : chaque carte a la taille qu'elle a sur un téléphone ;
+  - **Échap** ferme la fenêtre ouverte, sinon la fiche du lieu (en promenade, Échap ferme d'abord la fenêtre, puis la promenade) ;
+  - les consignes du pack parlent de la souris quand l'appareil en a une (`SOURIS`, `aideOuvrir`, `aideReveler` : « Fais glisser la souris sur le haut du pack », « Clique sur la carte pour la révéler », traduites) ;
+  - le reste tenait déjà : fenêtres centrées à 440 px, Enchères, Communes, classements, vente, échange, caisse, ouverture du pack. 100 tests.
 
 ## Bugs connus
 - Les badges 💰 des joueurs simulés n'apparaissent qu'après ouverture de leur parcelle (limite du prototype local).

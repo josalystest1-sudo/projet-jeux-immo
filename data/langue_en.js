@@ -126,7 +126,7 @@
     'Pack impossible à tirer : vérifie ta connexion': 'Couldn’t draw the pack: check your connection',
     'S’ouvre comme un vrai pack, mais ne compte pas et ne te donne rien.': 'Opens like a real pack, but doesn’t count and gives you nothing.',
     'Le pack arrive…': 'Your pack is on its way…', 'Glisse ton doigt sur le haut du pack pour l’ouvrir': 'Swipe across the top of the pack to open it',
-    'Touche la carte pour la révéler': 'Tap the card to reveal it', 'Touche l’écran pour passer': 'Tap the screen to skip',
+    'Touche la carte pour la révéler': 'Tap the card to reveal it', 'Fais glisser la souris sur le haut du pack pour l’ouvrir': 'Drag across the top of the pack to open it', 'Clique sur la carte pour la révéler': 'Click the card to reveal it', 'Touche l’écran pour passer': 'Tap the screen to skip',
     'Incline la carte · glisse-la pour finir': 'Tilt the card · swipe it to finish', 'Incline la carte · glisse-la pour la suivante': 'Tilt the card · swipe it for the next one',
     'Incline ton téléphone…': 'Tilt your phone…', '{n} nouveaux lieux dans ton patrimoine · touche une carte pour la voir': '{n} new places in your portfolio · tap a card to see it',
     '{n} nouveau lieu dans ton patrimoine · touche une carte pour la voir': '{n} new place in your portfolio · tap a card to see it',
