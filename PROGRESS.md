@@ -519,6 +519,11 @@
   - les 32 scripts passent après l'écran d'accueil (`src/logo.js` juste avant le logo) : le logo s'affiche dès que la page et le style sont arrivés (sur le serveur local, sans compression : 3,8 s → 1,8 s ; la carte n'arrive pas plus tard) ;
   - connexions ouvertes d'avance (`preconnect`) vers unpkg.com, data.geopf.fr (tuiles et polices IGN) et le serveur Supabase ;
   - vérifié : traductions (rien de nouveau ne manque, seulement des noms propres), ouverture du pack, écrans. 102 tests.
+- 6 nov. 2026 (PR #169) : **la carte 3D en « plateau de jeu »** (Gautier : « est-ce qu'il n'est pas possible de rendre la carte 3D plus jeu vidéo ? Là, au final, elle dénote complètement », puis « tu peux aussi styliser les routes au lieu de laisser blanc ») :
+  - trois propositions en images, à Paris et à Saint-Cirq-Lapopie (plateau de jeu, maquette, couleurs douces) ; une première série, aux toits rouges et bleus, avait été écartée avant de lui être montrée (on les prenait pour des lieux possédés) ; Gautier choisit **le plateau de jeu**, puis **l'asphalte** parmi trois styles de routes ;
+  - une ville blanche sur l'herbe : murs blancs, toit (`bati-toit`, une dalle de 1,2 m), ombre au sol (`bati-ombre`), pied des murs (`bati-pied`), lumière plus franche, ciel et brume au loin ; les couleurs vives restent celles des propriétaires ; « Libre » (blanc) ajouté à la légende ;
+  - les routes : asphalte, trottoirs clairs, tirets blancs au milieu ; chemins, sentiers et escaliers en terre battue (`CHEMIN`, d'après la nature de la BD TOPO) ;
+  - la nuit refaite dans le même esprit (bâtiments gris neutre, toit clair) ; vérifié de jour, de nuit, en 2D, en ville et au village (`docs/BIBLE-GRAPHIQUE.md` § 14). 102 tests.
 
 ## Bugs connus
 - Les badges 💰 des joueurs simulés n'apparaissent qu'après ouverture de leur parcelle (limite du prototype local).

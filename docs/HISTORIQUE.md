@@ -195,6 +195,7 @@ Rien d'important ne vit dans une conversation : tout est dans le dépôt ou sur 
 - **Sur ordinateur, suite** (PR #166). Gautier : « c'est mieux, tu peux continuer à faire des améliorations ou faire des trucs en autonomie ». Claude relit tous les écrans au format d'un ordinateur : la collection passe à quatre cartes par ligne, Échap ferme fenêtres et fiches, et les consignes du pack parlent de la souris.
 - **L'e-mail d'alerte** (PR #167). Dans la même série autonome : l'alerte promise depuis le 4 nov. (« Gautier est prévenu dès qu'un monument redevient libre ») part enfin par e-mail, à contact@citydeck.fr, avec la phrase prête à poster ; Brevo sert ici aussi.
 - **Le démarrage** (PR #168). Toujours en autonomie : mesuré sur un téléphone en 4G simulée, le logo de l'accueil mettait plus de 3 secondes à apparaître ; il s'affiche maintenant avant le chargement des bibliothèques.
+- **La carte en plateau de jeu** (PR #169). Gautier, pendant la série : « est-ce qu'il n'est pas possible de rendre la carte 3D plus jeu vidéo ? Là, au final, elle dénote complètement. » Claude lui envoie trois propositions en images, en ville et au village ; il choisit le plateau de jeu (une ville blanche sur l'herbe, que les joueurs colorient), puis demande « tu peux aussi styliser les routes au lieu de laisser blanc » et choisit l'asphalte.
 - **L'horloge du serveur** (PR #155). Dans la même série : toutes les 10 minutes, GitHub appelle le serveur pour clore les enchères, faire tourner les mandats et les saisons, tenir les monuments et faire jouer les robots, même sans joueur.
 - **L'anti-triche** (PR #150). Dans la foulée : pas plus de 60 actions par minute pour un compte, et une empreinte chiffrée de la connexion (jamais l'adresse IP) ; dès 3 comptes sur une même connexion dans la journée, une alerte pour Gautier, sans rien bloquer (familles, réseaux partagés, multi-comptes tolérés en V1).
 
@@ -380,6 +381,7 @@ Puis une PR par étape, fusionnée en squash :
 | #155 | 05/11 | L'horloge du serveur : toutes les 10 minutes, enchères, mandats, saisons, monuments et robots tournent sans joueur |
 | #156 | 05/11 | Les travaux des communes s'usent (−10 % par mandat) ; le niveau donne +2 % de loyer par niveau et monte le plafond du Maire (jusqu'à 2 000) |
 | #157 | 05/11 | Documents : les six monuments qui sont des marques (Ritz, Maxim's, Crillon, Negresco, Château Margaux, Train bleu) restent aux enchères (Gautier : « garde-les ») |
+| #169 | 06/11 | La carte 3D en « plateau de jeu » : une ville blanche sur l'herbe que les joueurs colorient, toits, ombres, routes en asphalte (choix de Gautier) |
 | #168 | 06/11 | Le démarrage plus rapide : le logo de l'accueil s'affiche avant le chargement des bibliothèques (carte, 3D, serveur) |
 | #167 | 06/11 | L'e-mail d'alerte à Gautier : un monument redevenu libre arrive à contact@citydeck.fr (Brevo), avec la phrase prête à poster |
 | #166 | 06/11 | Le jeu sur ordinateur, suite : quatre cartes par ligne dans la collection, Échap ferme fenêtres et fiches, consignes du pack à la souris |
@@ -434,6 +436,7 @@ Les décisions du 2 novembre (interview) sont dans `CLAUDE.md` § 4 et dans le G
 | 5 nov. | Les communes (après la question « au niveau max, il reste quoi à faire ? ») : les travaux s'usent (10 % toutes les 2 semaines) ; le niveau donne +2 % de loyer par niveau aux propriétaires de la commune ; le plafond du Maire monte avec le niveau (jusqu'à 2 000 par mandat). L'horloge du serveur, toutes les 10 minutes. |
 | 5 nov. | Les monuments qui sont des marques (Ritz, Maxim's, Crillon, Negresco, Château Margaux, Train bleu) restent aux enchères : « garde-les » (exception à « pas de marque sur un lieu »). |
 | 6 nov. | Brevo : Gautier autorise l'ajout de trois enregistrements DNS chez Infomaniak (« oui, ajoute ces 3 lignes ») pour authentifier citydeck.fr ; les e-mails partent de noreply@citydeck.fr. |
+| 6 nov. | **La carte 3D devient un « plateau de jeu »** : une ville blanche sur l'herbe, que les joueurs colorient (toits, ombres) ; routes en asphalte, chemins en terre battue |
 
 ## Ce qui reste à faire (au 4 novembre après-midi)
 

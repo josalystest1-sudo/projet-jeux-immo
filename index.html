@@ -118,6 +118,7 @@ const VERSION='__VERSION__';
   <span><i class="dot" style="background:var(--me)"></i>À moi</span>
   <span><i class="dot" style="background:var(--other)"></i>Autres</span>
   <span><i class="dot" style="background:var(--mixed)"></i>Partagée</span>
+  <span><i class="dot" style="background:#fff;box-shadow:inset 0 0 0 1.5px #B9C3D6"></i>Libre</span>
   <span>💰 En vente</span>
 </div>
 
@@ -335,44 +336,64 @@ function levelOf(a){ if(state.owned[a.id]) return state.owned[a.id].niveau||0; i
 const ST = ['coalesce',['feature-state','st'],'free'];
 const SEL = ['boolean',['feature-state','sel'],false];
 const TEINTE = ['%',['to-number',['slice',['get','cleabs'],-2]],5];
-const COULEUR_LIBRE = ['match',TEINTE, 0,'#FBF1DE', 1,'#F5E7D0', 2,'#FFF6E8', 3,'#F2E5D1', 4,'#F9EEDC', '#F8ECD9'];
+const COULEUR_LIBRE = ['match',TEINTE, 0,'#EEF1F6', 1,'#E9EDF3', 2,'#F1F3F8', 3,'#E6EAF1', 4,'#ECEFF5', '#EEF1F6'];
 const COULEUR_BATI = ['case', ['boolean',['feature-state','monument'],false], ['interpolate',['linear'],['coalesce',['get','hauteur'],9], 0,'#ffb627', 60,'#ffd65a', 200,'#fff1b8'], SEL, '#FFC233', ['match',ST,'me','#4F86F0','other','#F2735B','mixed','#B07BEA', COULEUR_LIBRE]];
 const HAUTEUR = ['+', ['coalesce',['get','hauteur'],9], ['coalesce',['feature-state','bonus'],0]];
 const IMPORTANT = ['<=',['to-number',['coalesce',['get','importance'],'5']],3];
+// Le plateau de jeu (choix de Gautier, 6 nov. : « rendre la carte 3D plus jeu vidéo ») : une ville blanche posée sur l'herbe,
+// que les joueurs colorient en achetant. Chaque bâtiment a un toit (« bati-toit », une dalle de 1,2 m posée dessus : blanche
+// s'il est libre, plus foncée que les murs s'il a un propriétaire), une ombre au sol (« bati-ombre ») et un pied (« bati-pied »).
+// Les couleurs franches restent celles des propriétaires ; tout le reste est neutre (docs/BIBLE-GRAPHIQUE.md § 14).
+// Les routes (Gautier, 6 nov. : « styliser les routes au lieu de laisser blanc », puis « Asphalte ») : asphalte gris foncé,
+// trottoirs clairs, lignes blanches au milieu ; les chemins, sentiers et escaliers (nature de la BD TOPO) en terre battue, sans trottoir.
+const CHEMIN = ['in',['get','nature'],['literal',['Chemin','Sentier','Escalier','Route empierrée','Piste cyclable']]];
+const MON_BATI = ['boolean',['feature-state','monument'],false];
+const HAUT_BATI = ['case', MON_BATI, ['*',HAUTEUR,1.15], HAUTEUR];
+const FILTRE_BATI = ['all',['!=',['get','construction_legere'],true],['!',['in',['get','cleabs'],['literal',Maquettes.MASQUES]]]];
+const toitBati = (libre, moi, autre, mixte) => ['case', MON_BATI, '#E8A317', SEL, '#E0A000', ['match',ST,'me',moi,'other',autre,'mixed',mixte, libre]];
+const COULEUR_TOIT = toitBati('#FFFFFF', '#2C5FD4','#C73E28','#7442C8'), COULEUR_TOIT_NUIT = toitBati('#9AA1AD', '#3567DA','#B13A28','#6A3DC0');
+const OMBRE_BATI = ['interpolate',['linear'],['zoom'],15,['literal',[4,6]],19,['literal',[34,46]]];
 const map = new maplibregl.Map({
   container:'map', center:[2.3396,48.8818], zoom:17, pitch:58, bearing:-17, minZoom:15, maxZoom:19.5, attributionControl:{compact:true}, antialias:true,
   style:{ version:8,
     glyphs:'https://data.geopf.fr/annexes/ressources/vectorTiles/fonts/{fontstack}/{range}.pbf',
-    light:{ anchor:'viewport', color:'#fff7e6', intensity:0.45, position:[1.3,200,40] },
+    light:{ anchor:'viewport', color:'#ffffff', intensity:0.7, position:[1.2,220,35] },
+    sky:{ 'sky-color':'#5EC2FF', 'horizon-color':'#EAF8FF', 'fog-color':'#E4F4DA', 'sky-horizon-blend':0.6, 'horizon-fog-blend':0.6, 'fog-ground-blend':0.55 },
     sources:{
       topo:{ type:'vector', tiles:['https://data.geopf.fr/tms/1.0.0/BDTOPO/{z}/{x}/{y}.pbf'], minzoom:15, maxzoom:19, promoteId:{batiment:'cleabs'}, attribution:'© IGN BD TOPO' },
       pci:{ type:'vector', tiles:['https://data.geopf.fr/tms/1.0.0/PCI/{z}/{x}/{y}.pbf'], minzoom:15, maxzoom:19, promoteId:{parcelle:'idu'}, attribution:'© DGFiP/IGN' }
     },
     layers:[
-      { id:'bg', type:'background', paint:{ 'background-color':'#DCE5D2' } },
-      { id:'ilot', type:'fill', source:'pci', 'source-layer':'parcelle', paint:{ 'fill-color':'#EFE9DA' } },
-      { id:'veget', type:'fill', source:'topo', 'source-layer':'zone_de_vegetation', paint:{ 'fill-color':'#A6DA88', 'fill-opacity':0.92 } },
-      { id:'parc', type:'fill', source:'topo', 'source-layer':'parc_ou_reserve', paint:{ 'fill-color':'#94D27A', 'fill-opacity':0.55 } },
-      { id:'sport', type:'fill', source:'topo', 'source-layer':'terrain_de_sport', paint:{ 'fill-color':'#8BD8A6' } },
-      { id:'water', type:'fill', source:'topo', 'source-layer':'surface_hydrographique', paint:{ 'fill-color':'#79C5F2' } },
+      { id:'bg', type:'background', paint:{ 'background-color':'#86CC70' } },
+      { id:'ilot', type:'fill', source:'pci', 'source-layer':'parcelle', paint:{ 'fill-color':'#A6DE84' } },
+      { id:'veget', type:'fill', source:'topo', 'source-layer':'zone_de_vegetation', paint:{ 'fill-color':'#62BF52', 'fill-opacity':0.92 } },
+      { id:'parc', type:'fill', source:'topo', 'source-layer':'parc_ou_reserve', paint:{ 'fill-color':'#5CBB4C', 'fill-opacity':0.55 } },
+      { id:'sport', type:'fill', source:'topo', 'source-layer':'terrain_de_sport', paint:{ 'fill-color':'#56C17C' } },
+      { id:'water', type:'fill', source:'topo', 'source-layer':'surface_hydrographique', paint:{ 'fill-color':'#2FB4F0' } },
       { id:'parcel-fill', type:'fill', source:'pci', 'source-layer':'parcelle',
         paint:{ 'fill-color':['match',ST,'me','#4F86F0','other','#E4573D','mixed','#9B51E0','#ffffff'], 'fill-opacity':['match',ST,'free',0.0,0.25] } },
       { id:'parcel-line', type:'line', source:'pci', 'source-layer':'parcelle',
-        paint:{ 'line-color':['case',SEL,'#e0a800','#8f8775'], 'line-width':['case',SEL,3,1.4] } },
-      { id:'rail', type:'line', source:'topo', 'source-layer':'troncon_de_voie_ferree', paint:{ 'line-color':'#8d877c', 'line-width':2, 'line-dasharray':[3,2] } },
+        paint:{ 'line-color':['case',SEL,'#e0a800','#8CC870'], 'line-width':['case',SEL,3,1.4] } },
+      { id:'rail', type:'line', source:'topo', 'source-layer':'troncon_de_voie_ferree', paint:{ 'line-color':'#7C8899', 'line-width':2, 'line-dasharray':[3,2] } },
       { id:'road-side', type:'line', source:'topo', 'source-layer':'troncon_de_route', layout:{ 'line-cap':'round','line-join':'round' },
-        paint:{ 'line-color':'#D3DBE7', 'line-width':['interpolate',['exponential',1.6],['zoom'],15,['case',IMPORTANT,9,4.5],19,['case',IMPORTANT,46,26]] } },
+        paint:{ 'line-color':'#E4E9F1', 'line-opacity':['case',CHEMIN,0,1], 'line-width':['interpolate',['exponential',1.6],['zoom'],15,['case',IMPORTANT,9,4.5],19,['case',IMPORTANT,46,26]] } },
       { id:'road-casing', type:'line', source:'topo', 'source-layer':'troncon_de_route', layout:{ 'line-cap':'round','line-join':'round' },
-        paint:{ 'line-color':'#B6C1D4', 'line-width':['interpolate',['exponential',1.6],['zoom'],15,['case',IMPORTANT,7,3.4],19,['case',IMPORTANT,36,19]] } },
+        paint:{ 'line-color':['case',CHEMIN,'#B88A4A','#3F4860'], 'line-width':['interpolate',['exponential',1.6],['zoom'],15,['case',IMPORTANT,7,3.4],19,['case',IMPORTANT,36,19]] } },
       { id:'road', type:'line', source:'topo', 'source-layer':'troncon_de_route', layout:{ 'line-cap':'round','line-join':'round' },
-        paint:{ 'line-color':['case',IMPORTANT,'#FFFFFF','#FBFCFE'], 'line-width':['interpolate',['exponential',1.6],['zoom'],15,['case',IMPORTANT,6,2.8],19,['case',IMPORTANT,32,16]] } },
-      { id:'road-axis', type:'line', source:'topo', 'source-layer':'troncon_de_route', minzoom:17, filter:IMPORTANT, paint:{ 'line-color':'#F4CC5E', 'line-width':1.6, 'line-dasharray':[4,4] } },
+        paint:{ 'line-color':['case',CHEMIN,'#E8CF94',IMPORTANT,'#59627A','#666F86'], 'line-width':['interpolate',['exponential',1.6],['zoom'],15,['case',IMPORTANT,6,2.8],19,['case',IMPORTANT,32,16]] } },
+      { id:'road-axis', type:'line', source:'topo', 'source-layer':'troncon_de_route', minzoom:16.5, filter:['!',CHEMIN], paint:{ 'line-color':'#FFFFFF', 'line-width':['interpolate',['linear'],['zoom'],16.5,1,19,3], 'line-dasharray':[3,3] } },
       // (les bâtiments de l'IGN remplacés par une maquette 3D, comme la tour Eiffel, sont masqués : src/maquettes.js)
-      { id:'bati-3d', type:'fill-extrusion', source:'topo', 'source-layer':'batiment', filter:['all',['!=',['get','construction_legere'],true],['!',['in',['get','cleabs'],['literal',Maquettes.MASQUES]]]],
-        paint:{ 'fill-extrusion-color':COULEUR_BATI, 'fill-extrusion-height':['case',['boolean',['feature-state','monument'],false],['*',HAUTEUR,1.15],HAUTEUR], 'fill-extrusion-base':0, 'fill-extrusion-opacity':0.97, 'fill-extrusion-vertical-gradient':true } },
+      { id:'bati-ombre', type:'fill', source:'topo', 'source-layer':'batiment', filter:FILTRE_BATI,
+        paint:{ 'fill-color':'rgba(25,60,30,0.32)', 'fill-translate':OMBRE_BATI, 'fill-translate-anchor':'map', 'fill-antialias':false } },
+      { id:'bati-pied', type:'line', source:'topo', 'source-layer':'batiment', filter:FILTRE_BATI,
+        paint:{ 'line-color':'rgba(20,40,30,0.45)', 'line-width':['interpolate',['linear'],['zoom'],15,1.2,19,5], 'line-blur':0.5 } },
+      { id:'bati-3d', type:'fill-extrusion', source:'topo', 'source-layer':'batiment', filter:FILTRE_BATI,
+        paint:{ 'fill-extrusion-color':COULEUR_BATI, 'fill-extrusion-height':HAUT_BATI, 'fill-extrusion-base':0, 'fill-extrusion-opacity':0.97, 'fill-extrusion-vertical-gradient':true } },
+      { id:'bati-toit', type:'fill-extrusion', source:'topo', 'source-layer':'batiment', filter:FILTRE_BATI,
+        paint:{ 'fill-extrusion-color':COULEUR_TOIT, 'fill-extrusion-base':HAUT_BATI, 'fill-extrusion-height':['+',HAUT_BATI,1.2], 'fill-extrusion-vertical-gradient':false } },
       { id:'road-label', type:'symbol', source:'topo', 'source-layer':'troncon_de_route', minzoom:16,
         layout:{ 'symbol-placement':'line', 'text-field':['coalesce',['get','nom_voie_ban_droite'],['get','nom_voie_ban_gauche'],''], 'text-font':['Open Sans Regular'], 'text-size':12, 'symbol-spacing':320 },
-        paint:{ 'text-color':'#43506E', 'text-halo-color':'#ffffff', 'text-halo-width':1.6 } }
+        paint:{ 'text-color':'#FFFFFF', 'text-halo-color':'#2F3749', 'text-halo-width':1.8 } }
     ] }
 });
 if(!matchMedia('(pointer:coarse)').matches) map.addControl(new maplibregl.NavigationControl({showCompass:false}), 'bottom-right');   // sur téléphone, on zoome avec deux doigts
@@ -385,24 +406,27 @@ map.on('load', ()=>{ setTimeout(()=>{ if(!map.isSourceLoaded('topo')) dsay('Donn
 // vues
 const b3d=document.getElementById('b3d'), b2d=document.getElementById('b2d');
 function styleParcelles(deDessus){ map.setPaintProperty('parcel-line','line-width',['case',SEL,3, deDessus?1.8:0.9]);
-  map.setPaintProperty('parcel-line','line-color', CARTE_NUIT ? ['case',SEL,'#F7DE9C', deDessus?'#3A4360':'#262D42'] : ['case',SEL,'#e0a800', deDessus?'#7a7262':'#a79f8c']); }
+  map.setPaintProperty('parcel-line','line-color', CARTE_NUIT ? ['case',SEL,'#F7DE9C', deDessus?'#3E6B55':'#2A4A3C'] : ['case',SEL,'#e0a800', deDessus?'#5E9E4A':'#8CC870']); }
 // La carte de nuit, le soir (Gautier, 5 nov. : « selon l'heure » ; [Proposé] de 20 h à 7 h, à l'heure du téléphone ;
 // ?carte=nuit ou ?carte=jour pour essayer). Les couleurs ne sont reposées que quand on passe du jour à la nuit : la carte
 // doit pouvoir se reposer. Les couleurs des lieux (à moi, aux autres, partagés) restent les mêmes de jour et de nuit.
 let CARTE_NUIT=false, CARTE_NUIT_POSEE=null;
-const LIBRE_NUIT = ['match',TEINTE, 0,'#3A4362', 1,'#363F5C', 2,'#3F4868', 3,'#343C58', 4,'#3C4564', '#384160'];
+const LIBRE_NUIT = ['match',TEINTE, 0,'#4A505E', 1,'#474D5B', 2,'#4D5361', 3,'#454B59', 4,'#4B515F', '#4A505E'];
 const COULEUR_BATI_NUIT = ['case', ['boolean',['feature-state','monument'],false], ['interpolate',['linear'],['coalesce',['get','hauteur'],9], 0,'#C9973A', 60,'#E9C77B', 200,'#FFF1C8'], SEL, '#FFC233', ['match',ST,'me','#5B93FF','other','#D9533E','mixed','#9466EE', LIBRE_NUIT]];
 const COULEURS_CARTE = [ // calque, propriété, de jour, de nuit
-  ['bg','background-color','#DCE5D2','#0F1524'], ['ilot','fill-color','#EFE9DA','#151C2E'], ['veget','fill-color','#A6DA88','#132A20'],
-  ['parc','fill-color','#94D27A','#173326'], ['sport','fill-color','#8BD8A6','#15302A'], ['water','fill-color','#79C5F2','#0D2442'],
-  ['rail','line-color','#8d877c','#3A4158'], ['road-side','line-color','#D3DBE7','#171E31'], ['road-casing','line-color','#B6C1D4','#2A3350'],
-  ['road','line-color',['case',IMPORTANT,'#FFFFFF','#FBFCFE'],['case',IMPORTANT,'#4A5679','#3A4566']], ['road-axis','line-color','#F4CC5E','#C9A04E'],
-  ['road-label','text-color','#43506E','#D9D1C0'], ['road-label','text-halo-color','#ffffff','#0A0F1E'], ['bati-3d','fill-extrusion-color',COULEUR_BATI,COULEUR_BATI_NUIT] ];
+  ['bg','background-color','#86CC70','#132A24'], ['ilot','fill-color','#A6DE84','#1A352B'], ['veget','fill-color','#62BF52','#1E4430'],
+  ['parc','fill-color','#5CBB4C','#214A35'], ['sport','fill-color','#56C17C','#1D4639'], ['water','fill-color','#2FB4F0','#123A63'],
+  ['rail','line-color','#7C8899','#3A4158'], ['road-side','line-color','#E4E9F1','#2A3550'], ['road-casing','line-color',['case',CHEMIN,'#B88A4A','#3F4860'],['case',CHEMIN,'#6E5530','#121826']],
+  ['road','line-color',['case',CHEMIN,'#E8CF94',IMPORTANT,'#59627A','#666F86'],['case',CHEMIN,'#5E4E33',IMPORTANT,'#38425C','#323B53']], ['road-axis','line-color','#FFFFFF','#AEB8CC'],
+  ['road-label','text-color','#FFFFFF','#E3E8F2'], ['road-label','text-halo-color','#2F3749','#0A0F1E'], ['bati-3d','fill-extrusion-color',COULEUR_BATI,COULEUR_BATI_NUIT],
+  ['bati-toit','fill-extrusion-color',COULEUR_TOIT,COULEUR_TOIT_NUIT], ['bati-ombre','fill-color','rgba(25,60,30,0.32)','rgba(0,0,0,0.38)'], ['bati-pied','line-color','rgba(20,40,30,0.45)','rgba(0,0,0,0.55)'] ];
 function estNuit(){ const q=new URLSearchParams(location.search).get('carte'); if(q==='nuit') return true; if(q==='jour') return false;
   const h=new Date().getHours(); return h>=20 || h<7; }
 function couleursCarte(){ const n=estNuit(); if(n===CARTE_NUIT_POSEE || !map.isStyleLoaded()) return; CARTE_NUIT=CARTE_NUIT_POSEE=n;
   COULEURS_CARTE.forEach(([c,p,j,nu])=>{ try{ map.setPaintProperty(c,p,n?nu:j); }catch(e){} });
-  try{ map.setLight(n ? { anchor:'viewport', color:'#fff1dc', intensity:0.5, position:[1.3,210,35] } : { anchor:'viewport', color:'#fff7e6', intensity:0.45, position:[1.3,200,40] }); }catch(e){}
+  try{ map.setLight(n ? { anchor:'viewport', color:'#dfe6ff', intensity:0.55, position:[1.3,210,35] } : { anchor:'viewport', color:'#ffffff', intensity:0.7, position:[1.2,220,35] }); }catch(e){}
+  try{ map.setSky(n ? { 'sky-color':'#0B1530', 'horizon-color':'#26365E', 'fog-color':'#16263C', 'sky-horizon-blend':0.6, 'horizon-fog-blend':0.6, 'fog-ground-blend':0.55 }
+    : { 'sky-color':'#5EC2FF', 'horizon-color':'#EAF8FF', 'fog-color':'#E4F4DA', 'sky-horizon-blend':0.6, 'horizon-fog-blend':0.6, 'fog-ground-blend':0.55 }); }catch(e){}
   styleParcelles(map.getPitch()<=5); document.documentElement.classList.toggle('carte-nuit', n); }
 map.on('load', couleursCarte); setInterval(couleursCarte, 60000);
 function vue3d(){ map.easeTo({pitch:58, duration:500}); b3d.classList.add('on'); b2d.classList.remove('on'); styleParcelles(false); }
