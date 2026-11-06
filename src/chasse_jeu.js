@@ -269,5 +269,6 @@
   function demarrer() { suivre(); setInterval(suivre, 60000); document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') suivre(); }); }
   if (MODE_SERVEUR) setTimeout(demarrer, 4000); else setTimeout(() => { majBandeau(); }, 1000);
   CH.suivre = suivre; CH.entrer = entrer;
+  CH.inscrire = () => actionBandeau('inscrire');   // (le gros bouton de l’accueil)
   CH._demo = D;   // (les outils d’essai : tools/visite_ecrans.js)
 })();
