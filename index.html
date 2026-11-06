@@ -862,9 +862,12 @@ function promMontrer(){ const n=++PROM.pas; promMarqueur(); promAfficher(); prom
 function promMarqueur(){ if(!PROM.marqueur){ const el=document.createElement('div'); el.className='marcheur'; el.innerHTML='<i class="cone"></i><i class="pt"></i>';
     PROM.marqueur=new maplibregl.Marker({element:el, rotationAlignment:'map', pitchAlignment:'map'}).setLngLat([PROM.lon,PROM.lat]).addTo(map); }
   PROM.marqueur.setLngLat([PROM.lon,PROM.lat]).setRotation(PROM.cap); }
-// la carte suit : le marcheur au milieu de la partie visible, le regard vers le haut de l'écran
-function promCamera(){ const haut=document.querySelector('#prom .prom-vue').offsetHeight, bas=document.querySelector('#prom .prom-bas').offsetHeight, z=map.getZoom();
-  map.easeTo({ center:[PROM.lon,PROM.lat], bearing:PROM.cap, pitch:50, zoom: z<17.4 || z>19 ? 18 : z, padding:{top:haut, bottom:bas, left:0, right:0}, duration:650 }); }
+// la carte suit : le marcheur au milieu de la partie visible, le regard vers le haut de l'écran. Sur un téléphone, Street
+// View est en haut et le panneau en bas ; sur un grand écran, Street View est à gauche et le panneau sous la carte, à droite
+// (style.css, « grands écrans »)
+function promCamera(){ const v=document.querySelector('#prom .prom-vue').getBoundingClientRect(), b=document.querySelector('#prom .prom-bas').getBoundingClientRect(), z=map.getZoom();
+  const cote = v.width < innerWidth*0.9, padding = cote ? { top:0, bottom:Math.max(0, innerHeight-b.top), left:v.right, right:0 } : { top:v.height, bottom:b.height, left:0, right:0 };
+  map.easeTo({ center:[PROM.lon,PROM.lat], bearing:PROM.cap, pitch:50, zoom: z<17.4 || z>19 ? 18 : z, padding, duration:650 }); }
 function promSrc(){ const c=Math.round(PROM.cap), k=encodeURIComponent(CLE_GOOGLE);
   if(promAvecCle() && PROM.pano) return `https://www.google.com/maps/embed/v1/streetview?key=${k}&pano=${encodeURIComponent(PROM.pano)}&heading=${c}&pitch=0&fov=90${SV_LANGUE}`;
   if(promAvecCle()) return `https://www.google.com/maps/embed/v1/streetview?key=${k}&location=${PROM.lat.toFixed(6)},${PROM.lon.toFixed(6)}&heading=${c}&pitch=0&fov=90&source=outdoor${SV_LANGUE}`;

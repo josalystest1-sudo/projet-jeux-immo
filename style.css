@@ -1340,3 +1340,19 @@ body.avec-commune #charge{top:calc(168px + env(safe-area-inset-top))}
 html.pocket .btn.large{white-space:normal;text-align:center;flex-wrap:wrap;row-gap:2px}
 .onglets-classement{display:grid;grid-template-columns:repeat(auto-fit,minmax(118px,1fr));overflow:visible;margin-left:0;margin-right:0}
 .onglets-classement .filtre{justify-content:center}
+
+/* ---- les grands écrans (ordinateur ; retour de Gautier du 6 nov. 2026 : « sur la version web, la vue 3D de la carte ne
+   s'affiche pas en même temps que Street View, l'interface est super espacée, le bandeau de recherche est énorme suivant la
+   taille de la fenêtre »). Le jeu a été dessiné pour un téléphone : sur un grand écran, ses commandes gardent la largeur d'un
+   téléphone, en haut à gauche ; la fiche d'un lieu devient un panneau à gauche et la carte 3D reste visible à côté ; la barre
+   du bas et le contenu des écrans se resserrent au milieu ; en promenade, Street View à gauche, la carte à droite. */
+@media (min-width:900px) and (min-height:560px){
+  #top{right:auto;width:440px}
+  #sheet,html.pocket #sheet{left:12px;right:auto;width:440px;bottom:calc(var(--nav) + 12px);max-height:calc(100% - var(--nav) - 92px - env(safe-area-inset-top));border-radius:24px}
+  body.fiche-ouverte #ctrls{opacity:1;pointer-events:auto}
+  #nav{padding-left:max(4px,calc(50% - 320px));padding-right:max(4px,calc(50% - 320px))}
+  .screen{padding-left:max(14px,calc(50% - 340px));padding-right:max(14px,calc(50% - 340px))}
+  #prom .prom-vue{right:auto;bottom:0;width:50%;height:auto;border-radius:0 22px 22px 0}
+  #prom .prom-bas{left:50%;border-radius:22px 22px 0 0}
+  body.promenade #sheet{max-height:calc(100% - 24px);bottom:12px}
+}
