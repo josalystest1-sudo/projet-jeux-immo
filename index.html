@@ -1399,7 +1399,7 @@ function dessinPochette(verso){ const W=1024, H=1522, c=document.createElement('
     if(!verso){
       // la France en trait d'or, et ses grandes villes
       const lon0=2.35, lat0=46.4, kx=Math.cos(46.5*Math.PI/180), e=66, cx=W/2, cy=H*0.56; const P=([lo,la])=>[cx+(lo-lon0)*kx*e, cy-(la-lat0)*e];
-      g.save(); g.shadowColor='rgba(255,196,96,.7)'; g.shadowBlur=26; g.lineJoin=k.lineJoin='round';
+      g.save(); g.globalAlpha=0.55; g.shadowColor='rgba(255,196,96,.7)'; g.shadowBlur=26; g.lineJoin=k.lineJoin='round';
       for(const r of (GEO && GEO.france) || []){ g.beginPath(); k.beginPath(); r.forEach((q,i)=>{ const [x,y]=P(q); if(i){ g.lineTo(x,y); k.lineTo(x,y); } else { g.moveTo(x,y); k.moveTo(x,y); } }); g.closePath(); k.closePath();
         g.fillStyle='rgba(233,199,123,.07)'; g.fill(); g.strokeStyle=OR(cy-330,cy+330); g.lineWidth=5; g.stroke(); k.strokeStyle=METAL_OR; k.lineWidth=7; k.stroke(); }
       g.restore();
@@ -1407,6 +1407,8 @@ function dessinPochette(verso){ const W=1024, H=1522, c=document.createElement('
       for(const [lo,la,r] of villes){ const [x,y]=P([lo,la]); g.save(); g.shadowColor='rgba(255,220,150,.95)'; g.shadowBlur=18; g.fillStyle='#FFF1C9'; g.beginPath(); g.arc(x,y,r,0,Math.PI*2); g.fill(); g.restore();
         k.fillStyle=METAL_OR; k.beginPath(); k.arc(x,y,r,0,Math.PI*2); k.fill(); }
       const [px,py]=P([2.35,48.86]); g.strokeStyle='rgba(255,236,190,.8)'; g.lineWidth=2.5; g.beginPath(); g.arc(px,py,22,0,Math.PI*2); g.stroke();
+      // la maquette de porcelaine et d'or (la tour Eiffel), posée sur la France
+      imageMaquette('manuel-tour-eiffel', g, k, W/2, cy-40, 860);
       // le nom, le titre, la promesse
       filet(BANDE+58,180,844,3); texte(Langue.t('STREETKEEP'),BANDE+238,176,700,26,OR(BANDE+90,BANDE+240),METAL_OR); filet(BANDE+272,180,844,3);
       texte(Langue.t('PACK DU JOUR'),BANDE+352,62,600,20,'#F3E3BC','rgb(0,60,230)');
@@ -1429,6 +1431,33 @@ function dessinPochette(verso){ const W=1024, H=1522, c=document.createElement('
   // la police des capitales n'est peut-être pas encore chargée : on redessine dès qu'elle l'est
   if(document.fonts && !document.fonts.check('700 60px "Barlow Condensed"')) Promise.all([document.fonts.load('700 60px "Barlow Condensed"'), document.fonts.load('600 60px "Barlow Condensed"')]).then(()=>{ dessiner(); tc.needsUpdate=true; tm.needsUpdate=true; }).catch(()=>{});
   return { couleur:tc, metal:tm }; }
+// l'illustration héroïque de la pochette (Gautier, 6 nov. : « une maquette de porcelaine et d'or, comme sur les cartes ») :
+// la maquette 3D d'un monument (src/maquettes.js), en porcelaine blanche aux arêtes d'or, éclairée comme sur une carte,
+// dessinée une fois dans l'image de la pochette (couleur) et dans son métal (porcelaine lisse, arêtes en or)
+function imageMaquette(id, g, k, cx, cy, taille){
+  const M=window.Maquettes, m=M && M.MODELES && M.MODELES[id]; if(!m) return false;
+  let r=null; try{
+    const S=1024; r=new THREE.WebGLRenderer({ antialias:true, alpha:true }); r.setPixelRatio(1); r.setSize(S,S,false); r.setClearColor(0x000000,0); r.outputEncoding=THREE.sRGBEncoding;
+    const sc=new THREE.Scene(), o=m.construire(THREE); o.rotation.y=(m.orientation||0)*Math.PI/180;
+    const porcelaine=new THREE.MeshStandardMaterial({ color:0xF6F0E4, roughness:0.5, metalness:0.05, side:THREE.DoubleSide }), aretes=new THREE.LineBasicMaterial({ color:0xE2B860, transparent:true, opacity:0.85 });
+    const coques=[], pieces=[]; o.traverse((x)=>{ if(!x.isMesh) return; if(x.userData.contour) coques.push(x); else { x.material=porcelaine; pieces.push(x); } });
+    for(const x of coques) x.parent.remove(x);
+    for(const x of pieces){ const n=(x.geometry.index ? x.geometry.index.count : x.geometry.attributes.position.count)/3; if(n<=1500) x.add(new THREE.LineSegments(new THREE.EdgesGeometry(x.geometry,35), aretes)); }
+    sc.add(o); o.updateMatrixWorld(true);
+    const bb=new THREE.Box3().setFromObject(o), c=bb.getCenter(new THREE.Vector3()), d=bb.getSize(new THREE.Vector3()), ray=d.length()/2;
+    sc.add(new THREE.HemisphereLight(0xFFF6E6, 0x1A2650, 0.45)); const sol=new THREE.DirectionalLight(0xFFF1DA, 1.9); sol.position.copy(c).add(new THREE.Vector3(-1.4,1.8,1.2).multiplyScalar(ray)); sc.add(sol);
+    const reflet=new THREE.DirectionalLight(0xE9C77B, 1.1); reflet.position.copy(c).add(new THREE.Vector3(1.6,0.2,-1.0).multiplyScalar(ray)); sc.add(reflet);
+    const bas=new THREE.DirectionalLight(0xB8862F, 0.5); bas.position.copy(c).add(new THREE.Vector3(0.3,-1,0.8).multiplyScalar(ray)); sc.add(bas);
+    const cam=new THREE.PerspectiveCamera(28, 1, ray*0.05, ray*20); const dist=ray/Math.sin(14*Math.PI/180)*1.02, el=0.3, az=-0.55;
+    cam.position.set(c.x+Math.cos(el)*Math.cos(az)*dist, c.y+Math.sin(el)*dist, c.z+Math.cos(el)*Math.sin(az)*dist); cam.lookAt(c.x, c.y-d.y*0.04, c.z);
+    r.render(sc,cam);
+    // la couleur : une lueur d'or sous la maquette, puis la maquette ; le métal : porcelaine lisse et peu métallique
+    const lueur=g.createRadialGradient(cx,cy+taille*0.28,10,cx,cy+taille*0.28,taille*0.55); lueur.addColorStop(0,'rgba(233,199,123,.45)'); lueur.addColorStop(1,'rgba(233,199,123,0)'); g.fillStyle=lueur; g.fillRect(cx-taille,cy-taille,taille*2,taille*2);
+    g.save(); g.shadowColor='rgba(255,210,120,.85)'; g.shadowBlur=40; g.drawImage(r.domElement, cx-taille/2, cy-taille/2, taille, taille); g.restore();
+    k.save(); k.globalCompositeOperation='source-over'; const mk=document.createElement('canvas'); mk.width=mk.height=S; const q=mk.getContext('2d'); q.drawImage(r.domElement,0,0); q.globalCompositeOperation='source-in'; q.fillStyle='rgb(0,115,60)'; q.fillRect(0,0,S,S); k.drawImage(mk, cx-taille/2, cy-taille/2, taille, taille); k.restore();
+    sc.traverse((x)=>{ if(x.geometry) x.geometry.dispose(); }); porcelaine.dispose(); aretes.dispose();
+    return true;
+  }catch(e){ return false; } finally{ if(r){ try{ r.dispose(); r.forceContextLoss(); }catch(e){} } } }
 function makeArt(){ return dessinPochette(false); }
 function makeArtDos(){ return dessinPochette(true); }
 function makeNormal(){ // reliefs du foil : micro-plis + crantage des bords, générés
@@ -1436,10 +1465,30 @@ function makeNormal(){ // reliefs du foil : micro-plis + crantage des bords, gé
   const n=(x,y)=>{ let v=0, a=1, f=1; for(let o=0;o<4;o++){ v+=a*Math.sin((x*f*0.07)+Math.cos(y*f*0.05)*2.0)*Math.cos((y*f*0.06)+Math.sin(x*f*0.04)*2.0); a*=0.5; f*=2.1; } return v; };
   for(let y=0;y<S;y++) for(let x=0;x<S;x++){ const h=n(x,y); const dx=n(x+1,y)-h, dy=n(x,y+1)-h; const i=(y*S+x)*4; d[i]=128+dx*90; d[i+1]=128+dy*90; d[i+2]=255; d[i+3]=255; }
   g.putImageData(img,0,0); const t=new THREE.CanvasTexture(c); t.wrapS=t.wrapT=THREE.RepeatWrapping; t.repeat.set(2,3); return t; }
+// l'épaisseur du film irisé (ce qui fait glisser des bandes arc-en-ciel sur le sachet quand on l'incline, façon
+// Pokémon TCG Pocket ; Gautier, 6 nov. : « holo partout, arc-en-ciel franc ») : de grandes taches douces et de fines
+// rayures en diagonale, dans le vert (le canal lu par Three.js)
+function makeEpaisseurHolo(){ const S=512, c=document.createElement('canvas'); c.width=c.height=S; const g=c.getContext('2d'); const img=g.createImageData(S,S), d=img.data;
+  const n=(x,y)=>Math.sin(x*0.013+Math.cos(y*0.011)*1.7)*Math.cos(y*0.012+Math.sin(x*0.009)*1.5)*0.5+0.5;
+  for(let y=0;y<S;y++) for(let x=0;x<S;x++){ const v=0.22+0.66*n(x,y)+0.1*(0.5+0.5*Math.sin((x+y)*1.05)); const i=(y*S+x)*4; d[i]=d[i+1]=d[i+2]=Math.round(Math.max(0,Math.min(1,v))*255); d[i+3]=255; }
+  g.putImageData(img,0,0); const t=new THREE.CanvasTexture(c); t.wrapS=t.wrapT=THREE.RepeatWrapping; t.repeat.set(1.5,2.2); return t; }
+// les paillettes du foil : de petits points blancs clairsemés, en lumière additive, dont l'éclat suit l'inclinaison
+function makePaillettes(){ const S=512, c=document.createElement('canvas'); c.width=c.height=S; const g=c.getContext('2d'); g.clearRect(0,0,S,S);
+  for(let i=0;i<2200;i++){ const x=Math.random()*S, y=Math.random()*S, r=0.5+Math.random()*1.1, a=0.25+Math.random()*0.75; g.fillStyle=`rgba(255,250,235,${a})`; g.beginPath(); g.arc(x,y,r,0,Math.PI*2); g.fill(); }
+  const t=new THREE.CanvasTexture(c); t.encoding=THREE.sRGBEncoding; t.wrapS=t.wrapT=THREE.RepeatWrapping; t.repeat.set(2,3); return t; }
+// le fond de la scène : une pièce sombre, bleu nuit au centre, noire vers les bords (plus de fond plat)
+function fondScene(){ const c=document.createElement('canvas'); c.width=256; c.height=512; const g=c.getContext('2d');
+  g.fillStyle='#0A1434'; g.fillRect(0,0,256,512); const r=g.createRadialGradient(128,200,10,128,220,330); r.addColorStop(0,'#1C3376'); r.addColorStop(0.5,'#0F1F4E'); r.addColorStop(1,'#0A1434'); g.fillStyle=r; g.fillRect(0,0,256,512);
+  const t=new THREE.CanvasTexture(c); t.encoding=THREE.sRGBEncoding; return t; }
+// le rayon de lumière qui sort de l'ouverture quand la bande s'arrache (couleur de la meilleure carte du pack)
+function texRayon(){ const c=document.createElement('canvas'); c.width=64; c.height=256; const g=c.getContext('2d');
+  const v=g.createLinearGradient(0,256,0,0); v.addColorStop(0,'rgba(255,255,255,1)'); v.addColorStop(0.35,'rgba(255,255,255,.55)'); v.addColorStop(1,'rgba(255,255,255,0)'); g.fillStyle=v; g.fillRect(0,0,64,256);
+  g.globalCompositeOperation='destination-in'; const h=g.createLinearGradient(0,0,64,0); h.addColorStop(0,'rgba(0,0,0,0)'); h.addColorStop(0.5,'rgba(0,0,0,1)'); h.addColorStop(1,'rgba(0,0,0,0)'); g.fillStyle=h; g.fillRect(0,0,64,256);
+  const t=new THREE.CanvasTexture(c); t.encoding=THREE.sRGBEncoding; return t; }
 function makeRough(){ const S=256; const c=document.createElement('canvas'); c.width=S; c.height=S; const g=c.getContext('2d'); const img=g.createImageData(S,S); const d=img.data; for(let i=0;i<S*S;i++){ const v=150+Math.random()*60; d[i*4]=d[i*4+1]=d[i*4+2]=v; d[i*4+3]=255; } g.putImageData(img,0,0); const t=new THREE.CanvasTexture(c); t.wrapS=t.wrapT=THREE.RepeatWrapping; t.repeat.set(3,3); return t; }
 function initGL(){ const cv=document.getElementById('pkgl'); const r=new THREE.WebGLRenderer({canvas:cv, antialias:true, alpha:false}); r.setPixelRatio(Math.min(1.5,devicePixelRatio)); r.setSize(cv.clientWidth, cv.clientHeight, false);
   r.outputEncoding=THREE.sRGBEncoding; r.toneMapping=THREE.ACESFilmicToneMapping; r.toneMappingExposure=1.0; r.physicallyCorrectLights=true;
-  const sc=new THREE.Scene(); sc.background=new THREE.Color(0x060b1c); const cam=new THREE.PerspectiveCamera(32, cv.clientWidth/cv.clientHeight, 0.1, 100); cam.position.set(0,0.1,10.2);
+  const sc=new THREE.Scene(); sc.background=fondScene(); const cam=new THREE.PerspectiveCamera(32, cv.clientWidth/cv.clientHeight, 0.1, 100); cam.position.set(0,0.1,10.2);
   // environnement de studio généré (reflets) : aucun fichier
   const pm=new THREE.PMREMGenerator(r); sc.environment=pm.fromScene(new THREE.RoomEnvironment(), 0.04).texture;
   const key=new THREE.SpotLight(0xfff2dd, 380, 40, Math.PI/5, 0.5); key.position.set(4,6,8); sc.add(key);
@@ -1447,12 +1496,15 @@ function initGL(){ const cv=document.getElementById('pkgl'); const r=new THREE.W
   const warm=new THREE.PointLight(0xffd65a, 150, 30); warm.position.set(-3,-2,6); sc.add(warm);
   // la pochette : un sachet métallisé bombé (refonte du 4 nov. : avant, une boîte), soudé en bas et en haut par des bandes
   // dentelées ; le haut, au-dessus de la ligne de déchirure, est une pièce à part qui s'arrache (pivot, poserCharniere)
-  const art=makeArt(), dos=makeArtDos(), nrm=makeNormalSachet();
-  const matiere=(t)=>new THREE.MeshPhysicalMaterial({ map:t.couleur, metalnessMap:t.metal, roughnessMap:t.metal, metalness:1, roughness:1, normalMap:nrm, normalScale:new THREE.Vector2(0.55,0.55),
-    clearcoat:0.45, clearcoatRoughness:0.12, iridescence:0.3, iridescenceIOR:1.45, iridescenceThicknessRange:[180,480], envMapIntensity:1.4 });
-  const recto=matiere(art), verso=matiere(dos), dedans=new THREE.MeshStandardMaterial({ color:0x0a1024, roughness:0.55, metalness:0.5, side:THREE.BackSide, polygonOffset:true, polygonOffsetFactor:2, polygonOffsetUnits:6 });
+  const art=makeArt(), dos=makeArtDos(), nrm=makeNormalSachet(), epaisseur=makeEpaisseurHolo();
+  // le foil (6 nov., Gautier : « holo partout, arc-en-ciel franc qui bouge avec l'inclinaison ») : film irisé à fond, dont
+  // l'épaisseur varie sur le sachet (makeEpaisseurHolo), vernis plus présent, froissé plus discret pour ne pas hacher l'arc-en-ciel
+  const matiere=(t,iris)=>new THREE.MeshPhysicalMaterial({ map:t.couleur, metalnessMap:t.metal, roughnessMap:t.metal, metalness:1, roughness:1, normalMap:nrm, normalScale:new THREE.Vector2(0.35,0.35),
+    clearcoat:0.7, clearcoatRoughness:0.2, iridescence:iris, iridescenceIOR:1.35, iridescenceThicknessRange:[220,640], iridescenceThicknessMap:epaisseur, envMapIntensity:1.35 });
+  const recto=matiere(art,0.8), verso=matiere(dos,0.45),
+    pail=new THREE.MeshBasicMaterial({ map:makePaillettes(), transparent:true, opacity:0.2, blending:THREE.AdditiveBlending, depthWrite:false, polygonOffset:true, polygonOffsetFactor:-1, polygonOffsetUnits:-2 }), dedans=new THREE.MeshStandardMaterial({ color:0x0a1024, roughness:0.55, metalness:0.5, side:THREE.BackSide, polygonOffset:true, polygonOffsetFactor:2, polygonOffsetUnits:6 });
   const pack=new THREE.Group();
-  const morceau=(y0,y1)=>{ const g=new THREE.Group(), a=geoSachet(y0,y1,false), b=geoSachet(y0,y1,true); g.add(new THREE.Mesh(a,recto), new THREE.Mesh(b,verso), new THREE.Mesh(a,dedans), new THREE.Mesh(b,dedans)); return g; };
+  const morceau=(y0,y1)=>{ const g=new THREE.Group(), a=geoSachet(y0,y1,false), b=geoSachet(y0,y1,true); g.add(new THREE.Mesh(a,recto), new THREE.Mesh(b,verso), new THREE.Mesh(a,dedans), new THREE.Mesh(b,dedans), new THREE.Mesh(a,pail)); return g; };
   const body=morceau(SACHET.bas, SACHET.dech); pack.add(body);
   const strip=morceau(SACHET.dech, SACHET.haut);
   // le haut se déchire depuis le côté où le doigt commence : il tourne autour d'une charnière à l'autre bout (poserCharniere)
@@ -1465,20 +1517,33 @@ function initGL(){ const cv=document.getElementById('pkgl'); const r=new THREE.W
   { const N=46, pos=[], idx=[]; for(let i=0;i<=N;i++){ const x=-1.15+2.3*i/N, z=bombeSachet(x,SACHET.dech)+0.004; pos.push(x,SACHET.dech-0.011,z, x,SACHET.dech+0.011,z); if(i<N && i%2===0){ const a=i*2; idx.push(a,a+2,a+1, a+1,a+2,a+3); } }
     const dg=new THREE.BufferGeometry(); dg.setAttribute('position', new THREE.Float32BufferAttribute(pos,3)); dg.setIndex(idx);
     pack.add(new THREE.Mesh(dg, new THREE.MeshBasicMaterial({ color:0xfff1c9, transparent:true, opacity:0.85, side:THREE.DoubleSide }))); }
+  // le rayon de lumière de l'ouverture (animGL, quand la bande est arrachée) : un plan vertical en lumière additive, posé
+  // sur la ligne d'ouverture, qui s'étire vers le haut
+  const rayon=new THREE.Mesh(new THREE.PlaneGeometry(1.3,4.5).translate(0,2.25,0), new THREE.MeshBasicMaterial({ map:texRayon(), color:0xfff1c9, transparent:true, opacity:0, blending:THREE.AdditiveBlending, depthWrite:false, side:THREE.DoubleSide }));
+  rayon.position.set(0,SACHET.dech,0.3); rayon.scale.y=0.001; pack.add(rayon);
   sc.add(pack);
   const N=260; const pg=new THREE.BufferGeometry(); const pos=new Float32Array(N*3); const vel=[]; for(let i=0;i<N;i++){ pos[i*3]=0; pos[i*3+1]=1.4; pos[i*3+2]=0; vel.push([ (Math.random()-.5)*4, Math.random()*4+1, (Math.random()-.5)*3 ]); }
   pg.setAttribute('position', new THREE.BufferAttribute(pos,3)); const parts=new THREE.Points(pg, new THREE.PointsMaterial({color:0xffe08a, size:0.08, transparent:true, opacity:0, blending:THREE.AdditiveBlending, depthWrite:false})); sc.add(parts);
   // bloom
   const composer=new THREE.EffectComposer(r); composer.addPass(new THREE.RenderPass(sc,cam)); const bloom=new THREE.UnrealBloomPass(new THREE.Vector2(cv.clientWidth/2,cv.clientHeight/2), 0.35, 0.5, 0.92); composer.addPass(bloom);
-  Object.assign(GL,{r,scene:sc,cam,pack,strip,pivot,spark,eclatsD,evie,parts,vel,key,composer,bloom,uni:{uReady:{value:0}},t0:performance.now(),torn:false,tilt:{x:0,y:0},target:{x:0,y:0},tornAt:0,
+  Object.assign(GL,{r,scene:sc,cam,pack,strip,pivot,spark,eclatsD,evie,parts,vel,key,rim,warm,pail,rayon,rmax:null,composer,bloom,uni:{uReady:{value:0}},t0:performance.now(),torn:false,tilt:{x:0,y:0},target:{x:0,y:0},tornAt:0,
     dech:{ p:0, cible:0, sens:1, actif:false, pas:0 }, tPrec:performance.now()});
   cancelAnimationFrame(GL.raf); animGL(); }
 function animGL(){ GL.raf=requestAnimationFrame(animGL); const g=GL; if(!g.r) return; const t=(performance.now()-g.t0)/1000;
   if(g.cam){ const z=document.body.classList.contains('vitrine') ? 13.4*Math.min(1.35, Math.max(1, 740/innerHeight)) : 10.2; const y=document.body.classList.contains('vitrine') ? -0.3 : 0.1; if(Math.abs(g.cam.position.z-z)>0.01 || Math.abs(g.cam.position.y-y)>0.01){ g.cam.position.z+=(z-g.cam.position.z)*0.12; g.cam.position.y+=(y-g.cam.position.y)*0.12; } }   // (l'accueil : src/accueil.js)
   g.tilt.x+=(g.target.x-g.tilt.x)*0.08; g.tilt.y+=(g.target.y-g.tilt.y)*0.08;
-  g.pack.rotation.y=Math.sin(t*0.9)*0.14+g.tilt.x*0.7; g.pack.rotation.x=Math.max(-0.05, Math.cos(t*0.7)*0.07-g.tilt.y*0.55);   // jamais penchée en arrière : face au « plafond » lumineux, elle devenait toute blanche g.pack.position.y=Math.sin(t*1.3)*0.12;
+  // l'entrée : la pochette arrive de loin en tournant sur elle-même, et s'arrête face au joueur (1,1 s)
+  const ent=Math.min(1,t/1.1), entE=1-Math.pow(1-ent,3);
+  g.pack.rotation.y=Math.sin(t*0.9)*0.16+g.tilt.x*0.8-(1-entE)*Math.PI; g.pack.rotation.x=Math.max(-0.05, Math.cos(t*0.7)*0.07-g.tilt.y*0.55);   // jamais penchée en arrière : face au « plafond » lumineux, elle devenait toute blanche g.pack.position.y=Math.sin(t*1.3)*0.12;
+  if(!g.torn) g.pack.position.z=-7*(1-entE);
   g.key.position.x=4+Math.sin(t*0.6)*2.5; g.key.position.y=6+Math.cos(t*0.5)*1.5;
-  g.bloom.strength = 0.3 + 0.15*g.uni.uReady.value*(0.5+0.5*Math.sin(t*2.2));
+  // deux lumières (bleue, dorée) tournent autour du sachet : l'arc-en-ciel du foil court même sans toucher l'écran
+  g.rim.position.set(Math.cos(t*1.6)*5, 2+Math.sin(t*0.9)*1.5, Math.sin(t*1.6)*4); g.warm.position.set(-Math.cos(t*1.3)*4.5, -1.5+Math.cos(t*0.8)*1.2, 3+Math.sin(t*1.3)*3);
+  // les paillettes scintillent quand le sachet est de biais, et une Épique ou mieux dans le pack fait pulser la lumière
+  if(packCards && g.rmax==null){ g.rmax=Math.max(1, ...packCards.map(c=>rarete(c))); if(g.rmax>=3){ g.eclatsD.material.color.set(COULEUR_RARETE[g.rmax]); g.rayon.material.color.set(COULEUR_RARETE[g.rmax]); } }
+  const biais=Math.min(1, Math.abs(g.pack.rotation.y)/0.35+Math.abs(g.pack.rotation.x)/0.3); g.pail.opacity=0.06+0.42*biais*(0.75+0.25*Math.sin(t*7.3));
+  const pouls=(g.rmax>=4 && !g.torn) ? 0.5+0.5*Math.sin(t*2.6) : 0; g.key.intensity=380+260*pouls;
+  g.bloom.strength = 0.3 + 0.15*g.uni.uReady.value*(0.5+0.5*Math.sin(t*2.2)) + 0.2*pouls;
   const maintenant=performance.now(), pasT=Math.min(0.05,(maintenant-g.tPrec)/1000); g.tPrec=maintenant; const d=g.dech;
   if(!g.torn){ d.p+=(d.cible-d.p)*(d.actif ? 0.35 : 0.16); if(d.p<0.001) d.p=0;
     // le rabat se soulève depuis le côté du doigt ; l'étincelle suit le point de déchirure
@@ -1489,6 +1554,8 @@ function animGL(){ GL.raf=requestAnimationFrame(animGL); const g=GL; if(!g.r) re
   avancerEclats(g, pasT);
   if(g.torn){ const dt=(performance.now()-g.tornAt)/1000, s0=d.sens; g.pivot.position.y=1.17+dt*5; g.pivot.position.x=1.15*s0+s0*dt*1.4; g.pivot.rotation.z=-s0*(0.55+dt*2.6); g.pivot.rotation.x=0.45+dt*2.4;
     g.spark.material.opacity=Math.max(0,0.9-dt*2.5);
+    // le rayon de lumière jaillit de l'ouverture (0,5 s), puis s'éteint
+    { const k=Math.min(1,dt*2.2); g.rayon.scale.y=Math.max(0.001,k); g.rayon.material.opacity=0.9*k*Math.max(0,1-Math.max(0,dt-0.6)/1.2); }
     // les cartes sortent d'abord (sortirCartes) ; puis le sachet tombe, et dévoile le bas des cartes (SORTIE.chute)
     const chute=Math.max(0,dt-SORTIE.chute/1000); g.pack.position.y=-chute*chute*22;
     if(SORTIE.clip || chute>0){ g.pack.updateMatrixWorld(true); const w=g.pack.localToWorld((g.vOuv||(g.vOuv=new THREE.Vector3())).set(0,1.17,0.12)).project(g.cam);
@@ -1701,7 +1768,7 @@ function sonTick(fq){ const a=audio(); if(!a) return; const o=a.createOscillator
 let revealing=false;
 let packCards=null, packTorn=false;
 let packOuverture=null;   // la ligne d'ouverture du pack à l'écran (les cartes en sortent)
-function openScene(){ const sc=document.getElementById('packscene'); setTimeout(()=>{ try{ document.documentElement.style.setProperty('--dos-carte', `url(${imageDosCarte()})`); }catch(e){} }, 250); packTorn=false; packCards=null; packOuverture=null; document.getElementById('pkgl').style.display='block';
+function openScene(){ const sc=document.getElementById('packscene'); setTimeout(()=>{ try{ document.documentElement.style.setProperty('--dos-carte', `url(${imageDosCarte()})`); }catch(e){} }, 250); packTorn=false; packCards=null; packOuverture=null; GL.rmax=null; document.getElementById('pkgl').style.display='block';
   document.getElementById('pkcards').innerHTML=''; document.getElementById('packdone').style.display='none'; document.getElementById('pkhint').textContent='Incline ton téléphone…'; document.getElementById('pkload').textContent='Le pack arrive…';
   sc.classList.add('on'); requestAnimationFrame(()=>{ sc.classList.add('show'); initGL(); }); }
 function finPack(){ const sc=document.getElementById('packscene'); cancelAnimationFrame(PK.anim); if(PACK_ESSAI){ PACK_ESSAI=false; setTimeout(()=>toast('Pack d’essai : rien n’a été ajouté à ton patrimoine'), 600); } sc.classList.remove('show','fini'); setTimeout(()=>{ sc.classList.remove('on'); disposeGL(); }, 500); renderPatrimoine(); refreshTop(); if(window.ACCUEIL) setTimeout(ACCUEIL.apresPack, 550); if(!state.prefs.guideVu && !document.getElementById('s-accueil').classList.contains('on')) setTimeout(()=>guide(0), 900); }
