@@ -17,7 +17,7 @@
 const VERSION='__VERSION__';
 (function(){ if(VERSION.indexOf('__')===0) return; let dernier=0;
   function occupe(){ const a=document.activeElement;
-    return !!(document.querySelector('#packscene.on') || document.querySelector('#modal.on') || (a && /^(INPUT|TEXTAREA)$/.test(a.tagName)) || (typeof PROM!=='undefined' && PROM.on)); }
+    return !!((document.querySelector('#packscene.on') && !document.body.classList.contains('vitrine')) || document.querySelector('#modal.on') || (a && /^(INPUT|TEXTAREA)$/.test(a.tagName)) || (typeof PROM!=='undefined' && PROM.on)); }
   function verifier(auDemarrage){ if(Date.now()-dernier<30000) return; dernier=Date.now();
     fetch('version.json?t='+Date.now(), {cache:'no-store'}).then(r=>r.ok?r.json():null).then(j=>{ if(!j || !j.v || j.v===VERSION) return;
       if(!auDemarrage && occupe()) return;
@@ -125,13 +125,15 @@ const VERSION='__VERSION__';
 </div>
 
 <!-- écrans -->
+<div class="screen" id="s-accueil"></div>
 <div class="screen" id="s-patrimoine"></div>
 <div class="screen" id="s-encheres"></div>
 <div class="screen" id="s-communes"></div>
 <div class="screen" id="s-notifs"></div>
 
 <div id="nav">
-  <button data-s="carte" class="on"><i>🗺️</i>Carte</button>
+  <button data-s="accueil" class="on"><i>🏠</i>Accueil</button>
+  <button data-s="carte"><i>🗺️</i>Carte</button>
   <button data-s="patrimoine"><i>🏘️</i>Patrimoine</button>
   <button id="packbtn" class="pack-nav attente" aria-label="Pack du jour"><span class="pack-rond">🎁</span><span class="pack-t" id="packt">Pack</span></button>
   <button data-s="encheres"><i>🔨</i>Enchères<span class="cnt" id="cnt-ench"></span></button>
@@ -445,7 +447,7 @@ let ARRIVEE_FAITE=false;
 function descenteArrivee(){ if(ARRIVEE_FAITE) return; ARRIVEE_FAITE=true; const c=map.getCenter();
   if(Math.abs(c.lng-VUE_DEPART.center[0])>1e-6 || Math.abs(c.lat-VUE_DEPART.center[1])>1e-6) return;
   map.easeTo({ zoom:VUE_DEPART.zoom, pitch:VUE_DEPART.pitch, bearing:VUE_DEPART.bearing, duration:2600, easing:t=>1-Math.pow(1-t,3) }); }
-map.on('load', ()=>setTimeout(descenteArrivee, 400));
+map.on('load', ()=>setTimeout(()=>{ if(!document.querySelector('.screen.on')) descenteArrivee(); }, 400));   // (seulement si la carte est à l'écran : sinon, à son premier affichage)
 let vueMinut=null;
 map.on('moveend', ()=>{ clearTimeout(vueMinut); vueMinut=setTimeout(()=>{ if(!ARRIVEE_FAITE || PROM.on || (window.CHASSE && CHASSE.dans) || document.getElementById('voyage').classList.contains('on')) return;
   const c=map.getCenter(); try{ localStorage.setItem('cadastra-vue', JSON.stringify({ lon:+c.lng.toFixed(6), lat:+c.lat.toFixed(6), zoom:+map.getZoom().toFixed(2), pitch:Math.round(map.getPitch()), bearing:Math.round(map.getBearing()) })); }catch(e){} }, 900); });
@@ -1050,7 +1052,7 @@ function carteArt(a, bandeau){ const adr=estAdresse(a), commune=echapper(commune
 function icoLieuHTML(a){ if(!estAdresse(a)) return iconeLieu(a); const { numero } = Regles.numeroEtVoie(a.label); return numero ? `<span class="numero">${echapper(numero.split(' ')[0])}</span>` : '<span class="mini-plaque"></span>'; }
 function echapper(t){ return String(t==null?'':t).replace(/[&<>"]/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
 // après une action sur un lieu : tout ce qui l'affiche se redessine
-function apresAction(){ if(currentParcel) renderAddrs(); if(PROM.on) promCarte(); if(document.getElementById('s-patrimoine').classList.contains('on')) renderPatrimoine(); if(ficheOuverte) ouvrirFicheLieu(ficheOuverte); }
+function apresAction(){ if(window.ACCUEIL) ACCUEIL.render(); if(currentParcel) renderAddrs(); if(PROM.on) promCarte(); if(document.getElementById('s-patrimoine').classList.contains('on')) renderPatrimoine(); if(ficheOuverte) ouvrirFicheLieu(ficheOuverte); }
 let ficheOuverte=null;
 function echelleHTML(a, lv, pl, moi, rec){
   // Terrain → Tour pour tous (le reste grisé « Hors plafond ») ; au-delà, jusqu'au bâtiment de sa rareté. Une longue échelle
@@ -1471,6 +1473,7 @@ function initGL(){ const cv=document.getElementById('pkgl'); const r=new THREE.W
     dech:{ p:0, cible:0, sens:1, actif:false, pas:0 }, tPrec:performance.now()});
   cancelAnimationFrame(GL.raf); animGL(); }
 function animGL(){ GL.raf=requestAnimationFrame(animGL); const g=GL; if(!g.r) return; const t=(performance.now()-g.t0)/1000;
+  if(g.cam){ const z=document.body.classList.contains('vitrine') ? 13.4*Math.min(1.35, Math.max(1, 740/innerHeight)) : 10.2; const y=document.body.classList.contains('vitrine') ? -0.3 : 0.1; if(Math.abs(g.cam.position.z-z)>0.01 || Math.abs(g.cam.position.y-y)>0.01){ g.cam.position.z+=(z-g.cam.position.z)*0.12; g.cam.position.y+=(y-g.cam.position.y)*0.12; } }   // (l'accueil : src/accueil.js)
   g.tilt.x+=(g.target.x-g.tilt.x)*0.08; g.tilt.y+=(g.target.y-g.tilt.y)*0.08;
   g.pack.rotation.y=Math.sin(t*0.9)*0.14+g.tilt.x*0.7; g.pack.rotation.x=Math.max(-0.05, Math.cos(t*0.7)*0.07-g.tilt.y*0.55);   // jamais penchée en arrière : face au « plafond » lumineux, elle devenait toute blanche g.pack.position.y=Math.sin(t*1.3)*0.12;
   g.key.position.x=4+Math.sin(t*0.6)*2.5; g.key.position.y=6+Math.cos(t*0.5)*1.5;
@@ -1700,7 +1703,7 @@ let packOuverture=null;   // la ligne d'ouverture du pack à l'écran (les carte
 function openScene(){ const sc=document.getElementById('packscene'); setTimeout(()=>{ try{ document.documentElement.style.setProperty('--dos-carte', `url(${imageDosCarte()})`); }catch(e){} }, 250); packTorn=false; packCards=null; packOuverture=null; document.getElementById('pkgl').style.display='block';
   document.getElementById('pkcards').innerHTML=''; document.getElementById('packdone').style.display='none'; document.getElementById('pkhint').textContent='Incline ton téléphone…'; document.getElementById('pkload').textContent='Le pack arrive…';
   sc.classList.add('on'); requestAnimationFrame(()=>{ sc.classList.add('show'); initGL(); }); }
-function finPack(){ const sc=document.getElementById('packscene'); cancelAnimationFrame(PK.anim); if(PACK_ESSAI){ PACK_ESSAI=false; setTimeout(()=>toast('Pack d’essai : rien n’a été ajouté à ton patrimoine'), 600); } sc.classList.remove('show','fini'); setTimeout(()=>{ sc.classList.remove('on'); disposeGL(); }, 500); renderPatrimoine(); refreshTop(); if(!state.prefs.guideVu) setTimeout(()=>guide(0), 900); }
+function finPack(){ const sc=document.getElementById('packscene'); cancelAnimationFrame(PK.anim); if(PACK_ESSAI){ PACK_ESSAI=false; setTimeout(()=>toast('Pack d’essai : rien n’a été ajouté à ton patrimoine'), 600); } sc.classList.remove('show','fini'); setTimeout(()=>{ sc.classList.remove('on'); disposeGL(); }, 500); renderPatrimoine(); refreshTop(); if(window.ACCUEIL) setTimeout(ACCUEIL.apresPack, 550); if(!state.prefs.guideVu && !document.getElementById('s-accueil').classList.contains('on')) setTimeout(()=>guide(0), 900); }
 function dechirer(){ if(GL.torn) return; packTorn=true; packOuverture=null;
   if(GL.r && GL.pack){ const cv=document.getElementById('pkgl'), r=cv.getBoundingClientRect(), w=GL.pack.localToWorld(new THREE.Vector3(0,1.17,0.12)).project(GL.cam); packOuverture=r.top+(1-w.y)/2*r.height; }
   if(GL.dech){ GL.dech.actif=false; GL.dech.cible=1; } sonDechirureFin(); GL.torn=true; GL.tornAt=performance.now(); sonDechirure(); sonOuverture(); document.getElementById('pkhint').textContent='';
@@ -1975,9 +1978,10 @@ function estLibre(c){ return !state.owned[c.id] && ownerOf(c)===null; }
 const TIRAGE = Tirage.creer({ geoJSON, celebres:chargerCelebres, france:GEO.france, deps:DEP_BOITES.map(d=>d.code), contours:Object.fromEntries(Object.entries(GEO.deps).map(([k,d])=>[k,d.rings])), standing:STANDING, Celebres, Pack, rarete, estLibre });
 async function ouvrirPack(opts){ opts=opts||{}; const payant=opts.payant; const sc0=document.getElementById('packscene');
   // un seul pack à la fois : un deuxième toucher (ou l'ouverture automatique) pendant que le serveur tire refermait la scène
-  if(document.getElementById('packbtn').dataset.ouverture || sc0.classList.contains('on')) return;
+  const enVitrine=document.body.classList.contains('vitrine');   // (l'accueil montre déjà le sachet : src/accueil.js)
+  if(document.getElementById('packbtn').dataset.ouverture || (sc0.classList.contains('on') && !enVitrine)) return;
   if(payant){ if(!BOU.peutPayer(payant, state.gemmes)) return toast(`Il te manque ${nb(BOU.prix(payant)-(state.gemmes||0))} 💎 : la boutique en vend`); closeModal(); }
-  else if(!packDispo()){ const s=secondesAvantPack(); return toast(enVraisJours() ? `Prochain pack à minuit (dans ${dureeCourte(s)})` : `Prochain pack dans ${dureeCourte(s)} (${MODE_SERVEUR ? 'serveur d’essai' : 'démo'} : un jour = ${Math.round(JOUR/60000)} min)`); } const btn=document.getElementById('packbtn'); btn.dataset.ouverture='1'; document.getElementById('packt').textContent='…'; openScene();
+  else if(!packDispo()){ const s=secondesAvantPack(); return toast(enVraisJours() ? `Prochain pack à minuit (dans ${dureeCourte(s)})` : `Prochain pack dans ${dureeCourte(s)} (${MODE_SERVEUR ? 'serveur d’essai' : 'démo'} : un jour = ${Math.round(JOUR/60000)} min)`); } const btn=document.getElementById('packbtn'); btn.dataset.ouverture='1'; document.getElementById('packt').textContent='…'; if(enVitrine){ document.body.classList.remove('vitrine'); document.getElementById('pkload').textContent='Le pack arrive…'; } else openScene();
   // les cartes sont tirées en parallèle ; une carte manquante (réseau capricieux) est complétée par une Commune
   // (mode serveur : le serveur tire, avec une graine secrète, et les lieux sont à toi dès qu'il répond)
   let cards;
@@ -1988,7 +1992,7 @@ async function ouvrirPack(opts){ opts=opts||{}; const payant=opts.payant; const 
   else { const base=(state.pseudo||'?')+':'+jour(); cards=await TIRAGE.tirerPack(base, ECO.pack.chances, BOU.cartesDuJour(state.pass, now())); }
   delete btn.dataset.ouverture; refreshPack();
   if(!cards.length){ finPack(); return toast('Pack impossible à tirer : vérifie ta connexion'); }
-  encaisser(true); if(!payant) state.lastPack=jour(); for(const c of cards){ if(!MODE_SERVEUR) state.owned[c.id]=Object.assign({}, c, {niveau:0, depuis:now()}); state.seen[c.id]='libre'; setBadge(c,0); } save(); refreshTop();
+  encaisser(true); if(!payant) state.lastPack=jour(); state.cartesDuJour={ le:now(), ids:cards.map(c=>c.id) }; for(const c of cards){ if(!MODE_SERVEUR) state.owned[c.id]=Object.assign({}, c, {niveau:0, depuis:now()}); state.seen[c.id]='libre'; setBadge(c,0); } save(); refreshTop();
   // tri : les communes d'abord, la meilleure carte en dernier (suspense)
   cards.sort((a,b)=>rarete(a)-rarete(b)); packCards=cards; cards.forEach(c=>fetchCommune(c)); document.getElementById('pkload').textContent=''; if(GL.uni) GL.uni.uReady.value=1; document.getElementById('pkhint').textContent=aideOuvrir(); }
 // =================== la boutique (GDD § 3 et § 9) ===================
@@ -2117,10 +2121,11 @@ function refreshPack(){ const b=document.getElementById('packbtn'), t=document.g
 function dureeCourte(s){ return s>=3600 ? `${Math.floor(s/3600)} h ${String(Math.floor(s%3600/60)).padStart(2,'0')}` : (s>=60 ? `${Math.floor(s/60)} min ${String(s%60).padStart(2,'0')}` : `${s} s`); }
 
 // =================== écrans ===================
-function showScreen(name){ vibrer(8); document.querySelectorAll('.screen').forEach(s=>s.classList.remove('on')); document.querySelectorAll('#nav button[data-s]').forEach(b=>b.classList.toggle('on', b.dataset.s===name));
+function showScreen(name){ vibrer(8); if(name!=='accueil' && window.ACCUEIL) ACCUEIL.fermerVitrine(); document.querySelectorAll('.screen').forEach(s=>s.classList.remove('on')); document.querySelectorAll('#nav button[data-s]').forEach(b=>b.classList.toggle('on', b.dataset.s===name));
   const hide = name!=='carte'; ['top','ctrls','legend'].forEach(id=>document.getElementById(id).style.display = hide?'none':''); closeSheet(); if(!(window.Compte && Compte.bloque && Compte.bloque())) closeModal();
   if(name==='patrimoine') renderPatrimoine(); if(name==='encheres') renderEncheres(); if(name==='communes'){ if(MODE_SERVEUR){ for(const k of Object.keys(CAISSES)) delete CAISSES[k]; CLASSES.lu=0; CLASSES.communes={}; } renderCommunes(); } if(name==='notifs') renderNotifs();
-  if(hide) document.getElementById('s-'+name).classList.add('on'); else map.resize(); }
+  if(hide) document.getElementById('s-'+name).classList.add('on'); else { map.resize(); if(!ARRIVEE_FAITE){ const go=()=>setTimeout(descenteArrivee, 150); if(map.loaded()) go(); else { map.once('idle', go); setTimeout(go, 2500); } } }
+  if(name==='accueil' && window.ACCUEIL) ACCUEIL.render(); }
 document.querySelectorAll('#nav button[data-s]').forEach(b=>b.onclick=()=>showScreen(b.dataset.s));
 document.getElementById('cloche').onclick=()=>showScreen('notifs');
 
@@ -2701,7 +2706,7 @@ function refreshTop(){ afficherBourse(dispo()); { const g=document.getElementByI
 setInterval(()=>{ refreshTop(); if(!MODE_SERVEUR){ tickOffers(); tickAuction(); tickMairie(); tickSaison(); tickMonuments(); const cf=document.getElementById('caisse-fin'); if(cf) cf.textContent='⏳ '+dureeTexte(finMandat(mandatCourant())-now());
     const sf=document.getElementById('saison-fin'); if(sf) sf.textContent='⏳ '+dureeTexte(finSaison(CLA.saison(mandatCourant()))-now()); } else { refreshPack(); tickEncheresServeur(); } }, 1000);
 // À la connexion : la récolte des loyers (24 h au plus), puis le pack du jour s'il est prêt
-function packAuDemarrage(){ if(!packDispo()){ if(!state.prefs.guideVu) setTimeout(()=>guide(0), 800); return; } if(map.loaded()) setTimeout(ouvrirPack, 600); else map.once('idle', ()=>setTimeout(ouvrirPack, 900)); }
+function packAuDemarrage(){ if(document.getElementById('s-accueil').classList.contains('on')) ACCUEIL.render(); else showScreen('accueil'); }   // (l'accueil montre le pack prêt : src/accueil.js)
 async function recolteConnexion(ensuite){ if(MODE_SERVEUR){ const r=await synchroniser(); if(!r || !r.ok){ toast((r&&r.message)||'Serveur injoignable'); return ensuite(); } }
   const p=Math.floor(pendingRent()); if(p<1) return ensuite();
   const absent=now()-state.encaisse, plein=absent>=ECO.stock_loyer_heures*JOUR/24, lieux=Object.keys(state.owned).length;
@@ -2715,6 +2720,8 @@ async function recolteConnexion(ensuite){ if(MODE_SERVEUR){ const r=await synchr
 function demarrageLocal(){ if(!state.pseudo) setTimeout(creationProfil, 600); else setTimeout(()=>recolteConnexion(packAuDemarrage), 500); }
 refreshTop(); if(!MODE_SERVEUR) tickAuction();
 </script>
+<script src="src/accueil.js"></script>
+<script>showScreen('accueil');   // le jeu s'ouvre sur l'accueil, la carte à la demande (6 nov.)</script>
 <script src="src/chasse_jeu.js"></script>
 <script src="src/compte.js?v=20261103b"></script>
 </body>
