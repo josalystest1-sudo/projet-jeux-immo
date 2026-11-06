@@ -868,6 +868,9 @@ function promBoucle(t){ if(!PROM.on) return; const dt=Math.min(0.05, promT ? (t-
   if(PROM.marqueur) PROM.marqueur.getElement().classList.toggle('marche', !!PROM.bouge);
   if(PROM.bouge){ const n=Date.now(); if(!PROM.envPt || dist([PROM.lon,PROM.lat], PROM.envPt)>4 || n-PROM.envLe>700){ PROM.envPt=[PROM.lon,PROM.lat]; PROM.envLe=n; promEnvirons(); promNomRue(); } }
   if(avant && !PROM.bouge){ promEnvirons(); promNomRue(); if(PROM.photo) promPhotoIci(); }   // à l'arrêt : ce qu'on longe, et la photo de l'endroit
+  // on pousse la manette sans avancer (bout de rue, carrefour en T) : dire quoi faire, une fois par arrêt
+  const pousse=Math.hypot(PROM.joy.x, PROM.joy.y)>0.2 && !(window.chasseBloque && chasseBloque());
+  if(PROM.bouge || !pousse){ PROM.coince=0; } else if(!PROM.coince) PROM.coince=t; else if(PROM.coince>0 && t-PROM.coince>1200){ PROM.coince=-1; toast('🚧 Pas de rue tout droit : pousse à droite ou à gauche, ou vers le bas pour faire demi-tour'); }
   requestAnimationFrame(promBoucle); }
 // la caméra derrière le pion (Gautier : « comme une vue FPS, mais en dézoomé »), le pion dans la partie visible de la carte
 function promSuivre(){ if(PROM.vueLibre) return;   // (la chasse montre un instant son cercle d'indice)

@@ -13,6 +13,7 @@
   const ecart = (a, b) => { const d = norm360(a - b); return d > 180 ? 360 - d : d; };
   const tournerVers = (a, b, max) => { const d = ((b - a + 540) % 360) - 180; return norm360(a + Math.max(-max, Math.min(max, d))); };
   const kx = (lat) => 111320 * Math.cos(lat * Math.PI / 180);
+  const capVers = (a, b) => norm360(Math.atan2((b.lon - a.lon) * kx(a.lat), (b.lat - a.lat) * KY) * 180 / Math.PI);
   const decale = (pt, cap, m) => { const r = cap * Math.PI / 180; return { lat: pt.lat + Math.cos(r) * m / KY, lon: pt.lon + Math.sin(r) * m / kx(pt.lat) }; };
 
   function creer(opts) {
@@ -25,10 +26,14 @@
         const px = ax + t * dx, py = ay + t * dy, d = Math.hypot(px, py); if (d > r) continue;
         out.push({ d, cap: norm360(Math.atan2(dx, dy) * 180 / Math.PI), lat: pt.lat + py / KY, lon: pt.lon + px / mx, nom: s[4] || '' }); }
       return out.sort((a, b) => a.d - b.d); }
-    // la direction de rue (dans un sens ou dans l'autre) la plus proche de « voulu », à « max » degrés au plus
+    // la rue continue-t-elle dans la direction c ? (3 m plus loin, une rue tout près, même dans un virage)
+    function continue_(rues, pt, c) { const ici = proches(rues, pt, o.rayon)[0], dev = proches(rues, decale(pt, c, 3), o.rayon)[0]; return !!dev && dev.d <= 1.5 + (ici ? ici.d : 0); }
+    // la direction de rue (dans un sens ou dans l'autre) la plus proche de « voulu », à « max » degrés au plus, et par
+    // laquelle la rue continue vraiment (bugs du 6 nov. : on s'arrêtait dans les virages, ou l'on tournait trop tôt)
     function choisir(rues, pt, voulu, max) { let best = null;
       for (const r of proches(rues, pt, o.rayon)) for (const c of [r.cap, norm360(r.cap + 180)]) {
-        const e = ecart(c, voulu); if (e > max) continue; const note = e + r.d * 3; if (!best || note < best.note) best = { c, r, note }; }
+        const e = ecart(c, voulu); if (e > max) continue; const note = e + r.d * 3; if (best && note >= best.note) continue;
+        if (continue_(rues, pt, c)) best = { c, r, note }; }
       return best; }
     // ce que veut le joueur : tout droit, à droite, à gauche, demi-tour (rien si la manette est au repos)
     function intention(joy) { const f = Math.min(1, Math.hypot(joy.x, joy.y)); if (f < 0.2) return null;
@@ -38,17 +43,26 @@
       const f = Math.min(1, Math.hypot(joy.x, joy.y)), quoi = intention(joy);
       if (!quoi) { m.demi = false; m.bouge = false; return 0; }
       let dir = null;
+      // hors de la rue (renvoyé au dernier point accepté par le serveur : la mairie du départ…) : on rejoint la rue la plus
+      // proche, puis on la suit dans le sens du regard (bug du 6 nov., Gautier : « impossible d'en sortir »)
+      const pres = proches(rues, m, o.rayon);
+      if (!pres.length || (pres[0].d > 0.5 && !choisir(rues, m, m.cap, 50))) {
+        const r = proches(rues, m, 150)[0]; if (!r) { m.bouge = false; return 0; }
+        const pas = Math.min(o.vitesse * f * dt, r.d), c = r.d > 0.01 ? capVers(m, r) : m.cap, p = decale(m, c, pas);
+        const arrive = r.d <= pas + 0.5;   // sur la rue : on s'y pose, dans le sens du regard
+        m.lat = arrive ? r.lat : p.lat; m.lon = arrive ? r.lon : p.lon; m.cap = arrive ? (ecart(r.cap, m.camCap == null ? c : m.camCap) <= 90 ? r.cap : norm360(r.cap + 180)) : c;
+        m.camCap = tournerVers(m.camCap == null ? c : m.camCap, m.cap, o.camVitesse * dt); m.bouge = pas > 0; return pas; }
       if (quoi === 'demi' && !m.demi) { m.demi = true; const b = choisir(rues, m, norm360(m.cap + 180), 60); if (b) { m.cap = b.c; m.camCap = m.cap; m.verrou = o.verrou; } }
       if ((quoi === 'droite' || quoi === 'gauche') && !(m.verrou > 0)) {
         const b = choisir(rues, m, norm360(m.cap + (quoi === 'droite' ? 90 : -90)), 55);
         if (b) { dir = b.c; m.verrou = o.verrou; } }
       if (dir == null) { const b = choisir(rues, m, m.cap, 50); if (b) dir = b.c; }   // tout droit, en suivant les virages
+      // un coin franc (une seule suite possible, jusqu'à 110°) : on le suit ; à un carrefour en T, on attend qu'on choisisse
+      if (dir == null) { const suites = [];
+        for (const r of proches(rues, m, 4)) for (const c of [r.cap, norm360(r.cap + 180)]) if (ecart(c, m.cap) <= 110 && !suites.some((x) => ecart(x, c) < 25) && continue_(rues, m, c)) suites.push(c);
+        if (suites.length === 1) dir = suites[0]; }
       if (dir == null) { m.bouge = false; return 0; }                                  // au bout de la rue : on s'arrête
       m.cap = dir;
-      // la rue continue-t-elle devant ? (3 m plus loin, une rue dans le même axe) ; sinon, c'est le bout : on s'arrête
-      const axe = (x) => ecart(x.cap, dir) < 30 || ecart(x.cap, dir) > 150;
-      const ici = proches(rues, m, o.rayon).find(axe), devant = proches(rues, decale(m, dir, 3), o.rayon).find(axe);
-      if (!devant || devant.d > 1.5 + (ici ? ici.d : 0)) { m.bouge = false; return 0; }
       const d = o.vitesse * f * dt, p = decale(m, dir, d);
       // rester sur la rue : vers le point le plus proche d'une rue dans le même axe
       const r = proches(rues, p, o.rayon).find((x) => ecart(x.cap, dir) < 30 || ecart(x.cap, dir) > 150);

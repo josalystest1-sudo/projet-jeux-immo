@@ -36,7 +36,7 @@ test('vers le bas : un seul demi-tour, puis on marche dans l’autre sens', () =
 });
 
 test('la caméra rejoint peu à peu le sens de la marche', () => {
-  const m = M.depart(RUES, { lon: 2, lat: 48.00095 }, 0);
+  const m = M.depart(RUES, { lon: 2, lat: 48.000995 }, 0);
   M.pas(m, RUES, { x: 1, y: 0 }, 0.05);
   assert.ok(Math.abs(m.cap - 90) < 1 && m.camCap > 0 && m.camCap < 20, `elle tourne sans sauter (${m.camCap})`);
   marcher(m, { x: 0, y: -1 }, 1.5);
@@ -46,4 +46,32 @@ test('la caméra rejoint peu à peu le sens de la marche', () => {
 test('manette au repos : on ne bouge pas', () => {
   const m = M.depart(RUES, { lon: 2, lat: 48.0005 }, 0), avant = m.lat;
   assert.equal(marcher(m, { x: 0.05, y: -0.1 }, 1), 0); assert.equal(m.lat, avant); assert.equal(m.bouge, false);
+});
+
+// les blocages du 6 nov. (Gautier, en pleine chasse : « je suis bloqué dans une rue », « impossible d'en sortir »)
+const kx48 = 111320 * Math.cos(48 * Math.PI / 180), KY = 110540;
+const coude = (angle) => { const B = [2, 48 + 100 / KY]; return [[2, 48, B[0], B[1], 'Rue Coude'], [B[0], B[1], B[0] + Math.sin(angle * Math.PI / 180) * 100 / kx48, B[1] + Math.cos(angle * Math.PI / 180) * 100 / KY, 'Rue Coude']]; };
+const marcherDans = (rues, m, joy, s) => { let d = 0; for (let i = 0; i < Math.round(s / 0.05); i++) d += M.pas(m, rues, joy, 0.05); return d; };
+
+test('une rue qui tourne (40°, puis un coin à 90°) : on la suit sans s’arrêter', () => {
+  for (const angle of [40, 90]) {
+    const rues = coude(angle), m = M.depart(rues, { lon: 2, lat: 48.0002 }, 0);
+    marcherDans(rues, m, { x: 0, y: -1 }, 14);
+    assert.ok(Math.abs(m.cap - angle) < 2, `après le coude de ${angle}° (${m.cap})`); assert.ok((m.lon - 2) * kx48 > 30, `parti dans la suite de la rue (${angle}°)`);
+  }
+});
+
+test('à un carrefour en T, on attend qu’on choisisse, puis on repart', () => {
+  const T = [[2, 48, 2, 48.001, 'Rue A'], [1.998, 48.001, 2.002, 48.001, 'Rue B']];
+  const m = M.depart(T, { lon: 2, lat: 48.0005 }, 0);
+  marcherDans(T, m, { x: 0, y: -1 }, 8);
+  assert.equal(m.bouge, false, 'arrêté au carrefour'); assert.ok(Math.abs(metresNord(m) - 110.5) < 2, String(metresNord(m)));
+  marcherDans(T, m, { x: -1, y: 0 }, 2);
+  assert.ok(Math.abs(m.cap - 270) < 1 && metresEst(m) < -10, 'à gauche : reparti');
+});
+
+test('hors de la rue (renvoyé à la mairie) : on rejoint la rue, puis on la suit', () => {
+  const m = { lon: 2 + 25 / kx48, lat: 48.0004, cap: 90, camCap: 0, verrou: 0 };
+  marcherDans(RUES, m, { x: 0, y: -1 }, 6);
+  assert.ok(Math.abs(metresEst(m)) < 1.5, `revenu sur la rue (${metresEst(m)})`); assert.ok(metresNord(m) > 60, `puis reparti tout droit (${metresNord(m)})`);
 });

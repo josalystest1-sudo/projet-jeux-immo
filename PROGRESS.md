@@ -535,6 +535,11 @@
   - serveur : `supabase/sql/200_chasse.sql` (chasses, chasseurs, victoire atomique, purge à 7 jours ; essayé par `tools/essai_sql.mjs`), actions de la fonction « jeu », préparation par l'horloge, chasse d'essai ; l'essai de la publication s'inscrit, tente un saut (refusé), marche jusqu'au trésor et gagne ;
   - jeu : `src/chasse_jeu.js` : bandeau d'annonce et inscription, tuiles chargées d'avance, téléportation et « 3, 2, 1, partez ! », indices et cercle doré (survol de 3 s, flèche et distance), ambiance dorée, rivaux regroupés (« ×N »), victoire (coffre, pièces, carte) ou fin ; une chasse simulée en démo, essayée de bout en bout (inscription, départ, indices, victoire, foule de 24 rivaux) ;
   - pages légales : la chasse dans les conditions (gratuite, sans achat utile, récompense sans valeur), la position du pion dans la confidentialité (7 jours). 113 tests.
+- 6 nov. 2026 (PR #173) : **bloqué dans une rue** (Gautier, en pleine chasse d'essai : « je suis bloqué dans une rue », « impossible d'en sortir ») ; deux causes reproduites et corrigées dans `src/marche.js` :
+  - le pion se croyait au bout de la rue dans un virage marqué (le contrôle « la rue continue devant » ne regardait que les rues dans le même axe, à 30° près) : une direction n'est maintenant choisie que si la rue continue vraiment par là (`continue_`, 3 m plus loin, dans un virage aussi) ; un coin franc (une seule suite, jusqu'à 110°) se suit tout seul ; à un carrefour en T, on attend qu'on choisisse ; un virage n'est plus pris 9 m trop tôt ;
+  - renvoyé hors de la rue (le serveur rend la dernière position acceptée : au départ, la mairie, à côté de la rue), le pion ne trouvait plus de rue : il rejoint maintenant la plus proche, puis la suit dans le sens du regard ;
+  - le serveur refusait trop vite sur un réseau lent (deux positions arrivées presque ensemble) : 35 m de marge (`ECO.chasse.tolerance_m`, environ 3 s de marche) ;
+  - si l'on pousse sans avancer (bout de rue, T), un bandeau dit quoi faire ; la chasse d'essai part de là où l'on est (sa commune : celle de l'adresse la plus proche). 3 tests de plus (116).
 
 ## Bugs connus
 - Les badges 💰 des joueurs simulés n'apparaissent qu'après ouverture de leur parcelle (limite du prototype local).
