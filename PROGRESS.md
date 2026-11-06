@@ -525,6 +525,11 @@
   - une ville blanche sur l'herbe : murs blancs, toit (`bati-toit`, une dalle de 1,2 m), ombre au sol (`bati-ombre`), pied des murs (`bati-pied`), lumière plus franche, ciel et brume au loin ; les couleurs vives restent celles des propriétaires ; « Libre » (blanc) ajouté à la légende ;
   - les routes : asphalte, trottoirs clairs, tirets blancs au milieu ; chemins, sentiers et escaliers en terre battue (`CHEMIN`, d'après la nature de la BD TOPO) ;
   - la nuit refaite dans le même esprit (bâtiments gris neutre, toit clair) ; vérifié de jour, de nuit, en 2D, en ville et au village (`docs/BIBLE-GRAPHIQUE.md` § 14). 102 tests.
+- 6 nov. 2026 (PR #171) : **la balade au joystick** (Gautier : « est-ce qu'on peut pas, sur la map 3D, rendre la navigation plus fluide, le déplacement entre les rues, comme dans un jeu vidéo, plutôt que là, comme si c'était Street View », puis, après un premier essai filmé où la caméra restait fixe : « il faut que la caméra suive son personnage pour qu'il voie toujours ce qu'il y a devant, comme une vue FPS, mais en dézoomé ») :
+  - `src/marche.js` : la marche le long des rues, pure (tout droit en suivant les virages, à droite ou à gauche au prochain carrefour pris à l'avance, demi-tour, arrêt au bout ; la caméra rejoint peu à peu le sens de la marche), 6 tests (`tests/marche.test.js`) ;
+  - la promenade réécrite : le pion (mon icône) sur la carte 3D, la manette en bas à droite (flèches du clavier sur ordinateur), la caméra derrière le pion, la carte qui ne se redessine que quand on bouge ; Street View seulement sur demande (📷), mis à jour à l'arrêt ; ce qu'on longe toujours en bas (Voir, Offre, Acheter) ; toucher un bâtiment l'ajoute en tête (« Touché ») sans y emmener ;
+  - vérifié à l'image en 390 × 844, 320 × 640 (avec et sans photo) et 1440 × 900, filmé dans le jeu (rue des Martyrs, puis rue Choron) ;
+  - la chasse au trésor proposée par Gautier est écrite dans le GDD (§ 5 quinquies, règles [Proposé]). 108 tests.
 
 ## Bugs connus
 - Les badges 💰 des joueurs simulés n'apparaissent qu'après ouverture de leur parcelle (limite du prototype local).
