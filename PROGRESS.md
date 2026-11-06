@@ -545,6 +545,7 @@
   - Le nom affiché change partout (`<title>`, manifeste, accueil, connexion, dos des cartes `STREETKEEP`, pages légales, e-mails et reçus Stripe, alertes, textes anglais) ; `streetkeep` ajouté aux racines de pseudos réservées (`data/moderation.json`), `citydeck` y reste.
   - **Ne change pas** : le domaine citydeck.fr (site, e-mails Brevo, clé Google, GitHub Pages) tant que streetkeep.fr n'est pas acheté et branché ; les clés `citydeck-langue` et `BREVO_SMTP_KEY_CITY_DECK` ; « Cadastra » dans le code.
   - GDD § 12 réécrit (vérification, noms écartés, méthode : Google d'abord) ; `CLAUDE.md` § 4 point 9 ; `docs/KIT-MARQUE.md` : le logo à refaire avec « STREETKEEP ».
+- 6 nov. 2026 (PR #177) : **la vue d'arrivée** (Gautier : « quand on se connecte, on se retrouve au milieu de dizaines, voire de centaines de gros blocs blancs, ça ne donne pas envie de jouer » ; « surtout le fait de lui mettre le nez direct dans des centaines de bâtiments ; peut-être dézoomer déjà ») : tout le monde arrivait dans Paris 9e (zoom 17, très penché). Maintenant, chez soi : là où l'on s'était arrêté (`cadastra-vue`, gardée à chaque arrêt de la carte, pas en balade ni en chasse), sinon sur sa dernière carte gagnée, sinon à Saint-Cirq-Lapopie ; plus haut (zoom 16,3, inclinaison 45°) ; la carte s'ouvre encore plus haut et la caméra descend doucement (`VUE_DEPART`, `descenteArrivee`). 116 tests.
 
 ## Bugs connus
 - Les badges 💰 des joueurs simulés n'apparaissent qu'après ouverture de leur parcelle (limite du prototype local).
