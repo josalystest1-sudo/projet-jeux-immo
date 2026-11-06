@@ -194,6 +194,7 @@ Rien d'important ne vit dans une conversation : tout est dans le dépôt ou sur 
 - **Le jeu sur ordinateur** (PR #165). Gautier, sur la version web : « il n'y a pas la vue 3D de la map qui s'affiche en même temps qu'une vue en Street View, l'interface est super espacée, le bandeau de recherche est énorme suivant la taille de la fenêtre ». Le jeu n'était qu'un téléphone étiré ; sur un grand écran, la fiche devient un panneau à gauche avec la carte 3D à côté, les commandes gardent la largeur d'un téléphone, les écrans se resserrent au milieu, et la promenade met Street View et la carte côte à côte.
 - **Sur ordinateur, suite** (PR #166). Gautier : « c'est mieux, tu peux continuer à faire des améliorations ou faire des trucs en autonomie ». Claude relit tous les écrans au format d'un ordinateur : la collection passe à quatre cartes par ligne, Échap ferme fenêtres et fiches, et les consignes du pack parlent de la souris.
 - **L'e-mail d'alerte** (PR #167). Dans la même série autonome : l'alerte promise depuis le 4 nov. (« Gautier est prévenu dès qu'un monument redevient libre ») part enfin par e-mail, à contact@citydeck.fr, avec la phrase prête à poster ; Brevo sert ici aussi.
+- **Le démarrage** (PR #168). Toujours en autonomie : mesuré sur un téléphone en 4G simulée, le logo de l'accueil mettait plus de 3 secondes à apparaître ; il s'affiche maintenant avant le chargement des bibliothèques.
 - **L'horloge du serveur** (PR #155). Dans la même série : toutes les 10 minutes, GitHub appelle le serveur pour clore les enchères, faire tourner les mandats et les saisons, tenir les monuments et faire jouer les robots, même sans joueur.
 - **L'anti-triche** (PR #150). Dans la foulée : pas plus de 60 actions par minute pour un compte, et une empreinte chiffrée de la connexion (jamais l'adresse IP) ; dès 3 comptes sur une même connexion dans la journée, une alerte pour Gautier, sans rien bloquer (familles, réseaux partagés, multi-comptes tolérés en V1).
 
@@ -379,6 +380,7 @@ Puis une PR par étape, fusionnée en squash :
 | #155 | 05/11 | L'horloge du serveur : toutes les 10 minutes, enchères, mandats, saisons, monuments et robots tournent sans joueur |
 | #156 | 05/11 | Les travaux des communes s'usent (−10 % par mandat) ; le niveau donne +2 % de loyer par niveau et monte le plafond du Maire (jusqu'à 2 000) |
 | #157 | 05/11 | Documents : les six monuments qui sont des marques (Ritz, Maxim's, Crillon, Negresco, Château Margaux, Train bleu) restent aux enchères (Gautier : « garde-les ») |
+| #168 | 06/11 | Le démarrage plus rapide : le logo de l'accueil s'affiche avant le chargement des bibliothèques (carte, 3D, serveur) |
 | #167 | 06/11 | L'e-mail d'alerte à Gautier : un monument redevenu libre arrive à contact@citydeck.fr (Brevo), avec la phrase prête à poster |
 | #166 | 06/11 | Le jeu sur ordinateur, suite : quatre cartes par ligne dans la collection, Échap ferme fenêtres et fiches, consignes du pack à la souris |
 | #165 | 06/11 | Le jeu sur ordinateur : fiche en panneau à gauche avec la carte 3D à côté, commandes à la largeur d'un téléphone, écrans resserrés, promenade côte à côte |

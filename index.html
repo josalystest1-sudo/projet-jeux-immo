@@ -4,17 +4,10 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>CityDeck</title>
+<link rel="preconnect" href="https://unpkg.com">
+<link rel="preconnect" href="https://data.geopf.fr" crossorigin>
+<link rel="preconnect" href="https://hxtyecwofajiozmnfyxt.supabase.co" crossorigin>
 <link href="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.css" rel="stylesheet">
-<script src="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js"></script>
-<script src="https://unpkg.com/three@0.147.0/build/three.min.js"></script>
-<script src="https://unpkg.com/three@0.147.0/examples/js/environments/RoomEnvironment.js"></script>
-<script src="https://unpkg.com/three@0.147.0/examples/js/shaders/CopyShader.js"></script>
-<script src="https://unpkg.com/three@0.147.0/examples/js/shaders/LuminosityHighPassShader.js"></script>
-<script src="https://unpkg.com/three@0.147.0/examples/js/postprocessing/Pass.js"></script>
-<script src="https://unpkg.com/three@0.147.0/examples/js/postprocessing/EffectComposer.js"></script>
-<script src="https://unpkg.com/three@0.147.0/examples/js/postprocessing/RenderPass.js"></script>
-<script src="https://unpkg.com/three@0.147.0/examples/js/postprocessing/ShaderPass.js"></script>
-<script src="https://unpkg.com/three@0.147.0/examples/js/postprocessing/UnrealBloomPass.js"></script>
 <script>
 // Mise à jour automatique : le site publié porte un numéro de version (écrit à la publication dans version.json et ici).
 // Le téléphone garde l'ancienne page jusqu'à 10 minutes : si une version plus récente est en ligne, on recharge
@@ -34,28 +27,6 @@ const VERSION='__VERSION__';
   verifier(true); document.addEventListener('visibilitychange', ()=>{ if(document.visibilityState==='visible') verifier(false); });
   setInterval(()=>{ if(document.visibilityState==='visible') verifier(false); }, 60000); })();
 </script>
-<script src="data/langue_en.js"></script>
-<script src="src/langue.js"></script>
-<script src="geo.js"></script>
-<script src="data/economie.js"></script>
-<script src="data/standing.js"></script>
-<script src="data/monuments.js"></script>
-<script src="src/regles/lieu.js"></script>
-<script src="src/regles/celebres.js"></script>
-<script src="src/regles/mairie.js"></script>
-<script src="src/regles/classements.js"></script>
-<script src="src/regles/monuments.js"></script>
-<script src="src/regles/regions.js"></script>
-<script src="src/regles/boutique.js"></script>
-<script src="src/regles/encheres.js"></script>
-<script src="src/regles/pack.js"></script>
-<script src="src/tirage.js"></script>
-<script src="src/maquettes.js"></script>
-<script src="src/carte_lieu.js"></script>
-<script src="src/regles/pseudo.js"></script>
-<script src="src/icones.js"></script>
-<script src="src/logo.js"></script>
-<script src="https://unpkg.com/@supabase/supabase-js@2.118.0/dist/umd/supabase.js"></script>
 <link rel="preload" href="fonts/baloo-2-latin-800-normal.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="fonts/nunito-latin-800-normal.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="fonts/barlow-condensed-latin-700-normal.woff2" as="font" type="font/woff2" crossorigin>
@@ -86,7 +57,40 @@ const VERSION='__VERSION__';
 </head>
 <body>
 <div id="accueil"><div class="logo-jeu"></div><div class="points-charge"><i></i><i></i><i></i></div></div>
+<script src="src/logo.js"></script>
 <script>/* le logo de CityDeck (src/logo.js, modèle de Gautier, 5 nov.) */ document.querySelector('#accueil .logo-jeu').innerHTML=Logo.svg();</script>
+<!-- les moteurs (carte, 3D, serveur) et les règles : après l'accueil, pour que le logo s'affiche tout de suite -->
+<script src="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js"></script>
+<script src="https://unpkg.com/three@0.147.0/build/three.min.js"></script>
+<script src="https://unpkg.com/three@0.147.0/examples/js/environments/RoomEnvironment.js"></script>
+<script src="https://unpkg.com/three@0.147.0/examples/js/shaders/CopyShader.js"></script>
+<script src="https://unpkg.com/three@0.147.0/examples/js/shaders/LuminosityHighPassShader.js"></script>
+<script src="https://unpkg.com/three@0.147.0/examples/js/postprocessing/Pass.js"></script>
+<script src="https://unpkg.com/three@0.147.0/examples/js/postprocessing/EffectComposer.js"></script>
+<script src="https://unpkg.com/three@0.147.0/examples/js/postprocessing/RenderPass.js"></script>
+<script src="https://unpkg.com/three@0.147.0/examples/js/postprocessing/ShaderPass.js"></script>
+<script src="https://unpkg.com/three@0.147.0/examples/js/postprocessing/UnrealBloomPass.js"></script>
+<script src="data/langue_en.js"></script>
+<script src="src/langue.js"></script>
+<script src="geo.js"></script>
+<script src="data/economie.js"></script>
+<script src="data/standing.js"></script>
+<script src="data/monuments.js"></script>
+<script src="src/regles/lieu.js"></script>
+<script src="src/regles/celebres.js"></script>
+<script src="src/regles/mairie.js"></script>
+<script src="src/regles/classements.js"></script>
+<script src="src/regles/monuments.js"></script>
+<script src="src/regles/regions.js"></script>
+<script src="src/regles/boutique.js"></script>
+<script src="src/regles/encheres.js"></script>
+<script src="src/regles/pack.js"></script>
+<script src="src/tirage.js"></script>
+<script src="src/maquettes.js"></script>
+<script src="src/carte_lieu.js"></script>
+<script src="src/regles/pseudo.js"></script>
+<script src="src/icones.js"></script>
+<script src="https://unpkg.com/@supabase/supabase-js@2.118.0/dist/umd/supabase.js"></script>
 <div id="map"></div>
 <div id="voyage" aria-live="polite"><div class="voyage-carte"><div class="voyage-pin">📍</div><div class="plaque" id="voyage-nom">En route…</div><div class="voyage-sous" id="voyage-sous"></div><div class="chargement"><i class="pc"></i><i class="pc"></i><i class="pc"></i></div></div></div>
 <div id="charge"><i class="pc"></i>Le quartier se dessine…</div>
