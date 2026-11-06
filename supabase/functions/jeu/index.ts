@@ -766,8 +766,12 @@ const vueChasse = (c: Ligne): Ligne => ({ id: c.id, numero: Number(c.numero), co
 function memeCommune(code: string, citycode: string) {
   if (code === '75056') return citycode.startsWith('751'); if (code === '69123') return citycode.startsWith('6938'); if (code === '13055') return citycode.startsWith('132');
   return citycode === code; }
-async function preparerChasse(cr: Ligne, id: string, pour: string | null, essai = false): Promise<Ligne | null> {
-  const k = CH.commune(CHASSE_COMMUNES as unknown as Ligne[], essai ? Math.floor(Math.random() * 1e9) : cr.numero); if (!k) return null;
+async function preparerChasse(cr: Ligne, id: string, pour: string | null, essai = false, ici: Ligne | null = null): Promise<Ligne | null> {
+  // une chasse d'essai part de là où est le joueur (« ici ») : sa commune est celle de l'adresse la plus proche
+  let k: Ligne | null = null;
+  if (ici) { const j0 = await geoJSON(`reverse?lon=${ici.lon.toFixed(6)}&lat=${ici.lat.toFixed(6)}&index=address&limit=1`).catch(() => null) as Ligne | null, f0 = j0 && j0.features && j0.features[0];
+    if (f0) k = [String(f0.properties.citycode || ''), Regles.nomCommune(String(f0.properties.citycode || ''), f0.properties.city || ''), ici.lon, ici.lat]; }
+  if (!k) k = CH.commune(CHASSE_COMMUNES as unknown as Ligne[], essai ? Math.floor(Math.random() * 1e9) : cr.numero); if (!k) return null;
   const depart = { lon: k[2], lat: k[3] }; let graine = (Chasse.hash(id + Math.random()) % 2147483646) + 1;
   const alea = () => { graine = (graine * 16807) % 2147483647; return graine / 2147483647; };
   for (let essaiN = 0; essaiN < 8; essaiN++) {
@@ -775,7 +779,7 @@ async function preparerChasse(cr: Ligne, id: string, pour: string | null, essai 
     const p = essai ? Chasse.decale(depart, alea() * 360, 120 + alea() * 80) : CH.pointCible(depart, alea);
     const j = await geoJSON(`reverse?lon=${p.lon.toFixed(6)}&lat=${p.lat.toFixed(6)}&index=address&limit=1`).catch(() => null) as Ligne | null;
     const f = j && j.features && j.features[0]; if (!f) continue; const pr = f.properties || {};
-    if (!pr.housenumber || !pr.street || !memeCommune(k[0], String(pr.citycode || ''))) continue;
+    if (!pr.housenumber || !pr.street || (!ici && !memeCommune(k[0], String(pr.citycode || '')))) continue;
     const cible = { id: pr.id, lon: f.geometry.coordinates[0], lat: f.geometry.coordinates[1], numero: String(pr.housenumber), rue: pr.street, label: pr.name || `${pr.housenumber} ${pr.street}` };
     if (!essai && !CH.cibleValable(depart, cible)) continue;
     return { id, numero: cr.numero, commune: k[1], code_insee: k[0], depart_lon: depart.lon, depart_lat: depart.lat, cible, annonce: isoT(cr.annonce), debut: isoT(cr.debut), fin: isoT(cr.fin), pour };
@@ -858,10 +862,11 @@ ACTIONS.chasse_position = async (j, corps) => {
   return { ...r, position: pos, refuse, gagne, ...(gagne ? { etat: await etatDe(j) } : {}) };
 };
 // une chasse d'essai, rien que pour moi (serveur d'essai seulement) : elle part dans 20 secondes, son trésor est tout près
-ACTIONS.chasse_essai = async (j) => {
+ACTIONS.chasse_essai = async (j, corps) => {
   if ((await jourMs()) >= 86_400_000) throw new Refus('essai', 'Les chasses d’essai n’existent que sur le serveur d’essai.');
   const t = Date.now(), cr = { numero: -1, annonce: t, debut: t + 20000, fin: t + 20000 + CH.C.duree_max_minutes * 60000 }, id = 'essai-' + crypto.randomUUID();
-  const c = await preparerChasse(cr, id, j, true); if (!c) throw new Refus('reseau', 'Pas de trésor trouvé : réessaie dans un instant.');
+  const ici = Number.isFinite(Number(corps.lon)) && Number.isFinite(Number(corps.lat)) && corps.lon != null ? { lon: Number(corps.lon), lat: Number(corps.lat) } : null;
+  const c = await preparerChasse(cr, id, j, true, ici); if (!c) throw new Refus('reseau', 'Pas de trésor trouvé : réessaie dans un instant.');
   await rpc('jeu_chasse_creer', { c });
   return { ...(await etatChasse(j, { ...c, gagnant: null, trouve_le: null })), cible: c.cible };   // (le trésor d'un essai n'est pas un secret : il sert à l'essai de la publication)
 };
