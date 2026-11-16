@@ -46,7 +46,7 @@ a{color:#9FE8FF}
 <div class="scene" id="scene"><canvas id="vue" role="img" aria-label="Le booster en 3D"></canvas><div class="trace" id="trace"></div><div class="eclair" id="eclair"></div><div class="attente" id="attente">Préparation du booster…</div></div>
 <div class="rangee" id="brillances"><button data-b="douce">Brillance douce</button><button data-b="moyenne" class="on">Moyenne</button><button data-b="forte">Forte</button></div>
 <div class="rangee"><button id="rejouer">Recommencer</button><button id="incliner" hidden>Activer l’inclinaison</button></div>
-<p class="note">Après la sortie des cartes, chacune se révèle d’un toucher, comme sur <a href="cartes.html?v=198&amp;c=orne&amp;d=or&amp;dos">la page des cartes</a>.</p>
+<p class="note">Après la sortie des cartes, chacune se révèle d’un toucher, comme sur <a href="cartes.html?v=199&amp;c=orne&amp;d=or&amp;dos">la page des cartes</a>.</p>
 
 <script src="https://unpkg.com/three@0.147.0/build/three.min.js"></script>
 <script src="https://unpkg.com/three@0.147.0/examples/js/environments/RoomEnvironment.js"></script>
@@ -82,7 +82,27 @@ a{color:#9FE8FF}
     g.shadowBlur = ep * 2.2; g.lineWidth = ep; tracer();
     g.shadowBlur = 0; g.strokeStyle = C.clair; g.lineWidth = ep * 0.42; tracer(); g.restore();
   }
-  function enseigne(g, C, y) {
+  // la ligne de toits du booster du jour : une ville française au trait de néon (mansardes, pignons, clocher, mairie), les
+  // mêmes bâtiments que sur le dos des cartes ; le gratuit montre la ville de tous les jours, le payé un monument
+  function ligneDeToits(g, C, sol) {
+    const BATIS = [[10, 14, 'pignon'], [12, 22, 'mansarde'], [9, 17, 'plat'], [8, 28, 'fleche'], [13, 20, 'mansarde'], [11, 26, 'plat'], [16, 19, 'mairie'], [10, 31, 'mansarde'], [12, 18, 'mansarde'], [9, 24, 'plat'], [11, 15, 'pignon'], [12, 21, 'mansarde'], [9, 28, 'plat'], [10, 16, 'pignon']];
+    let s = 23; const alea = () => ((s = (s * 1664525 + 1013904223) >>> 0) / 4294967296), fen = [];
+    neon(g, () => { g.beginPath(); let x = (TW - 152 * 5) / 2;
+      for (const [w, h, type] of BATIS) { const W = w * 5, t = sol - h * 8.6, cx = x + W / 2;
+        g.moveTo(x, sol); g.lineTo(x, t); g.lineTo(x + W, t); g.lineTo(x + W, sol);
+        if (type === 'plat') { g.moveTo(x + 9, t); g.lineTo(x + 9, t - 11); g.lineTo(x + 24, t - 11); g.lineTo(x + 24, t); }
+        if (type === 'mansarde') { g.moveTo(x, t); g.lineTo(x + 8, t - 21); g.lineTo(x + W - 8, t - 21); g.lineTo(x + W, t); g.moveTo(x + W - 23, t - 21); g.lineTo(x + W - 23, t - 36); g.lineTo(x + W - 12, t - 36); g.lineTo(x + W - 12, t - 21); }
+        if (type === 'pignon') { g.moveTo(x - 3, t); g.lineTo(cx, t - 27); g.lineTo(x + W + 3, t); }
+        if (type === 'fleche') { g.moveTo(x + 4, t); g.lineTo(cx, t - 62); g.lineTo(x + W - 4, t); g.moveTo(cx, t - 62); g.lineTo(cx, t - 82); g.moveTo(cx - 7, t - 73); g.lineTo(cx + 7, t - 73); g.moveTo(cx + 8.5, t + 28); g.arc(cx, t + 28, 8.5, 0, 6.283); g.moveTo(cx - 7, sol); g.lineTo(cx - 7, sol - 26); g.arc(cx, sol - 26, 7, Math.PI, 0); g.lineTo(cx + 7, sol); }
+        if (type === 'mairie') { g.moveTo(x - 3, t); g.lineTo(x + W + 3, t); g.moveTo(x + 15, t); g.lineTo(cx, t - 22); g.lineTo(x + W - 15, t); g.moveTo(cx - 9, t - 14); g.lineTo(cx - 9, t - 46); g.lineTo(cx + 9, t - 46); g.lineTo(cx + 9, t - 14); g.moveTo(cx - 12, t - 46); g.lineTo(cx, t - 60); g.lineTo(cx + 12, t - 46);
+          g.moveTo(cx, t - 60); g.lineTo(cx, t - 86); g.lineTo(cx + 18, t - 86); g.lineTo(cx + 18, t - 74); g.lineTo(cx, t - 74); g.moveTo(cx + 4.5, t - 31); g.arc(cx, t - 31, 4.5, 0, 6.283); g.moveTo(cx - 8, sol); g.lineTo(cx - 8, sol - 24); g.arc(cx, sol - 24, 8, Math.PI, 0); g.lineTo(cx + 8, sol); }
+        if (type !== 'fleche') { const cols = Math.floor((W - 12) / 14.5), rangs = Math.floor((h * 8.6 - 16) / 21), marge = (W - cols * 14.5 + 6.5) / 2;
+          for (let r = 0; r < rangs; r++) for (let c = 0; c < cols; c++) if (alea() < 0.6 && !(type === 'mairie' && r === rangs - 1 && Math.abs(x + marge + c * 14.5 + 4 - cx) < 14)) fen.push([x + marge + c * 14.5, t + 13 + r * 21]); }
+        x += W; }
+      g.moveTo(112, sol); g.lineTo(TW - 112, sol); g.stroke(); }, C, 4.6);
+    g.save(); g.fillStyle = C.clair; g.shadowColor = C.vif; g.shadowBlur = 9; for (const [x, y] of fen) g.fillRect(x, y, 8, 11.5); g.restore();
+  }
+  function enseigne(g, C, y, sansTrait) {
     g.save(); g.font = '700 182px "Barlow Condensed", sans-serif'; g.textAlign = 'center'; g.textBaseline = 'alphabetic';
     let esp = 0; try { g.letterSpacing = '10px'; esp = 5; } catch (e) { /* vieux navigateur */ }
     // des lettres pleines, très claires, avec un halo de la couleur du néon : lisibles d'abord (Gautier, 16 nov. : « la
@@ -92,7 +112,7 @@ a{color:#9FE8FF}
     g.shadowBlur = 12; g.fillStyle = '#FFFFFF'; g.fillText('STREETKEEP', TW / 2 + esp, y);
     g.restore();
     neon(g, () => { g.beginPath(); g.moveTo(150, y + 52); g.lineTo(TW / 2 - 46, y + 52); g.moveTo(TW / 2 + 46, y + 52); g.lineTo(TW - 150, y + 52); g.moveTo(TW / 2, y + 30); g.lineTo(TW / 2 + 22, y + 52); g.lineTo(TW / 2, y + 74); g.lineTo(TW / 2 - 22, y + 52); g.closePath(); g.stroke(); }, C, 5);
-    neon(g, () => { g.beginPath(); g.moveTo(150, y - 172); g.lineTo(TW - 150, y - 172); g.stroke(); }, C, 5);
+    if (!sansTrait) neon(g, () => { g.beginPath(); g.moveTo(150, y - 172); g.lineTo(TW - 150, y - 172); g.stroke(); }, C, 5);
   }
   // la tour Eiffel au trait, pour le booster payé (le monument « qui dit qu'il y a du rare dedans »)
   const TOUR = { bas: 1040, haut: 258 };
@@ -144,14 +164,12 @@ a{color:#9FE8FF}
     // l'holographique s'y calme sans s'arrêter net (Gautier, 16 nov. : le cartouche « dénote avec le reste du décor »)
     const masque = toile(), k = masque.getContext('2d'); k.fillStyle = '#fff'; k.fillRect(0, 0, TW, TH);
     if (recto) { const [y0, y1] = CARTOUCHE[sorte];
-      for (const [c, couleur, flou] of [[g, 'rgba(3,5,22,.9)', 80], [k, '#000', 110]]) { c.save(); c.fillStyle = couleur; c.shadowColor = couleur; c.shadowBlur = flou;
-        c.beginPath(); c.ellipse(TW / 2, (y0 + y1) / 2, TW * 0.46, (y1 - y0) * 0.5, 0, 0, 6.283); c.fill(); c.fill();
-        if (sorte === 'paye') { silhouetteTour(c, 26); c.fill(); c.fill(); } else { c.beginPath(); c.arc(TW / 2, 420, 86, 0, 6.283); c.fill(); }
+      for (const [c, couleur, flou] of [[g, 'rgba(3,5,22,.74)', 130], [k, '#000', 130]]) { c.save(); c.fillStyle = couleur; c.shadowColor = couleur; c.shadowBlur = flou;
+        c.beginPath(); c.ellipse(TW / 2, (y0 + y1) / 2, TW * 0.44, (y1 - y0) * 0.44, 0, 0, 6.283); c.fill();
+        if (sorte === 'paye') { silhouetteTour(c, 26); c.fill(); c.fill(); } else { c.beginPath(); c.ellipse(TW / 2, 520, TW * 0.42, 190, 0, 0, 6.283); c.fill(); }
         c.restore(); } }
     l.fillStyle = '#000'; l.fillRect(0, 0, TW, TH);
-    if (recto) { if (sorte === 'paye') tour(l, C); enseigne(l, C, sorte === 'paye' ? 1282 : 862);
-      // l'emblème à la maison, en haut
-      neon(l, () => { const x = TW / 2, y = sorte === 'paye' ? 0 : 420; if (!y) return; l.beginPath(); l.arc(x, y, 74, 0, 6.283); l.moveTo(x - 44, y + 6); l.lineTo(x, y - 36); l.lineTo(x + 44, y + 6); l.moveTo(x - 30, y - 4); l.lineTo(x - 30, y + 38); l.lineTo(x + 30, y + 38); l.lineTo(x + 30, y - 4); l.moveTo(x - 9, y + 38); l.lineTo(x - 9, y + 14); l.lineTo(x + 9, y + 14); l.lineTo(x + 9, y + 38); l.stroke(); }, C, 6);
+    if (recto) { if (sorte === 'paye') tour(l, C); else ligneDeToits(l, C, 684); enseigne(l, C, sorte === 'paye' ? 1282 : 862, sorte !== 'paye');
       l.save(); l.font = '800 50px Nunito, sans-serif'; l.textAlign = 'center'; l.fillStyle = '#FFFFFF'; l.shadowColor = C.vif; l.shadowBlur = 10; try { l.letterSpacing = '14px'; } catch (e) { /* rien */ }
       l.fillText(sorte === 'paye' ? 'BOOSTER OR' : 'BOOSTER DU JOUR', TW / 2 + 7, sorte === 'paye' ? 1408 : 1018); l.restore(); }
     else { l.save(); l.font = '700 96px "Barlow Condensed", sans-serif'; l.textAlign = 'center'; neon(l, () => l.strokeText('STREETKEEP', TW / 2, TH / 2), C, 5); l.restore(); }

@@ -589,3 +589,4 @@
 - 16 nov. 2026 : **booster, retours de Gautier** : le nom redevient lisible (lettres pleines sur un cartouche sombre, sans arc-en-ciel dessus) ; **la coupe suit le doigt** : la languette se décolle derrière lui et se relève en courbe, façon Pokémon Pocket, au lieu d'un trait droit (`proto/booster.html`).
 - 16 nov. 2026 : **booster, décor uni** (Gautier : le cartouche « dénote », la tour « peu visible ») : ombres douces au lieu de la boîte, holographique en bandes qui glissent, tour Eiffel plus grande et plus épaisse (`proto/booster.html`).
 - 16 nov. 2026 : **booster moins brillant** (Gautier : « brille trop ») : holographique et reflets réduits, liseré sombre autour des lettres, et un réglage de brillance à trois niveaux sur la page d'essai pour choisir.
+- 16 nov. 2026 : **booster du jour : la ligne de toits** à la place de la maison du logo (choix de Gautier) : une ville française en néon au-dessus du nom (`ligneDeToits`, `proto/booster.html`).
