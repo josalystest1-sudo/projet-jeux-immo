@@ -390,6 +390,7 @@ Puis une PR par étape, fusionnée en squash :
 | #155 | 05/11 | L'horloge du serveur : toutes les 10 minutes, enchères, mandats, saisons, monuments et robots tournent sans joueur |
 | #156 | 05/11 | Les travaux des communes s'usent (−10 % par mandat) ; le niveau donne +2 % de loyer par niveau et monte le plafond du Maire (jusqu'à 2 000) |
 | #157 | 05/11 | Documents : les six monuments qui sont des marques (Ritz, Maxim's, Crillon, Negresco, Château Margaux, Train bleu) restent aux enchères (Gautier : « garde-les ») |
+| #188 | 16/11 | La chasse au trésor retirée de la version simple (interrupteur `ECO.chasse.active`, rien d'effacé) |
 | #187 | 06/11 | Pochette : titre plus petit, crème sur contour nuit, jamais plus large que le sachet ; métal et irisation en 512 × 761 (plus de pavés) |
 | #186 | 06/11 | Pochette, étape 3 : deux illustrations héroïques générées (ChatGPT, maquettes de porcelaine et d'or : quartier parisien et tour Eiffel pour le pack du jour, Mont-Saint-Michel pour le premium), posées en texture avec métal et irisation déduits de l'image |
 | #185 | 06/11 | La promenade en Street View revient (photo en haut, carte 3D en direct, Avancer / Tourner) ; le joystick reste pour la chasse au trésor |

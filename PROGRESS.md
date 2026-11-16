@@ -578,3 +578,4 @@
 
 ## Bugs connus
 - Les badges 💰 des joueurs simulés n'apparaissent qu'après ouverture de leur parcelle (limite du prototype local).
+- 16 nov. 2026 : **la chasse au trésor est retirée de la version simple** (Gautier : « elle n'est pas au point ») : un interrupteur `ECO.chasse.active` (à `false` dans `data/economie.json`) ; le jeu ne demande plus rien au serveur pour la chasse (`src/chasse_jeu.js`), plus de bandeau, plus de gros bouton à l'accueil, plus de fenêtre « Nouveau ! », plus de chasse d'essai dans les Réglages (`P.retiree` dans `src/progression.js`, fermée même pour ceux qui l'avaient ouverte). Rien n'est effacé : le code, les règles, les tables et le serveur restent ; remettre `active` à `true` (puis `python3 tools/gen_economie.py`) la rouvre. Les boosters (packs) sont à retravailler ensuite.

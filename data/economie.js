@@ -246,6 +246,7 @@ const ECO = {
   "mandats_par_saison": 6
  },
  "chasse": {
+  "active": false,
   "intervalle_minutes": 60,
   "heure_debut": 9,
   "heure_fin": 23,
