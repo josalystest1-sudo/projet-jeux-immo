@@ -1,5 +1,5 @@
 // Le booster « nuit et néon » (16 nov. 2026, interview de Gautier, docs/CARTES-NEON.md ; prototype validé : proto/booster.html) :
-// un sachet holographique, le nom du jeu en enseigne de néon, un plan de ville en filigrane ; le booster du jour porte une
+// un sachet au foil bleu et or (plus d'arc-en-ciel), le nom du jeu en enseigne de néon, un plan de ville en filigrane ; le booster du jour porte une
 // ligne de toits (bleu), le booster payé une tour Eiffel d'or. Ce fichier donne au jeu (initGL, index.html) :
 //   Booster.habiller(THREE, sorte, coupe, bas)  les deux matières du sachet (recto, verso) et la couleur de son éclair ;
 //   Booster.enrouler(geos, p, sens, leve, L, YC) la languette qui se décolle derrière le doigt, le long d'une courbe.
@@ -100,9 +100,10 @@
   function dessiner(sorteVoulue, recto, coupe, bas) {
     sorte = SORTES[sorteVoulue] ? sorteVoulue : 'jour'; COUPE = coupe || 0.115; BAS = bas || COUPE * 0.8;
     const C = SORTES[sorte], base = toile(), lum = toile(), g = base.getContext('2d'), l = lum.getContext('2d');
-    // le foil : un fond de nuit, l'arc-en-ciel de l'holographique en travers, de fines rayures
+    // le foil : un fond de nuit, des reflets bleus et dorés en travers (Gautier, 16 nov. : « trop arc-en-ciel, il fait tache avec la
+    // direction artistique du jeu » : la brillance reste dans les teintes bleutées et dorées), de fines rayures
     const f = g.createLinearGradient(0, 0, 0, TH); f.addColorStop(0, C.fond[0]); f.addColorStop(1, C.fond[1]); g.fillStyle = f; g.fillRect(0, 0, TW, TH);
-    const arc = g.createLinearGradient(0, 0, TW, TH); ['#ff2d8a', '#ffd400', '#22ffb0', '#22b8ff', '#a02dff', '#ff2d8a', '#ffd400', '#22ffb0', '#22b8ff'].forEach((c, i, a) => arc.addColorStop(i / (a.length - 1), c));
+    const arc = g.createLinearGradient(0, 0, TW, TH); (sorte === 'paye' ? ['#FFC24A', '#2A63FF', '#FFE3A6', '#FFB52E', '#3A8BFF', '#FFD27A', '#FFC24A', '#2A63FF', '#FFE3A6'] : ['#2A63FF', '#7FD0FF', '#FFD27A', '#2A63FF', '#38C8FF', '#FFC24A', '#7FD0FF', '#2A63FF', '#38C8FF']).forEach((c, i, a) => arc.addColorStop(i / (a.length - 1), c));
     g.globalAlpha = 0.16; g.fillStyle = arc; g.fillRect(0, 0, TW, TH); g.globalAlpha = 1;
     g.save(); g.globalAlpha = 0.1; g.strokeStyle = '#fff'; g.lineWidth = 2; for (let x = -TH; x < TW; x += 16) { g.beginPath(); g.moveTo(x, 0); g.lineTo(x + TH * 0.55, TH); g.stroke(); } g.restore();
     const v = g.createRadialGradient(TW / 2, TH * 0.5, 60, TW / 2, TH * 0.5, TH * 0.62); v.addColorStop(0, 'rgba(4,6,24,.62)'); v.addColorStop(1, 'rgba(4,6,24,.1)'); g.fillStyle = v; g.fillRect(0, 0, TW, TH);
@@ -134,7 +135,8 @@
     m.onBeforeCompile = (sh) => { sh.fragmentShader = sh.fragmentShader.replace('#include <emissivemap_fragment>', `#include <emissivemap_fragment>
       vec3 holoN = normalize( vNormal ); vec3 holoV = normalize( vViewPosition );
       float holoT = dot( holoN, holoV ) * 2.6 + vUv.x * 1.25 + vUv.y * 0.85;
-      vec3 holoC = 0.5 + 0.5 * cos( 6.2831 * ( holoT + vec3( 0.0, 0.33, 0.67 ) ) );
+      float holoM = 0.5 + 0.5 * cos( 6.2831 * holoT );
+      vec3 holoC = mix( vec3( 0.10, 0.42, 1.0 ), vec3( 0.35, 0.80, 1.0 ), smoothstep( 0.0, 0.45, holoM ) ); holoC = mix( holoC, vec3( 1.0, 0.76, 0.30 ), smoothstep( 0.55, 0.9, holoM ) );   // (du bleu au bleu clair, puis à l'or : les teintes du jeu, plus d'arc-en-ciel)
       float holoB = pow( 0.5 + 0.5 * sin( 6.2831 * holoT * 0.85 ), 3.0 );
       float holoS = mix( 0.1, 1.0, texture2D( uMasque, vUv ).r );
       totalEmissiveRadiance += holoC * ( 0.04 + 0.11 * holoB ) * holoS * uForce;`).replace('void main() {', 'uniform sampler2D uMasque;\nuniform float uForce;\nvoid main() {'); sh.uniforms.uMasque = { value: k }; sh.uniforms.uForce = FORCE; };
