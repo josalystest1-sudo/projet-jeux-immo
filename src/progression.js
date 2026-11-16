@@ -20,13 +20,17 @@
   P.INFO = INFO;
   P.faits = () => { const l = Object.values(state.owned || {});
     return { packs: DEB.packsAuMoins(state.packsOuverts, l.length), lieux: l.length, constructions: l.filter((a) => (a.niveau || 0) > 0).length, pieces: Math.floor(dispo()) }; };
-  P.ouvert = (k) => DEB.ouvert(state.deblocages, k);
+  // une fonction retirée du jeu (ECO.chasse.active à false : la chasse au trésor, 16 nov.) reste fermée pour tout le monde,
+  // même pour ceux qui l'avaient déjà ouverte, et ne se fête pas
+  const retiree = (k) => k === 'chasse' && ECO.chasse && ECO.chasse.active === false;
+  P.retiree = retiree;
+  P.ouvert = (k) => !retiree(k) && DEB.ouvert(state.deblocages, k);
   window.debloque = P.ouvert;   // (src/accueil.js, src/chasse_jeu.js)
 
   let pret = false;
   P.verifier = () => {
     if (!state.deblocages) state.deblocages = {};
-    const n = DEB.nouveaux(state.deblocages, P.faits());
+    const n = DEB.nouveaux(state.deblocages, P.faits()).filter((k) => !retiree(k));
     if (n.length) { for (const k of n) { state.deblocages[k] = Date.now(); if (pret && !DEB.silencieux(k)) (state.nouveautes = state.nouveautes || []).push(k); } save(); }
     if (!MODE_SERVEUR || window.ETAT_RECU) pret = true;   // (en mode serveur : après sa première réponse)
     P.cadenas(); if (n.length) setTimeout(P.montrer, 400);
@@ -63,7 +67,7 @@
   const occupe = () => !!((document.querySelector('#packscene.on') && !document.body.classList.contains('vitrine')) || document.querySelector('#modal.on') || document.getElementById('guide')
     || (typeof PROM !== 'undefined' && PROM.on) || (window.CHASSE && CHASSE.dans) || document.querySelector('.rev-scene') || (window.Compte && Compte.bloque && Compte.bloque()));
   P.montrer = () => { const q = state.nouveautes; if (!q || !q.length || occupe()) return;
-    const k = q.shift(); save(); const i = INFO[k]; if (!i) return P.montrer();
+    const k = q.shift(); save(); const i = INFO[k]; if (!i || retiree(k)) return P.montrer();
     const box = document.getElementById('modalbox');
     box.innerHTML = `<div class="prog-fen"><div class="prog-ic">${i.ic}</div><div class="prog-nouveau">Nouveau</div><h2>${i.titre}</h2><div class="sub">${i.texte}</div>
       <div class="liste-btn">${i.ecran ? `<button class="btn large" id="prog-voir">Découvrir</button><button class="btn clair large" onclick="closeModal()">Plus tard</button>` : '<button class="btn large" onclick="closeModal()">D’accord</button>'}</div></div>`;

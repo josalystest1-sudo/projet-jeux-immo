@@ -267,6 +267,9 @@
 
   // ---------------------------------------------------------------- au démarrage, puis chaque minute
   function demarrer() { suivre(); setInterval(suivre, 60000); document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') suivre(); }); }
+  // la chasse retirée du jeu (ECO.chasse.active à false, 16 nov.) : on ne demande plus rien au serveur, rien ne s'affiche
+  const ACTIVE = !(ECO.chasse && ECO.chasse.active === false);
+  if (!ACTIVE) setTimeout(() => { majBandeau(); }, 1000); else
   if (MODE_SERVEUR) setTimeout(demarrer, 4000); else setTimeout(() => { majBandeau(); }, 1000);
   CH.suivre = suivre; CH.entrer = entrer;
   CH.inscrire = () => actionBandeau('inscrire'); CH.majBandeau = () => majBandeau();   // (src/progression.js : la chasse s'ouvre en jouant)   // (le gros bouton de l’accueil)

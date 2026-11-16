@@ -188,6 +188,8 @@ Les règles (`src/regles/robots.js`, réglages `data/economie.json` → `robots`
 
 ## 5 quinquies. La chasse au trésor **[Décidé par Gautier le 6 nov. 2026 ; chiffres Proposés]**
 
+> **Retirée de la version simple le 16 nov. 2026** (Gautier : « elle n'est pas au point »). Elle reste dans le code, éteinte par `ECO.chasse.active` ; à reprendre après le lancement.
+
 Gautier (6 nov.) : « toutes les demi-heures ou toutes les heures (faudra régler ça plus tard), un mode chasse au trésor où on annonce une commune et il faut se rendre à une adresse précise de la commune, mais qui est cachée. Le premier joueur qui atteint cette adresse gagne une récompense. Tous les joueurs commencent au même endroit. Et si au bout de X minutes personne n'a atteint l'endroit, il faut pouvoir donner un indice de plus en plus précis jusqu'à ce que quelqu'un trouve. » Le déplacement est la balade au joystick (§ 7, 1 bis), la caméra derrière le pion « comme une vue FPS, mais en dézoomé ». Puis : « quelques minutes avant une chasse, les gens peuvent s'inscrire, et quand la chasse commence ils sont téléportés au point de départ » ; « la commune peut être un contenu instancié, pour la modéliser en avance et réduire les lags » ; « pourquoi pas même rendre la commune encore plus jolie » ; « comment gérer l'afflux de plein de joueurs pour que le jeu reste lisible ? ». Construite le jour même (« maintenant, avant le lancement »).
 
 - **Le rythme** : une chasse toutes les heures, de 9 h à 23 h (heure de Paris) **[Proposé ; Gautier : « à régler plus tard »]**.
