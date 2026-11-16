@@ -114,7 +114,13 @@
   }
   const charger = (texte) => new Promise((ok, ko) => { const i = new Image(); i.onload = () => ok(i); i.onerror = () => ko(new Error('image')); i.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(texte); });
   // peindre une image, puis son halo seul (l'image est dessinée hors du canevas, son ombre décalée retombe dedans)
-  function halo(g, img, couleur, flou, W, H) { g.save(); g.globalCompositeOperation = 'lighter'; g.shadowColor = couleur; g.shadowBlur = flou; g.shadowOffsetX = W * 2; g.drawImage(img, -W * 2, 0, W, H); g.restore(); }
+  // (16 nov. : sur le téléphone de Gautier, les dos restaient « dans une pénombre » : l'ancienne astuce dessinait l'image hors du
+  // canevas pour n'en garder que l'ombre, et Chrome sur Android ne dessine pas ce qui est hors du canevas, donc pas de halo.
+  // On dessine maintenant l'image floutée à sa place, en lumière ajoutée ; l'ancienne astuce ne reste qu'en secours.)
+  function halo(g, img, couleur, flou, W, H) { g.save(); g.globalCompositeOperation = 'lighter';
+    if (typeof g.filter === 'string') { for (const [f, a] of [[flou * 0.5, 1], [flou * 0.22, 0.9], [flou * 1.1, 0.8]]) { g.filter = 'blur(' + f + 'px)'; g.globalAlpha = a; g.drawImage(img, 0, 0, W, H); } g.filter = 'none'; }
+    else { g.shadowColor = couleur; g.shadowBlur = flou; g.shadowOffsetX = W * 2; g.drawImage(img, -W * 2, 0, W, H); }
+    g.restore(); }
   let pret = null;
   function preparer() {
     if (pret) return pret;
