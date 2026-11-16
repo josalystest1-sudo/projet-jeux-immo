@@ -87,6 +87,7 @@ const VERSION='__VERSION__';
 <script src="src/regles/pack.js"></script>
 <script src="src/regles/chasse.js"></script>
 <script src="src/regles/deblocages.js"></script>
+<script src="src/regles/agence.js"></script>
 <script src="src/tirage.js"></script>
 <script src="src/marche.js"></script>
 <script src="src/maquettes.js"></script>
@@ -2392,6 +2393,7 @@ function renderPatrimoine(){ const el=document.getElementById('s-patrimoine'); c
   const p=Math.floor(pendingRent());
   let h=`<h1>Mon patrimoine <button class="btn sm clair act" onclick="ouvrirClassements('patrimoine')">🏆 Classements</button></h1><div class="kpis"><div class="kpi"><i>🏘️</i><b>${tous.length}</b><small>lieu${tous.length>1?'x':''}</small></div><div class="kpi"><i>💎</i><b>${nb(total)}<i class="pc"></i></b><small>de valeur</small></div><div class="kpi"><i>📈</i><b style="color:var(--cadre2)">${(v=>(v<0?'−':'+')+nb(Math.abs(v)))(SALAIRE+loyerTotal()-MON.parJour(tous))}</b><small>par jour</small></div></div>`;
   h+=`<div class="card flex"><div><div class="t">🌾 ${p>=1?`<span style="color:var(--cadre2)">+${nb(p)}</span> à récolter`:'Les loyers poussent…'}</div><div class="m">Salaire ${nb(SALAIRE)} + loyers ${nb(loyerTotal())} par jour, stockés 24 h au plus.</div></div>${p>=1?`<button class="btn vert" onclick="recolter()">Récolter</button>`:''}</div>`;
+  if(window.AGENCE) h+=AGENCE.carte();   // l'agence, le jeu « idle » (src/agence_jeu.js)
   { const mons=MON.entretiens(tous), e=state.entretien||{}; if(mons.length){ const jr=MON.joursAvantReprise(e.impayeDepuis, now(), JOUR), cher=mons[mons.length-1];
       h+=`<div class="card entretien${e.dette>0?' impaye':''}"><div class="t">🏛️ Entretien de tes monuments : ${pcs(MON.parMois(tous))} par mois</div>
         <div class="m">${mons.map(x=>`${echapper(x.label)} <b>${nb(x.parMois)}</b>`).join(' · ')}</div>
@@ -2973,6 +2975,7 @@ async function recolteConnexion(ensuite){ if(MODE_SERVEUR){ const r=await synchr
 function demarrageLocal(){ if(!state.pseudo) setTimeout(creationProfil, 600); else setTimeout(()=>recolteConnexion(packAuDemarrage), 500); }
 refreshTop(); if(!MODE_SERVEUR) tickAuction();
 </script>
+<script src="src/agence_jeu.js"></script>
 <script src="src/accueil.js"></script>
 <script src="src/progression.js"></script>
 <script>PROGRESSION.verifier();</script>

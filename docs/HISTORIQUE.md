@@ -403,6 +403,7 @@ Puis une PR par étape, fusionnée en squash :
 | #211 | 16/11 | Le dos des cartes peint dans des canevas (sur le téléphone de Gautier, les images de fond sortaient à moitié de leur lumière) |
 | #212 | 16/11 | Le dos des cartes moins brillant (les lumières ajoutées en compensation sont ramenées à un niveau moyen) |
 | #213 | 16/11 | La taille des packs : 2 cartes par jour, 4 avec le Pass, 4 + 1 Rare ou mieux pour un pack acheté, 5 pour le tout premier |
+| #214 | 16/11 | L'agence, le jeu « idle » : employés, renom, briques, classement de la saison (règles, écran, serveur, équilibre simulé) |
 | #200 | 16/11 | Prototype du booster validé par Gautier : brillance moyenne fixée, boutons de réglage retirés |
 | #199 | 16/11 | Prototype du booster : une ligne de toits en néon sur le booster du jour, à la place de la maison |
 | #198 | 16/11 | Prototype du booster : moins brillant, lettres cernées, trois niveaux de brillance à choisir |

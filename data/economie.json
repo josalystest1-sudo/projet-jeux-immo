@@ -112,5 +112,15 @@
     "absence_avertir_jours": 11,
     "impaye_jours": 30,
     "impaye_avertir_jours": 23
+  },
+  "agence": {
+    "postes": {
+      "agent": {"base": 60, "croissance": 1.13, "renom": 1},
+      "negociateur": {"base": 400, "croissance": 1.22, "bonus": 0.12},
+      "directeur": {"base": 5000, "croissance": 3.2, "facteur": 1.6}
+    },
+    "brique": {"seuil": 300, "croissance": 1.4, "bonus": 0.08},
+    "stock_heures": 48,
+    "employes_max": 400
   }
 }
