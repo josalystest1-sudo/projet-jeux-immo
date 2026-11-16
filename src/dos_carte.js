@@ -125,7 +125,7 @@
         charger(svg('12 60 216 216', STYLE, d.anneauA)), charger(svg('12 60 216 216', STYLE, d.anneauB))]);
       const cf = toile(W, H), gf = cf.getContext('2d'); gf.drawImage(iFond, 0, 0, W, H);
       // une lumière au milieu du fond (Gautier, 16 nov. : sur téléphone, la pile de dos était trop sombre, « on voit mal les cartes »)
-      { gf.save(); gf.globalCompositeOperation = 'lighter'; const l = gf.createRadialGradient(W / 2, H * 0.48, 0, W / 2, H * 0.48, H * 0.62); l.addColorStop(0, 'rgba(70,130,255,.5)'); l.addColorStop(0.55, 'rgba(50,100,230,.26)'); l.addColorStop(1, 'rgba(30,60,160,.08)'); gf.fillStyle = l; gf.fillRect(0, 0, W, H); gf.restore(); }
+      { gf.save(); gf.globalCompositeOperation = 'lighter'; const l = gf.createRadialGradient(W / 2, H * 0.48, 0, W / 2, H * 0.48, H * 0.62); l.addColorStop(0, 'rgba(80,140,255,.62)'); l.addColorStop(0.55, 'rgba(55,110,235,.36)'); l.addColorStop(1, 'rgba(35,70,175,.16)'); gf.fillStyle = l; gf.fillRect(0, 0, W, H); gf.restore(); }
       const cd = toile(W, H), g = cd.getContext('2d'); g.drawImage(iNet, 0, 0, W, H); halo(g, iBleu, BLEU[1], 14, W, H); halo(g, iOr, OR, 14, W, H); g.drawImage(iNet, 0, 0, W, H);
       // le nom, sur la banderole
       g.save(); g.font = '700 ' + (17 * K) + 'px "Barlow Condensed", "Arial Narrow", sans-serif'; g.textAlign = 'center'; g.textBaseline = 'alphabetic'; const large = g.measureText('STREETKEEP').width, k = (112 * K) / large;

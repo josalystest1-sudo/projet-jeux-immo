@@ -1873,9 +1873,13 @@ async function preparerRevelation(scene, c){ scene.innerHTML='<div class="rev-fi
     else if(e.roulette && e.roulette.cible>=0){ e.roulette.toiles=[]; for(const rings of e.roulette.calques){ const t2=toile(kc); t2.className='rev-case'; peindreEtape(t2, e.vue, [{ rings, style:'allume' }], kc, c, null, false); bloc.appendChild(t2); e.roulette.toiles.push(t2); await repos(); } } }
   return { etapes, W, H }; }
 // la roulette : les cases s'allument tour à tour, de plus en plus lentement, et s'arrêtent sur la bonne ; un toucher l'arrête
-async function roulette(rl, r, dire){ const n=rl.calques.length, voir=rl.voir || ((i)=>rl.toiles.forEach((t,j)=>t.classList.toggle('on', j===i))); let i=(rl.cible+1+Math.floor(Math.random()*(n-1)))%n, d=70;
-  if(n>1) while(!REV.passer && d<300){ voir(i); if(dire) dire(rl.noms[i]); sonTick(620+((i*97)%5)*90); vibrer(5); await pauseR(d); d*=1.17; i=(i+1+Math.floor(Math.random()*Math.max(1,n-2)))%n; if(i===rl.cible && d<300) i=(i+1)%n; }
-  voir(rl.cible); choc(r, true); }
+async function roulette(rl, r){ const n=rl.calques.length, voir=rl.voir || ((i)=>rl.toiles.forEach((t,j)=>t.classList.toggle('on', j===i))); let i=(rl.cible+1+Math.floor(Math.random()*(n-1)))%n, d=70;
+  // elle ralentit et son dernier cran tombe sur la bonne case, dans le même mouvement (Gautier, 16 nov. : elle semblait s'arrêter
+  // sur une case, puis sautait encore une fois : « ça brise le rythme »)
+  if(n>1) while(!REV.passer && d*1.17<300){ voir(i); sonTick(620+((i*97)%5)*90); vibrer(5); await pauseR(d); d*=1.17;
+    let s=(i+1+Math.floor(Math.random()*Math.max(1,n-2)))%n; if(s===rl.cible) s=(s+1)%n; if(s===i && n>2) s=(s+1)%n; if(s===rl.cible) s=(s+1)%n; i=s; }
+  voir(rl.cible); sonTick(980); choc(r, true); }
+// (une roulette : d'abord l'endroit où elle s'arrête, puis, un instant après, son nom ; pas les deux à la fois : Gautier, 16 nov.)
 async function revelationSurCarte(scene, c, r, prep){ const { etapes, W, H } = prep || await preparerRevelation(scene, c); let prec=null, vuePrec=null;
   const fil=(t)=>{ const f=scene.querySelector('.rev-fil'); f.textContent=t; f.classList.remove('arrive'); void f.offsetWidth; f.classList.add('arrive'); };
   for(let i=0;i<etapes.length;i++){ const e=etapes[i], cv=e.cv, vue=e.vue; etapeR(); scene.insertBefore(cv, scene.querySelector('.rev-fil'));
@@ -1887,7 +1891,7 @@ async function revelationSurCarte(scene, c, r, prep){ const { etapes, W, H } = p
     else { cv.classList.add('premiere'); }
     prec=cv; vuePrec=vue;
     if(e.nom) { claque(scene, e.nom); choc(r, i===0); } else if(e.fil) { fil(e.fil); }
-    if(e.roulette && e.roulette.toiles){ await pauseR(i===0 ? 1000 : 950); if(!REV.passer){ await roulette(e.roulette, r, e.roulette.leger ? (t)=>{ scene.querySelector('.rev-fil').textContent=t; } : null); claque(scene, e.roulette.noms[e.roulette.cible]); await pauseR(1100); } else if(e.roulette.voir) e.roulette.voir(e.roulette.cible); else e.roulette.toiles.forEach((t,j)=>t.classList.toggle('on', j===e.roulette.cible)); }
+    if(e.roulette && e.roulette.toiles){ await pauseR(i===0 ? 1000 : 950); if(!REV.passer){ await roulette(e.roulette, r); await pauseR(700); claque(scene, e.roulette.noms[e.roulette.cible]); await pauseR(1100); } else if(e.roulette.voir) e.roulette.voir(e.roulette.cible); else e.roulette.toiles.forEach((t,j)=>t.classList.toggle('on', j===e.roulette.cible)); }
     else await pauseR(ETAPE_MS+(i===0?500:550)); }
   return true; }
 // l'alerte d'une carte Épique et au-delà : l'écran tremble, un double signal, le bandeau de la rareté au milieu, qui monte ensuite en haut
