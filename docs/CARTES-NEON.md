@@ -53,4 +53,5 @@ Prototype : `proto/booster.html` (https://citydeck.fr/proto/booster.html ; `?s=p
 - **Décisions du 16 nov. (13 h)** : dos **bleu et or** ; packs à **2 cartes gratuites, 4 avec le Pass, 4 + 1 Rare ou mieux pour le payé, le tout premier pack d'un nouveau joueur à 5 cartes** ; Claude (session dans le cloud) prend la main, le Claude Code du PC est en veille.
 - **Étape 1, faite** : la face néon (prototype n° 3) dans `src/carte_lieu.js` : pack, collection (miniatures légères) et carte ouverte en grand, avec les chiffres dessous.
 - **Étape 2, faite** : le dos bleu et or (`src/dos_carte.js`), et la bordure qui allait et venait sur les cartes corrigée (retour de Gautier).
+- **Révélation** (retour de Gautier, 16 nov.) : la roulette dans les teintes des cartes (bleu néon, or pour ce qui est choisi), une roulette des villes après le département, puis le zoom sur l'adresse ; l'éclair de la carte du dessous sur la carte en main est corrigé.
 - **À faire** : le booster et sa languette ; la taille des packs.

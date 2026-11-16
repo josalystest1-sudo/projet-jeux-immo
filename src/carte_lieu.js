@@ -61,7 +61,9 @@
     // la carte au premier plan (en main, agrandie) à chaque image ; les autres une image sur six, à tour de rôle
     // la carte au premier plan à chaque image (dans le canevas du moteur, posé sur elle) ; les autres une fois par seconde
     const focus = vues.find((s) => s.focus);
-    if (focus) vues.forEach((s, i) => { if (s === focus || (cadence % 60) === (i * 7) % 60 || !s.vu) s.dessiner(t / 1000, s === focus); });
+    // (la carte en main en dernier : elle se dessine dans le canevas du moteur, posé sur elle ; dessinée avant une autre, elle montrait
+    // un instant l'image de la carte du dessous : « la carte du dessous passe dessus sous forme de flash », Gautier, 16 nov.)
+    if (focus) { vues.forEach((s, i) => { if (s !== focus && ((cadence % 60) === (i * 7) % 60 || !s.vu)) s.dessiner(t / 1000, false); }); focus.dessiner(t / 1000, true); }
     else { const tour = vues[cadence % vues.length]; vues.forEach((s) => { if (s === tour || !s.vu) s.dessiner(t / 1000, false); }); }
     boucle = requestAnimationFrame(dessinerTout);
   }
