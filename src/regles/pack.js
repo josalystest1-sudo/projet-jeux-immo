@@ -31,11 +31,14 @@
   }
 
   // les raretés des n cartes d'un pack
-  function raretes(n, chances, rng) {
+  // garantie (pack acheté, 16 nov. : « 4 cartes + 1 Rare ou supérieur ») : la dernière carte est au moins de cette rareté,
+  // tirée avec les mêmes chances, ramenées aux raretés permises
+  function raretes(n, chances, rng, garantie) {
     const out = [];
-    for (let i = 0; i < n; i++) out.push(rarete(chances, rng));
+    for (let i = 0; i < n; i++) out.push(rarete(garantie && i === n - 1 ? auMoins(chances, garantie) : chances, rng));
     return out;
   }
+  function auMoins(chances, min) { const c = {}; for (const [k, v] of Object.entries(chances)) if (Number(k) >= min) c[k] = v; return Object.keys(c).length ? c : chances; }
 
   // une carte tirée convient-elle ? La bonne rareté, libre, pas déjà dans le pack.
   function convient(lieu, rareteVoulue, rareteDe, estLibre, dejaTires) {

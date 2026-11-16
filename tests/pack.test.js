@@ -36,3 +36,12 @@ test('une carte convient : bonne rareté, libre, pas déjà tirée', () => {
   assert.ok(!P.convient({ id: 'a', r: 2 }, 2, rareteDe, libre, [{ id: 'a' }]));
   assert.ok(!P.convient(null, 2, rareteDe, libre, []));
 });
+
+test('un pack acheté : la dernière carte est Rare ou mieux, les autres suivent les chances ordinaires', () => {
+  let communes = 0;
+  for (let k = 0; k < 400; k++) { const r = P.raretes(5, ECO.pack.chances, P.alea(P.graine('achat:' + k)), 3);
+    assert.strictEqual(r.length, 5); assert.ok(r[4] >= 3 && r[4] <= 5, 'la carte garantie'); communes += r.slice(0, 4).filter((x) => x === 1).length; }
+  assert.ok(communes > 700, 'les quatre autres cartes restent surtout des Communes');
+  assert.deepStrictEqual(P.raretes(5, ECO.pack.chances, P.alea(P.graine('x'))), P.raretes(5, ECO.pack.chances, P.alea(P.graine('x')), 0), 'sans garantie, rien ne change');
+});
+

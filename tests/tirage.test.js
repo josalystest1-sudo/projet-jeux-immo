@@ -45,3 +45,9 @@ test('un tirage Rare ne donne jamais un lieu célèbre (les Légendaires restent
   const seul = Tirage.creer({ geoJSON: async (chemin) => (chemin.includes('index=poi') ? { features: [poi('Gare de Chartres', 1.4817, 48.4486)] } : g(chemin)), celebres, france: FRANCE, deps: ['28'], standing: table, Celebres, Pack, rarete: R.rarete, estLibre: () => true });
   assert.equal(await seul.lieuNommeProche(1.48, 48.45, Pack.alea(1)), null);
 });
+
+test('un pack acheté dans un monde sans lieu Rare : la garantie ne casse rien, le pack reste complet', async () => {
+  const cartes = await creer(() => true).tirerPack('achat', { 1: 100 }, 5, null, 3);
+  assert.equal(cartes.length, 5); assert.equal(new Set(cartes.map((c) => c.id)).size, 5);
+});
+
