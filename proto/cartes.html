@@ -1,0 +1,368 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="color-scheme" content="only dark">
+<meta name="robots" content="noindex">
+<title>StreetKeep · prototypes de cartes</title>
+<!--
+  Prototypes de la nouvelle carte (16 nov. 2026, interview de Gautier en 20 questions) : page d'essai, à part du jeu.
+  Ce qu'il a demandé : niveau Pokémon TCG Pocket ; nuit, plan cadastral du quartier en néon, parcelle surlignée ; le vrai
+  bâtiment en 3D (maquette stylisée) qui tourne tout seul, pleine carte ; sur la face, seulement l'adresse (plaque de rue
+  en néon), la commune et la rareté ; les chiffres sous la carte ; holo arc-en-ciel et lumière vivante, qui réagissent à
+  l'inclinaison du téléphone, avec une légère profondeur ; toutes les cartes très belles, la rareté change la couleur des
+  néons et ajoute des effets ; en petit (collection), une image fixe avec un simple reflet.
+  Restés ouverts, à trancher ici en regardant : le cadre (orné, filet néon, sans cadre) et la matière (verre, hologramme).
+  Les données sont celles du jeu (src/carte_lieu.js : cadastre et BD TOPO de l'IGN) ; rien n'est écrit nulle part.
+-->
+<style>
+@font-face{font-family:'Nunito';font-weight:700;font-display:swap;src:url(../fonts/nunito-latin-700-normal.woff2) format('woff2')}
+@font-face{font-family:'Nunito';font-weight:800;font-display:swap;src:url(../fonts/nunito-latin-800-normal.woff2) format('woff2')}
+@font-face{font-family:'Barlow Condensed';font-weight:600;font-display:swap;src:url(../fonts/barlow-condensed-latin-600-normal.woff2) format('woff2')}
+@font-face{font-family:'Barlow Condensed';font-weight:700;font-display:swap;src:url(../fonts/barlow-condensed-latin-700-normal.woff2) format('woff2')}
+*{box-sizing:border-box}
+html,body{margin:0;background:#03050F;color:#EAF2FF;font-family:Nunito,system-ui,sans-serif;font-weight:700;-webkit-text-size-adjust:100%}
+body{min-height:100vh;display:flex;flex-direction:column;align-items:center;gap:14px;padding:14px 12px 40px}
+h1{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:22px;letter-spacing:.12em;text-transform:uppercase;margin:2px 0 0;text-align:center}
+.sous{font-size:13px;color:#B9C6F2;text-align:center;margin:-8px 0 0;max-width:340px}
+.rangee{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;max-width:380px}
+.bloc{width:100%;max-width:380px;display:flex;flex-direction:column;gap:6px}
+.bloc > span{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:#B9C6F2}
+button{font:inherit;color:#EAF2FF;background:#111A40;border:1.5px solid #2B3A7A;border-radius:999px;padding:10px 14px;min-height:44px;cursor:pointer}
+button.on{background:#EAF2FF;color:#0B1230;border-color:#EAF2FF}
+button.proto{flex:1 1 30%;border-radius:12px;padding:8px 6px;font-size:13px;line-height:1.2}
+button.proto b{display:block;font-family:'Barlow Condensed',sans-serif;font-size:19px;letter-spacing:.06em}
+button.rar{width:44px;padding:0;display:flex;align-items:center;justify-content:center}
+button.rar i{width:20px;height:20px;border-radius:50%;background:var(--c);box-shadow:0 0 8px var(--c)}
+button.rar.on{background:#111A40;border-color:var(--c);box-shadow:0 0 0 2px var(--c)}
+form{display:flex;gap:8px;width:100%}
+input{flex:1 1 auto;min-width:0;font:inherit;color:#EAF2FF;background:#0B1230;border:1.5px solid #2B3A7A;border-radius:12px;padding:10px 12px;min-height:44px}
+input:focus,button:focus-visible{outline:2px solid #9FE8FF;outline-offset:2px}
+
+/* ------------------------------------------------ la carte */
+.scene{perspective:900px;width:min(88vw,340px);touch-action:pan-y}
+.carte{--tx:0;--ty:0;--c1:#CFE6FF;--c2:#3D8BFF;--holo:.55;position:relative;width:100%;aspect-ratio:240/350;border-radius:18px;overflow:hidden;background:#050818;
+  transform:rotateY(calc(var(--tx) * 9deg)) rotateX(calc(var(--ty) * -9deg));box-shadow:0 22px 50px rgba(0,0,0,.7),0 0 34px color-mix(in srgb,var(--c2) 45%,transparent);will-change:transform}
+.carte canvas{position:absolute;inset:0;width:100%;height:100%;display:block}
+.couche{position:absolute;inset:0;pointer-events:none}
+/* l'holo : un arc-en-ciel qui glisse avec l'inclinaison ; il n'apparaît que là où il y a de la lumière (néons, bâtiment) */
+.holo1{background-image:linear-gradient(115deg,transparent 40%,#ff2d8a 44%,#ffd400 47.5%,#22ffb0 50%,#22b8ff 52.5%,#a02dff 56%,transparent 60%);background-size:260% 260%;
+  background-position:calc(30% + var(--tx) * 70%) calc(30% + var(--ty) * 70%);mix-blend-mode:screen;opacity:calc(var(--holo) * .42)}
+/* le grain du foil : de fines rayures irisées, visibles partout, très légères */
+.holo2{background-image:repeating-linear-gradient(115deg,rgba(255,45,138,.5) 0 3%,rgba(255,212,0,.5) 3% 6%,rgba(34,255,176,.5) 6% 9%,rgba(34,184,255,.5) 9% 12%,rgba(160,45,255,.5) 12% 15%);background-size:300% 300%;
+  background-position:calc(50% + var(--tx) * -90%) calc(50% + var(--ty) * -90%);mix-blend-mode:overlay;opacity:calc(var(--holo) * .75)}
+.reflet{background:radial-gradient(circle at calc(50% + var(--tx) * 45%) calc(38% + var(--ty) * 45%),rgba(255,255,255,.2),rgba(255,255,255,0) 46%);mix-blend-mode:screen}
+.rayons{background:conic-gradient(from calc(var(--tx) * 40deg) at 50% 46%,transparent 0 6%,var(--c2) 8%,transparent 10% 22%,var(--c1) 24%,transparent 26% 40%,var(--c2) 42%,transparent 44% 58%,var(--c1) 60%,transparent 62% 76%,var(--c2) 78%,transparent 80% 92%,var(--c1) 94%,transparent 96%);
+  mix-blend-mode:screen;opacity:0;-webkit-mask-image:radial-gradient(circle at 50% 46%,#000 8%,transparent 62%);mask-image:radial-gradient(circle at 50% 46%,#000 8%,transparent 62%)}
+.carte.r5 .rayons{opacity:.1}.carte.r6 .rayons{opacity:.16}
+.cadre{width:100%;height:100%;overflow:visible}
+.textes{transform:translate(calc(var(--tx) * 5px),calc(var(--ty) * 5px));display:flex;flex-direction:column;justify-content:space-between;align-items:center;padding:6% 6% 6.5%}
+.rarete{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:clamp(13px,4.4vw,17px);letter-spacing:.26em;padding:.2em .7em .25em 1em;text-transform:uppercase;color:#fff;
+  border:1.5px solid var(--c1);border-radius:999px;background:rgba(5,8,24,.62);box-shadow:0 0 10px var(--c2),inset 0 0 8px color-mix(in srgb,var(--c2) 60%,transparent);text-shadow:0 0 8px var(--c2)}
+.plaques{display:flex;align-items:stretch;gap:6px;max-width:100%}
+.plaque{font-family:'Barlow Condensed',sans-serif;font-weight:700;color:#fff;text-transform:uppercase;border:2px solid var(--c1);border-radius:9px;background:rgba(5,8,24,.66);
+  box-shadow:0 0 12px var(--c2),0 0 26px color-mix(in srgb,var(--c2) 55%,transparent),inset 0 0 10px color-mix(in srgb,var(--c2) 60%,transparent);text-shadow:0 0 6px var(--c1),0 0 16px var(--c2);
+  display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;line-height:1.02;padding:.32em .7em .38em;min-width:0}
+.plaque[hidden]{display:none}
+.plaque.num{font-size:clamp(24px,9vw,34px);padding:.1em .42em;flex:0 0 auto}
+.plaque.voie{font-size:clamp(17px,6.2vw,24px);letter-spacing:.03em}
+.plaque.voie.long{font-size:clamp(14px,4.9vw,19px)}
+.plaque small{font-family:Nunito,sans-serif;font-weight:800;font-size:clamp(8.5px,2.7vw,10.5px);letter-spacing:.16em;color:#EAF2FF;text-shadow:0 0 6px var(--c2);margin-bottom:.15em}
+.attente{display:flex;align-items:center;justify-content:center;text-align:center;padding:20%;font-size:14px;color:#B9C6F2;background:#050818}
+.attente[hidden]{display:none}
+
+/* ------------------------------------------------ sous la carte */
+.chiffres{width:min(88vw,340px);display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px}
+.chiffres div{display:flex;flex-direction:column;align-items:center;gap:2px;padding:9px 2px;border-radius:12px;background:#0B1230;border:1.5px solid #1D2A63}
+.chiffres b{font-family:'Barlow Condensed',sans-serif;font-size:21px;line-height:1;color:#fff}
+.chiffres i{font-style:normal;font-size:9.5px;letter-spacing:.08em;text-transform:uppercase;color:#B9C6F2}
+.note{font-size:12px;color:#B9C6F2;text-align:center;max-width:340px;margin:0}
+.mini{display:flex;align-items:center;gap:12px;max-width:340px}
+.mini .vignette{position:relative;flex:0 0 96px;aspect-ratio:240/350;border-radius:8px;overflow:hidden;background:#050818;border:1.5px solid var(--c2,#3D8BFF)}
+.mini img{width:100%;height:100%;object-fit:cover;display:block}
+.mini .vignette::after{content:'';position:absolute;inset:0;background:linear-gradient(115deg,transparent 35%,rgba(255,255,255,.28) 50%,transparent 65%)}
+.mini p{margin:0;font-size:12px;color:#B9C6F2}
+@media (prefers-reduced-motion:reduce){.carte{transform:none}}
+</style>
+</head>
+<body>
+<h1>Prototypes de cartes</h1>
+<p class="sous">Penche ton téléphone : les reflets, le bâtiment et le texte bougent. Sur ordinateur, passe la souris sur la carte.</p>
+
+<div class="rangee" id="protos">
+  <button class="proto on" data-m="verre" data-c="filet"><b>N° 1</b>Verre, filet néon</button>
+  <button class="proto" data-m="holo" data-c="sans"><b>N° 2</b>Hologramme, sans cadre</button>
+  <button class="proto" data-m="verre" data-c="orne"><b>N° 3</b>Verre, cadre orné</button>
+</div>
+
+<div class="scene" id="scene">
+  <div class="carte r3" id="carte">
+    <canvas id="vue" aria-label="Le bâtiment en 3D sur son plan cadastral" role="img"></canvas>
+    <div class="couche rayons"></div>
+    <div class="couche holo1"></div>
+    <div class="couche holo2"></div>
+    <div class="couche reflet"></div>
+    <div class="couche"><svg class="cadre" id="cadre" viewBox="0 0 240 350" preserveAspectRatio="none" aria-hidden="true"></svg></div>
+    <div class="couche textes">
+      <div class="rarete" id="rarete">Rare</div>
+      <div class="plaques"><div class="plaque num" id="num">25</div><div class="plaque voie" id="voie"><small id="commune">Paris 4e</small><span id="rue">Rue de Rivoli</span></div></div>
+    </div>
+    <div class="couche attente" id="attente">Chargement du bâtiment…</div>
+  </div>
+</div>
+
+<div class="chiffres" aria-label="Chiffres du lieu (exemples)">
+  <div><b>1 240</b><i>Valeur</i></div><div><b>+40</b><i>Loyer / jour</i></div><div><b>Immeuble</b><i>Potentiel</i></div><div><b>★★☆</b><i>Standing</i></div>
+</div>
+<p class="note">Les chiffres sont sous la carte, plus dessus. Ici ce sont des exemples.</p>
+
+<button id="incliner" hidden>Activer l’inclinaison du téléphone</button>
+
+<div class="bloc"><span>Rareté</span><div class="rangee" id="raretes" style="justify-content:flex-start"></div></div>
+<div class="bloc"><span>Cadre</span><div class="rangee" id="cadres" style="justify-content:flex-start">
+  <button data-c="filet" class="on">Filet néon</button><button data-c="orne">Orné</button><button data-c="sans">Sans cadre</button></div></div>
+<div class="bloc"><span>Matière du bâtiment</span><div class="rangee" id="matieres" style="justify-content:flex-start">
+  <button data-m="verre" class="on">Verre aux arêtes néon</button><button data-m="holo">Hologramme</button></div></div>
+<div class="bloc"><span>Essayer une autre adresse</span>
+  <form id="chercher"><input id="adresse" type="text" aria-label="Adresse" placeholder="12 rue Victor Hugo, Chartres" autocomplete="off"><button type="submit">Voir</button></form>
+  <div class="rangee" id="exemples" style="justify-content:flex-start">
+    <button data-q="25 rue de Rivoli Paris">Immeuble à Paris</button><button data-q="12 rue Victor Hugo Chartres-de-Bretagne">Maison</button><button data-q="Place du Panthéon Paris">Lieu célèbre</button></div></div>
+
+<div class="mini"><div class="vignette" id="vignette"><img id="mini" alt="" hidden></div>
+  <p>En petit, dans la collection : une image fixe et un simple reflet. Tous les effets quand on ouvre la carte.</p></div>
+
+<script src="https://unpkg.com/three@0.147.0/build/three.min.js"></script>
+<script src="https://unpkg.com/three@0.147.0/examples/js/shaders/CopyShader.js"></script>
+<script src="https://unpkg.com/three@0.147.0/examples/js/shaders/LuminosityHighPassShader.js"></script>
+<script src="https://unpkg.com/three@0.147.0/examples/js/postprocessing/Pass.js"></script>
+<script src="https://unpkg.com/three@0.147.0/examples/js/postprocessing/EffectComposer.js"></script>
+<script src="https://unpkg.com/three@0.147.0/examples/js/postprocessing/RenderPass.js"></script>
+<script src="https://unpkg.com/three@0.147.0/examples/js/postprocessing/ShaderPass.js"></script>
+<script src="https://unpkg.com/three@0.147.0/examples/js/postprocessing/UnrealBloomPass.js"></script>
+<script src="../src/carte_lieu.js"></script>
+<script>
+(function () {
+  'use strict';
+  // [clair, vif] : les néons de chaque rareté (les couleurs du jeu, src/carte_lieu.js)
+  const RARETES = [null,
+    { nom: 'Commun', c: ['#FFF1C9', '#E9C77B'] }, { nom: 'Peu commun', c: ['#C8F7DA', '#2FB36D'] }, { nom: 'Rare', c: ['#CFE6FF', '#3D8BFF'] },
+    { nom: 'Épique', c: ['#EBD6FF', '#A35BFF'] }, { nom: 'Légendaire', c: ['#FFE6B8', '#FF8A1E'] }, { nom: 'Extraordinaire', c: ['#FFDDF4', '#FF4DC4'] }];
+  const ETAT = { r: 3, cadre: 'filet', matiere: 'verre', lieu: null, plan: null };
+  const $ = (id) => document.getElementById(id);
+  const carte = $('carte'), cv = $('vue');
+
+  // ---------------------------------------------------------------- le moteur 3D
+  const ren = new THREE.WebGLRenderer({ canvas: cv, antialias: true, powerPreference: 'high-performance', preserveDrawingBuffer: true });   // (gardé pour la miniature)
+  ren.setClearColor(0x050818, 1);
+  const scene = new THREE.Scene(); scene.fog = new THREE.Fog(0x050818, 120, 420);
+  const cam = new THREE.PerspectiveCamera(26, 240 / 350, 1, 2000);
+  const pivot = new THREE.Group(); scene.add(pivot);
+  const composer = new THREE.EffectComposer(ren); composer.addPass(new THREE.RenderPass(scene, cam));
+  const bloom = new THREE.UnrealBloomPass(new THREE.Vector2(256, 256), 0.7, 0.4, 0.3); composer.addPass(bloom);
+  function taille() { const b = carte.getBoundingClientRect(), d = Math.min(2, window.devicePixelRatio || 1), w = Math.max(2, Math.round(b.width)), h = Math.max(2, Math.round(b.height));
+    ren.setPixelRatio(d); ren.setSize(w, h, false); composer.setPixelRatio(d); composer.setSize(w, h); cam.aspect = w / h; cam.updateProjectionMatrix(); }
+  window.addEventListener('resize', taille);
+
+  // un point lumineux doux, pour les particules et le halo
+  const doux = (() => { const c = document.createElement('canvas'); c.width = c.height = 64; const g = c.getContext('2d'), d = g.createRadialGradient(32, 32, 0, 32, 32, 32);
+    d.addColorStop(0, 'rgba(255,255,255,1)'); d.addColorStop(0.35, 'rgba(255,255,255,.45)'); d.addColorStop(1, 'rgba(255,255,255,0)'); g.fillStyle = d; g.fillRect(0, 0, 64, 64); return new THREE.CanvasTexture(c); })();
+  // un rayon vertical : clair en bas, éteint en haut
+  const faisceau = (() => { const c = document.createElement('canvas'); c.width = 16; c.height = 128; const g = c.getContext('2d'), d = g.createLinearGradient(0, 128, 0, 0);
+    d.addColorStop(0, 'rgba(255,255,255,.9)'); d.addColorStop(1, 'rgba(255,255,255,0)'); g.fillStyle = d; g.fillRect(0, 0, 16, 128);
+    const e = g.createLinearGradient(0, 0, 16, 0); e.addColorStop(0, 'rgba(0,0,0,1)'); e.addColorStop(0.5, 'rgba(0,0,0,0)'); e.addColorStop(1, 'rgba(0,0,0,1)'); g.globalCompositeOperation = 'destination-out'; g.fillStyle = e; g.fillRect(0, 0, 16, 128); return new THREE.CanvasTexture(c); })();
+
+  // ---------------------------------------------------------------- les formes
+  const aire = (r) => { let s = 0; for (let i = 0, j = r.length - 1; i < r.length; j = i++) s += (r[j][0] * r[i][1] - r[i][0] * r[j][1]); return s / 2; };
+  // un ruban plat le long d'une ligne (les traits de plus d'un pixel n'existent pas en WebGL)
+  function ruban(pts, larg, y, ferme) {
+    const pos = [], n = pts.length, fin = ferme ? n : n - 1;
+    for (let i = 0; i < fin; i++) { const a = pts[i], b = pts[(i + 1) % n], dx = b[0] - a[0], dy = b[1] - a[1], l = Math.hypot(dx, dy); if (l < 0.01) continue;
+      const nx = -dy / l * larg / 2, ny = dx / l * larg / 2, ex = dx / l * larg / 2, ey = dy / l * larg / 2;   // (un petit dépassement ferme les coins)
+      const A = [a[0] - ex + nx, a[1] - ey + ny], B = [a[0] - ex - nx, a[1] - ey - ny], C = [b[0] + ex + nx, b[1] + ey + ny], D = [b[0] + ex - nx, b[1] + ey - ny];
+      for (const p of [A, B, C, C, B, D]) pos.push(p[0], y, -p[1]); }
+    const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); return g;
+  }
+  function boucle(r, y) { const pos = []; for (const p of r) pos.push(p[0], y, -p[1]); const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); return g; }
+  function volume(r, h) { const s = new THREE.Shape(); r.forEach((p, i) => (i ? s.lineTo(p[0], p[1]) : s.moveTo(p[0], p[1])));
+    const g = new THREE.ExtrudeGeometry(s, { depth: h, bevelEnabled: false }); g.rotateX(-Math.PI / 2); return g; }
+  function surface(r, y) { const s = new THREE.Shape(); r.forEach((p, i) => (i ? s.lineTo(p[0], p[1]) : s.moveTo(p[0], p[1]))); const g = new THREE.ShapeGeometry(s); g.rotateX(-Math.PI / 2); g.translate(0, y, 0); return g; }
+  // les fenêtres allumées : de petits rectangles posés sur les murs, étage par étage (un hasard fixe par lieu)
+  function fenetres(cibles, graine) {
+    let s = graine >>> 0 || 1; const alea = () => ((s = (s * 1664525 + 1013904223) >>> 0) / 4294967296);
+    const pos = []; let n = 0;
+    for (const b of cibles) { const sens = aire(b.r) > 0 ? 1 : -1, etages = Math.max(1, Math.floor(b.h / 3));
+      for (let i = 0; i < b.r.length - 1 && n < 420; i++) { const a = b.r[i], c = b.r[i + 1], dx = c[0] - a[0], dy = c[1] - a[1], l = Math.hypot(dx, dy); if (l < 2.4) continue;
+        const ux = dx / l, uy = dy / l, ox = uy * sens * 0.08, oy = -ux * sens * 0.08, nb = Math.floor(l / 2.6), pas = l / nb;
+        for (let e = 0; e < etages; e++) for (let k = 0; k < nb && n < 420; k++) { if (alea() > 0.34) continue;
+          const t0 = k * pas + pas * 0.28, t1 = k * pas + pas * 0.72, y0 = e * 3 + 1.0, y1 = e * 3 + 2.3; if (y1 > b.h - 0.3) continue;
+          const A = [a[0] + ux * t0 + ox, a[1] + uy * t0 + oy], B = [a[0] + ux * t1 + ox, a[1] + uy * t1 + oy];
+          pos.push(A[0], y0, -A[1], B[0], y0, -B[1], B[0], y1, -B[1], A[0], y0, -A[1], B[0], y1, -B[1], A[0], y1, -A[1]); n++; } } }
+    const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); return g;
+  }
+
+  // ---------------------------------------------------------------- la scène d'un lieu
+  let vivants = { particules: null, halo: null, rayons: null, teintes: [], holo: [], ext: 20, haut: 9 };
+  function vider(o) { while (o.children.length) { const x = o.children.pop(); vider(x); if (x.geometry) x.geometry.dispose(); if (x.material) x.material.dispose(); } }
+  function construire() {
+    vider(pivot); const plan = ETAT.plan; if (!plan) return;
+    const R = RARETES[ETAT.r], clair = new THREE.Color(R.c[0]), vif = new THREE.Color(R.c[1]), holo = ETAT.matiere === 'holo';
+    const cibles = plan.batiments.filter((b) => b.cible), autres = plan.batiments.filter((b) => !b.cible);
+    // tout est recentré sur le bâtiment
+    const tous = cibles.length ? cibles.flatMap((b) => b.r) : (plan.parcelle || [[0, 0]]);
+    const cx = tous.reduce((s, p) => s + p[0], 0) / tous.length, cy = tous.reduce((s, p) => s + p[1], 0) / tous.length;
+    const dep = (r) => r.map((p) => [p[0] - cx, p[1] - cy]);
+    const ext = Math.max(9, ...tous.map((p) => Math.hypot(p[0] - cx, p[1] - cy))), haut = Math.max(4, ...cibles.map((b) => b.h));
+    const teintes = [], mat = (o) => new THREE.MeshBasicMaterial(o), trait = (o) => new THREE.LineBasicMaterial(o);
+
+    // le quadrillage du plan
+    const grille = new THREE.GridHelper(900, 60, 0x1A2668, 0x101A4A); grille.position.y = -0.2; grille.material.transparent = true; grille.material.opacity = 0.7; pivot.add(grille);
+    // les rues : un ruban sombre et son axe lumineux
+    const axes = [];
+    for (const r of plan.routes) { const p = dep(r.p); pivot.add(new THREE.Mesh(ruban(p, r.larg + 2, -0.1, false), mat({ color: 0x0C1640 })));
+      for (let i = 0; i < p.length - 1; i++) axes.push(p[i][0], 0, -p[i][1], p[i + 1][0], 0, -p[i + 1][1]); }
+    if (axes.length) { const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(axes, 3)); const m = trait({ color: vif.clone().multiplyScalar(0.55), transparent: true, opacity: 0.8 }); teintes.push([m, 0.55]); pivot.add(new THREE.LineSegments(g, m)); }
+    // les voisins : des volumes sombres, leur emprise et leur toit tracés
+    const mVoisin = mat({ color: 0x0A1138 }), mPied = trait({ color: vif.clone().multiplyScalar(0.5), transparent: true, opacity: 0.85 }), mToit = trait({ color: 0x2A3F9C, transparent: true, opacity: 0.9 });
+    teintes.push([mPied, 0.5]);
+    autres.map((b) => ({ b, d: Math.min(...b.r.map((p) => Math.hypot(p[0] - cx, p[1] - cy))) })).sort((a, b) => a.d - b.d).slice(0, 220).forEach(({ b }) => { const r = dep(b.r);
+      try { pivot.add(new THREE.Mesh(volume(r, b.h), mVoisin)); } catch (e) { /* emprise dégénérée */ }
+      pivot.add(new THREE.LineLoop(boucle(r, 0.05), mPied)); pivot.add(new THREE.LineLoop(boucle(r, b.h + 0.05), mToit)); });
+    // la parcelle : son contour en néon, son sol à peine éclairé
+    if (plan.parcelle) { const p = dep(plan.parcelle), m1 = mat({ color: vif.clone() }), m2 = mat({ color: vif.clone(), transparent: true, opacity: 0.13, depthWrite: false });
+      teintes.push([m1, 1], [m2, 1]); pivot.add(new THREE.Mesh(ruban(p, Math.max(0.7, ext * 0.035), 0.12, true), m1)); try { pivot.add(new THREE.Mesh(surface(p, 0.06), m2)); } catch (e) { /* rien */ } }
+    // le bâtiment : en verre aux arêtes néon, ou en hologramme (fait de lumière)
+    const holoMats = [];
+    for (const b of cibles) { const r = dep(b.r); let g; try { g = volume(r, b.h); } catch (e) { continue; }
+      const corps = holo ? mat({ color: vif.clone(), transparent: true, opacity: 0.1, depthWrite: false, blending: THREE.AdditiveBlending, side: THREE.DoubleSide })
+        : mat({ color: new THREE.Color(0x0B1644).lerp(vif, 0.2), transparent: true, opacity: 0.9 });
+      if (holo) { teintes.push([corps, 1]); holoMats.push(corps); }
+      pivot.add(new THREE.Mesh(g, corps));
+      const mArete = trait({ color: clair.clone() }); teintes.push([mArete, -1]); pivot.add(new THREE.LineSegments(new THREE.EdgesGeometry(g, 25), mArete));
+      // un trait par étage : on lit la hauteur réelle du bâtiment
+      const mEtage = trait({ color: vif.clone(), transparent: true, opacity: holo ? 0.9 : 0.32 }); teintes.push([mEtage, 1]);
+      for (let y = 3; y < b.h - 0.5; y += 3) pivot.add(new THREE.LineLoop(boucle(r, y), mEtage));
+      // le toit, souligné d'un ruban clair
+      const mToitN = mat({ color: clair.clone() }); teintes.push([mToitN, -1]); pivot.add(new THREE.Mesh(ruban(r, Math.max(0.35, ext * 0.018), b.h + 0.06, true), mToitN)); }
+    if (!holo && cibles.length) pivot.add(new THREE.Mesh(fenetres(cibles.map((b) => ({ r: dep(b.r), h: b.h })), Math.round((ETAT.lieu.lon + ETAT.lieu.lat) * 1e5)), mat({ color: 0xFFD98A, side: THREE.DoubleSide })));
+
+    // la lumière vivante : un halo au sol qui respire, des particules qui montent, des faisceaux pour les plus rares
+    const mHalo = mat({ map: doux, color: vif.clone(), transparent: true, opacity: 0.2, depthWrite: false, blending: THREE.AdditiveBlending }); teintes.push([mHalo, 1]);
+    const halo = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), mHalo); halo.rotation.x = -Math.PI / 2; halo.position.y = 0.2; halo.scale.setScalar(ext * 3.2); pivot.add(halo);
+    const nb = 50 + ETAT.r * 45, pp = new Float32Array(nb * 3), vit = new Float32Array(nb);
+    for (let i = 0; i < nb; i++) { const a = Math.random() * 6.283, d = ext * (0.4 + Math.random() * 1.6); pp[i * 3] = Math.cos(a) * d; pp[i * 3 + 1] = Math.random() * (haut * 1.8 + 20); pp[i * 3 + 2] = Math.sin(a) * d; vit[i] = 1.5 + Math.random() * 3.5; }
+    const gP = new THREE.BufferGeometry(); gP.setAttribute('position', new THREE.BufferAttribute(pp, 3));
+    const mP = new THREE.PointsMaterial({ map: doux, color: clair.clone(), size: Math.max(0.9, ext * 0.07), transparent: true, opacity: 0.95, depthWrite: false, blending: THREE.AdditiveBlending, sizeAttenuation: true }); teintes.push([mP, -1]);
+    const particules = new THREE.Points(gP, mP); particules.userData = { vit, plafond: haut * 1.8 + 20 }; pivot.add(particules);
+    let rayons = null;
+    if (ETAT.r >= 4) { rayons = new THREE.Group(); const n = ETAT.r >= 6 ? 9 : (ETAT.r >= 5 ? 7 : 5), mR = mat({ map: faisceau, color: vif.clone(), transparent: true, opacity: 0.38, depthWrite: false, blending: THREE.AdditiveBlending, side: THREE.DoubleSide }); teintes.push([mR, 1]);
+      for (let i = 0; i < n; i++) { const a = i / n * 6.283, h = haut * 2.2 + 30, q = new THREE.Mesh(new THREE.PlaneGeometry(ext * 0.22, h), mR); q.position.set(Math.cos(a) * ext * 1.25, h / 2, Math.sin(a) * ext * 1.25); q.rotation.y = -a; rayons.add(q); }
+      pivot.add(rayons); }
+    vivants = { particules, halo, rayons, teintes, holo: holoMats, ext, haut };
+    // la caméra : le bâtiment au cœur de la carte, le plan qui déborde de tous les côtés
+    bloom.strength = 0.5 + ETAT.r * 0.07; cadrer();
+  }
+  let penche = { x: 0, y: 0 };
+  function cadrer() { const { ext, haut } = vivants, d = Math.max(ext * 6.4, haut * 5.2, 85);
+    cam.position.set(penche.x * d * 0.1, d * 0.66 - penche.y * d * 0.06, d * 0.98); cam.lookAt(0, haut * 0.42 - d * 0.035, 0); scene.fog.near = d * 0.9; scene.fog.far = d * 3.2; }
+
+  // ---------------------------------------------------------------- l'inclinaison (téléphone, sinon souris ou doigt)
+  let cible = { x: 0, y: 0 }, base = null, capteur = false;
+  const borne = (v) => Math.max(-1, Math.min(1, v));
+  function orientation(e) { if (e.gamma == null || e.beta == null) return; if (!capteur) { capteur = true; $('incliner').hidden = true; } if (!base) base = { g: e.gamma, b: e.beta };
+    base.g += (e.gamma - base.g) * 0.004; base.b += (e.beta - base.b) * 0.004;   // (la position de repos suit lentement la main)
+    cible.x = borne((e.gamma - base.g) / 22); cible.y = borne((e.beta - base.b) / 22); }
+  function ecouterCapteur() { window.addEventListener('deviceorientation', orientation); }
+  if (window.DeviceOrientationEvent && typeof DeviceOrientationEvent.requestPermission === 'function') {   // (iPhone : il faut un toucher)
+    const tactile = window.matchMedia && matchMedia('(pointer:coarse)').matches; $('incliner').hidden = !tactile;
+    $('incliner').addEventListener('click', () => DeviceOrientationEvent.requestPermission().then((r) => { if (r === 'granted') $('incliner').hidden = true; }).catch(() => {}));
+  }
+  if (window.DeviceOrientationEvent) ecouterCapteur();
+  $('scene').addEventListener('pointermove', (e) => { if (capteur && e.pointerType !== 'mouse') return; const b = carte.getBoundingClientRect(); cible.x = borne(((e.clientX - b.left) / b.width - 0.5) * 2); cible.y = borne(((e.clientY - b.top) / b.height - 0.5) * 2); });
+  $('scene').addEventListener('pointerleave', () => { if (!capteur) cible = { x: 0, y: 0 }; });
+
+  // ---------------------------------------------------------------- la boucle
+  let avant = 0, miniFaite = false, miniA = 0;
+  const reduit = window.matchMedia && matchMedia('(prefers-reduced-motion:reduce)').matches;
+  function image(t) {
+    requestAnimationFrame(image); const dt = Math.min(0.05, (t - avant) / 1000 || 0); avant = t;
+    if (document.hidden || !ETAT.plan) return;
+    penche.x += (cible.x - penche.x) * 0.12; penche.y += (cible.y - penche.y) * 0.12;
+    carte.style.setProperty('--tx', penche.x.toFixed(3)); carte.style.setProperty('--ty', penche.y.toFixed(3));
+    if (!reduit) pivot.rotation.y += dt * 0.22;
+    const v = vivants, s = t / 1000;
+    if (v.halo) { v.halo.material.opacity = 0.16 + 0.03 * ETAT.r + 0.08 * Math.sin(s * 1.6); v.halo.scale.setScalar(v.ext * (3.1 + 0.3 * Math.sin(s * 1.6))); }
+    if (v.particules) { const p = v.particules.geometry.attributes.position, u = v.particules.userData; for (let i = 0; i < u.vit.length; i++) { let y = p.getY(i) + u.vit[i] * dt; if (y > u.plafond) y = 0; p.setY(i, y); } p.needsUpdate = true; }
+    if (v.rayons) { v.rayons.rotation.y -= dt * 0.35; v.rayons.children[0].material.opacity = 0.3 + 0.12 * Math.sin(s * 2.1); }
+    for (const m of v.holo) m.opacity = 0.09 + 0.05 * Math.sin(s * 7) * Math.sin(s * 1.3);
+    // l'Extraordinaire : ses néons parcourent l'arc-en-ciel
+    if (ETAT.r === 6) for (const [m, k] of v.teintes) { const h = (s * 0.08 + (k < 0 ? 0.08 : 0)) % 1; m.color.setHSL(h, 1, k < 0 ? 0.85 : 0.6); if (k > 0 && k < 1) m.color.multiplyScalar(k); }
+    cadrer(); composer.render();
+    if (!miniFaite && t > miniA) { miniFaite = true; try { $('mini').src = cv.toDataURL('image/jpeg', 0.8); $('mini').hidden = false; } catch (e) { /* tant pis */ } }
+  }
+
+  // ---------------------------------------------------------------- le cadre (dessiné, comme dans le jeu)
+  function dessinerCadre() {
+    const W = 240, H = 350, rr = (i, a) => `M${i + a},${i} H${W - i - a} A${a},${a} 0 0 1 ${W - i},${i + a} V${H - i - a} A${a},${a} 0 0 1 ${W - i - a},${H - i} H${i + a} A${a},${a} 0 0 1 ${i},${H - i - a} V${i + a} A${a},${a} 0 0 1 ${i + a},${i} Z`;
+    const R = RARETES[ETAT.r], c1 = R.c[0], c2 = R.c[1]; let s = '';
+    if (ETAT.cadre === 'filet') s = `<path d="${rr(3, 11)}" fill="none" stroke="${c2}" stroke-width="7" opacity=".3"/><path d="${rr(3, 11)}" fill="none" stroke="${c1}" stroke-width="2.2"/>`;
+    if (ETAT.cadre === 'orne') {
+      s = `<path d="${rr(2.5, 12)}" fill="none" stroke="${c2}" stroke-width="9" opacity=".28"/><path d="${rr(2.5, 12)}" fill="none" stroke="${c1}" stroke-width="2.6"/><path d="${rr(8.5, 8)}" fill="none" stroke="${c2}" stroke-width="1.1"/>`;
+      const coins = [[9, 9, 1, 1], [231, 9, -1, 1], [9, 341, 1, -1], [231, 341, -1, -1]];
+      for (const [x, y, sx, sy] of coins) s += `<path d="M${x + sx * 26},${y} H${x + sx * 9} Q${x},${y} ${x},${y + sy * 9} V${y + sy * 26}" fill="none" stroke="${c1}" stroke-width="2.2"/>`
+        + `<path d="M${x + sx * 30},${y + sy * 5} H${x + sx * 12} Q${x + sx * 5},${y + sy * 5} ${x + sx * 5},${y + sy * 12} V${y + sy * 30}" fill="none" stroke="${c2}" stroke-width="1.2"/>`
+        + `<path d="M${x + sx * 11},${y + sy * 11} l${sx * 5},${sy * -5} l${sx * 5},${sy * 5} l${sx * -5},${sy * 5} Z" fill="${c1}"/><circle cx="${x + sx * 30}" cy="${y}" r="1.7" fill="${c1}"/><circle cx="${x}" cy="${y + sy * 30}" r="1.7" fill="${c1}"/>`;
+      for (const y of [2.5, 347.5]) s += `<path d="M120,${y - 6} L127,${y} L120,${y + 6} L113,${y} Z" fill="${c1}"/><path d="M96,${y} H109 M131,${y} H144" stroke="${c2}" stroke-width="3.4"/>`;
+      for (const x of [2.5, 237.5]) s += `<path d="M${x},168 l4.5,7 l-4.5,7 l-4.5,-7 Z" fill="${c1}"/>`;
+      if (ETAT.r >= 5) s += `<path d="M98,2.5 L142,2.5 L136,10 L129,5.5 L120,15 L111,5.5 L104,10 Z" fill="${c1}" stroke="${c2}" stroke-width="1"/>`;
+    }
+    $('cadre').innerHTML = s;
+  }
+
+  // ---------------------------------------------------------------- l'état, les boutons
+  function appliquer() {
+    const R = RARETES[ETAT.r]; carte.className = 'carte r' + ETAT.r; carte.style.setProperty('--c1', R.c[0]); carte.style.setProperty('--c2', R.c[1]);
+    carte.style.setProperty('--holo', (0.5 + ETAT.r * 0.08).toFixed(2)); $('vignette').style.setProperty('--c2', R.c[1]); $('rarete').textContent = R.nom;
+    for (const b of document.querySelectorAll('#raretes button')) b.classList.toggle('on', Number(b.dataset.r) === ETAT.r);
+    for (const b of document.querySelectorAll('#cadres button')) b.classList.toggle('on', b.dataset.c === ETAT.cadre);
+    for (const b of document.querySelectorAll('#matieres button')) b.classList.toggle('on', b.dataset.m === ETAT.matiere);
+    for (const b of document.querySelectorAll('#protos button')) b.classList.toggle('on', b.dataset.c === ETAT.cadre && b.dataset.m === ETAT.matiere);
+    dessinerCadre(); construire(); miniFaite = false; miniA = performance.now() + 900;
+  }
+  RARETES.forEach((R, i) => { if (!R) return; const b = document.createElement('button'); b.className = 'rar'; b.dataset.r = i; b.style.setProperty('--c', R.c[1]); b.setAttribute('aria-label', R.nom); b.title = R.nom; b.innerHTML = '<i></i>'; $('raretes').appendChild(b); });
+  $('raretes').addEventListener('click', (e) => { const b = e.target.closest('button'); if (b) { ETAT.r = Number(b.dataset.r); appliquer(); } });
+  $('cadres').addEventListener('click', (e) => { const b = e.target.closest('button'); if (b) { ETAT.cadre = b.dataset.c; appliquer(); } });
+  $('matieres').addEventListener('click', (e) => { const b = e.target.closest('button'); if (b) { ETAT.matiere = b.dataset.m; appliquer(); } });
+  $('protos').addEventListener('click', (e) => { const b = e.target.closest('button'); if (b) { ETAT.cadre = b.dataset.c; ETAT.matiere = b.dataset.m; appliquer(); } });
+
+  // ---------------------------------------------------------------- une adresse : le géocodage de l'IGN, puis le plan du lieu
+  const attente = (texte) => { $('attente').hidden = !texte; if (texte) $('attente').textContent = texte; };
+  async function montrer(q) {
+    attente('Recherche de l’adresse…');
+    try {
+      const r = await fetch('https://data.geopf.fr/geocodage/search?q=' + encodeURIComponent(q) + '&index=address&limit=1'), f = ((await r.json()).features || [])[0];
+      if (!f) return attente('Adresse introuvable. Essaie avec le numéro, la rue et la ville.');
+      const p = f.properties || {}, lieu = { lon: f.geometry.coordinates[0], lat: f.geometry.coordinates[1] };
+      attente('Chargement du bâtiment…');
+      const plan = await CarteLieu.donnees(lieu);
+      if (!plan.batiments.some((b) => b.cible)) return attente('Pas de bâtiment connu de l’IGN à cette adresse. Essaie une autre adresse.');
+      ETAT.lieu = lieu; ETAT.plan = plan;
+      const rue = p.street || p.name || q, long = rue.length > 20; $('num').hidden = !p.housenumber; $('num').textContent = p.housenumber || '';
+      $('rue').textContent = rue; $('voie').classList.toggle('long', long); $('commune').textContent = p.city || '';
+      appliquer(); attente('');
+    } catch (e) { attente('Impossible de charger ce lieu pour le moment. Réessaie dans un instant.'); }
+  }
+  $('chercher').addEventListener('submit', (e) => { e.preventDefault(); const q = $('adresse').value.trim(); if (q) montrer(q); });
+  $('exemples').addEventListener('click', (e) => { const b = e.target.closest('button'); if (b) montrer(b.dataset.q); });
+
+  taille(); requestAnimationFrame(image);
+  const PARAMS = new URLSearchParams(location.search);
+  if (RARETES[Number(PARAMS.get('r'))]) ETAT.r = Number(PARAMS.get('r'));
+  if (['filet', 'orne', 'sans'].includes(PARAMS.get('c'))) ETAT.cadre = PARAMS.get('c');
+  if (['verre', 'holo'].includes(PARAMS.get('m'))) ETAT.matiere = PARAMS.get('m');
+  montrer(PARAMS.get('q') || '25 rue de Rivoli Paris');
+  window.__PROTO = { ETAT, appliquer };   // (pour les essais)
+})();
+</script>
+</body>
+</html>
