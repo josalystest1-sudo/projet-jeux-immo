@@ -397,6 +397,7 @@ Puis une PR par étape, fusionnée en squash :
 | #205 | 16/11 | La pile de cartes plus claire : dos éclairé, lueur derrière la pile (retour de Gautier sur téléphone) |
 | #206 | 16/11 | Le rythme de la roulette : le dernier cran tombe sur la bonne case, puis le nom s'écrit un instant après ; dos encore éclairci |
 | #207 | 16/11 | La pile de dos et la rangée des cartes déjà révélées ne se chevauchent plus |
+| #208 | 16/11 | Le booster « nuit et néon » dans le jeu : sachet holographique, enseigne de néon, toits (jour) ou tour Eiffel d'or (payé), languette qui se décolle derrière le doigt |
 | #200 | 16/11 | Prototype du booster validé par Gautier : brillance moyenne fixée, boutons de réglage retirés |
 | #199 | 16/11 | Prototype du booster : une ligne de toits en néon sur le booster du jour, à la place de la maison |
 | #198 | 16/11 | Prototype du booster : moins brillant, lettres cernées, trois niveaux de brillance à choisir |
