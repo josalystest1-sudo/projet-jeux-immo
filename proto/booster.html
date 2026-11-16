@@ -44,8 +44,9 @@ a{color:#9FE8FF}
 <p class="sous" id="aide">Penche ton téléphone : le sachet change de couleur. Pose le doigt en haut du sachet et glisse en travers : la languette se décolle derrière lui.</p>
 <div class="rangee" id="sortes"><button data-s="jour" class="on">Booster du jour</button><button data-s="paye">Booster payé</button></div>
 <div class="scene" id="scene"><canvas id="vue" role="img" aria-label="Le booster en 3D"></canvas><div class="trace" id="trace"></div><div class="eclair" id="eclair"></div><div class="attente" id="attente">Préparation du booster…</div></div>
+<div class="rangee" id="brillances"><button data-b="douce">Brillance douce</button><button data-b="moyenne" class="on">Moyenne</button><button data-b="forte">Forte</button></div>
 <div class="rangee"><button id="rejouer">Recommencer</button><button id="incliner" hidden>Activer l’inclinaison</button></div>
-<p class="note">Après la sortie des cartes, chacune se révèle d’un toucher, comme sur <a href="cartes.html?v=197&amp;c=orne&amp;d=or&amp;dos">la page des cartes</a>.</p>
+<p class="note">Après la sortie des cartes, chacune se révèle d’un toucher, comme sur <a href="cartes.html?v=198&amp;c=orne&amp;d=or&amp;dos">la page des cartes</a>.</p>
 
 <script src="https://unpkg.com/three@0.147.0/build/three.min.js"></script>
 <script src="https://unpkg.com/three@0.147.0/examples/js/environments/RoomEnvironment.js"></script>
@@ -86,7 +87,8 @@ a{color:#9FE8FF}
     let esp = 0; try { g.letterSpacing = '10px'; esp = 5; } catch (e) { /* vieux navigateur */ }
     // des lettres pleines, très claires, avec un halo de la couleur du néon : lisibles d'abord (Gautier, 16 nov. : « la
     // couleur et l'effet de texte le rendent illisible »)
-    g.lineJoin = 'round'; g.shadowColor = C.vif; g.shadowBlur = 34; g.strokeStyle = C.vif; g.lineWidth = 7; g.strokeText('STREETKEEP', TW / 2 + esp, y);
+    g.lineJoin = 'round'; g.strokeStyle = '#03051A'; g.lineWidth = 22; g.strokeText('STREETKEEP', TW / 2 + esp, y);   // (un liseré de nuit : le contraste d'abord)
+    g.shadowColor = C.vif; g.shadowBlur = 26; g.strokeStyle = C.vif; g.lineWidth = 6; g.strokeText('STREETKEEP', TW / 2 + esp, y);
     g.shadowBlur = 12; g.fillStyle = '#FFFFFF'; g.fillText('STREETKEEP', TW / 2 + esp, y);
     g.restore();
     neon(g, () => { g.beginPath(); g.moveTo(150, y + 52); g.lineTo(TW / 2 - 46, y + 52); g.moveTo(TW / 2 + 46, y + 52); g.lineTo(TW - 150, y + 52); g.moveTo(TW / 2, y + 30); g.lineTo(TW / 2 + 22, y + 52); g.lineTo(TW / 2, y + 74); g.lineTo(TW / 2 - 22, y + 52); g.closePath(); g.stroke(); }, C, 5);
@@ -134,7 +136,7 @@ a{color:#9FE8FF}
     // le foil : un fond de nuit, l'arc-en-ciel de l'holographique en travers, de fines rayures
     const f = g.createLinearGradient(0, 0, 0, TH); f.addColorStop(0, C.fond[0]); f.addColorStop(1, C.fond[1]); g.fillStyle = f; g.fillRect(0, 0, TW, TH);
     const arc = g.createLinearGradient(0, 0, TW, TH); ['#ff2d8a', '#ffd400', '#22ffb0', '#22b8ff', '#a02dff', '#ff2d8a', '#ffd400', '#22ffb0', '#22b8ff'].forEach((c, i, a) => arc.addColorStop(i / (a.length - 1), c));
-    g.globalAlpha = 0.24; g.fillStyle = arc; g.fillRect(0, 0, TW, TH); g.globalAlpha = 1;
+    g.globalAlpha = 0.16; g.fillStyle = arc; g.fillRect(0, 0, TW, TH); g.globalAlpha = 1;
     g.save(); g.globalAlpha = 0.1; g.strokeStyle = '#fff'; g.lineWidth = 2; for (let x = -TH; x < TW; x += 16) { g.beginPath(); g.moveTo(x, 0); g.lineTo(x + TH * 0.55, TH); g.stroke(); } g.restore();
     const v = g.createRadialGradient(TW / 2, TH * 0.5, 60, TW / 2, TH * 0.5, TH * 0.62); v.addColorStop(0, 'rgba(4,6,24,.62)'); v.addColorStop(1, 'rgba(4,6,24,.1)'); g.fillStyle = v; g.fillRect(0, 0, TW, TH);
     planDeVille(g, sorte === 'paye' ? 'rgba(255,214,140,.34)' : 'rgba(150,200,255,.36)');
@@ -142,8 +144,8 @@ a{color:#9FE8FF}
     // l'holographique s'y calme sans s'arrêter net (Gautier, 16 nov. : le cartouche « dénote avec le reste du décor »)
     const masque = toile(), k = masque.getContext('2d'); k.fillStyle = '#fff'; k.fillRect(0, 0, TW, TH);
     if (recto) { const [y0, y1] = CARTOUCHE[sorte];
-      for (const [c, couleur, flou] of [[g, 'rgba(3,5,22,.82)', 70], [k, '#000', 90]]) { c.save(); c.fillStyle = couleur; c.shadowColor = couleur; c.shadowBlur = flou;
-        c.beginPath(); c.ellipse(TW / 2, (y0 + y1) / 2, TW * 0.4, (y1 - y0) * 0.36, 0, 0, 6.283); c.fill(); c.fill();
+      for (const [c, couleur, flou] of [[g, 'rgba(3,5,22,.9)', 80], [k, '#000', 110]]) { c.save(); c.fillStyle = couleur; c.shadowColor = couleur; c.shadowBlur = flou;
+        c.beginPath(); c.ellipse(TW / 2, (y0 + y1) / 2, TW * 0.46, (y1 - y0) * 0.5, 0, 0, 6.283); c.fill(); c.fill();
         if (sorte === 'paye') { silhouetteTour(c, 26); c.fill(); c.fill(); } else { c.beginPath(); c.arc(TW / 2, 420, 86, 0, 6.283); c.fill(); }
         c.restore(); } }
     l.fillStyle = '#000'; l.fillRect(0, 0, TW, TH);
@@ -171,7 +173,7 @@ a{color:#9FE8FF}
   ren.outputEncoding = THREE.sRGBEncoding; ren.toneMapping = THREE.ACESFilmicToneMapping; ren.toneMappingExposure = 1.05;
   const monde = new THREE.Scene(), cam = new THREE.PerspectiveCamera(30, 380 / 560, 0.1, 50); cam.position.set(0, 0.05, 7.9); monde.background = new THREE.Color(0x010207);
   monde.environment = new THREE.PMREMGenerator(ren).fromScene(new THREE.RoomEnvironment(), 0.04).texture;
-  const lampe = new THREE.PointLight(0xffffff, 1.2, 30); lampe.position.set(2, 3, 6); monde.add(lampe);
+  const lampe = new THREE.PointLight(0xffffff, 0.55, 30); lampe.position.set(2, 3, 6); monde.add(lampe);
   const composer = new THREE.EffectComposer(ren); composer.addPass(new THREE.RenderPass(monde, cam));
   const bloom = new THREE.UnrealBloomPass(new THREE.Vector2(256, 256), 0.4, 0.3, 0.9); composer.addPass(bloom);
   function taille() { const b = scene.getBoundingClientRect(), d = Math.min(2, window.devicePixelRatio || 1), w = Math.max(2, Math.round(b.width)), h = Math.max(2, Math.round(b.height));
@@ -193,6 +195,8 @@ a{color:#9FE8FF}
   const sachet = new THREE.Group(), corps = new THREE.Group(), languette = new THREE.Group(), charniere = new THREE.Group(), cartes = new THREE.Group();
   monde.add(sachet); sachet.add(corps); sachet.add(charniere); charniere.position.set(L / 2, YC, 0); charniere.add(languette); languette.position.set(-L / 2, -YC, 0); sachet.add(cartes);
   let mats = [];
+  // la brillance du sachet, réglable sur la page (Gautier, 16 nov. : « le booster brille trop, le texte n'est pas assez lisible »)
+  const FORCE = { value: 1 }, BRILLANCES = { douce: [0.45, 0.2, 0.14], moyenne: [1, 0.35, 0.22], forte: [1.9, 0.6, 0.34] };
   const lueur = new THREE.Mesh(new THREE.PlaneGeometry(L * 0.94, 0.07), new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true })); lueur.position.set(0, YC + 0.035, 0); lueur.visible = false; sachet.add(lueur);
   // la languette qui s'enroule : tout ce qui est derrière le doigt (dans le sens du geste) quitte le sachet en suivant un
   // arc de cercle, plus ou moins haut selon que le doigt monte ; devant le doigt, rien ne bouge encore
@@ -208,7 +212,7 @@ a{color:#9FE8FF}
       a.needsUpdate = true; m.geometry.computeVertexNormals(); }
   }
   function matiere(base, lum, calme) { const t = new THREE.CanvasTexture(base), e = new THREE.CanvasTexture(lum); t.encoding = THREE.sRGBEncoding; e.encoding = THREE.sRGBEncoding; t.anisotropy = e.anisotropy = 4;
-    const m = new THREE.MeshPhysicalMaterial({ map: t, emissiveMap: e, emissive: 0xffffff, emissiveIntensity: 1.35, metalness: 0.55, roughness: 0.34, envMapIntensity: 0.75, clearcoat: 0.3, clearcoatRoughness: 0.3, transparent: true });
+    const m = new THREE.MeshPhysicalMaterial({ map: t, emissiveMap: e, emissive: 0xffffff, emissiveIntensity: 1.35, metalness: 0.4, roughness: 0.5, envMapIntensity: 0.35, clearcoat: 0.1, clearcoatRoughness: 0.4, transparent: true });
     // l'holographique : un arc-en-ciel qui dépend de l'angle sous lequel on regarde chaque point du sachet (donc de
     // l'inclinaison du téléphone et du bombé), strié comme un foil ; il s'ajoute à la lumière propre du sachet
     m.onBeforeCompile = (sh) => { sh.fragmentShader = sh.fragmentShader.replace('#include <emissivemap_fragment>', `#include <emissivemap_fragment>
@@ -217,8 +221,10 @@ a{color:#9FE8FF}
       vec3 holoC = 0.5 + 0.5 * cos( 6.2831 * ( holoT + vec3( 0.0, 0.33, 0.67 ) ) );
       float holoB = pow( 0.5 + 0.5 * sin( 6.2831 * holoT * 0.85 ), 3.0 );                    // (de larges bandes vives, qui glissent)
       float holoS = mix( 0.1, 1.0, texture2D( uMasque, vUv ).r );                              // (plus calme derrière le nom et le monument)
-      totalEmissiveRadiance += holoC * ( 0.075 + 0.2 * holoB ) * holoS;`).replace('void main() {', 'uniform sampler2D uMasque;\nvoid main() {'); sh.uniforms.uMasque = { value: calme }; };
+      totalEmissiveRadiance += holoC * ( 0.04 + 0.11 * holoB ) * holoS * uForce;`).replace('void main() {', 'uniform sampler2D uMasque;\nuniform float uForce;\nvoid main() {'); sh.uniforms.uMasque = { value: calme }; sh.uniforms.uForce = FORCE; };
     mats.push(m); return m; }
+  let brillance = 'moyenne';
+  function appliquerBrillance() { const [f, env, bl] = BRILLANCES[brillance]; FORCE.value = f; for (const m of mats) m.envMapIntensity = env; bloom.strength = bl; for (const b of document.querySelectorAll('#brillances button')) b.classList.toggle('on', b.dataset.b === brillance); }
   function construire() {
     for (const grp of [corps, languette, cartes]) while (grp.children.length) { const x = grp.children.pop(); x.geometry.dispose(); if (x.material.map) x.material.map.dispose(); if (x.material.emissiveMap) x.material.emissiveMap.dispose(); x.material.dispose(); }
     mats = []; const [b1, l1, m1] = dessiner(true), [b2, l2, m2] = dessiner(false), devant = matiere(b1, l1, new THREE.CanvasTexture(m1)), derriere = matiere(b2, l2, new THREE.CanvasTexture(m2)), vc = 1 - COUPE;
@@ -229,7 +235,7 @@ a{color:#9FE8FF}
     lueur.material.color.set(SORTES[sorte].eclair);
     const td = new THREE.CanvasTexture(dosCarte()); td.encoding = THREE.sRGBEncoding;
     for (let k = 0; k < 3; k++) { const c = new THREE.Mesh(new THREE.PlaneGeometry(1.5, 1.5 * 350 / 240), new THREE.MeshBasicMaterial({ map: td, transparent: true })); c.position.set(0, -0.25, -0.03 + k * 0.02); c.visible = false; cartes.add(c); }
-    scene.style.setProperty('--e', SORTES[sorte].eclair); $('eclair').style.setProperty('--e', SORTES[sorte].eclair); bloom.strength = 0.4;
+    scene.style.setProperty('--e', SORTES[sorte].eclair); $('eclair').style.setProperty('--e', SORTES[sorte].eclair); appliquerBrillance();
   }
 
   // ---------------------------------------------------------------- l'inclinaison
@@ -264,6 +270,7 @@ a{color:#9FE8FF}
   function remettre() { etat = 'vitrine'; coupe = 0; doigt = null; lueur.visible = false; if (languette.children.length) enrouler(0, 1, 1); charniere.rotation.set(0, 0, 0); charniere.position.set(L / 2, YC, 0); sachet.position.set(0, 0, 0); for (const m of mats) m.opacity = 1; for (const c of cartes.children) { c.visible = false; c.position.y = -0.25; c.rotation.z = 0; c.scale.setScalar(1); }
     $('eclair').classList.remove('on'); $('trace').style.opacity = 0; $('aide').textContent = 'Penche ton téléphone : le sachet change de couleur. Pose le doigt en haut du sachet et glisse en travers : la languette se décolle derrière lui.'; }
   $('rejouer').addEventListener('click', remettre);
+  $('brillances').addEventListener('click', (e) => { const b = e.target.closest('button'); if (b) { brillance = b.dataset.b; appliquerBrillance(); } });
   $('sortes').addEventListener('click', (e) => { const b = e.target.closest('button'); if (!b) return; sorte = b.dataset.s; for (const x of document.querySelectorAll('#sortes button')) x.classList.toggle('on', x === b); construire(); remettre(); });
 
   // ---------------------------------------------------------------- la boucle
@@ -290,7 +297,7 @@ a{color:#9FE8FF}
 
   taille();
   (document.fonts && document.fonts.load ? Promise.all([document.fonts.load('700 100px "Barlow Condensed"'), document.fonts.load('800 40px Nunito')]).catch(() => {}) : Promise.resolve()).then(() => {
-    const P = new URLSearchParams(location.search); if (P.get('s') === 'paye') { sorte = 'paye'; for (const x of document.querySelectorAll('#sortes button')) x.classList.toggle('on', x.dataset.s === 'paye'); }
+    const P = new URLSearchParams(location.search); if (BRILLANCES[P.get('b')]) brillance = P.get('b'); if (P.get('s') === 'paye') { sorte = 'paye'; for (const x of document.querySelectorAll('#sortes button')) x.classList.toggle('on', x.dataset.s === 'paye'); }
     construire(); $('attente').hidden = true; requestAnimationFrame(image); if (P.has('ouvrir')) setTimeout(ouvrir, 600); if (P.has('coupe')) { etat = 'coupe'; coupe = Number(P.get('coupe')) || 0.5; lueur.visible = true; enrouler(coupe, 1, 1.2); } });
   window.__BOOSTER = { ouvrir, remettre };
 })();
