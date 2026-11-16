@@ -105,11 +105,14 @@
     }
     // un pack entier : n cartes tirées en parallèle, doublons retirés, cartes manquantes complétées par des Communes ;
     // zone (pack régional) : toutes les cartes dans ces départements
-    async function tirerPack(base, chances, n, zone) {
-      const raretes = o.Pack.raretes(n, chances, o.Pack.alea(o.Pack.graine(base)));
+    // garantie (pack acheté) : une carte au moins de cette rareté ; si le tirage ne l'a pas donnée (lieu introuvable), on la
+    // retire jusqu'à quatre fois, à la place d'une carte Commune
+    async function tirerPack(base, chances, n, zone, garantie) {
+      const raretes = o.Pack.raretes(n, chances, o.Pack.alea(o.Pack.graine(base)), garantie);
       const tirees = await Promise.all(raretes.map((r, i) => tirerCarte(r, base + ':' + i, [], zone)));
       const cartes = [];
       for (const c of tirees) if (c && !cartes.some((x) => x.id === c.id)) cartes.push(c);
+      if (garantie && !cartes.some((c) => o.rarete(c) >= garantie)) { for (let k = 0; k < 4; k++) { const c = await tirerCarte(garantie, base + ':garantie:' + k, cartes, zone); if (c) { if (cartes.length >= n) cartes.splice(cartes.findIndex((x) => o.rarete(x) === Math.min(...cartes.map((y) => o.rarete(y)))), 1); cartes.push(c); break; } } }
       for (let k = 0; cartes.length < n && k < 6; k++) { const c = await tirerCarte(1, base + ':plus:' + k, cartes, zone); if (c) cartes.push(c); }
       return cartes;
     }

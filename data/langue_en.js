@@ -132,6 +132,8 @@
     '{n} nouveau lieu dans ton patrimoine · touche une carte pour la voir': '{n} new place in your portfolio · tap a card to see it',
     'Chaque jour, {n} lieux tirés dans toute la France. Le bouton brille quand un nouveau pack t’attend.': 'Every day, {n} places drawn from all over France. The button glows when a new pack is waiting for you.',
     '{n} lieux tirés dans toute la France.': '{n} places drawn from all over France.',
+    '{n} lieux tirés dans toute la France, dont un Rare ou mieux.': '{n} places drawn from all over France, including one Rare or better.',
+    '{n} lieux tirés dans la région de ton choix, dont un Rare ou mieux : moins de hasard, un peu plus cher.': '{n} places drawn from the region of your choice, including one Rare or better: less luck, a little more expensive.',
     '{n} lieux tirés dans la région de ton choix : moins de hasard, un peu plus cher.': '{n} places drawn from the region of your choice: less luck, a little more expensive.',
     'Ton pack du jour contient {n} lieux de toute la France.': 'Your daily pack holds {n} places from all over France.',
     'Les mêmes pour le pack du jour, le pack national et le pack régional. Les monuments ne sortent jamais des packs.': 'The same for the daily pack, the national pack and the regional pack. Monuments never come out of packs.',

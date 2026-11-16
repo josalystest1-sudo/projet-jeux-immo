@@ -57,4 +57,4 @@ Prototype : `proto/booster.html` (https://citydeck.fr/proto/booster.html ; `?s=p
 - **Roulette des villes, suite** (Gautier : « tu dois voir le département fragmenté avec les villes ») : le département entier, découpé en ses communes ; une commune s'allume à chaque cran, son nom en haut.
 - **Étape 3, faite** : le booster et sa languette qui se décolle derrière le doigt (`src/booster.js`).
 - **Booster, dans le jeu** (Gautier, 16 nov.) : « trop arc-en-ciel », « il fait tache avec la DA du jeu » → la brillance du foil est bleue et dorée.
-- **À faire** : la taille des packs.
+- **Étape 4, faite** : la taille des packs (2 par jour, 4 avec le Pass, 4 + 1 Rare ou mieux en payé, 5 pour le tout premier).

@@ -880,7 +880,7 @@ ACTIONS.acheter_pack = async (j, corps) => {
   if (await paysSansPacks(j)) throw new Refus('pays', 'Les packs ne sont pas vendus en Belgique ni aux Pays-Bas : le Pass et les offres restent possibles.');
   let zone = null;
   if (article === 'pack_regional') { const deps = (Regions.REGIONS as Record<string, string[]>)[String(corps.region || '')]; if (!deps) throw new Refus('region', 'Choisis une région.'); zone = { deps }; }
-  const cartes = await TIRAGE.tirerPack(crypto.randomUUID(), ECO.pack.chances, BOU.B.pack_cartes, zone);
+  const cartes = await TIRAGE.tirerPack(crypto.randomUUID(), ECO.pack.chances, BOU.B.pack_cartes, zone, BOU.B.pack_garantie);
   if (!cartes.length) throw new Refus('vide', REFUS_SQL.vide);
   const lignes = cartes.map((c: Ligne) => ({ ...c, commune: Regles.nomCommune(c.citycode, c.city), rarete: R.rarete(c) }));
   const gagnes: string[] = await rpc('jeu_pack_achete', { j, article, prix: BOU.prix(article), cartes: lignes });
@@ -988,7 +988,7 @@ ACTIONS.gemmes_essai = async (j) => ({ gemmes: Number(await rpc('jeu_gemmes_essa
 ACTIONS.pack = async (j) => {
   const jm = await jourMs(), jour = Regles.jourDuJeu(Date.now(), jm), jr = await joueur(j);
   if (jr.dernier_jour != null && Number(jr.dernier_jour) >= jour) throw new Refus('deja', REFUS_SQL.deja);
-  const cartes = await TIRAGE.tirerPack(crypto.randomUUID() + ':' + jour, ECO.pack.chances, BOU.cartesDuJour({ fin: jr.pass_fin ? ms(jr.pass_fin) : null }, Date.now()));
+  const cartes = await TIRAGE.tirerPack(crypto.randomUUID() + ':' + jour, ECO.pack.chances, BOU.cartesDuJour({ fin: jr.pass_fin ? ms(jr.pass_fin) : null }, Date.now(), jr.dernier_jour == null));   // (le tout premier pack : 5 cartes)
   if (!cartes.length) throw new Refus('reseau', 'Pack impossible à tirer pour l’instant : réessaie dans un instant.');
   await recolter(j);   // les loyers d'avant sont encaissés : les nouveaux lieux comptent à partir de maintenant
   const lignes = cartes.map((c: Ligne) => ({ ...c, commune: Regles.nomCommune(c.citycode, c.city) }));

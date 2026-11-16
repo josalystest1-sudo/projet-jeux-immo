@@ -23,7 +23,7 @@
     setTimeout(() => { if (!document.body.classList.contains('vitrine') && !sc.classList.contains('show')) { sc.classList.remove('on'); disposeGL(); } }, 500); };
   // le gros bouton : l'action du moment
   function action() {
-    if (packDispo()) return { cle: 'pack', texte: 'Ouvrir mon pack', sous: `${nb(BOU.cartesDuJour(state.pass, now()))} lieux de France t’attendent`, or: true, f: () => ouvrirPack() };
+    if (packDispo()) return { cle: 'pack', texte: 'Ouvrir mon pack', sous: `${nb(BOU.cartesDuJour(state.pass, now(), premierLancement()))} lieux de France t’attendent`, or: true, f: () => ouvrirPack() };
     const C = window.CHASSE, v = C && C.vue;
     if (v && (v.etat === 'annonce' || v.etat === 'en_cours') && !(window.debloque && !debloque('chasse'))) {
       if (!C.inscrit) return { cle: 'chasse', texte: 'Chasse au trésor', sous: `${v.commune} · ${v.etat === 'annonce' ? 'départ' : 'fin'} dans ${dureeCourte(Math.max(0, Math.ceil(((v.etat === 'annonce' ? v.debut : v.fin) - Date.now()) / 1000)))}`, f: () => C.inscrire() };
@@ -54,7 +54,7 @@
     const cartes = pret ? [] : cartesDuJour();
     const centre = pret ? '<div class="acc-centre"></div>'
       : `<div class="acc-centre"><div class="acc-eventail" style="--n:${cartes.length}">${cartes.map((a, i) => `<button class="acc-carte ccarte r${rarete(a)}" data-id="${echapper(a.id)}" style="--i:${i - (cartes.length - 1) / 2}">${carteArt(a, '')}</button>`).join('')}</div>${cartes.length ? `<div class="acc-legende">${state.cartesDuJour ? 'Tes cartes du jour' : 'Tes dernières cartes'}</div>` : ''}</div>`;
-    const bas = `<div class="acc-bas"><button class="acc-gros ${act.or ? 'or' : ''} ${premier ? 'pulse' : ''}" data-a="gros">${echapper(premier ? 'Ouvrir mon premier pack' : act.texte)}${act.piece ? ' <i class="pc"></i>' : ''}</button><span class="acc-sous">${echapper(premier ? `${nb(BOU.cartesDuJour(state.pass, now()))} vrais lieux de France, tirés au hasard : ils seront à toi.` : act.sous || '')}</span></div>`;
+    const bas = `<div class="acc-bas"><button class="acc-gros ${act.or ? 'or' : ''} ${premier ? 'pulse' : ''}" data-a="gros">${echapper(premier ? 'Ouvrir mon premier pack' : act.texte)}${act.piece ? ' <i class="pc"></i>' : ''}</button><span class="acc-sous">${echapper(premier ? `${nb(BOU.cartesDuJour(state.pass, now(), premierLancement()))} vrais lieux de France, tirés au hasard : ils seront à toi.` : act.sous || '')}</span></div>`;
     el.innerHTML = haut + titre + centre + bas;
     el.onclick = (e) => { const b = e.target.closest('[data-a],[data-id]'); if (!b) return; vibrer(8);
       if (b.dataset.id) return ouvrirFicheLieu(b.dataset.id);

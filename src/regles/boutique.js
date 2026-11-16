@@ -16,8 +16,9 @@
       return { fin: Math.max(actif ? pass.fin : 0, maintenant) + B.pass_jours * jourMs, bons: Math.min(B.bons_max, (actif ? (pass.bons || 0) : 0) + 1) };
     }
     const bonsUtilisables = (pass, maintenant) => (pass && passActif(pass.fin, maintenant) ? (pass.bons || 0) : 0);
-    // le pack du jour : 8 cartes avec un Pass actif, sinon 5
-    const cartesDuJour = (pass, maintenant) => (pass && passActif(pass.fin, maintenant) ? B.pass_cartes : eco.pack.cartes);
+    // le pack du jour (Gautier, 16 nov. : moins de cartes gratuites, pour que le jeu ne se remplisse pas trop vite) : 2 cartes,
+    // 4 avec un Pass actif ; le tout premier pack d'un nouveau joueur en a 5 (premier : il n'a encore jamais ouvert de pack)
+    const cartesDuJour = (pass, maintenant, premier) => { const n = pass && passActif(pass.fin, maintenant) ? B.pass_cartes : eco.pack.cartes; return premier ? Math.max(n, eco.pack.premier || n) : n; };
     // un lieu qu'un bon peut prendre : une adresse (« l'adresse libre de son choix », GDD § 3) libre, jusqu'à Épique
     function bonPermis(lieu, rarete, libre) {
       if (!libre) return { ok: false, raison: 'pris' };

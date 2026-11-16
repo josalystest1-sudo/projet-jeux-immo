@@ -91,7 +91,8 @@ const ECO = {
   "monument": 10
  },
  "pack": {
-  "cartes": 5,
+  "cartes": 2,
+  "premier": 5,
   "par_jour": 1,
   "chances": {
    "1": 60,
@@ -199,8 +200,9 @@ const ECO = {
    "pass": 300
   },
   "pack_cartes": 5,
+  "pack_garantie": 3,
   "pass_jours": 15,
-  "pass_cartes": 8,
+  "pass_cartes": 4,
   "bons_max": 3,
   "bon_rarete_max": 4,
   "gemmes_essai": 1000

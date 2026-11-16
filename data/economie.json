@@ -15,7 +15,7 @@
   "standing": { "1": { "nom": "Maison", "base": 500 }, "2": { "nom": "Immeuble", "base": 1500 }, "3": { "nom": "Tour", "base": 4000 } },
   "plafond_par_rarete": { "1": "maison", "2": "immeuble", "3": "tour", "4": "gratte_ciel", "5": "palace", "6": "prestige" },
   "multiplicateur_valeur": { "commune": 1, "connue": 2, "celebre": 4, "monument": 10 },
-  "pack": { "cartes": 5, "par_jour": 1, "chances": { "1": 60, "2": 25, "3": 10, "4": 4, "5": 1 } },
+  "pack": { "cartes": 2, "premier": 5, "par_jour": 1, "chances": { "1": 60, "2": 25, "3": 10, "4": 4, "5": 1 } },
   "raretes": { "1": "Commun", "2": "Peu commun", "3": "Rare", "4": "Épique", "5": "Légendaire", "6": "Extraordinaire" },
   "encheres": {
     "nationaux_par_semaine": 1,
@@ -53,9 +53,9 @@
       { "id": "g2600", "gemmes": 2600, "euros": 19.99 }
     ],
     "prix": { "pack_national": 200, "pack_regional": 300, "pass": 300 },
-    "pack_cartes": 5,
+    "pack_cartes": 5, "pack_garantie": 3,
     "pass_jours": 15,
-    "pass_cartes": 8,
+    "pass_cartes": 4,
     "bons_max": 3,
     "bon_rarete_max": 4,
     "gemmes_essai": 1000

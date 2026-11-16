@@ -49,6 +49,7 @@ Chaque lieu porte :
 **Un lieu libre ne s'achète pas** : il n'appartient à personne et ne s'obtient que dans un pack (les monuments, aux enchères). On n'achète un lieu qu'à un joueur qui l'a mis en vente, ou en lui faisant une offre ou un échange. **[Décidé par Gautier, 3 nov.]**
 
 ### Le pack du jour **[Décidé]**
+- **Taille des packs (décision de Gautier, 16 nov. 2026) [Décidé]** : pack gratuit du jour **2 cartes** (4 avec le Pass), pack acheté **4 cartes + 1 Rare ou mieux**, et le **tout premier pack d'un nouveau joueur à 5 cartes** ; raison : « éviter que le jeu remplisse ses adresses trop vite ». Les chiffres ci-dessous (5 lieux, 8 avec le Pass) sont ceux d'avant.
 - 1 pack gratuit par jour et par compte, **5 lieux tirés au hasard dans toute la France** (pas de région privilégiée : pour avoir sa région, on achète des packs et on prie, ou on revend et on rachète).
 - **Pas de doublon** : un lieu déjà possédé n'est jamais tiré ; si malgré tout ça arrive, on tire le lieu libre **de même rareté le plus proche**. **[Décidé]**
 - Un pack peut contenir **toutes les raretés** sauf les monuments (réservés aux enchères), avec des chances décroissantes : Commun > Peu commun > Rare > Épique > Légendaire. **[Décidé]** Chiffres de départ : 60 % / 25 % / 10 % / 4 % / 1 % par carte. **[Proposé]**

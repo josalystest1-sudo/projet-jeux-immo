@@ -13,10 +13,11 @@ test('les prix en gemmes : pack national 200, régional 300, Pass 300 ; les offr
   assert.ok(!Object.keys(ECO.boutique.prix).some((k) => /piece/.test(k)));
 });
 
-test('le Pass 15 jours : 8 cartes au pack du jour, un bon par Pass (3 au plus), perdus quand il finit', () => {
+test('le Pass 15 jours : 4 cartes au pack du jour (2 sans lui, 5 pour le tout premier pack), un bon par Pass (3 au plus), perdus quand il finit', () => {
   let p = B.acheterPass(null, 0, J);
   assert.deepStrictEqual(p, { fin: 15 * J, bons: 1 });
-  assert.strictEqual(B.cartesDuJour(p, 3 * J), 8); assert.strictEqual(B.cartesDuJour(p, 15 * J), 5); assert.strictEqual(B.cartesDuJour(null, 0), 5);
+  assert.strictEqual(B.cartesDuJour(p, 3 * J), 4); assert.strictEqual(B.cartesDuJour(p, 15 * J), 2); assert.strictEqual(B.cartesDuJour(null, 0), 2);
+  assert.strictEqual(B.cartesDuJour(null, 0, true), 5, 'le tout premier pack d’un nouveau joueur'); assert.strictEqual(B.cartesDuJour(p, 3 * J, true), 5); assert.strictEqual(B.B.pack_cartes, 5); assert.strictEqual(B.B.pack_garantie, 3);
   p = B.acheterPass(p, 10 * J, J); assert.deepStrictEqual(p, { fin: 30 * J, bons: 2 });   // prolongé à partir de sa fin
   p = B.acheterPass(p, 11 * J, J); p = B.acheterPass(p, 12 * J, J); assert.strictEqual(p.bons, 3);   // 3 au plus
   assert.strictEqual(B.bonsUtilisables(p, 20 * J), 3); assert.strictEqual(B.bonsUtilisables(p, 61 * J), 0);
