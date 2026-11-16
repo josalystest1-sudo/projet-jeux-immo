@@ -390,6 +390,7 @@ Puis une PR par étape, fusionnée en squash :
 | #155 | 05/11 | L'horloge du serveur : toutes les 10 minutes, enchères, mandats, saisons, monuments et robots tournent sans joueur |
 | #156 | 05/11 | Les travaux des communes s'usent (−10 % par mandat) ; le niveau donne +2 % de loyer par niveau et monte le plafond du Maire (jusqu'à 2 000) |
 | #157 | 05/11 | Documents : les six monuments qui sont des marques (Ritz, Maxim's, Crillon, Negresco, Château Margaux, Train bleu) restent aux enchères (Gautier : « garde-les ») |
+| #195 | 16/11 | Prototype du booster néon (page d'essai `proto/booster.html`) : sachet holographique, enseigne néon, monument doré pour le payé, éclair à l'ouverture |
 | #194 | 16/11 | Page d'essai des cartes : la ville de la plaque se lit comme une ville française (mairie à fronton, pleine lune ; plus de dôme ni de croissant) |
 | #193 | 16/11 | Page d'essai des cartes : l'intérieur de la plaque du dos refait (scène de ville la nuit, banderole) |
 | #192 | 16/11 | Page d'essai des cartes : la plaque du dos retravaillée (couronne de remparts, lauriers, volutes, rivets, deux plans de ville) |

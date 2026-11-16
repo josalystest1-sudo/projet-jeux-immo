@@ -31,3 +31,14 @@ Rien n'est changé dans le jeu tant que Gautier n'a pas choisi. À faire ensuite
 - **La plaque du dos, retravaillée** (« pas assez travaillée, le reste est ok ») : émail bleu en dégradé avec un reflet, second contour, ligne de rivets, fleurons aux coins, couronne de remparts et lauriers au chapeau, volutes de fer forgé sur les côtés, pendentif, deux plans de ville (un lointain derrière la silhouette).
 - **L'intérieur de la plaque, refait** (« c'est surtout la partie intérieure que je trouve pas assez travaillée ») : une scène de ville la nuit : ciel (lune, étoiles, rayons qui montent de l'horizon), ville lointaine, quatorze bâtiments dessinés un par un (mansardes et cheminées, pignons, clocher à rosace, dôme, tour) aux fenêtres allumées, réverbères, arbres, viaduc, et le nom sur une banderole.
 - **La ville de la plaque, corrigée** (Gautier : « on dirait une mosquée ») : le dôme, la tour à antenne et le croissant de lune sont retirés ; à la place, une mairie à fronton avec son campanile, son horloge et son drapeau, un immeuble mansardé, une pleine lune. La ville doit se lire comme une ville française.
+
+## Le booster néon (interview de 8 questions, 16 nov.)
+
+- **Au centre** : le nom du jeu, en **enseigne néon** (réponse libre de Gautier : « le nom du jeu »).
+- **Autour** : un plan de ville en traits fins sur toute la surface.
+- **Matière** : **tout holographique** (un arc-en-ciel qui change avec l'angle de vue).
+- **À l'accueil** : il flotte, brille et suit l'inclinaison du téléphone.
+- **Gratuit / payé** : deux visuels différents ; le payé, plus riche, montre **un monument en néon doré** (la tour Eiffel dans le prototype).
+- **À l'ouverture** : on coupe le haut, **un éclair de lumière** jaillit, puis les cartes montent, de dos.
+
+Prototype : `proto/booster.html` (https://citydeck.fr/proto/booster.html ; `?s=paye` pour le booster payé). Un vrai volume 3D ; l'holographique est un calcul par point (angle de vue), ajouté à la matière. Dans le jeu, ce dessin ira sur le sachet existant (`dessinPochette`, `geoSachet`).
