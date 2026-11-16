@@ -45,7 +45,7 @@ a{color:#9FE8FF}
 <div class="rangee" id="sortes"><button data-s="jour" class="on">Booster du jour</button><button data-s="paye">Booster payé</button></div>
 <div class="scene" id="scene"><canvas id="vue" role="img" aria-label="Le booster en 3D"></canvas><div class="trace" id="trace"></div><div class="eclair" id="eclair"></div><div class="attente" id="attente">Préparation du booster…</div></div>
 <div class="rangee"><button id="rejouer">Recommencer</button><button id="incliner" hidden>Activer l’inclinaison</button></div>
-<p class="note">Après la sortie des cartes, chacune se révèle d’un toucher, comme sur <a href="cartes.html?v=196&amp;c=orne&amp;d=or&amp;dos">la page des cartes</a>.</p>
+<p class="note">Après la sortie des cartes, chacune se révèle d’un toucher, comme sur <a href="cartes.html?v=197&amp;c=orne&amp;d=or&amp;dos">la page des cartes</a>.</p>
 
 <script src="https://unpkg.com/three@0.147.0/build/three.min.js"></script>
 <script src="https://unpkg.com/three@0.147.0/examples/js/environments/RoomEnvironment.js"></script>
@@ -93,9 +93,13 @@ a{color:#9FE8FF}
     neon(g, () => { g.beginPath(); g.moveTo(150, y - 172); g.lineTo(TW - 150, y - 172); g.stroke(); }, C, 5);
   }
   // la tour Eiffel au trait, pour le booster payé (le monument « qui dit qu'il y a du rare dedans »)
+  const TOUR = { bas: 1040, haut: 258 };
+  const demiTour = (t) => 285 * Math.pow(1 - t, 2.35) + 10 * (1 - t) + 4;
+  function silhouetteTour(g, marge) { const cx = TW / 2, H = TOUR.bas - TOUR.haut; g.beginPath(); g.moveTo(cx - demiTour(0) - marge, TOUR.bas + marge);
+    for (let t = 0; t <= 1.0001; t += 0.04) g.lineTo(cx - demiTour(t) - marge, TOUR.bas - t * H); g.lineTo(cx, TOUR.haut - 90 - marge); for (let t = 1; t >= -0.0001; t -= 0.04) g.lineTo(cx + demiTour(t) + marge, TOUR.bas - t * H); g.lineTo(cx + demiTour(0) + marge, TOUR.bas + marge); g.closePath(); }
   function tour(g, C) {
-    const cx = TW / 2, bas = 1040, haut = 240, H = bas - haut, Y = (t) => bas - t * H;
-    const demi = (t) => 250 * Math.pow(1 - t, 2.35) + 9 * (1 - t) + 3;          // (demi-largeur extérieure à la hauteur t)
+    const cx = TW / 2, bas = TOUR.bas, haut = TOUR.haut, H = bas - haut, Y = (t) => bas - t * H;
+    const demi = demiTour;          // (demi-largeur extérieure à la hauteur t)
     const dedans = (t) => Math.max(0, demi(t) - (46 * (1 - t) + 10));              // (bord intérieur des piliers)
     neon(g, () => {
       g.beginPath();
@@ -106,16 +110,16 @@ a{color:#9FE8FF}
       for (const [t, d] of [[0.17, 14], [0.33, 10], [0.74, 6]]) { g.moveTo(cx - demi(t) - d, Y(t)); g.lineTo(cx + demi(t) + d, Y(t)); g.moveTo(cx - demi(t) - d, Y(t) - 14); g.lineTo(cx + demi(t) + d, Y(t) - 14); }
       g.moveTo(cx - 10, Y(0.955)); g.lineTo(cx + 10, Y(0.955)); g.moveTo(cx, Y(1)); g.lineTo(cx, Y(1.07));
       g.stroke();
-    }, C, 6);
+    }, C, 9);
     neon(g, () => {   // le treillis, en traits fins
       g.beginPath();
       for (let k = 0; k < 13; k++) { const t0 = 0.34 + k * 0.047, t1 = t0 + 0.047; if (t1 > 0.95) break; g.moveTo(cx - demi(t0), Y(t0)); g.lineTo(cx + demi(t1), Y(t1)); g.moveTo(cx + demi(t0), Y(t0)); g.lineTo(cx - demi(t1), Y(t1)); }
       for (const s of [-1, 1]) for (let k = 0; k < 6; k++) { const t0 = k * 0.055, t1 = t0 + 0.055; g.moveTo(cx + s * demi(t0), Y(t0)); g.lineTo(cx + s * dedans(t1), Y(t1)); g.moveTo(cx + s * dedans(t0), Y(t0)); g.lineTo(cx + s * demi(t1), Y(t1)); }
       g.stroke();
-    }, C, 2.6);
+    }, C, 4.2);
     // des étoiles autour du sommet
     g.save(); g.fillStyle = C.clair; g.shadowColor = C.vif; g.shadowBlur = 16; let s = 5; const alea = () => ((s = (s * 1664525 + 1013904223) >>> 0) / 4294967296);
-    for (let k = 0; k < 34; k++) { const x = 90 + alea() * (TW - 180), y = 230 + alea() * 560, r = 2 + alea() * 4; if (Math.abs(x - cx) < demi(1 - (y - haut) / H) + 40) continue; g.beginPath(); g.moveTo(x, y - r * 2); g.lineTo(x + r * 0.5, y - r * 0.5); g.lineTo(x + r * 2, y); g.lineTo(x + r * 0.5, y + r * 0.5); g.lineTo(x, y + r * 2); g.lineTo(x - r * 0.5, y + r * 0.5); g.lineTo(x - r * 2, y); g.lineTo(x - r * 0.5, y - r * 0.5); g.closePath(); g.fill(); }
+    for (let k = 0; k < 34; k++) { const x = 90 + alea() * (TW - 180), y = 215 + alea() * 600, r = 2 + alea() * 4; if (Math.abs(x - cx) < demi(1 - (y - haut) / H) + 40) continue; g.beginPath(); g.moveTo(x, y - r * 2); g.lineTo(x + r * 0.5, y - r * 0.5); g.lineTo(x + r * 2, y); g.lineTo(x + r * 0.5, y + r * 0.5); g.lineTo(x, y + r * 2); g.lineTo(x - r * 0.5, y + r * 0.5); g.lineTo(x - r * 2, y); g.lineTo(x - r * 0.5, y - r * 0.5); g.closePath(); g.fill(); }
     g.restore();
   }
   function soudures(g) {   // les bandes gaufrées du haut et du bas, et le trait de coupe
@@ -130,22 +134,28 @@ a{color:#9FE8FF}
     // le foil : un fond de nuit, l'arc-en-ciel de l'holographique en travers, de fines rayures
     const f = g.createLinearGradient(0, 0, 0, TH); f.addColorStop(0, C.fond[0]); f.addColorStop(1, C.fond[1]); g.fillStyle = f; g.fillRect(0, 0, TW, TH);
     const arc = g.createLinearGradient(0, 0, TW, TH); ['#ff2d8a', '#ffd400', '#22ffb0', '#22b8ff', '#a02dff', '#ff2d8a', '#ffd400', '#22ffb0', '#22b8ff'].forEach((c, i, a) => arc.addColorStop(i / (a.length - 1), c));
-    g.globalAlpha = 0.3; g.fillStyle = arc; g.fillRect(0, 0, TW, TH); g.globalAlpha = 1;
+    g.globalAlpha = 0.24; g.fillStyle = arc; g.fillRect(0, 0, TW, TH); g.globalAlpha = 1;
     g.save(); g.globalAlpha = 0.1; g.strokeStyle = '#fff'; g.lineWidth = 2; for (let x = -TH; x < TW; x += 16) { g.beginPath(); g.moveTo(x, 0); g.lineTo(x + TH * 0.55, TH); g.stroke(); } g.restore();
     const v = g.createRadialGradient(TW / 2, TH * 0.5, 60, TW / 2, TH * 0.5, TH * 0.62); v.addColorStop(0, 'rgba(4,6,24,.62)'); v.addColorStop(1, 'rgba(4,6,24,.1)'); g.fillStyle = v; g.fillRect(0, 0, TW, TH);
     planDeVille(g, sorte === 'paye' ? 'rgba(255,214,140,.34)' : 'rgba(150,200,255,.36)');
-    if (recto) { const [y0, y1] = CARTOUCHE[sorte]; g.save(); g.fillStyle = 'rgba(3,5,20,.9)'; g.beginPath(); if (g.roundRect) g.roundRect(64, y0, TW - 128, y1 - y0, 34); else g.rect(64, y0, TW - 128, y1 - y0); g.fill(); g.restore(); }
+    // des ombres douces (pas de boîte) : la nuit se fait derrière le nom et le monument, pour que les néons se lisent, et
+    // l'holographique s'y calme sans s'arrêter net (Gautier, 16 nov. : le cartouche « dénote avec le reste du décor »)
+    const masque = toile(), k = masque.getContext('2d'); k.fillStyle = '#fff'; k.fillRect(0, 0, TW, TH);
+    if (recto) { const [y0, y1] = CARTOUCHE[sorte];
+      for (const [c, couleur, flou] of [[g, 'rgba(3,5,22,.82)', 70], [k, '#000', 90]]) { c.save(); c.fillStyle = couleur; c.shadowColor = couleur; c.shadowBlur = flou;
+        c.beginPath(); c.ellipse(TW / 2, (y0 + y1) / 2, TW * 0.4, (y1 - y0) * 0.36, 0, 0, 6.283); c.fill(); c.fill();
+        if (sorte === 'paye') { silhouetteTour(c, 26); c.fill(); c.fill(); } else { c.beginPath(); c.arc(TW / 2, 420, 86, 0, 6.283); c.fill(); }
+        c.restore(); } }
     l.fillStyle = '#000'; l.fillRect(0, 0, TW, TH);
     if (recto) { if (sorte === 'paye') tour(l, C); enseigne(l, C, sorte === 'paye' ? 1282 : 862);
       // l'emblème à la maison, en haut
       neon(l, () => { const x = TW / 2, y = sorte === 'paye' ? 0 : 420; if (!y) return; l.beginPath(); l.arc(x, y, 74, 0, 6.283); l.moveTo(x - 44, y + 6); l.lineTo(x, y - 36); l.lineTo(x + 44, y + 6); l.moveTo(x - 30, y - 4); l.lineTo(x - 30, y + 38); l.lineTo(x + 30, y + 38); l.lineTo(x + 30, y - 4); l.moveTo(x - 9, y + 38); l.lineTo(x - 9, y + 14); l.lineTo(x + 9, y + 14); l.lineTo(x + 9, y + 38); l.stroke(); }, C, 6);
-      { const [y0, y1] = CARTOUCHE[sorte]; neon(l, () => { l.beginPath(); if (l.roundRect) l.roundRect(64, y0, TW - 128, y1 - y0, 34); else l.rect(64, y0, TW - 128, y1 - y0); l.stroke(); }, C, 4); }
       l.save(); l.font = '800 50px Nunito, sans-serif'; l.textAlign = 'center'; l.fillStyle = '#FFFFFF'; l.shadowColor = C.vif; l.shadowBlur = 10; try { l.letterSpacing = '14px'; } catch (e) { /* rien */ }
       l.fillText(sorte === 'paye' ? 'BOOSTER OR' : 'BOOSTER DU JOUR', TW / 2 + 7, sorte === 'paye' ? 1408 : 1018); l.restore(); }
     else { l.save(); l.font = '700 96px "Barlow Condensed", sans-serif'; l.textAlign = 'center'; neon(l, () => l.strokeText('STREETKEEP', TW / 2, TH / 2), C, 5); l.restore(); }
     g.save(); g.globalCompositeOperation = 'lighter'; g.drawImage(lum, 0, 0); g.restore();
     soudures(g);
-    return [base, lum];
+    return [base, lum, masque];
   }
   // le dos d'une carte, en petit (le vrai est sur la page des cartes)
   function dosCarte() { const c = document.createElement('canvas'); c.width = 480; c.height = 700; const g = c.getContext('2d'), C = SORTES.jour;
@@ -198,21 +208,20 @@ a{color:#9FE8FF}
       a.needsUpdate = true; m.geometry.computeVertexNormals(); }
   }
   function matiere(base, lum, calme) { const t = new THREE.CanvasTexture(base), e = new THREE.CanvasTexture(lum); t.encoding = THREE.sRGBEncoding; e.encoding = THREE.sRGBEncoding; t.anisotropy = e.anisotropy = 4;
-    const m = new THREE.MeshPhysicalMaterial({ map: t, emissiveMap: e, emissive: 0xffffff, emissiveIntensity: 1.2, metalness: 0.55, roughness: 0.34, envMapIntensity: 0.75, clearcoat: 0.3, clearcoatRoughness: 0.3, transparent: true });
+    const m = new THREE.MeshPhysicalMaterial({ map: t, emissiveMap: e, emissive: 0xffffff, emissiveIntensity: 1.35, metalness: 0.55, roughness: 0.34, envMapIntensity: 0.75, clearcoat: 0.3, clearcoatRoughness: 0.3, transparent: true });
     // l'holographique : un arc-en-ciel qui dépend de l'angle sous lequel on regarde chaque point du sachet (donc de
     // l'inclinaison du téléphone et du bombé), strié comme un foil ; il s'ajoute à la lumière propre du sachet
     m.onBeforeCompile = (sh) => { sh.fragmentShader = sh.fragmentShader.replace('#include <emissivemap_fragment>', `#include <emissivemap_fragment>
       vec3 holoN = normalize( vNormal ); vec3 holoV = normalize( vViewPosition );
       float holoT = dot( holoN, holoV ) * 2.6 + vUv.x * 1.25 + vUv.y * 0.85;
       vec3 holoC = 0.5 + 0.5 * cos( 6.2831 * ( holoT + vec3( 0.0, 0.33, 0.67 ) ) );
-      vec2 holoD = abs( vUv - uCalme.xy ) - uCalme.zw;                                   // (le cartouche du nom : pas d'arc-en-ciel dessus)
-      float holoS = smoothstep( -0.012, 0.03, max( holoD.x, holoD.y ) );
-      totalEmissiveRadiance += holoC * holoS * 0.15;`).replace('void main() {', 'uniform vec4 uCalme;\nvoid main() {'); sh.uniforms.uCalme = { value: calme }; };
+      float holoB = pow( 0.5 + 0.5 * sin( 6.2831 * holoT * 0.85 ), 3.0 );                    // (de larges bandes vives, qui glissent)
+      float holoS = mix( 0.1, 1.0, texture2D( uMasque, vUv ).r );                              // (plus calme derrière le nom et le monument)
+      totalEmissiveRadiance += holoC * ( 0.075 + 0.2 * holoB ) * holoS;`).replace('void main() {', 'uniform sampler2D uMasque;\nvoid main() {'); sh.uniforms.uMasque = { value: calme }; };
     mats.push(m); return m; }
   function construire() {
     for (const grp of [corps, languette, cartes]) while (grp.children.length) { const x = grp.children.pop(); x.geometry.dispose(); if (x.material.map) x.material.map.dispose(); if (x.material.emissiveMap) x.material.emissiveMap.dispose(); x.material.dispose(); }
-    mats = []; const [b1, l1] = dessiner(true), [b2, l2] = dessiner(false), [cy0, cy1] = CARTOUCHE[sorte],
-      devant = matiere(b1, l1, new THREE.Vector4(0.5, 1 - (cy0 + cy1) / 2 / TH, (TW - 128) / 2 / TW, (cy1 - cy0) / 2 / TH)), derriere = matiere(b2, l2, new THREE.Vector4(0.5, 0.5, 0, 0)), vc = 1 - COUPE;
+    mats = []; const [b1, l1, m1] = dessiner(true), [b2, l2, m2] = dessiner(false), devant = matiere(b1, l1, new THREE.CanvasTexture(m1)), derriere = matiere(b2, l2, new THREE.CanvasTexture(m2)), vc = 1 - COUPE;
     corps.add(new THREE.Mesh(face(0, vc, 1), devant), new THREE.Mesh(face(0, vc, -1), derriere));
     languette.add(new THREE.Mesh(face(vc, 1, 1), devant), new THREE.Mesh(face(vc, 1, -1), derriere));
     for (const m of languette.children) m.userData.repos = m.geometry.attributes.position.array.slice();
