@@ -1538,13 +1538,12 @@ body.verrou-communes #commune-chip{display:none!important}
 /* ---------------------------------------------------------------- le dos « nuit et néon », bleu et or (16 nov. 2026, src/dos_carte.js)
    Trois images préparées une fois : le fond (--dos-carte), les deux anneaux d'ornements qui tournent en sens opposés, et la
    plaque avec son décor et le cadre, par-dessus. Seule la carte du dessus de la pile s'anime. */
-.dos-anneau,.dos-devant{position:absolute;pointer-events:none;display:none}
-html.dos-neon .dos-anneau,html.dos-neon .dos-devant{display:block}
+.dos-anneau,.dos-couche{position:absolute;pointer-events:none;display:none}
+html.dos-neon .dos-anneau,html.dos-neon .dos-couche{display:block}
 html.dos-neon .c3d-dos{box-shadow:none}
-.dos-devant{inset:0;background:var(--dos-devant) center/100% 100% no-repeat}
-.dos-anneau{left:5%;top:17.1429%;width:90%;height:61.7143%;background:center/100% 100% no-repeat;animation:dos-tourne 46s linear infinite}
-.dos-anneau.a{background-image:var(--dos-anneau-a)}
-.dos-anneau.b{background-image:var(--dos-anneau-b);animation-duration:30s;animation-direction:reverse}
+.dos-couche{left:0;top:0;width:100%;height:100%}
+.dos-anneau{left:5%;top:17.1429%;width:90%;height:61.7143%;animation:dos-tourne 46s linear infinite}
+.dos-anneau.b{animation-duration:30s;animation-direction:reverse}
 .c3d.dessous .dos-anneau{animation:none}
 @keyframes dos-tourne{to{transform:rotate(360deg)}}
 @media (prefers-reduced-motion:reduce){.dos-anneau{animation:none}}

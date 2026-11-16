@@ -2011,6 +2011,7 @@ function sortirCartes(){ const wrap=document.getElementById('pkcards'); wrap.inn
   packCards.forEach((c,i)=>{ const r=rarete(c); const el=document.createElement('div'); el.className='c3d r'+r;
     el.innerHTML=`<i class="c3d-aura"></i><div class="c3d-corps"><i class="c3d-bord haut"></i><i class="c3d-bord bas"></i><i class="c3d-bord gauche"></i><i class="c3d-bord droite"></i><div class="c3d-face c3d-dos">${window.DosCarte ? DosCarte.HTML : ''}</div><div class="c3d-face c3d-avant"></div></div>`;
     wrap.appendChild(el); PK.cartes.push({ el, c, r }); });
+  if(window.DosCarte) DosCarte.peindre(wrap);   // (le dos est peint dans des canevas : src/dos_carte.js)
   document.getElementById('pkhint').textContent='';
   const fin=()=>{ PK.etat='pile'; PK.cartes.forEach(k=>{ k.el.classList.remove('montee'); k.el.style.transitionDelay=''; }); dispoPack();
     document.getElementById('pkhint').textContent=aideReveler(); };
