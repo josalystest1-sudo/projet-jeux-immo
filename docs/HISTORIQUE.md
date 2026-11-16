@@ -401,6 +401,7 @@ Puis une PR par étape, fusionnée en squash :
 | #209 | 16/11 | Le booster en bleu et or : plus d'arc-en-ciel, des reflets dans les teintes du jeu |
 | #210 | 16/11 | Le dos des cartes vraiment lumineux : le halo des néons refait d'une façon qui marche aussi sur Android |
 | #211 | 16/11 | Le dos des cartes peint dans des canevas (sur le téléphone de Gautier, les images de fond sortaient à moitié de leur lumière) |
+| #212 | 16/11 | Le dos des cartes moins brillant (les lumières ajoutées en compensation sont ramenées à un niveau moyen) |
 | #200 | 16/11 | Prototype du booster validé par Gautier : brillance moyenne fixée, boutons de réglage retirés |
 | #199 | 16/11 | Prototype du booster : une ligne de toits en néon sur le booster du jour, à la place de la maison |
 | #198 | 16/11 | Prototype du booster : moins brillant, lettres cernées, trois niveaux de brillance à choisir |
