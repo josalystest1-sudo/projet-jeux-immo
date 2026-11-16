@@ -1511,7 +1511,7 @@ body.verrou-communes #commune-chip{display:none!important}
 .cl.neon .cl-cadre{z-index:3}
 .cl.neon .cn1{fill:none;stroke:var(--c1);stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
 .cl.neon .cn2{fill:none;stroke:var(--c2);stroke-width:1.2;stroke-linecap:round}
-.cl.neon .cn1.bord{stroke-width:2.6}.cl.neon .cn2.halo{stroke-width:9;opacity:.28}.cl.neon .cn2.fin{stroke-width:1.15}.cl.neon .cn2.gros{stroke-width:3.4}
+.cl.neon .cn1.bord{stroke-width:2.6}.cl.neon .cn2.aura{stroke-width:9;opacity:.28}.cl.neon .cn2.fin{stroke-width:1.15}.cl.neon .cn2.gros{stroke-width:3.4}
 .cl.neon .cp1{fill:var(--c1)}.cl.neon .cp1.couronne{stroke:var(--c2);stroke-width:1}
 .cl.neon .cl-rar{top:20px;left:0;right:0;z-index:4;display:flex;justify-content:center;padding-left:0;text-shadow:none}
 .cl.neon .cl-rar::before,.cl.neon .cl-rar::after{display:none}
@@ -1534,3 +1534,17 @@ body.verrou-communes #commune-chip{display:none!important}
 .cl-chiffres b.etoiles{letter-spacing:.1em;color:#FFD98A}.cl-chiffres b.etoiles span{color:#3A4A8C}
 .cl-chiffres i{font-style:normal;font-weight:800;font-size:9.5px;letter-spacing:.08em;text-transform:uppercase;color:#B9C6F2;text-align:center}
 .cl-grand-in{box-shadow:0 16px 34px rgba(5,11,30,.55),0 0 26px rgba(61,139,255,.25)}
+
+/* ---------------------------------------------------------------- le dos « nuit et néon », bleu et or (16 nov. 2026, src/dos_carte.js)
+   Trois images préparées une fois : le fond (--dos-carte), les deux anneaux d'ornements qui tournent en sens opposés, et la
+   plaque avec son décor et le cadre, par-dessus. Seule la carte du dessus de la pile s'anime. */
+.dos-anneau,.dos-devant{position:absolute;pointer-events:none;display:none}
+html.dos-neon .dos-anneau,html.dos-neon .dos-devant{display:block}
+html.dos-neon .c3d-dos{box-shadow:none}
+.dos-devant{inset:0;background:var(--dos-devant) center/100% 100% no-repeat}
+.dos-anneau{left:5%;top:17.1429%;width:90%;height:61.7143%;background:center/100% 100% no-repeat;animation:dos-tourne 46s linear infinite}
+.dos-anneau.a{background-image:var(--dos-anneau-a)}
+.dos-anneau.b{background-image:var(--dos-anneau-b);animation-duration:30s;animation-direction:reverse}
+.c3d.dessous .dos-anneau{animation:none}
+@keyframes dos-tourne{to{transform:rotate(360deg)}}
+@media (prefers-reduced-motion:reduce){.dos-anneau{animation:none}}
