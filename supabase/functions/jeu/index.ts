@@ -3,7 +3,7 @@
 // que le jeu (src/regles, recopiées dans _genere/ par tools/serveur_prepare.js), puis écrit par les fonctions SQL
 // jeu_* (supabase/sql/010_jeu.sql), chacune atomique. Réponse : { ok: true, ... } ou { ok: false, code, message }.
 import { createClient } from '@supabase/supabase-js';
-import { Regles, Pack, Celebres, Tirage, Encheres, Mairie, Classements, Monuments, Regions, Boutique, Robots, Chasse } from './_genere/regles.mjs';
+import { Regles, Pack, Celebres, Tirage, Encheres, Mairie, Classements, Monuments, Regions, Boutique, Robots, Chasse, Agence } from './_genere/regles.mjs';
 import { ECO, STANDING, FRANCE, DEPARTEMENTS, CONTOURS, CELEBRES, MONUMENTS, CHASSE_COMMUNES } from './_genere/donnees.mjs';
 import { envoyer as envoyerSmtp } from './smtp.mjs';
 
@@ -12,6 +12,7 @@ const MAI = Mairie.creer(ECO);   // le Maire par caisse de travaux (src/regles/m
 const CLA = Classements.creer(ECO);   // les classements et les saisons (src/regles/classements.js, GDD § 5 bis)
 const MON = Monuments.creer(ECO);     // les monuments : entretien, impayés, absence (src/regles/monuments.js, GDD § 5 ter)
 const BOU = Boutique.creer(ECO);      // la boutique et les gemmes (src/regles/boutique.js, GDD § 3 et § 9)
+const AGE = Agence.creer(ECO);        // l'agence, le jeu « idle » (src/regles/agence.js, GDD § 5 sexies)
 const ROB = Robots.creer(ECO);        // les joueurs de la maison (src/regles/robots.js, GDD § 5 quater)
 // les robots (relus au plus toutes les 60 s) : ils ne prennent jamais une mairie ni une place de podium à un vrai joueur
 let robotsLus = { ids: new Set<string>(), lu: 0 };
@@ -133,7 +134,7 @@ async function mesLieux(j: string) {
 }
 // les refus des fonctions SQL (raise exception '<code>') → un message pour le joueur ; toute autre erreur est une panne
 const REFUS_SQL: Record<string, string> = {
-  fonds: 'Pas assez de pièces.', pas_a_toi: 'Ce lieu n’est pas à toi.', niveau: 'On construit un niveau à la fois.',
+  fonds: 'Pas assez de pièces.', agence_change: 'Ton agence vient de changer : réessaie.', pas_a_toi: 'Ce lieu n’est pas à toi.', niveau: 'On construit un niveau à la fois.',
   deja: 'Ton pack du jour est déjà ouvert : reviens au prochain jour du jeu.', plus_a_lui: 'Ce lieu a changé de propriétaire entre-temps.',
   prix_change: 'Le vendeur vient de changer son prix : regarde le nouveau.', soi_meme: 'Ce lieu est déjà à toi.',
   libre: 'Ce lieu n’est à personne : il ne sort que des packs.', offre: 'Cette offre n’est plus valable.', prix: 'Prix invalide.',
@@ -983,6 +984,43 @@ ACTIONS.supprimer_compte = async (j, corps) => {
   return { supprime: true };
 };
 ACTIONS.gemmes_essai = async (j) => ({ gemmes: Number(await rpc('jeu_gemmes_essai', { j, n: BOU.B.gemmes_essai })) });
+
+// ---------------------------------------------------------------- l'agence (GDD § 5 sexies, supabase/sql/210_agence.sql)
+// Les pièces embauchent des employés, qui produisent du renom, heure après heure ; à un certain renom, tout repart de zéro
+// contre une brique. Les règles (src/regles/agence.js) font tout le calcul ; ici on lit, on applique, on écrit d'un bloc.
+async function agenceDe(j: string) {
+  const { data, error } = await admin.from('agences').select('saison, agents, negociateurs, directeurs, renom, le, briques, total').eq('joueur', j).maybeSingle();
+  if (error) throw error;
+  const jm = await jourMs(), maintenant = Date.now(), s = CLA.saison(MAI.mandat(Regles.jourDuJeu(maintenant, jm)));
+  const lue = data ? { saison: Number(data.saison), e: { agent: Number(data.agents), negociateur: Number(data.negociateurs), directeur: Number(data.directeurs) }, renom: Number(data.renom), le: ms(data.le), briques: Number(data.briques), total: Number(data.total) } : null;
+  return { a: AGE.avancer(lue, maintenant, jm, s), avant: data ? data.le : null };
+}
+async function ecrireAgence(j: string, a: Ligne, cout: number, avant: string | null) {
+  await rpc('jeu_agence', { j, cout, avant, s: a.saison, ag: a.e.agent, ng: a.e.negociateur, dr: a.e.directeur, rn: a.renom, quand: new Date(a.le).toISOString(), b: a.briques, t: a.total });
+}
+// mon agence, à jour (la visite compte : l'agence travaille 48 h du jeu au plus sans elle)
+ACTIONS.agence = async (j) => { const x = await agenceDe(j); await ecrireAgence(j, x.a, 0, x.avant); return { agence: x.a }; };
+// embaucher (n embauches du même poste d'un coup, 25 au plus : on s'arrête quand les pièces manquent)
+ACTIONS.agence_embaucher = async (j, corps) => {
+  const poste = String(corps.poste || ''), n = Math.max(1, Math.min(25, Math.floor(Number(corps.n) || 1)));
+  await recolter(j);
+  const x = await agenceDe(j), jr = await joueur(j), dispo = Math.max(0, Number(jr.pieces) - Number(await rpc('jeu_bloque', { j, sauf: '' })));
+  let a = x.a, total = 0, faits = 0;
+  for (let k = 0; k < n; k++) {
+    const r = AGE.embaucher(a, poste, dispo - total);
+    if (!r.ok) { if (k) break; throw new Refus(r.raison, r.raison === 'fonds' ? `Pas assez de pièces : il en faut ${fmt(r.cout)}.` : (r.raison === 'complet' ? 'Ton agence est pleine : pose une brique pour repartir.' : 'Poste inconnu.')); }
+    a = r.agence; total += r.cout; faits++;
+  }
+  await ecrireAgence(j, a, total, x.avant);
+  return { agence: a, cout: total, embauches: faits };
+};
+// poser une brique (ou plusieurs, si le renom le permet) : employés et renom repartent de zéro
+ACTIONS.agence_brique = async (j) => {
+  const x = await agenceDe(j), r = AGE.poser(x.a);
+  if (!r.ok) throw new Refus('renom', 'Pas encore assez de renom pour une brique.');
+  await ecrireAgence(j, r.agence, 0, x.avant);
+  return { agence: r.agence, briques: r.briques };
+};
 
 // ouvrir le pack du jour : le serveur tire au hasard (graine secrète), une fois par jour
 ACTIONS.pack = async (j) => {

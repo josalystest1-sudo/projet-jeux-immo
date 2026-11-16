@@ -238,6 +238,13 @@ async function nouveauJoueur(publique, secrete) {
     verifier(tic.corps && tic.corps.ok && Array.isArray(tic.corps.fait) && tic.corps.fait.includes('enchères') && tic.corps.fait.includes('mairies'), `l’horloge fait tourner le monde (${tic.corps && tic.corps.fait ? tic.corps.fait.join(', ') : '?'})`, tic.corps);
     const fauxTic = await horloge('0'.repeat(64));
     verifier(fauxTic.corps && fauxTic.corps.ok === false && fauxTic.corps.code === 'non_connecte', 'un faux jeton d’horloge est refusé', fauxTic.corps);
+    // l'agence (GDD § 5 sexies) : l'ouvrir, embaucher un agent (60 pièces), les refus
+    const ag0 = await jeu({ action: 'agence' });
+    verifier(ag0.corps && ag0.corps.ok && ag0.corps.agence && ag0.corps.agence.briques === 0 && ag0.corps.agence.e.agent === 0, 'mon agence, toute neuve', ag0.corps);
+    const avantAg = ag0.corps && ag0.corps.etat ? ag0.corps.etat.pieces : 0, emb = await jeu({ action: 'agence_embaucher', poste: 'agent' });
+    verifier(emb.corps && (emb.corps.ok ? emb.corps.agence.e.agent === 1 && emb.corps.cout === 60 : (avantAg < 60 && emb.corps.code === 'fonds')), 'embaucher un agent : 60 pièces', emb.corps && { ok: emb.corps.ok, code: emb.corps.code, cout: emb.corps.cout, avant: avantAg, apres: emb.corps.etat && emb.corps.etat.pieces });
+    const agBrique = await jeu({ action: 'agence_brique' }), agPoste = await jeu({ action: 'agence_embaucher', poste: 'stagiaire' });
+    verifier(agBrique.corps && agBrique.corps.ok === false && agBrique.corps.code === 'renom' && agPoste.corps && agPoste.corps.ok === false && agPoste.corps.code === 'poste', 'pas de brique sans renom, pas de poste inconnu', { b: agBrique.corps, p: agPoste.corps });
     // la boutique (GDD § 3 et § 9) : gemmes d'essai, Pass, pack national et régional, refus
     const g0 = await jeu({ action: 'gemmes_essai' });
     verifier(g0.corps && g0.corps.ok && g0.corps.gemmes >= 1000, 'des gemmes d’essai (serveur d’essai)', g0);

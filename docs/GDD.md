@@ -209,6 +209,26 @@ Gautier (6 nov.) : « toutes les demi-heures ou toutes les heures (faudra régle
 - **Les données** : la position du pion (sur la carte du jeu, pas la position réelle) pendant une chasse, effacée 7 jours après (page de confidentialité).
 - **Pour essayer** : Réglages → « Lancer une chasse d'essai » (serveur d'essai et démo) : une chasse rien que pour soi, partant de là où l'on est, dans 20 secondes, le trésor à quelques rues.
 
+## 5 sexies. L'agence : le jeu « idle » **[Décidé par Gautier le 16 nov. 2026 pour la boucle ; chiffres Proposés]**
+
+**Pourquoi.** Question de Gautier : « que fait-on avec ces pièces ? Améliorer ses bâtiments pour en gagner plus n'est pas une fin en soi. » Il faut aux pièces un usage sans fin, qui ne fasse pas monter les prix du marché.
+
+**La boucle (décidée par Gautier, « ce que je propose »).**
+- Les pièces achètent des **employés**. Plus on en a, plus ils coûtent cher, et plus ils rapportent.
+- Les employés produisent du **renom**, heure après heure, même sans le joueur. Le renom ne s'échange pas et n'achète rien au marché : il peut monter sans faire exploser les prix.
+- À partir d'un certain renom, on peut **tout remettre à zéro** (employés et renom) pour gagner une **brique**.
+- Les briques servent à construire **le bâtiment unique de la saison**, fait sur mesure et intégré au jeu. À la fin de la saison, **celui qui a le plus de briques le remporte** (il peut le revendre). Il se pose sur une adresse du gagnant (accord de Gautier ; le bâtiment est dessiné en hauteur, à petite emprise, et s'adapte au terrain).
+- **Des récompenses pour tout le monde** selon le nombre de briques : oui (Gautier) ; lesquelles : **à décider** (première échelle proposée par Claude : plaque de profil, enseigne de néon, dos de carte de la saison, version réduite du bâtiment ; le booster gratuit reste en question).
+- Chacun doit choisir : dépenser ses pièces pour le renom, ou pour acheter des lieux (Gautier).
+
+**Les règles construites (`src/regles/agence.js`, réglages `ECO.agence`) [Proposé].**
+- Trois postes, qui se **multiplient** au lieu de s'additionner : les **agents** (1 renom par heure chacun ; le premier coûte 60 pièces, +13 % à chaque embauche), les **négociateurs** (+12 % de renom chacun ; 400 pièces, +22 %), les **directeurs** (tout multiplié par 1,6 ; 5 000 pièces, × 3,2 à chaque embauche). Le meilleur achat change sans cesse : pas de ligne droite.
+- La brique : 300 de renom pour la première de la saison, 40 % de plus pour chaque suivante ; chaque brique posée donne +8 % de renom jusqu'à la fin de la saison. On peut attendre et en poser plusieurs d'un coup.
+- L'agence travaille **48 h du jeu** au plus sans visite.
+- À chaque nouvelle saison (3 mois), tout repart de zéro ; le total des briques de toutes les saisons est gardé.
+- **Équilibre vérifié par simulation** (`tests/agence.test.js`, un joueur qui visite une fois par jour pendant 90 jours et met la moitié de ses revenus dans l'agence) : 400 pièces par jour → 11 briques ; 2 000 → 13 ; 20 000 → 19 ; 200 000 → 25 ; 2 millions → 30. Dix fois plus de pièces ne donne que quelques briques de plus : c'est la régularité qui paie, et un gros patrimoine n'écrase pas les autres. Première brique au 4e jour pour un débutant ; jamais plus de trois semaines entre deux briques.
+- **Pas encore construit** : le bâtiment de la saison et sa remise au gagnant, les récompenses par paliers, la surveillance du podium (multi-comptes), l'exclusion des joueurs de la maison du prix.
+
 ## 6. Les collections **[V2]**
 
 Pas de bonus de collection en V1. **[Décidé]** En V2 : « toute ma rue », « les 20 arrondissements », « une adresse par département »… avec badge sur le profil (jamais de ₳).

@@ -1552,3 +1552,19 @@ html.dos-neon .c3d-dos{box-shadow:none}
 #pkcards:not(:empty)::before{content:'';position:absolute;left:50%;top:50%;width:620px;height:760px;margin:-410px 0 0 -310px;pointer-events:none;
   background:radial-gradient(closest-side,rgba(90,160,255,.24),rgba(70,130,255,.09) 55%,rgba(70,130,255,0))}
 html.dos-neon .c3d.dessous .c3d-dos{background:linear-gradient(rgba(3,6,16,.12),rgba(3,6,16,.12)),var(--dos-carte) center/100% 100% no-repeat,#0B1738}
+
+/* ---------------------------------------------------------------- l'agence, le jeu « idle » (16 nov. 2026, src/agence_jeu.js) */
+.ag-kpis{margin:10px 0}
+.ag-jauge{height:14px;border-radius:999px;background:var(--ciel);overflow:hidden;margin:8px 0 6px}
+.ag-jauge i{display:block;height:100%;border-radius:999px;background:linear-gradient(90deg,var(--plaque),#5FA8FF);transition:width .9s linear;min-width:0}
+.ag-renom{text-align:center;font-weight:800;margin-bottom:10px;min-width:0}.ag-renom span{font-weight:700;color:var(--gris)}
+.ag-note{font-size:12.5px;color:var(--gris);margin:8px 2px}
+.ag-poste .t{display:flex;align-items:center;gap:6px;flex-wrap:wrap;min-width:0}
+.ag-nombre{margin-left:auto;font-size:18px}
+.ag-mieux{font-size:10.5px;font-weight:900;letter-spacing:.04em;text-transform:uppercase;color:#fff;background:var(--plaque);border-radius:999px;padding:2px 8px}
+.ag-ligne{display:flex;align-items:center;gap:10px;flex-wrap:wrap;min-width:0}.ag-ligne .btn{flex:0 1 auto;min-width:0}
+.ag-gain{font-size:12.5px;color:var(--gris);min-width:0}.ag-gain b{color:var(--encre)}
+.ag-titre{margin:14px 0 6px;font-weight:900}
+.ag-rang{display:flex;align-items:center;gap:10px;padding:7px 10px;border-radius:12px;min-width:0}.ag-rang.moi{background:var(--ciel)}
+.ag-rang .ag-qui{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:800}
+.ag-carte.pret{box-shadow:0 0 0 2px var(--plaque) inset}
