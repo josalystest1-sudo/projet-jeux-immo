@@ -42,8 +42,16 @@ input:focus,button:focus-visible{outline:2px solid #9FE8FF;outline-offset:2px}
 
 /* ------------------------------------------------ la carte */
 .scene{perspective:900px;width:min(88vw,340px);touch-action:pan-y}
-.carte{--tx:0;--ty:0;--c1:#CFE6FF;--c2:#3D8BFF;--holo:.55;position:relative;width:100%;aspect-ratio:240/350;border-radius:18px;overflow:hidden;background:#050818;
-  transform:rotateY(calc(var(--tx) * 9deg)) rotateX(calc(var(--ty) * -9deg));box-shadow:0 22px 50px rgba(0,0,0,.7),0 0 34px color-mix(in srgb,var(--c2) 45%,transparent);will-change:transform}
+.carte{--tx:0;--ty:0;--c1:#CFE6FF;--c2:#3D8BFF;--holo:.55;position:relative;width:100%;aspect-ratio:240/350;transform-style:preserve-3d;
+  transform:rotateY(calc(var(--tx) * 9deg)) rotateX(calc(var(--ty) * -9deg));will-change:transform;cursor:pointer}
+.tourne{position:absolute;inset:0;transform-style:preserve-3d;transition:transform .75s cubic-bezier(.3,.1,.2,1)}
+.carte.dos .tourne{transform:rotateY(180deg)}
+.face{position:absolute;inset:0;border-radius:18px;overflow:hidden;background:#050818;-webkit-backface-visibility:hidden;backface-visibility:hidden;
+  box-shadow:0 22px 50px rgba(0,0,0,.7),0 0 34px color-mix(in srgb,var(--c2) 45%,transparent)}
+.face.verso{transform:rotateY(180deg);--c1:#CFE6FF;--c2:#3D8BFF;--holo:.7;box-shadow:0 22px 50px rgba(0,0,0,.7),0 0 30px rgba(61,139,255,.4)}
+.verso svg{position:absolute;inset:0;width:100%;height:100%;display:block}
+.verso .lueur{filter:drop-shadow(0 0 3px #3D8BFF) drop-shadow(0 0 9px rgba(61,139,255,.7))}
+@media (prefers-reduced-motion:reduce){.tourne{transition:none}}
 .carte canvas{position:absolute;inset:0;width:100%;height:100%;display:block}
 .couche{position:absolute;inset:0;pointer-events:none}
 /* l'holo : un arc-en-ciel qui glisse avec l'inclinaison ; il n'apparaît que là où il y a de la lumière (néons, bâtiment) */
@@ -88,7 +96,7 @@ input:focus,button:focus-visible{outline:2px solid #9FE8FF;outline-offset:2px}
 </head>
 <body>
 <h1>Prototypes de cartes</h1>
-<p class="sous">Penche ton téléphone : les reflets, le bâtiment et le texte bougent. Sur ordinateur, passe la souris sur la carte.</p>
+<p class="sous">Penche ton téléphone : les reflets, le bâtiment et le texte bougent. Touche la carte pour la retourner et voir son dos.</p>
 
 <div class="rangee" id="protos">
   <button class="proto on" data-m="verre" data-c="filet"><b>N° 1</b>Verre, filet néon</button>
@@ -97,7 +105,7 @@ input:focus,button:focus-visible{outline:2px solid #9FE8FF;outline-offset:2px}
 </div>
 
 <div class="scene" id="scene">
-  <div class="carte r3" id="carte">
+  <div class="carte r3" id="carte"><div class="tourne"><div class="face recto">
     <canvas id="vue" aria-label="Le bâtiment en 3D sur son plan cadastral" role="img"></canvas>
     <div class="couche rayons"></div>
     <div class="couche holo1"></div>
@@ -109,8 +117,9 @@ input:focus,button:focus-visible{outline:2px solid #9FE8FF;outline-offset:2px}
       <div class="plaques"><div class="plaque num" id="num">25</div><div class="plaque voie" id="voie"><small id="commune">Paris 4e</small><span id="rue">Rue de Rivoli</span></div></div>
     </div>
     <div class="couche attente" id="attente">Chargement du bâtiment…</div>
-  </div>
+  </div><div class="face verso" id="verso"></div></div></div>
 </div>
+<button id="retourner">Retourner la carte</button>
 
 <div class="chiffres" aria-label="Chiffres du lieu (exemples)">
   <div><b>1 240</b><i>Valeur</i></div><div><b>+40</b><i>Loyer / jour</i></div><div><b>Immeuble</b><i>Potentiel</i></div><div><b>★★☆</b><i>Standing</i></div>
@@ -319,9 +328,42 @@ input:focus,button:focus-visible{outline:2px solid #9FE8FF;outline-offset:2px}
     $('cadre').innerHTML = s;
   }
 
+  // ---------------------------------------------------------------- le dos de la carte
+  // Le même pour toutes les cartes : on ne doit pas deviner la rareté avant de la retourner. Nuit, plan de ville en traits
+  // fins, le cadre orné du n° 3 en bleu de la plaque, et l'emblème du jeu (la maison de la pièce, src/logo.js) en néon.
+  function dessinerDos() {
+    const c1 = '#CFE6FF', c2 = '#3D8BFF', W = 240, H = 350, rr = (i, a) => `M${i + a},${i} H${W - i - a} A${a},${a} 0 0 1 ${W - i},${i + a} V${H - i - a} A${a},${a} 0 0 1 ${W - i - a},${H - i} H${i + a} A${a},${a} 0 0 1 ${i},${H - i - a} V${i + a} A${a},${a} 0 0 1 ${i + a},${i} Z`;
+    let plan = ''; let g = 7; const alea = () => ((g = (g * 1664525 + 1013904223) >>> 0) / 4294967296);
+    // un plan de ville inventé : des îlots découpés en parcelles, de part et d'autre de deux rues en biais
+    for (let y = -20; y < 380; y += 46) for (let x = -30; x < 270; x += 52) { const dx = (y / 46 % 2) * 18, w = 36 + alea() * 10, h = 30 + alea() * 8, n = 1 + Math.floor(alea() * 3);
+      plan += `<g transform="translate(${(x + dx).toFixed(1)} ${y}) rotate(-12)"><rect width="${w.toFixed(1)}" height="${h.toFixed(1)}" rx="2"/>`;
+      for (let k = 1; k <= n; k++) plan += `<path d="M${(w * k / (n + 1)).toFixed(1)},0 V${h.toFixed(1)}"/>`; plan += '</g>'; }
+    let cadre = `<path d="${rr(2.5, 12)}" fill="none" stroke="${c2}" stroke-width="9" opacity=".28"/><path d="${rr(2.5, 12)}" fill="none" stroke="${c1}" stroke-width="2.6"/><path d="${rr(8.5, 8)}" fill="none" stroke="${c2}" stroke-width="1.1"/>`;
+    for (const [x, y, sx, sy] of [[9, 9, 1, 1], [231, 9, -1, 1], [9, 341, 1, -1], [231, 341, -1, -1]]) cadre += `<path d="M${x + sx * 26},${y} H${x + sx * 9} Q${x},${y} ${x},${y + sy * 9} V${y + sy * 26}" fill="none" stroke="${c1}" stroke-width="2.2"/>`
+      + `<path d="M${x + sx * 30},${y + sy * 5} H${x + sx * 12} Q${x + sx * 5},${y + sy * 5} ${x + sx * 5},${y + sy * 12} V${y + sy * 30}" fill="none" stroke="${c2}" stroke-width="1.2"/>`
+      + `<path d="M${x + sx * 11},${y + sy * 11} l${sx * 5},${sy * -5} l${sx * 5},${sy * 5} l${sx * -5},${sy * 5} Z" fill="${c1}"/>`;
+    for (const y of [2.5, 347.5]) cadre += `<path d="M120,${y - 6} L127,${y} L120,${y + 6} L113,${y} Z" fill="${c1}"/><path d="M96,${y} H109 M131,${y} H144" stroke="${c2}" stroke-width="3.4"/>`;
+    for (const x of [2.5, 237.5]) cadre += `<path d="M${x},168 l4.5,7 l-4.5,7 l-4.5,-7 Z" fill="${c1}"/>`;
+    const MAISON = 'M16 9.4 8.3 16.3h2.7v6.2h10v-6.2h2.7l-2.8-2.5v-3.3h-2.1v1.4ZM14.8 22.5v-3.7h2.4v3.7Z';
+    let rayons = ''; for (let k = 0; k < 24; k++) { const a = k / 24 * 6.283, r0 = 70, r1 = k % 2 ? 80 : 88; rayons += `<path d="M${(120 + Math.cos(a) * r0).toFixed(1)},${(160 + Math.sin(a) * r0).toFixed(1)} L${(120 + Math.cos(a) * r1).toFixed(1)},${(160 + Math.sin(a) * r1).toFixed(1)}"/>`; }
+    $('verso').innerHTML = `<svg viewBox="0 0 240 350" preserveAspectRatio="none" role="img" aria-label="Dos de la carte StreetKeep">
+      <defs><radialGradient id="dos-fond" cx="50%" cy="46%" r="62%"><stop offset="0" stop-color="#16276E"/><stop offset=".55" stop-color="#0A1238"/><stop offset="1" stop-color="#050818"/></radialGradient></defs>
+      <rect width="240" height="350" fill="url(#dos-fond)"/>
+      <g fill="none" stroke="#2A3F9C" stroke-width=".8" opacity=".75">${plan}</g>
+      <circle cx="120" cy="160" r="96" fill="#050818" opacity=".55"/>
+      <g class="lueur" fill="none" stroke="${c1}" stroke-linecap="round"><circle cx="120" cy="160" r="62" stroke-width="2.4"/><circle cx="120" cy="160" r="54" stroke-width="1" stroke="${c2}" stroke-dasharray="2 5"/><g stroke-width="1.6" stroke="${c2}">${rayons}</g>
+        <path d="${MAISON}" transform="translate(120 160) scale(5.2) translate(-16 -16)" stroke-width=".42" stroke-linejoin="round"/></g>
+      <g class="lueur"><text x="120" y="282" text-anchor="middle" font-family="Barlow Condensed, sans-serif" font-weight="700" font-size="30" letter-spacing="5" fill="#fff">STREETKEEP</text>
+        <path d="M58,294 H104 M136,294 H182" stroke="${c2}" stroke-width="1.6"/><path d="M120,289 l5,5 l-5,5 l-5,-5 Z" fill="${c1}"/></g>
+      <g class="lueur">${cadre}</g></svg><div class="couche holo1"></div><div class="couche holo2"></div><div class="couche reflet"></div>`;
+  }
+  dessinerDos();
+  const retourner = () => carte.classList.toggle('dos');
+  carte.addEventListener('click', retourner); $('retourner').addEventListener('click', retourner);
+
   // ---------------------------------------------------------------- l'état, les boutons
   function appliquer() {
-    const R = RARETES[ETAT.r]; carte.className = 'carte r' + ETAT.r; carte.style.setProperty('--c1', R.c[0]); carte.style.setProperty('--c2', R.c[1]);
+    const R = RARETES[ETAT.r]; carte.className = 'carte r' + ETAT.r + (carte.classList.contains('dos') ? ' dos' : ''); carte.style.setProperty('--c1', R.c[0]); carte.style.setProperty('--c2', R.c[1]);
     carte.style.setProperty('--holo', (0.5 + ETAT.r * 0.08).toFixed(2)); $('vignette').style.setProperty('--c2', R.c[1]); $('rarete').textContent = R.nom;
     for (const b of document.querySelectorAll('#raretes button')) b.classList.toggle('on', Number(b.dataset.r) === ETAT.r);
     for (const b of document.querySelectorAll('#cadres button')) b.classList.toggle('on', b.dataset.c === ETAT.cadre);
@@ -360,6 +402,7 @@ input:focus,button:focus-visible{outline:2px solid #9FE8FF;outline-offset:2px}
   if (RARETES[Number(PARAMS.get('r'))]) ETAT.r = Number(PARAMS.get('r'));
   if (['filet', 'orne', 'sans'].includes(PARAMS.get('c'))) ETAT.cadre = PARAMS.get('c');
   if (['verre', 'holo'].includes(PARAMS.get('m'))) ETAT.matiere = PARAMS.get('m');
+  if (PARAMS.has('dos')) carte.classList.add('dos');
   montrer(PARAMS.get('q') || '25 rue de Rivoli Paris');
   window.__PROTO = { ETAT, appliquer };   // (pour les essais)
 })();
