@@ -136,19 +136,27 @@
       // le nom, sur la banderole
       g.save(); g.font = '700 ' + (17 * K) + 'px "Barlow Condensed", "Arial Narrow", sans-serif'; g.textAlign = 'center'; g.textBaseline = 'alphabetic'; const large = g.measureText('STREETKEEP').width, k = (112 * K) / large;
       g.translate(120 * K, 203.6 * K); g.scale(k, 1); g.shadowColor = OR; g.shadowBlur = 12; g.fillStyle = '#FFF1CC'; g.fillText('STREETKEEP', 0, 0); g.shadowBlur = 0; g.fillText('STREETKEEP', 0, 0); g.restore();
-      const anneau = (img) => { const c = toile(216 * K, 216 * K), x = c.getContext('2d'); x.shadowColor = OR; x.shadowBlur = 6; x.drawImage(img, 0, 0, c.width, c.height); return c.toDataURL('image/png'); };
-      return { fond: cf.toDataURL('image/jpeg', 0.9), devant: cd.toDataURL('image/png'), anneauA: anneau(iA), anneauB: anneau(iB) };
+      const anneau = (img) => { const c = toile(216 * K, 216 * K), x = c.getContext('2d'); x.shadowColor = OR; x.shadowBlur = 6; x.drawImage(img, 0, 0, c.width, c.height); return c; };
+      return { fond: cf.toDataURL('image/jpeg', 0.9), toiles: { fond: cf, devant: cd, a: anneau(iA), b: anneau(iB) } };
     })();
     pret.catch(() => { pret = null; });
     return pret;
   }
-  // poser le dos sur la page (les variables que lit style.css) ; rend vrai quand c'est fait
+  // Le dos est peint dans des canevas posés dans chaque carte, plus dans des images de fond de la feuille de style (16 nov.,
+  // capture d'écran de Gautier : sur son téléphone, tout le dos sortait à moitié de sa lumière, un texte blanc cassé rendu en
+  // gris ; le mode sombre du téléphone assombrit les images de fond d'une page, pas ce qu'on dessine dans un canevas : les
+  // faces des cartes, des canevas, n'avaient pas ce défaut). Quatre couches : le fond, les deux anneaux qui tournent, et la
+  // plaque avec le cadre par-dessus.
+  const HTML = '<canvas class="dos-couche" data-c="fond"></canvas><canvas class="dos-anneau a" data-c="a"></canvas><canvas class="dos-anneau b" data-c="b"></canvas><canvas class="dos-couche" data-c="devant"></canvas>';
+  let toiles = null;
+  function peindreMaintenant(ou) { if (!toiles) return; for (const c of (ou || document).querySelectorAll('.c3d-dos canvas[data-c]')) { if (c._peint) continue; const t = toiles[c.dataset.c]; if (!t) continue; c.width = t.width; c.height = t.height; c.getContext('2d').drawImage(t, 0, 0); c._peint = true; } }
+  // peindre les dos présents dans « ou » (toute la page par défaut) : tout de suite si les dessins sont prêts, sinon dès qu'ils le sont
+  function peindre(ou) { if (toiles) { peindreMaintenant(ou); return; } preparer().then(() => peindreMaintenant(ou)).catch(() => {}); }
+  // préparer le dos et le signaler à la page (classe dos-neon) ; rend vrai quand c'est fait
   async function poser() {
-    try { const u = await preparer(), s = document.documentElement.style; s.setProperty('--dos-carte', `url(${u.fond})`); s.setProperty('--dos-devant', `url(${u.devant})`); s.setProperty('--dos-anneau-a', `url(${u.anneauA})`); s.setProperty('--dos-anneau-b', `url(${u.anneauB})`); document.documentElement.classList.add('dos-neon'); return true; }
+    try { const u = await preparer(); toiles = u.toiles; document.documentElement.style.setProperty('--dos-carte', `url(${u.fond})`); document.documentElement.classList.add('dos-neon'); peindreMaintenant(document); return true; }
     catch (e) { return false; }
   }
-  // ce qu'on met dans la face « dos » d'une carte
-  const HTML = '<i class="dos-anneau a"></i><i class="dos-anneau b"></i><i class="dos-devant"></i>';
-  const api = { preparer, poser, dessins, HTML };
+  const api = { preparer, poser, peindre, dessins, HTML };
   if (typeof module !== 'undefined' && module.exports) module.exports = api; else racine.DosCarte = api;
 })(typeof globalThis !== 'undefined' ? globalThis : this);
