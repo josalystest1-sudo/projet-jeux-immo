@@ -399,6 +399,7 @@ Puis une PR par étape, fusionnée en squash :
 | #207 | 16/11 | La pile de dos et la rangée des cartes déjà révélées ne se chevauchent plus |
 | #208 | 16/11 | Le booster « nuit et néon » dans le jeu : sachet holographique, enseigne de néon, toits (jour) ou tour Eiffel d'or (payé), languette qui se décolle derrière le doigt |
 | #209 | 16/11 | Le booster en bleu et or : plus d'arc-en-ciel, des reflets dans les teintes du jeu |
+| #210 | 16/11 | Le dos des cartes vraiment lumineux : le halo des néons refait d'une façon qui marche aussi sur Android |
 | #200 | 16/11 | Prototype du booster validé par Gautier : brillance moyenne fixée, boutons de réglage retirés |
 | #199 | 16/11 | Prototype du booster : une ligne de toits en néon sur le booster du jour, à la place de la maison |
 | #198 | 16/11 | Prototype du booster : moins brillant, lettres cernées, trois niveaux de brillance à choisir |
