@@ -1548,3 +1548,8 @@ html.dos-neon .c3d-dos{box-shadow:none}
 .c3d.dessous .dos-anneau{animation:none}
 @keyframes dos-tourne{to{transform:rotate(360deg)}}
 @media (prefers-reduced-motion:reduce){.dos-anneau{animation:none}}
+/* la pile plus claire (Gautier, 16 nov. : sur téléphone, l'écran était sombre une fois le pack ouvert) : une lumière bleue derrière
+   les cartes, et les cartes du dessous à peine assombries */
+#pkcards:not(:empty)::before{content:'';position:absolute;left:50%;top:50%;width:620px;height:760px;margin:-410px 0 0 -310px;pointer-events:none;
+  background:radial-gradient(closest-side,rgba(90,160,255,.42),rgba(70,130,255,.16) 55%,rgba(70,130,255,0))}
+html.dos-neon .c3d.dessous .c3d-dos{background:linear-gradient(rgba(3,6,16,.12),rgba(3,6,16,.12)),var(--dos-carte) center/100% 100% no-repeat,#0B1738}
