@@ -390,6 +390,7 @@ Puis une PR par étape, fusionnée en squash :
 | #155 | 05/11 | L'horloge du serveur : toutes les 10 minutes, enchères, mandats, saisons, monuments et robots tournent sans joueur |
 | #156 | 05/11 | Les travaux des communes s'usent (−10 % par mandat) ; le niveau donne +2 % de loyer par niveau et monte le plafond du Maire (jusqu'à 2 000) |
 | #157 | 05/11 | Documents : les six monuments qui sont des marques (Ritz, Maxim's, Crillon, Negresco, Château Margaux, Train bleu) restent aux enchères (Gautier : « garde-les ») |
+| #190 | 16/11 | Page d'essai des cartes : le dos de la carte (toucher la carte la retourne) ; le prototype n° 3 retenu |
 | #189 | 16/11 | Prototypes de la nouvelle carte « nuit et néon » (page d'essai `proto/cartes.html`, interview de Gautier dans `docs/CARTES-NEON.md`) ; le jeu n'est pas modifié |
 | #188 | 16/11 | La chasse au trésor retirée de la version simple (interrupteur `ECO.chasse.active`, rien d'effacé) |
 | #187 | 06/11 | Pochette : titre plus petit, crème sur contour nuit, jamais plus large que le sachet ; métal et irisation en 512 × 761 (plus de pavés) |
