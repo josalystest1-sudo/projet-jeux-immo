@@ -32,7 +32,7 @@ button:focus-visible{outline:2px solid #9FE8FF;outline-offset:2px}
 .eclair{position:absolute;inset:0;pointer-events:none;opacity:0;background:radial-gradient(circle at 50% 24%,#fff 0,rgba(255,255,255,.85) 12%,var(--e,#9FE8FF) 30%,rgba(0,0,0,0) 68%)}
 .eclair.on{animation:eclair 1s ease-out forwards}
 @keyframes eclair{0%{opacity:0}8%{opacity:1}100%{opacity:0}}
-.trace{position:absolute;height:3px;border-radius:3px;background:#fff;box-shadow:0 0 10px #fff,0 0 22px var(--e,#9FE8FF);pointer-events:none;opacity:0}
+.trace{position:absolute;width:22px;height:22px;border-radius:50%;background:radial-gradient(circle,#fff 0,#fff 28%,var(--e,#9FE8FF) 46%,rgba(0,0,0,0) 72%);box-shadow:0 0 18px var(--e,#9FE8FF);pointer-events:none;opacity:0}
 .attente{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:14px;color:#B9C6F2}
 .attente[hidden]{display:none}
 .note{font-size:12px;color:#B9C6F2;text-align:center;max-width:340px;margin:0}
@@ -41,11 +41,11 @@ a{color:#9FE8FF}
 </head>
 <body>
 <h1>Prototype du booster</h1>
-<p class="sous" id="aide">Penche ton téléphone : le sachet change de couleur. Glisse le doigt en travers du haut du sachet pour l’ouvrir.</p>
+<p class="sous" id="aide">Penche ton téléphone : le sachet change de couleur. Pose le doigt en haut du sachet et glisse en travers : la languette se décolle derrière lui.</p>
 <div class="rangee" id="sortes"><button data-s="jour" class="on">Booster du jour</button><button data-s="paye">Booster payé</button></div>
 <div class="scene" id="scene"><canvas id="vue" role="img" aria-label="Le booster en 3D"></canvas><div class="trace" id="trace"></div><div class="eclair" id="eclair"></div><div class="attente" id="attente">Préparation du booster…</div></div>
 <div class="rangee"><button id="rejouer">Recommencer</button><button id="incliner" hidden>Activer l’inclinaison</button></div>
-<p class="note">Après la sortie des cartes, chacune se révèle d’un toucher, comme sur <a href="cartes.html?v=195&amp;c=orne&amp;d=or&amp;dos">la page des cartes</a>.</p>
+<p class="note">Après la sortie des cartes, chacune se révèle d’un toucher, comme sur <a href="cartes.html?v=196&amp;c=orne&amp;d=or&amp;dos">la page des cartes</a>.</p>
 
 <script src="https://unpkg.com/three@0.147.0/build/three.min.js"></script>
 <script src="https://unpkg.com/three@0.147.0/examples/js/environments/RoomEnvironment.js"></script>
@@ -84,14 +84,17 @@ a{color:#9FE8FF}
   function enseigne(g, C, y) {
     g.save(); g.font = '700 182px "Barlow Condensed", sans-serif'; g.textAlign = 'center'; g.textBaseline = 'alphabetic';
     let esp = 0; try { g.letterSpacing = '10px'; esp = 5; } catch (e) { /* vieux navigateur */ }
-    neon(g, () => g.strokeText('STREETKEEP', TW / 2 + esp, y), C, 9);
+    // des lettres pleines, très claires, avec un halo de la couleur du néon : lisibles d'abord (Gautier, 16 nov. : « la
+    // couleur et l'effet de texte le rendent illisible »)
+    g.lineJoin = 'round'; g.shadowColor = C.vif; g.shadowBlur = 34; g.strokeStyle = C.vif; g.lineWidth = 7; g.strokeText('STREETKEEP', TW / 2 + esp, y);
+    g.shadowBlur = 12; g.fillStyle = '#FFFFFF'; g.fillText('STREETKEEP', TW / 2 + esp, y);
     g.restore();
     neon(g, () => { g.beginPath(); g.moveTo(150, y + 52); g.lineTo(TW / 2 - 46, y + 52); g.moveTo(TW / 2 + 46, y + 52); g.lineTo(TW - 150, y + 52); g.moveTo(TW / 2, y + 30); g.lineTo(TW / 2 + 22, y + 52); g.lineTo(TW / 2, y + 74); g.lineTo(TW / 2 - 22, y + 52); g.closePath(); g.stroke(); }, C, 5);
     neon(g, () => { g.beginPath(); g.moveTo(150, y - 172); g.lineTo(TW - 150, y - 172); g.stroke(); }, C, 5);
   }
   // la tour Eiffel au trait, pour le booster payé (le monument « qui dit qu'il y a du rare dedans »)
   function tour(g, C) {
-    const cx = TW / 2, bas = 1050, haut = 250, H = bas - haut, Y = (t) => bas - t * H;
+    const cx = TW / 2, bas = 1040, haut = 240, H = bas - haut, Y = (t) => bas - t * H;
     const demi = (t) => 250 * Math.pow(1 - t, 2.35) + 9 * (1 - t) + 3;          // (demi-largeur extérieure à la hauteur t)
     const dedans = (t) => Math.max(0, demi(t) - (46 * (1 - t) + 10));              // (bord intérieur des piliers)
     neon(g, () => {
@@ -120,6 +123,8 @@ a{color:#9FE8FF}
       for (let x = 0; x < TW; x += 14) { g.fillStyle = x / 14 % 2 ? 'rgba(255,255,255,.16)' : 'rgba(0,0,0,.3)'; g.fillRect(x, y0, 7, y1 - y0); } g.restore(); }
     g.save(); g.strokeStyle = 'rgba(255,255,255,.55)'; g.lineWidth = 3; g.setLineDash([16, 12]); g.beginPath(); g.moveTo(0, TH * COUPE); g.lineTo(TW, TH * COUPE); g.stroke(); g.restore();
   }
+  // le cartouche sombre derrière le nom (haut, bas, en points du dessin) : l'holographique s'y tait
+  const CARTOUCHE = { jour: [628, 1064], paye: [1072, 1436] };
   function dessiner(recto) {
     const C = SORTES[sorte], base = toile(), lum = toile(), g = base.getContext('2d'), l = lum.getContext('2d');
     // le foil : un fond de nuit, l'arc-en-ciel de l'holographique en travers, de fines rayures
@@ -129,12 +134,14 @@ a{color:#9FE8FF}
     g.save(); g.globalAlpha = 0.1; g.strokeStyle = '#fff'; g.lineWidth = 2; for (let x = -TH; x < TW; x += 16) { g.beginPath(); g.moveTo(x, 0); g.lineTo(x + TH * 0.55, TH); g.stroke(); } g.restore();
     const v = g.createRadialGradient(TW / 2, TH * 0.5, 60, TW / 2, TH * 0.5, TH * 0.62); v.addColorStop(0, 'rgba(4,6,24,.62)'); v.addColorStop(1, 'rgba(4,6,24,.1)'); g.fillStyle = v; g.fillRect(0, 0, TW, TH);
     planDeVille(g, sorte === 'paye' ? 'rgba(255,214,140,.34)' : 'rgba(150,200,255,.36)');
+    if (recto) { const [y0, y1] = CARTOUCHE[sorte]; g.save(); g.fillStyle = 'rgba(3,5,20,.9)'; g.beginPath(); if (g.roundRect) g.roundRect(64, y0, TW - 128, y1 - y0, 34); else g.rect(64, y0, TW - 128, y1 - y0); g.fill(); g.restore(); }
     l.fillStyle = '#000'; l.fillRect(0, 0, TW, TH);
-    if (recto) { if (sorte === 'paye') tour(l, C); enseigne(l, C, sorte === 'paye' ? 1290 : 850);
+    if (recto) { if (sorte === 'paye') tour(l, C); enseigne(l, C, sorte === 'paye' ? 1282 : 862);
       // l'emblème à la maison, en haut
       neon(l, () => { const x = TW / 2, y = sorte === 'paye' ? 0 : 420; if (!y) return; l.beginPath(); l.arc(x, y, 74, 0, 6.283); l.moveTo(x - 44, y + 6); l.lineTo(x, y - 36); l.lineTo(x + 44, y + 6); l.moveTo(x - 30, y - 4); l.lineTo(x - 30, y + 38); l.lineTo(x + 30, y + 38); l.lineTo(x + 30, y - 4); l.moveTo(x - 9, y + 38); l.lineTo(x - 9, y + 14); l.lineTo(x + 9, y + 14); l.lineTo(x + 9, y + 38); l.stroke(); }, C, 6);
-      l.save(); l.font = '800 44px Nunito, sans-serif'; l.textAlign = 'center'; l.fillStyle = C.clair; l.shadowColor = C.vif; l.shadowBlur = 18; try { l.letterSpacing = '14px'; } catch (e) { /* rien */ }
-      l.fillText(sorte === 'paye' ? 'BOOSTER OR' : 'BOOSTER DU JOUR', TW / 2 + 7, sorte === 'paye' ? 1415 : 1010); l.restore(); }
+      { const [y0, y1] = CARTOUCHE[sorte]; neon(l, () => { l.beginPath(); if (l.roundRect) l.roundRect(64, y0, TW - 128, y1 - y0, 34); else l.rect(64, y0, TW - 128, y1 - y0); l.stroke(); }, C, 4); }
+      l.save(); l.font = '800 50px Nunito, sans-serif'; l.textAlign = 'center'; l.fillStyle = '#FFFFFF'; l.shadowColor = C.vif; l.shadowBlur = 10; try { l.letterSpacing = '14px'; } catch (e) { /* rien */ }
+      l.fillText(sorte === 'paye' ? 'BOOSTER OR' : 'BOOSTER DU JOUR', TW / 2 + 7, sorte === 'paye' ? 1408 : 1018); l.restore(); }
     else { l.save(); l.font = '700 96px "Barlow Condensed", sans-serif'; l.textAlign = 'center'; neon(l, () => l.strokeText('STREETKEEP', TW / 2, TH / 2), C, 5); l.restore(); }
     g.save(); g.globalCompositeOperation = 'lighter'; g.drawImage(lum, 0, 0); g.restore();
     soudures(g);
@@ -156,7 +163,7 @@ a{color:#9FE8FF}
   monde.environment = new THREE.PMREMGenerator(ren).fromScene(new THREE.RoomEnvironment(), 0.04).texture;
   const lampe = new THREE.PointLight(0xffffff, 1.2, 30); lampe.position.set(2, 3, 6); monde.add(lampe);
   const composer = new THREE.EffectComposer(ren); composer.addPass(new THREE.RenderPass(monde, cam));
-  const bloom = new THREE.UnrealBloomPass(new THREE.Vector2(256, 256), 0.55, 0.45, 0.86); composer.addPass(bloom);
+  const bloom = new THREE.UnrealBloomPass(new THREE.Vector2(256, 256), 0.4, 0.3, 0.9); composer.addPass(bloom);
   function taille() { const b = scene.getBoundingClientRect(), d = Math.min(2, window.devicePixelRatio || 1), w = Math.max(2, Math.round(b.width)), h = Math.max(2, Math.round(b.height));
     ren.setPixelRatio(d); ren.setSize(w, h, false); composer.setPixelRatio(d); composer.setSize(w, h); cam.aspect = w / h; cam.updateProjectionMatrix(); }
   window.addEventListener('resize', taille);
@@ -176,25 +183,44 @@ a{color:#9FE8FF}
   const sachet = new THREE.Group(), corps = new THREE.Group(), languette = new THREE.Group(), charniere = new THREE.Group(), cartes = new THREE.Group();
   monde.add(sachet); sachet.add(corps); sachet.add(charniere); charniere.position.set(L / 2, YC, 0); charniere.add(languette); languette.position.set(-L / 2, -YC, 0); sachet.add(cartes);
   let mats = [];
-  function matiere(base, lum) { const t = new THREE.CanvasTexture(base), e = new THREE.CanvasTexture(lum); t.encoding = THREE.sRGBEncoding; e.encoding = THREE.sRGBEncoding; t.anisotropy = e.anisotropy = 4;
-    const m = new THREE.MeshPhysicalMaterial({ map: t, emissiveMap: e, emissive: 0xffffff, emissiveIntensity: 1.5, metalness: 0.55, roughness: 0.34, envMapIntensity: 0.75, clearcoat: 0.3, clearcoatRoughness: 0.3, transparent: true });
+  const lueur = new THREE.Mesh(new THREE.PlaneGeometry(L * 0.94, 0.07), new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true })); lueur.position.set(0, YC + 0.035, 0); lueur.visible = false; sachet.add(lueur);
+  // la languette qui s'enroule : tout ce qui est derrière le doigt (dans le sens du geste) quitte le sachet en suivant un
+  // arc de cercle, plus ou moins haut selon que le doigt monte ; devant le doigt, rien ne bouge encore
+  function enrouler(p, sens, leve) {
+    // la partie décollée se relève autour du point de coupe : une courbe douce (rayon R) jusqu'à un angle qui grandit quand
+    // le doigt monte, puis toute droite ; chaque tranche de la languette tourne avec la courbe (elle ne se déforme pas)
+    const R = 0.55, MAX = 0.4 + 0.42 * leve, front = sens > 0 ? -L / 2 + p * L : L / 2 - p * L;
+    for (const m of languette.children) { const a = m.geometry.attributes.position, r = m.userData.repos;
+      for (let i = 0; i < a.count; i++) { const x = r[i * 3], y = r[i * 3 + 1], z = r[i * 3 + 2], d = (x - front) * -sens;
+        if (d <= 0 || p <= 0) { a.setXYZ(i, x, y, z); continue; }
+        const ang = Math.min(d / R, MAX), reste = Math.max(0, d - R * MAX), h = y - YC, si = Math.sin(ang), co = Math.cos(ang);
+        a.setXYZ(i, front - sens * (R * si + reste * co) + sens * h * si, YC + R * (1 - co) + reste * si + h * co, z + 0.22 * (1 - co) + reste * 0.12); }
+      a.needsUpdate = true; m.geometry.computeVertexNormals(); }
+  }
+  function matiere(base, lum, calme) { const t = new THREE.CanvasTexture(base), e = new THREE.CanvasTexture(lum); t.encoding = THREE.sRGBEncoding; e.encoding = THREE.sRGBEncoding; t.anisotropy = e.anisotropy = 4;
+    const m = new THREE.MeshPhysicalMaterial({ map: t, emissiveMap: e, emissive: 0xffffff, emissiveIntensity: 1.2, metalness: 0.55, roughness: 0.34, envMapIntensity: 0.75, clearcoat: 0.3, clearcoatRoughness: 0.3, transparent: true });
     // l'holographique : un arc-en-ciel qui dépend de l'angle sous lequel on regarde chaque point du sachet (donc de
     // l'inclinaison du téléphone et du bombé), strié comme un foil ; il s'ajoute à la lumière propre du sachet
     m.onBeforeCompile = (sh) => { sh.fragmentShader = sh.fragmentShader.replace('#include <emissivemap_fragment>', `#include <emissivemap_fragment>
       vec3 holoN = normalize( vNormal ); vec3 holoV = normalize( vViewPosition );
       float holoT = dot( holoN, holoV ) * 2.6 + vUv.x * 1.25 + vUv.y * 0.85;
       vec3 holoC = 0.5 + 0.5 * cos( 6.2831 * ( holoT + vec3( 0.0, 0.33, 0.67 ) ) );
-      float holoS = mix( 0.4, 1.0, smoothstep( 0.12, 0.5, distance( vUv, vec2( 0.5, 0.52 ) ) ) );   // (plus calme au centre : le nom doit se lire)
-      totalEmissiveRadiance += holoC * holoS * 0.15;`); };
+      vec2 holoD = abs( vUv - uCalme.xy ) - uCalme.zw;                                   // (le cartouche du nom : pas d'arc-en-ciel dessus)
+      float holoS = smoothstep( -0.012, 0.03, max( holoD.x, holoD.y ) );
+      totalEmissiveRadiance += holoC * holoS * 0.15;`).replace('void main() {', 'uniform vec4 uCalme;\nvoid main() {'); sh.uniforms.uCalme = { value: calme }; };
     mats.push(m); return m; }
   function construire() {
     for (const grp of [corps, languette, cartes]) while (grp.children.length) { const x = grp.children.pop(); x.geometry.dispose(); if (x.material.map) x.material.map.dispose(); if (x.material.emissiveMap) x.material.emissiveMap.dispose(); x.material.dispose(); }
-    mats = []; const [b1, l1] = dessiner(true), [b2, l2] = dessiner(false), devant = matiere(b1, l1), derriere = matiere(b2, l2), vc = 1 - COUPE;
+    mats = []; const [b1, l1] = dessiner(true), [b2, l2] = dessiner(false), [cy0, cy1] = CARTOUCHE[sorte],
+      devant = matiere(b1, l1, new THREE.Vector4(0.5, 1 - (cy0 + cy1) / 2 / TH, (TW - 128) / 2 / TW, (cy1 - cy0) / 2 / TH)), derriere = matiere(b2, l2, new THREE.Vector4(0.5, 0.5, 0, 0)), vc = 1 - COUPE;
     corps.add(new THREE.Mesh(face(0, vc, 1), devant), new THREE.Mesh(face(0, vc, -1), derriere));
     languette.add(new THREE.Mesh(face(vc, 1, 1), devant), new THREE.Mesh(face(vc, 1, -1), derriere));
+    for (const m of languette.children) m.userData.repos = m.geometry.attributes.position.array.slice();
+    // la lumière qui sort par l'ouverture, derrière la languette : on ne la voit que là où elle est décollée
+    lueur.material.color.set(SORTES[sorte].eclair);
     const td = new THREE.CanvasTexture(dosCarte()); td.encoding = THREE.sRGBEncoding;
     for (let k = 0; k < 3; k++) { const c = new THREE.Mesh(new THREE.PlaneGeometry(1.5, 1.5 * 350 / 240), new THREE.MeshBasicMaterial({ map: td, transparent: true })); c.position.set(0, -0.25, -0.03 + k * 0.02); c.visible = false; cartes.add(c); }
-    scene.style.setProperty('--e', SORTES[sorte].eclair); $('eclair').style.setProperty('--e', SORTES[sorte].eclair); bloom.strength = sorte === 'paye' ? 0.62 : 0.55;
+    scene.style.setProperty('--e', SORTES[sorte].eclair); $('eclair').style.setProperty('--e', SORTES[sorte].eclair); bloom.strength = 0.4;
   }
 
   // ---------------------------------------------------------------- l'inclinaison
@@ -208,21 +234,26 @@ a{color:#9FE8FF}
 
   // ---------------------------------------------------------------- couper le haut du sachet
   // etat : 'vitrine' (il flotte), 'coupe' (le doigt glisse), 'ouvert' (éclair, les cartes montent), 'fini'
-  let etat = 'vitrine', coupe = 0, depart = null, tOuvert = 0;
+  let etat = 'vitrine', coupe = 0, sens = 1, leve = 1, tOuvert = 0, doigt = null;
   function versEcran(x, y) { const v = new THREE.Vector3(x, y, 0.1).applyMatrix4(sachet.matrixWorld).project(cam), b = scene.getBoundingClientRect(); return [(v.x + 1) / 2 * b.width, (1 - v.y) / 2 * b.height]; }
-  scene.addEventListener('pointerdown', (e) => { if (etat !== 'vitrine') return; const b = scene.getBoundingClientRect(), y = e.clientY - b.top, [, yc] = versEcran(0, YC); if (Math.abs(y - yc) > b.height * 0.13) return;
-    depart = { x: e.clientX, id: e.pointerId }; etat = 'coupe'; coupe = 0; try { scene.setPointerCapture(e.pointerId); } catch (err) { /* rien */ } });
+  // où en est le doigt le long de la coupe (0 à gauche du sachet, 1 à droite), et de combien il est monté au-dessus
+  function mesurer(e) { const b = scene.getBoundingClientRect(), [xg, yc] = versEcran(-L / 2, YC), [xd] = versEcran(L / 2, YC); return { u: (e.clientX - b.left - xg) / (xd - xg), haut: (yc - (e.clientY - b.top)) / (b.height * 0.12), yc, x: e.clientX - b.left, y: e.clientY - b.top }; }
+  scene.addEventListener('pointerdown', (e) => { if (etat !== 'vitrine' && etat !== 'coupe') return; const m = mesurer(e); if (Math.abs(m.y - m.yc) > scene.getBoundingClientRect().height * 0.16) return;
+    doigt = { u0: m.u, id: e.pointerId, parti: etat === 'coupe' }; try { scene.setPointerCapture(e.pointerId); } catch (err) { /* rien */ } });
   scene.addEventListener('pointermove', (e) => { const b = scene.getBoundingClientRect();
-    if (etat === 'coupe' && depart) { const [xg] = versEcran(-L / 2, YC), [xd, yc] = versEcran(L / 2, YC), larg = Math.abs(xd - xg); coupe = Math.min(1, Math.abs(e.clientX - depart.x) / (larg * 0.8));
-      const t = $('trace'), x0 = Math.min(depart.x, e.clientX) - b.left, x1 = Math.max(depart.x, e.clientX) - b.left; t.style.opacity = 1; t.style.left = x0 + 'px'; t.style.width = (x1 - x0) + 'px'; t.style.top = (yc - 1.5) + 'px'; if (coupe >= 1) ouvrir(); }
+    if (doigt) { const m = mesurer(e);
+      if (!doigt.parti && Math.abs(m.u - doigt.u0) > 0.04) { doigt.parti = true; sens = m.u > doigt.u0 ? 1 : -1; etat = 'coupe'; coupe = 0; lueur.visible = true; }
+      if (doigt.parti) { const av = Math.max(0, Math.min(1, sens > 0 ? m.u : 1 - m.u)); coupe = Math.max(coupe, av);   // (la coupe ne recule jamais)
+        leve = 0.75 + Math.max(0, Math.min(1.2, m.haut)) * 0.75; enrouler(coupe, sens, leve);
+        const t = $('trace'), [xf, yf] = versEcran(sens > 0 ? -L / 2 + coupe * L : L / 2 - coupe * L, YC); t.style.opacity = 1; t.style.left = (xf - 11) + 'px'; t.style.top = (yf - 11) + 'px'; if (coupe >= 0.97) ouvrir(); } }
     else if (!capteur || e.pointerType === 'mouse') { cible.x = borne(((e.clientX - b.left) / b.width - 0.5) * 2); cible.y = borne(((e.clientY - b.top) / b.height - 0.5) * 2); } });
-  const lacher = () => { if (etat === 'coupe') { if (coupe > 0.6) ouvrir(); else { etat = 'vitrine'; coupe = 0; $('trace').style.opacity = 0; } } depart = null; };
+  const lacher = () => { doigt = null; $('trace').style.opacity = 0; if (etat === 'coupe' && coupe > 0.8) ouvrir(); };   // (on peut reprendre la coupe là où on l'a laissée)
   scene.addEventListener('pointerup', lacher); scene.addEventListener('pointercancel', lacher);
   scene.addEventListener('pointerleave', () => { if (!capteur) cible = { x: 0, y: 0 }; });
-  function ouvrir() { if (etat === 'ouvert' || etat === 'fini') return; etat = 'ouvert'; tOuvert = performance.now(); $('trace').style.opacity = 0; const e = $('eclair'); e.classList.remove('on'); void e.offsetWidth; e.classList.add('on');
+  function ouvrir() { if (etat === 'ouvert' || etat === 'fini') return; etat = 'ouvert'; tOuvert = performance.now(); doigt = null; $('trace').style.opacity = 0; enrouler(1, sens, leve); lueur.visible = true; const e = $('eclair'); e.classList.remove('on'); void e.offsetWidth; e.classList.add('on');
     if (navigator.vibrate) navigator.vibrate(30); $('aide').textContent = 'Un éclair, puis les cartes montent, de dos.'; }
-  function remettre() { etat = 'vitrine'; coupe = 0; charniere.rotation.set(0, 0, 0); charniere.position.set(L / 2, YC, 0); sachet.position.set(0, 0, 0); for (const m of mats) m.opacity = 1; for (const c of cartes.children) { c.visible = false; c.position.y = -0.25; c.rotation.z = 0; c.scale.setScalar(1); }
-    $('eclair').classList.remove('on'); $('trace').style.opacity = 0; $('aide').textContent = 'Penche ton téléphone : le sachet change de couleur. Glisse le doigt en travers du haut du sachet pour l’ouvrir.'; }
+  function remettre() { etat = 'vitrine'; coupe = 0; doigt = null; lueur.visible = false; if (languette.children.length) enrouler(0, 1, 1); charniere.rotation.set(0, 0, 0); charniere.position.set(L / 2, YC, 0); sachet.position.set(0, 0, 0); for (const m of mats) m.opacity = 1; for (const c of cartes.children) { c.visible = false; c.position.y = -0.25; c.rotation.z = 0; c.scale.setScalar(1); }
+    $('eclair').classList.remove('on'); $('trace').style.opacity = 0; $('aide').textContent = 'Penche ton téléphone : le sachet change de couleur. Pose le doigt en haut du sachet et glisse en travers : la languette se décolle derrière lui.'; }
   $('rejouer').addEventListener('click', remettre);
   $('sortes').addEventListener('click', (e) => { const b = e.target.closest('button'); if (!b) return; sorte = b.dataset.s; for (const x of document.querySelectorAll('#sortes button')) x.classList.toggle('on', x === b); construire(); remettre(); });
 
@@ -236,10 +267,10 @@ a{color:#9FE8FF}
     const flotte = reduit ? 0 : 1; sachet.rotation.y = penche.x * 0.62 + Math.sin(s * 0.7) * 0.14 * flotte; sachet.rotation.x = penche.y * 0.36 + Math.sin(s * 0.9) * 0.05 * flotte; sachet.rotation.z = Math.sin(s * 0.55) * 0.03 * flotte;
     if (etat === 'vitrine' || etat === 'coupe') sachet.position.y = Math.sin(s * 1.1) * 0.07 * flotte;
     lampe.position.set(2 + penche.x * 5, 3 - penche.y * 4, 6);
-    if (etat === 'coupe') { charniere.rotation.z = -coupe * 0.5; charniere.rotation.x = -coupe * 0.35; }
+    if (etat === 'coupe') lueur.material.opacity = 0.75 + 0.25 * Math.sin(s * 14);
     if (etat === 'ouvert') { const d = (t - tOuvert) / 1000;
       // la languette s'envole ; les cartes montent l'une après l'autre ; le sachet tombe et s'efface ; la pile se pose
-      const p = doux(entre(d, 0, 0.5)); charniere.rotation.z = -0.5 - p * 1.6; charniere.rotation.x = -0.35 - p * 0.8; charniere.position.set(L / 2 + p * 1.6, YC + p * 1.9, p * 0.6);
+      const p = doux(entre(d, 0, 0.55)); charniere.rotation.z = sens * p * 1.5; charniere.rotation.x = -p * 0.9; charniere.position.set(L / 2 - sens * p * 1.4, YC + p * 2.2, p * 0.8); lueur.material.opacity = 1 - entre(d, 0.2, 0.9); lueur.visible = d < 0.9;
       cartes.children.forEach((c, k) => { const m = doux(entre(d, 0.35 + k * 0.22, 1.05 + k * 0.22)); c.visible = d > 0.3; c.position.y = -0.25 + m * 2.25; c.rotation.z = (k - 1) * 0.07 * m; });
       const q = doux(entre(d, 1.7, 2.5)); corps.position.y = -q * 5; for (const m of mats) m.opacity = 1 - q; languette.visible = d < 0.9;
       cartes.children.forEach((c, k) => { c.position.y -= q * 1.75; c.rotation.z *= (1 - q * 0.6); c.scale.setScalar(1 + q * 0.42); });
@@ -251,7 +282,7 @@ a{color:#9FE8FF}
   taille();
   (document.fonts && document.fonts.load ? Promise.all([document.fonts.load('700 100px "Barlow Condensed"'), document.fonts.load('800 40px Nunito')]).catch(() => {}) : Promise.resolve()).then(() => {
     const P = new URLSearchParams(location.search); if (P.get('s') === 'paye') { sorte = 'paye'; for (const x of document.querySelectorAll('#sortes button')) x.classList.toggle('on', x.dataset.s === 'paye'); }
-    construire(); $('attente').hidden = true; requestAnimationFrame(image); if (P.has('ouvrir')) setTimeout(ouvrir, 600); });
+    construire(); $('attente').hidden = true; requestAnimationFrame(image); if (P.has('ouvrir')) setTimeout(ouvrir, 600); if (P.has('coupe')) { etat = 'coupe'; coupe = Number(P.get('coupe')) || 0.5; lueur.visible = true; enrouler(coupe, 1, 1.2); } });
   window.__BOOSTER = { ouvrir, remettre };
 })();
 </script>
