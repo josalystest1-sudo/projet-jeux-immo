@@ -91,6 +91,7 @@ const VERSION='__VERSION__';
 <script src="src/marche.js"></script>
 <script src="src/maquettes.js"></script>
 <script src="src/carte_lieu.js"></script>
+<script src="src/dos_carte.js"></script>
 <script src="src/regles/pseudo.js"></script>
 <script src="src/icones.js"></script>
 <script src="https://unpkg.com/@supabase/supabase-js@2.118.0/dist/umd/supabase.js"></script>
@@ -1889,7 +1890,7 @@ function sonTick(fq){ const a=audio(); if(!a) return; const o=a.createOscillator
 let revealing=false;
 let packCards=null, packTorn=false;
 let packOuverture=null;   // la ligne d'ouverture du pack à l'écran (les cartes en sortent)
-function openScene(){ const sc=document.getElementById('packscene'); setTimeout(()=>{ try{ document.documentElement.style.setProperty('--dos-carte', `url(${imageDosCarte()})`); }catch(e){} }, 250); packTorn=false; packCards=null; packOuverture=null; GL.rmax=null; document.getElementById('pkgl').style.display='block';
+function openScene(){ const sc=document.getElementById('packscene'); setTimeout(()=>{ poserDosCarte(); }, 250); packTorn=false; packCards=null; packOuverture=null; GL.rmax=null; document.getElementById('pkgl').style.display='block';
   document.getElementById('pkcards').innerHTML=''; document.getElementById('packdone').style.display='none'; document.getElementById('pkhint').textContent='Incline ton téléphone…'; document.getElementById('pkload').textContent='Le pack arrive…';
   sc.classList.add('on'); requestAnimationFrame(()=>{ sc.classList.add('show'); initGL(); }); }
 function finPack(){ const sc=document.getElementById('packscene'); cancelAnimationFrame(PK.anim); if(PACK_ESSAI){ PACK_ESSAI=false; setTimeout(()=>toast('Pack d’essai : rien n’a été ajouté à ton patrimoine'), 600); } sc.classList.remove('show','fini'); setTimeout(()=>{ sc.classList.remove('on'); disposeGL(); }, 500); renderPatrimoine(); refreshTop(); if(window.ACCUEIL) setTimeout(ACCUEIL.apresPack, 550); if(!state.prefs.guideVu && !document.getElementById('s-accueil').classList.contains('on')) setTimeout(()=>guide(0), 900); }
@@ -1914,6 +1915,11 @@ const PK={ cartes:[], i:0, etat:'pile', zoom:-1, anim:0 };   // etat : sortie (l
 // guillochée comme sur un billet de banque, la France en filigrane, un double cadre d'or aux angles ouvragés, un médaillon
 // d'or avec la pièce-maison, STREETKEEP en capitales d'or. Dessiné une seule fois, puis posé comme une image (aucun coût
 // pendant l'ouverture).
+// le dos des cartes : depuis le 16 nov., le dos « nuit et néon », bleu et or (src/dos_carte.js : la plaque de rue ornée, sa ville,
+// les anneaux qui tournent) ; tant qu'il n'est pas prêt, ou s'il ne peut pas être préparé, l'ancien dos d'or (imageDosCarte)
+function poserDosCarte(){ const d=document.documentElement; if(d.classList.contains('dos-neon')) return;
+  try{ d.style.setProperty('--dos-carte', `url(${imageDosCarte()})`); }catch(e){}
+  if(window.DosCarte) DosCarte.poser(); }
 function imageDosCarte(){ if(imageDosCarte.url) return imageDosCarte.url; const W=480, H=700, c=document.createElement('canvas'); c.width=W; c.height=H; const g=c.getContext('2d'), cx=W/2, cy=H*0.43;
   const OR=(x0,y0,x1,y1)=>{ const d=g.createLinearGradient(x0,y0,x1,y1); d.addColorStop(0,'#FFF4D2'); d.addColorStop(.35,'#E9C77B'); d.addColorStop(.65,'#B8862F'); d.addColorStop(1,'#F6DE9C'); return d; };
   const arrondi=(x,y,w,h,r)=>{ g.beginPath(); g.moveTo(x+r,y); g.arcTo(x+w,y,x+w,y+h,r); g.arcTo(x+w,y+h,x,y+h,r); g.arcTo(x,y+h,x,y,r); g.arcTo(x,y,x+w,y,r); g.closePath(); };
@@ -1954,10 +1960,10 @@ function donneesCarte(c, r){ return { r, rarete:RARETES[r], nom:echapper(c.label
 function chiffresCarte(c, r){ return CarteLieu.chiffres(donneesCarte(c, r)); }
 function faceCarte(c, r){ return CarteLieu.html({ r, rarete:RARETES[r], nom:echapper(c.label), commune:echapper(communeName(c.citycode, c.city)), valeur:pcs(valeur(c)), loyer:loyer(c), potentiel:NIVEAUX[plafond(c)].nom, standing:R.standing(c) }); }
 function reduitMouvement(){ return !!(window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches); }
-function sortirCartes(){ const wrap=document.getElementById('pkcards'); wrap.innerHTML=''; try{ document.documentElement.style.setProperty('--dos-carte', `url(${imageDosCarte()})`); }catch(e){} cancelAnimationFrame(PK.anim); Object.assign(PK,{ cartes:[], i:0, etat:'sortie', zoom:-1 });
+function sortirCartes(){ const wrap=document.getElementById('pkcards'); wrap.innerHTML=''; poserDosCarte(); cancelAnimationFrame(PK.anim); Object.assign(PK,{ cartes:[], i:0, etat:'sortie', zoom:-1 });
   // les cartes naissent face cachée, sans leur face (posée plus tard, remplirFace) : rien de lourd à peindre pendant la sortie
   packCards.forEach((c,i)=>{ const r=rarete(c); const el=document.createElement('div'); el.className='c3d r'+r;
-    el.innerHTML=`<i class="c3d-aura"></i><div class="c3d-corps"><i class="c3d-bord haut"></i><i class="c3d-bord bas"></i><i class="c3d-bord gauche"></i><i class="c3d-bord droite"></i><div class="c3d-face c3d-dos"></div><div class="c3d-face c3d-avant"></div></div>`;
+    el.innerHTML=`<i class="c3d-aura"></i><div class="c3d-corps"><i class="c3d-bord haut"></i><i class="c3d-bord bas"></i><i class="c3d-bord gauche"></i><i class="c3d-bord droite"></i><div class="c3d-face c3d-dos">${window.DosCarte ? DosCarte.HTML : ''}</div><div class="c3d-face c3d-avant"></div></div>`;
     wrap.appendChild(el); PK.cartes.push({ el, c, r }); });
   document.getElementById('pkhint').textContent='';
   const fin=()=>{ PK.etat='pile'; PK.cartes.forEach(k=>{ k.el.classList.remove('montee'); k.el.style.transitionDelay=''; }); dispoPack();

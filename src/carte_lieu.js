@@ -214,7 +214,7 @@
   // tout est à la couleur de la rareté (--c1 clair, --c2 vif)
   function cadre(r) {
     const W = 240, H = 350, rr = (i, a) => `M${i + a},${i} H${W - i - a} A${a},${a} 0 0 1 ${W - i},${i + a} V${H - i - a} A${a},${a} 0 0 1 ${W - i - a},${H - i} H${i + a} A${a},${a} 0 0 1 ${i},${H - i - a} V${i + a} A${a},${a} 0 0 1 ${i + a},${i} Z`;
-    let s = `<path class="cn2 halo" d="${rr(2.5, 12)}"/><path class="cn1 bord" d="${rr(2.5, 12)}"/><path class="cn2 fin" d="${rr(8.5, 8)}"/>`;
+    let s = `<path class="cn2 aura" d="${rr(2.5, 12)}"/><path class="cn1 bord" d="${rr(2.5, 12)}"/><path class="cn2 fin" d="${rr(8.5, 8)}"/>`;
     for (const [x, y, sx, sy] of [[9, 9, 1, 1], [231, 9, -1, 1], [9, 341, 1, -1], [231, 341, -1, -1]]) s += `<path class="cn1" d="M${x + sx * 26},${y} H${x + sx * 9} Q${x},${y} ${x},${y + sy * 9} V${y + sy * 26}"/>`
       + `<path class="cn2 fin" d="M${x + sx * 30},${y + sy * 5} H${x + sx * 12} Q${x + sx * 5},${y + sy * 5} ${x + sx * 5},${y + sy * 12} V${y + sy * 30}"/>`
       + `<path class="cp1" d="M${x + sx * 11},${y + sy * 11} l${sx * 5},${sy * -5} l${sx * 5},${sy * 5} l${sx * -5},${sy * 5} Z"/><circle class="cp1" cx="${x + sx * 30}" cy="${y}" r="1.7"/><circle class="cp1" cx="${x}" cy="${y + sy * 30}" r="1.7"/>`;
