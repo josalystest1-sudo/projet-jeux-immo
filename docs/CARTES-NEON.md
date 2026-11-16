@@ -54,4 +54,5 @@ Prototype : `proto/booster.html` (https://citydeck.fr/proto/booster.html ; `?s=p
 - **Étape 1, faite** : la face néon (prototype n° 3) dans `src/carte_lieu.js` : pack, collection (miniatures légères) et carte ouverte en grand, avec les chiffres dessous.
 - **Étape 2, faite** : le dos bleu et or (`src/dos_carte.js`), et la bordure qui allait et venait sur les cartes corrigée (retour de Gautier).
 - **Révélation** (retour de Gautier, 16 nov.) : la roulette dans les teintes des cartes (bleu néon, or pour ce qui est choisi), une roulette des villes après le département, puis le zoom sur l'adresse ; l'éclair de la carte du dessous sur la carte en main est corrigé.
+- **Roulette des villes, suite** (Gautier : « tu dois voir le département fragmenté avec les villes ») : le département entier, découpé en ses communes ; une commune s'allume à chaque cran, son nom en haut.
 - **À faire** : le booster et sa languette ; la taille des packs.
