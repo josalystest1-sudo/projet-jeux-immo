@@ -390,6 +390,7 @@ Puis une PR par étape, fusionnée en squash :
 | #155 | 05/11 | L'horloge du serveur : toutes les 10 minutes, enchères, mandats, saisons, monuments et robots tournent sans joueur |
 | #156 | 05/11 | Les travaux des communes s'usent (−10 % par mandat) ; le niveau donne +2 % de loyer par niveau et monte le plafond du Maire (jusqu'à 2 000) |
 | #157 | 05/11 | Documents : les six monuments qui sont des marques (Ritz, Maxim's, Crillon, Negresco, Château Margaux, Train bleu) restent aux enchères (Gautier : « garde-les ») |
+| #193 | 16/11 | Page d'essai des cartes : l'intérieur de la plaque du dos refait (scène de ville la nuit, banderole) |
 | #192 | 16/11 | Page d'essai des cartes : la plaque du dos retravaillée (couronne de remparts, lauriers, volutes, rivets, deux plans de ville) |
 | #191 | 16/11 | Page d'essai des cartes : le dos refait (plaque de rue en néon, ville en silhouette, anneaux qui tournent, trois couleurs à choisir) |
 | #190 | 16/11 | Page d'essai des cartes : le dos de la carte (toucher la carte la retourne) ; le prototype n° 3 retenu |
