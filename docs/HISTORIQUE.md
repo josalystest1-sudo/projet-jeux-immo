@@ -392,6 +392,7 @@ Puis une PR par étape, fusionnée en squash :
 | #157 | 05/11 | Documents : les six monuments qui sont des marques (Ritz, Maxim's, Crillon, Negresco, Château Margaux, Train bleu) restent aux enchères (Gautier : « garde-les ») |
 | #201 | 16/11 | La carte « nuit et néon » dans le jeu : face refaite (vue 3D pleine carte, verre et néon, cadre orné, plaques de néon), chiffres sous la carte ouverte en grand |
 | #202 | 16/11 | Le dos bleu et or dans le jeu (plaque de rue ornée, ville de nuit, anneaux qui tournent) ; corrigé : la bordure qui allait et venait sur les cartes |
+| #203 | 16/11 | La roulette de la révélation en bleu et or, une roulette des villes après le département ; corrigé : l'éclair de la carte du dessous sur la carte en main |
 | #200 | 16/11 | Prototype du booster validé par Gautier : brillance moyenne fixée, boutons de réglage retirés |
 | #199 | 16/11 | Prototype du booster : une ligne de toits en néon sur le booster du jour, à la place de la maison |
 | #198 | 16/11 | Prototype du booster : moins brillant, lettres cernées, trois niveaux de brillance à choisir |
