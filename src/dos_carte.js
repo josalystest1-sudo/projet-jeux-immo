@@ -118,7 +118,7 @@
   // canevas pour n'en garder que l'ombre, et Chrome sur Android ne dessine pas ce qui est hors du canevas, donc pas de halo.
   // On dessine maintenant l'image floutée à sa place, en lumière ajoutée ; l'ancienne astuce ne reste qu'en secours.)
   function halo(g, img, couleur, flou, W, H) { g.save(); g.globalCompositeOperation = 'lighter';
-    if (typeof g.filter === 'string') { for (const [f, a] of [[flou * 0.5, 1], [flou * 0.22, 0.9], [flou * 1.1, 0.8]]) { g.filter = 'blur(' + f + 'px)'; g.globalAlpha = a; g.drawImage(img, 0, 0, W, H); } g.filter = 'none'; }
+    if (typeof g.filter === 'string') { for (const [f, a] of [[flou * 0.45, 0.75], [flou * 1.1, 0.4]]) { g.filter = 'blur(' + f + 'px)'; g.globalAlpha = a; g.drawImage(img, 0, 0, W, H); } g.filter = 'none'; }
     else { g.shadowColor = couleur; g.shadowBlur = flou; g.shadowOffsetX = W * 2; g.drawImage(img, -W * 2, 0, W, H); }
     g.restore(); }
   let pret = null;
@@ -130,8 +130,9 @@
       const [iFond, iNet, iBleu, iOr, iA, iB] = await Promise.all([charger(svg('0 0 240 350', STYLE, d.fond)), charger(svg('0 0 240 350', STYLE, d.devant)), charger(svg('0 0 240 350', HALO_BLEU, d.devant)), charger(svg('0 0 240 350', HALO_OR, d.devant)),
         charger(svg('12 60 216 216', STYLE, d.anneauA)), charger(svg('12 60 216 216', STYLE, d.anneauB))]);
       const cf = toile(W, H), gf = cf.getContext('2d'); gf.drawImage(iFond, 0, 0, W, H);
+      // (dosée le 16 nov. : « trop brillant » une fois le vrai défaut du téléphone corrigé)
       // une lumière au milieu du fond (Gautier, 16 nov. : sur téléphone, la pile de dos était trop sombre, « on voit mal les cartes »)
-      { gf.save(); gf.globalCompositeOperation = 'lighter'; const l = gf.createRadialGradient(W / 2, H * 0.48, 0, W / 2, H * 0.48, H * 0.62); l.addColorStop(0, 'rgba(80,140,255,.62)'); l.addColorStop(0.55, 'rgba(55,110,235,.36)'); l.addColorStop(1, 'rgba(35,70,175,.16)'); gf.fillStyle = l; gf.fillRect(0, 0, W, H); gf.restore(); }
+      { gf.save(); gf.globalCompositeOperation = 'lighter'; const l = gf.createRadialGradient(W / 2, H * 0.48, 0, W / 2, H * 0.48, H * 0.62); l.addColorStop(0, 'rgba(70,130,255,.3)'); l.addColorStop(0.55, 'rgba(50,100,230,.15)'); l.addColorStop(1, 'rgba(30,60,160,.04)'); gf.fillStyle = l; gf.fillRect(0, 0, W, H); gf.restore(); }
       const cd = toile(W, H), g = cd.getContext('2d'); g.drawImage(iNet, 0, 0, W, H); halo(g, iBleu, BLEU[1], 14, W, H); halo(g, iOr, OR, 14, W, H); g.drawImage(iNet, 0, 0, W, H);
       // le nom, sur la banderole
       g.save(); g.font = '700 ' + (17 * K) + 'px "Barlow Condensed", "Arial Narrow", sans-serif'; g.textAlign = 'center'; g.textBaseline = 'alphabetic'; const large = g.measureText('STREETKEEP').width, k = (112 * K) / large;
