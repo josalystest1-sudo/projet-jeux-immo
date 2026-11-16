@@ -390,6 +390,7 @@ Puis une PR par étape, fusionnée en squash :
 | #155 | 05/11 | L'horloge du serveur : toutes les 10 minutes, enchères, mandats, saisons, monuments et robots tournent sans joueur |
 | #156 | 05/11 | Les travaux des communes s'usent (−10 % par mandat) ; le niveau donne +2 % de loyer par niveau et monte le plafond du Maire (jusqu'à 2 000) |
 | #157 | 05/11 | Documents : les six monuments qui sont des marques (Ritz, Maxim's, Crillon, Negresco, Château Margaux, Train bleu) restent aux enchères (Gautier : « garde-les ») |
+| #197 | 16/11 | Prototype du booster : plus de cartouche (ombres douces), holographique en bandes, tour Eiffel plus visible |
 | #196 | 16/11 | Prototype du booster : le nom lisible sur un cartouche sombre ; la languette se décolle en courbe derrière le doigt |
 | #195 | 16/11 | Prototype du booster néon (page d'essai `proto/booster.html`) : sachet holographique, enseigne néon, monument doré pour le payé, éclair à l'ouverture |
 | #194 | 16/11 | Page d'essai des cartes : la ville de la plaque se lit comme une ville française (mairie à fronton, pleine lune ; plus de dôme ni de croissant) |
