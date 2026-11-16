@@ -2040,9 +2040,12 @@ function dispoPack(){ const sc=document.getElementById('packscene'); if(!sc.clas
   if(PK.etat==='fini'){ const s=Math.max(.34, Math.min(.58, (W-36)/(240*(1+(n-1)*0.6)))), dx=240*s*0.6;
     PK.cartes.forEach((k,j)=>{ const d=j-(n-1)/2; if(j===PK.zoom) pose(k.el,0,-30,0,s0,60); else pose(k.el,d*dx,-40+Math.abs(d)*12,d*6,s,j); }); return; }
   const pas=Math.min(46, (W-70)/Math.max(1,n)); PK.grand=Math.min(1.55, (W-22)/240, (H-130)/350);
-  PK.cartes.forEach((k,j)=>{ if(j<PK.i) pose(k.el,(j-(n-1)/2)*pas,H/2-150,(j-(n-1)/2)*4,.22,j);   // déjà vues : rangées en bas
-    else if(j===PK.i && (PK.etat==='revele')) pose(k.el,0,k.el.classList.contains('grande')?-8:-30,0,k.el.classList.contains('grande')?PK.grand:s0*1.04,120);
-    else { const p=j-PK.i; pose(k.el, p*1.8, -30+p*5.5, p===0?0:(p%2?-0.8:0.8), s0, 100-p); }
+  // la pile et les cartes déjà vues ne se chevauchent plus (Gautier, 16 nov.) : en bas, la consigne (75 px), au-dessus la rangée des
+  // cartes vues (77 px de haut), et la pile tient dans ce qui reste, avec la place de ses cartes du dessous
+  const hVue=350*0.22, yVues=H/2-75-8-hVue/2, dessousPile=Math.min(n,6)*5.5+14, sP=Math.min(1.05, (H-50-(75+8+hVue+16)-dessousPile)/350, (W-48)/240), yP=(-H/2+50 + (yVues-hVue/2-16-dessousPile))/2;
+  PK.cartes.forEach((k,j)=>{ if(j<PK.i) pose(k.el,(j-(n-1)/2)*pas,yVues,(j-(n-1)/2)*4,.22,j);   // déjà vues : rangées en bas
+    else if(j===PK.i && (PK.etat==='revele')) pose(k.el,0,k.el.classList.contains('grande')?-8:yP,0,k.el.classList.contains('grande')?PK.grand:sP*1.04,120);
+    else { const p=j-PK.i; pose(k.el, p*1.8, yP+p*5.5, p===0?0:(p%2?-0.8:0.8), sP, 100-p); }
     k.el.classList.toggle('dessous', PK.etat!=='fini' && j>PK.i); k.el.classList.toggle('socle', PK.etat!=='fini' && j===n-1 && j>PK.i); }); }
 window.addEventListener('resize', ()=>dispoPack());
 // les reflets suivent l'inclinaison (fx, fy : de 0 à 1 sur la carte)
