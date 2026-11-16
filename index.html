@@ -130,19 +130,23 @@ const VERSION='__VERSION__';
 
 <!-- écrans -->
 <div class="screen" id="s-accueil"></div>
+<div class="screen" id="s-agence"></div>
 <div class="screen" id="s-patrimoine"></div>
 <div class="screen" id="s-encheres"></div>
 <div class="screen" id="s-communes"></div>
 <div class="screen" id="s-notifs"></div>
 
 <div id="nav">
-  <button data-s="accueil" class="on"><i>🏠</i>Accueil</button>
+  <button data-s="agence" class="on"><i>🏢</i>Agence</button>
   <button data-s="carte"><i>🗺️</i>Carte</button>
   <button data-s="patrimoine"><i>🏘️</i>Patrimoine</button>
   <button id="packbtn" class="pack-nav attente" aria-label="Pack du jour"><span class="pack-rond">🎁</span><span class="pack-t" id="packt">Pack</span></button>
   <button data-s="encheres"><i>🔨</i>Enchères<span class="cnt" id="cnt-ench"></span></button>
   <button data-s="communes"><i>🏛️</i>Communes</button>
 </div>
+
+<!-- le pack du jour est prêt : un bouton à l'écran, sur tous les écrans (16 nov. : l'accueil ne sert plus qu'au tout premier pack) -->
+<button id="booster-pret" aria-label="Booster disponible"><span class="bp-sachet"></span><span class="bp-texte"><b>Booster disponible</b><small>Touche pour l’ouvrir</small></span></button>
 
 <div id="sheet">
   <button class="close" onclick="closeSheet()" aria-label="Fermer">✕</button>
@@ -2366,8 +2370,13 @@ function inclinable(el){ const inner=el.firstElementChild; let g=null, t0=perfor
   el.addEventListener('pointermove', e=>{ if(!g) return; const b=el.getBoundingClientRect(), dx=e.clientX-g.x0, dy=e.clientY-g.y0; poser(Math.max(-28,Math.min(28,-dy*0.3)), Math.max(-34,Math.min(34,dx*0.3)), (e.clientX-b.left)/b.width*100, (e.clientY-b.top)/b.height*100); });
   const fin=()=>{ g=null; inner.classList.remove('libre'); t0=performance.now(); };
   el.addEventListener('pointerup', fin); el.addEventListener('pointercancel', fin); }
-document.getElementById('packbtn').onclick=ouvrirPack;
-function refreshPack(){ const b=document.getElementById('packbtn'), t=document.getElementById('packt'); if(!b||b.dataset.ouverture) return;
+document.getElementById('packbtn').onclick=ouvrirPack; document.getElementById('booster-pret').onclick=()=>{ vibrer(10); ouvrirPack(); };
+// le bouton « Booster disponible » : seulement quand le pack est prêt et que rien d'autre n'occupe l'écran (l'agence a le sien, dans la page : src/agence_jeu.js)
+function boutonBooster(){ const bp=document.getElementById('booster-pret'); if(!bp) return;
+  const cache = !packDispo() || document.getElementById('packbtn').dataset.ouverture || document.querySelector('#packscene.on, #modal.on, #s-accueil.on, #s-agence.on, #guide, .rev-scene, #sheet.open') || !state.pseudo
+    || (typeof PROM!=='undefined' && PROM.on) || (window.CHASSE && CHASSE.dans) || (window.Compte && Compte.bloque && Compte.bloque());
+  if(bp.classList.contains('on')===!!cache) bp.classList.toggle('on', !cache); const surCarte=!document.querySelector('.screen.on'); if(bp.classList.contains('carte')!==surCarte) bp.classList.toggle('carte', surCarte); }
+function refreshPack(){ boutonBooster(); const b=document.getElementById('packbtn'), t=document.getElementById('packt'); if(!b||b.dataset.ouverture) return;
   if(packDispo()){ b.classList.add('pret'); b.classList.remove('attente'); t.textContent='Ouvrir !'; }
   else { b.classList.remove('pret'); b.classList.add('attente'); const s=secondesAvantPack(); t.textContent = dureeCourte(s); } }
 function dureeCourte(s){ return s>=3600 ? `${Math.floor(s/3600)} h ${String(Math.floor(s%3600/60)).padStart(2,'0')}` : (s>=60 ? `${Math.floor(s/60)} min ${String(s%60).padStart(2,'0')}` : `${s} s`); }
@@ -2378,7 +2387,7 @@ function showScreen(name){ vibrer(8); if(window.PROGRESSION && !PROGRESSION.ouve
   const hide = name!=='carte'; ['top','ctrls','legend'].forEach(id=>document.getElementById(id).style.display = hide?'none':''); closeSheet(); if(!(window.Compte && Compte.bloque && Compte.bloque())) closeModal();
   if(name==='patrimoine') renderPatrimoine(); if(name==='encheres') renderEncheres(); if(name==='communes'){ if(MODE_SERVEUR){ for(const k of Object.keys(CAISSES)) delete CAISSES[k]; CLASSES.lu=0; CLASSES.communes={}; } renderCommunes(); } if(name==='notifs') renderNotifs();
   if(hide) document.getElementById('s-'+name).classList.add('on'); else { map.resize(); if(!ARRIVEE_FAITE){ const go=()=>setTimeout(descenteArrivee, 150); if(map.loaded()) go(); else { map.once('idle', go); setTimeout(go, 2500); } } }
-  if(name==='accueil' && window.ACCUEIL) ACCUEIL.render(); }
+  if(name==='accueil' && window.ACCUEIL) ACCUEIL.render(); if(name==='agence' && window.AGENCE) AGENCE.montrer(); boutonBooster(); }
 document.querySelectorAll('#nav button[data-s]').forEach(b=>b.onclick=()=>showScreen(b.dataset.s));
 document.getElementById('cloche').onclick=()=>showScreen('notifs');
 
@@ -2393,7 +2402,6 @@ function renderPatrimoine(){ const el=document.getElementById('s-patrimoine'); c
   const p=Math.floor(pendingRent());
   let h=`<h1>Mon patrimoine <button class="btn sm clair act" onclick="ouvrirClassements('patrimoine')">🏆 Classements</button></h1><div class="kpis"><div class="kpi"><i>🏘️</i><b>${tous.length}</b><small>lieu${tous.length>1?'x':''}</small></div><div class="kpi"><i>💎</i><b>${nb(total)}<i class="pc"></i></b><small>de valeur</small></div><div class="kpi"><i>📈</i><b style="color:var(--cadre2)">${(v=>(v<0?'−':'+')+nb(Math.abs(v)))(SALAIRE+loyerTotal()-MON.parJour(tous))}</b><small>par jour</small></div></div>`;
   h+=`<div class="card flex"><div><div class="t">🌾 ${p>=1?`<span style="color:var(--cadre2)">+${nb(p)}</span> à récolter`:'Les loyers poussent…'}</div><div class="m">Salaire ${nb(SALAIRE)} + loyers ${nb(loyerTotal())} par jour, stockés 24 h au plus.</div></div>${p>=1?`<button class="btn vert" onclick="recolter()">Récolter</button>`:''}</div>`;
-  if(window.AGENCE) h+=AGENCE.carte();   // l'agence, le jeu « idle » (src/agence_jeu.js)
   { const mons=MON.entretiens(tous), e=state.entretien||{}; if(mons.length){ const jr=MON.joursAvantReprise(e.impayeDepuis, now(), JOUR), cher=mons[mons.length-1];
       h+=`<div class="card entretien${e.dette>0?' impaye':''}"><div class="t">🏛️ Entretien de tes monuments : ${pcs(MON.parMois(tous))} par mois</div>
         <div class="m">${mons.map(x=>`${echapper(x.label)} <b>${nb(x.parMois)}</b>`).join(' · ')}</div>
@@ -2789,7 +2797,7 @@ const GUIDE=[   // (6 nov. : après le premier pack ; les enchères, les commune
   { lieu:true, centre:true, titre:'🗺️ Tes lieux sur la carte', texte:'Tes lieux sont sur la vraie carte de France, à ta couleur. Touche un bâtiment pour voir ses lieux : chez toi, tu construis pour toucher des loyers ; chez les autres, tu fais une offre.' },
   { cible:'#walletpill', titre:'<i class="pc"></i> Tes pièces', texte:'Ton salaire et tes loyers s’accumulent pendant 24 h. Touche ta bourse pour récolter, et reviens chaque jour.' },
   { cible:'#nav button[data-s="patrimoine"]', titre:'🏘️ Ta collection', texte:'Tes lieux en cartes. Maison, Immeuble, Tour : plus tu construis haut, plus le loyer monte.' },
-  { cible:'#nav button[data-s="accueil"]', titre:'🏠 Ton pack chaque jour', texte:'Un nouveau pack t’attend chaque jour sur l’accueil. Le reste du jeu s’ouvre en jouant : construis, collectionne… et tu verras.' } ];
+  { cible:'#nav button[data-s="agence"]', titre:'🏢 Ton agence', texte:'Tes pièces y embauchent des employés. Et chaque jour, un nouveau pack : un bouton apparaît à l’écran quand il est prêt. Le reste du jeu s’ouvre en jouant.' } ];
 let GUIDE_LIEU=null;   // le lieu montré par le premier pack guidé (src/accueil.js)
 function guide(i){ let g=document.getElementById('guide'); if(i>=GUIDE.length || i<0){ if(g) g.remove(); state.prefs.guideVu=true; GUIDE_LIEU=null; save(); return; }
   if(window.PROGRESSION && !PROGRESSION.ouvert('carte')) return;   // (avant le premier pack, il n'y a rien à montrer)
@@ -2961,7 +2969,8 @@ function refreshTop(){ afficherBourse(dispo()); { const g=document.getElementByI
 setInterval(()=>{ refreshTop(); if(!MODE_SERVEUR){ tickOffers(); tickAuction(); tickMairie(); tickSaison(); tickMonuments(); const cf=document.getElementById('caisse-fin'); if(cf) cf.textContent='⏳ '+dureeTexte(finMandat(mandatCourant())-now());
     const sf=document.getElementById('saison-fin'); if(sf) sf.textContent='⏳ '+dureeTexte(finSaison(CLA.saison(mandatCourant()))-now()); } else { refreshPack(); tickEncheresServeur(); } }, 1000);
 // À la connexion : la récolte des loyers (24 h au plus), puis le pack du jour s'il est prêt
-function packAuDemarrage(){ if(document.getElementById('s-accueil').classList.contains('on')) ACCUEIL.render(); else showScreen('accueil'); }   // (l'accueil montre le pack prêt : src/accueil.js)
+// l'accueil ne sert plus qu'au tout premier pack (16 nov.) : un joueur installé arrive dans son agence, le bouton « Booster disponible » à l'écran
+function packAuDemarrage(){ const acc=document.getElementById('s-accueil').classList.contains('on'); if(premierPack()){ if(acc) ACCUEIL.render(); else showScreen('accueil'); } else if(acc) showScreen('agence'); boutonBooster(); }
 async function recolteConnexion(ensuite){ if(MODE_SERVEUR){ const r=await synchroniser(); if(!r || !r.ok){ toast((r&&r.message)||'Serveur injoignable'); return ensuite(); } }
   const p=Math.floor(pendingRent()); if(p<1) return ensuite();
   const absent=now()-state.encaisse, plein=absent>=ECO.stock_loyer_heures*JOUR/24, lieux=Object.keys(state.owned).length;
@@ -2979,7 +2988,7 @@ refreshTop(); if(!MODE_SERVEUR) tickAuction();
 <script src="src/accueil.js"></script>
 <script src="src/progression.js"></script>
 <script>PROGRESSION.verifier();</script>
-<script>showScreen('accueil');   // le jeu s'ouvre sur l'accueil, la carte à la demande (6 nov.)</script>
+<script>showScreen(premierPack() ? 'accueil' : 'agence');   // le jeu s'ouvre sur l'agence (16 nov.) ; l'accueil, seulement pour le tout premier pack</script>
 <script src="src/chasse_jeu.js"></script>
 <script src="src/compte.js?v=20261103b"></script>
 </body>

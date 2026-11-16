@@ -211,6 +211,8 @@ Gautier (6 nov.) : « toutes les demi-heures ou toutes les heures (faudra régle
 
 ## 5 sexies. L'agence : le jeu « idle » **[Décidé par Gautier le 16 nov. 2026 pour la boucle ; chiffres Proposés]**
 
+**L'écran (demande de Gautier, 16 nov. au soir).** L'agence est un écran de la barre du bas, à la place de l'accueil, et le jeu s'ouvre sur elle ; l'accueil ne sert plus qu'au tout premier pack, et un bouton « Booster disponible » apparaît à l'écran quand le pack du jour est prêt. L'agence doit se voir, pas se lire : un immeuble de nuit en néon, les employés au travail à chaque étage, le renom qui monte en direct, les briques qui s'empilent sur le chantier. **[Proposé]** : l'étiquette « Meilleur choix » reste sur l'embauche la plus rentable.
+
 **Pourquoi.** Question de Gautier : « que fait-on avec ces pièces ? Améliorer ses bâtiments pour en gagner plus n'est pas une fin en soi. » Il faut aux pièces un usage sans fin, qui ne fasse pas monter les prix du marché.
 
 **La boucle (décidée par Gautier, « ce que je propose »).**
