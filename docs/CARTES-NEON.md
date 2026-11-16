@@ -47,3 +47,9 @@ Prototype : `proto/booster.html` (https://citydeck.fr/proto/booster.html ; `?s=p
 - **Booster, moins brillant** (« le booster brille trop, ça rend le texte pas assez lisible ») : holographique, reflets et halo réduits de moitié environ, lettres cernées d'un liseré de nuit, ombre douce plus large ; trois niveaux de brillance à comparer sur la page (douce, moyenne, forte ; `?b=douce|moyenne|forte`), à choisir.
 - **Booster du jour : une ligne de toits** (Gautier a demandé pourquoi il y avait une maison ; c'était un ajout de Claude ; choix : « va pour la ligne ») : la maison du logo est remplacée par une ville française au trait de néon (les bâtiments du dos des cartes). Le gratuit montre la ville de tous les jours, le payé un monument.
 - **Booster validé le 16 nov.** (« on garde comme ça ») : brillance moyenne, ligne de toits sur le booster du jour, tour Eiffel dorée sur le payé, languette qui se décolle derrière le doigt. Reste à choisir avant l'intégration au jeu : la couleur du dos des cartes et la taille des packs.
+
+## Dans le jeu
+
+- **Décisions du 16 nov. (13 h)** : dos **bleu et or** ; packs à **2 cartes gratuites, 4 avec le Pass, 4 + 1 Rare ou mieux pour le payé, le tout premier pack d'un nouveau joueur à 5 cartes** ; Claude (session dans le cloud) prend la main, le Claude Code du PC est en veille.
+- **Étape 1, faite** : la face néon (prototype n° 3) dans `src/carte_lieu.js` : pack, collection (miniatures légères) et carte ouverte en grand, avec les chiffres dessous.
+- **À faire** : le dos bleu et or ; le booster et sa languette ; la taille des packs.

@@ -1948,7 +1948,10 @@ function imageDosCarte(){ if(imageDosCarte.url) return imageDosCarte.url; const 
   for(const [x0,x1] of [[60,150],[W-150,W-60]]){ const d=g.createLinearGradient(x0,0,x1,0); d.addColorStop(x0<cx?0:1,'rgba(233,199,123,0)'); d.addColorStop(x0<cx?1:0,'#E9C77B'); g.fillStyle=d; g.fillRect(x0,cy+170,x1-x0,2); }
   texte(Langue.t('COLLECTIONNE LA FRANCE'),H-62,17,6,'rgba(243,227,188,.75)');
   imageDosCarte.url=c.toDataURL('image/jpeg',0.9); return imageDosCarte.url; }
-// la face d'une carte : le badge de src/carte_lieu.js (plan cadastral d'or, maquette de verre, plaque émaillée, chiffres)
+// la face d'une carte : le badge de src/carte_lieu.js (« nuit et néon » depuis le 16 nov. : plan cadastral en néon, bâtiment de
+// verre, plaques de néon) ; ses chiffres ne sont plus dessus : chiffresCarte les donne, pour sous la carte ouverte en grand
+function donneesCarte(c, r){ return { r, rarete:RARETES[r], nom:echapper(c.label), commune:echapper(communeName(c.citycode, c.city)), valeur:pcs(valeur(c)), loyer:loyer(c), potentiel:NIVEAUX[plafond(c)].nom, standing:R.standing(c) }; }
+function chiffresCarte(c, r){ return CarteLieu.chiffres(donneesCarte(c, r)); }
 function faceCarte(c, r){ return CarteLieu.html({ r, rarete:RARETES[r], nom:echapper(c.label), commune:echapper(communeName(c.citycode, c.city)), valeur:pcs(valeur(c)), loyer:loyer(c), potentiel:NIVEAUX[plafond(c)].nom, standing:R.standing(c) }); }
 function reduitMouvement(){ return !!(window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches); }
 function sortirCartes(){ const wrap=document.getElementById('pkcards'); wrap.innerHTML=''; try{ document.documentElement.style.setProperty('--dos-carte', `url(${imageDosCarte()})`); }catch(e){} cancelAnimationFrame(PK.anim); Object.assign(PK,{ cartes:[], i:0, etat:'sortie', zoom:-1 });
@@ -2376,7 +2379,7 @@ function ouvrirFicheLieu(id){ const a=state.owned[id]; const box=document.getEle
   // la carte en grand, en haut de la fiche : on l'incline au doigt, sa maquette tourne
   const r=rarete(a), grand=document.createElement('div'); grand.className='cl-grand'; grand.innerHTML=`<div class="cl-grand-in">${faceCarte(a, r)}<i class="cl-grand-lumiere"></i></div>`; box.appendChild(grand);
   CarteLieu.animer(grand.querySelector('.cl'), a, r).then(sc=>{ if(!sc) return; if(!grand.isConnected){ sc.jeter(); return; } sc.focus=true; CARTE_GRANDE=sc; });
-  inclinable(grand); box.appendChild(addrRow(a, true));
+  inclinable(grand); grand.insertAdjacentHTML('afterend', chiffresCarte(a, r)); box.appendChild(addrRow(a, true));
   const pied=document.createElement('div'); pied.className='liste-btn';
   pied.innerHTML=`<button class="btn bleu large" onclick="flyToAddr(state.owned['${a.id}'])">🗺️ Voir sur la carte</button><button class="btn clair large" onclick="closeModal()">Fermer</button>`;
   box.appendChild(pied); document.getElementById('modal').classList.add('on'); }

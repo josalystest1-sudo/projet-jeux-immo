@@ -1495,3 +1495,42 @@ body.verrou-communes #commune-chip{display:none!important}
 .marcheur .cone{position:absolute;left:50%;top:0;width:84px;height:55px;transform:translateX(-50%);background:linear-gradient(to top,rgba(79,134,240,.6),rgba(79,134,240,0));clip-path:polygon(50% 100%,0 0,100% 0)}
 .marcheur .pt{position:absolute;left:50%;top:50%;width:20px;height:20px;margin:-10px 0 0 -10px;border-radius:50%;background:#4F86F0;border:3px solid #fff;box-shadow:0 2px 6px rgba(0,0,0,.35)}
 #prom.en-sv .prom-vide{padding-bottom:4px}
+
+/* ---------------------------------------------------------------- la carte « nuit et néon » (16 nov. 2026)
+   Le prototype n° 3 choisi par Gautier (docs/CARTES-NEON.md) : la vue 3D sur toute la carte, un cadre orné à la couleur
+   de la rareté, l'adresse sur des plaques de néon, un reflet arc-en-ciel qui suit l'inclinaison (--mx, --my, posés par le
+   jeu sur la carte en main). Pas de mix-blend-mode (fluidité de l'ouverture du pack, bible § 11). */
+.cl.neon{color:#EAF2FF;background:#050818}
+.cl.neon .cl-vue{left:0;right:0;top:0;width:100%;height:100%;z-index:1}
+.cl.neon .cl-holo,.cl.neon .cl-grain,.cl.neon .cl-rayons{position:absolute;inset:0;z-index:2;pointer-events:none}
+.cl.neon .cl-holo{background-image:linear-gradient(115deg,rgba(255,45,138,0) 40%,rgba(255,45,138,.6) 44%,rgba(255,212,0,.6) 47.5%,rgba(34,255,176,.6) 50%,rgba(34,184,255,.6) 52.5%,rgba(160,45,255,.6) 56%,rgba(160,45,255,0) 60%);
+  background-size:260% 260%;background-position:var(--mx,34%) var(--my,30%);opacity:.15}
+.cl.neon.r2 .cl-holo{opacity:.18}.cl.neon.r3 .cl-holo{opacity:.21}.cl.neon.r4 .cl-holo{opacity:.24}.cl.neon.r5 .cl-holo{opacity:.27}.cl.neon.r6 .cl-holo{opacity:.31}
+.cl.neon .cl-grain{background-image:repeating-linear-gradient(115deg,rgba(255,45,138,.5) 0 3%,rgba(255,212,0,.5) 3% 6%,rgba(34,255,176,.5) 6% 9%,rgba(34,184,255,.5) 9% 12%,rgba(160,45,255,.5) 12% 15%);background-size:300% 300%;background-position:var(--hx,50%) var(--hy,50%);opacity:.05}
+.cl.neon .cl-rayons{display:none}
+.cl.neon .cl-cadre{z-index:3}
+.cl.neon .cn1{fill:none;stroke:var(--c1);stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
+.cl.neon .cn2{fill:none;stroke:var(--c2);stroke-width:1.2;stroke-linecap:round}
+.cl.neon .cn1.bord{stroke-width:2.6}.cl.neon .cn2.halo{stroke-width:9;opacity:.28}.cl.neon .cn2.fin{stroke-width:1.15}.cl.neon .cn2.gros{stroke-width:3.4}
+.cl.neon .cp1{fill:var(--c1)}.cl.neon .cp1.couronne{stroke:var(--c2);stroke-width:1}
+.cl.neon .cl-rar{top:20px;left:0;right:0;z-index:4;display:flex;justify-content:center;padding-left:0;text-shadow:none}
+.cl.neon .cl-rar::before,.cl.neon .cl-rar::after{display:none}
+.cl.neon .cl-rar span{font-family:var(--panneau);font-weight:700;font-size:13px;letter-spacing:.26em;padding:.16em .62em .2em .88em;text-transform:uppercase;color:#fff;border:1.5px solid var(--c1);border-radius:999px;
+  background:rgba(5,8,24,.66);box-shadow:0 0 9px var(--c2),inset 0 0 7px var(--c2);text-shadow:0 0 7px var(--c2)}
+.cl.neon .cl-nom{top:auto;bottom:22px;left:14px;right:14px;z-index:4;display:flex;align-items:stretch;justify-content:center;gap:5px}
+.plaque-neon{font-family:var(--panneau);font-weight:700;color:#fff;text-transform:uppercase;border:2px solid var(--c1);border-radius:8px;background:rgba(5,8,24,.7);
+  box-shadow:0 0 10px var(--c2),0 0 22px var(--c2),inset 0 0 9px var(--c2);text-shadow:0 0 6px var(--c1),0 0 14px var(--c2);
+  display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;line-height:1.04;padding:5px 11px 6px;min-width:0;overflow-wrap:anywhere}
+.plaque-neon.num{font-size:27px;padding:2px 9px 3px;flex:0 0 auto}
+.plaque-neon.voie{font-size:18.5px;letter-spacing:.03em}
+.plaque-neon.voie.long{font-size:15px}.plaque-neon.voie.tres-long{font-size:12.5px}
+.plaque-neon small{display:block;font-family:var(--texte);font-weight:800;font-size:8.6px;letter-spacing:.15em;color:#EAF2FF;text-shadow:0 0 6px var(--c2);margin-bottom:2px}
+.c3d.materialise .cl.neon .cl-cadre{opacity:0;animation:cl-apparait .7s ease-out .5s forwards}
+/* les chiffres, sous la carte ouverte en grand */
+.cl-chiffres{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px;max-width:340px;margin:0 auto 12px}
+.cl-chiffres > div{display:flex;flex-direction:column;align-items:center;gap:2px;padding:8px 2px;border-radius:12px;background:#0B1230;border:1.5px solid #1D2A63;min-width:0}
+.cl-chiffres b{font-family:var(--panneau);font-weight:700;font-size:19px;line-height:1.05;color:#fff;white-space:nowrap}
+.cl-chiffres b .pc{width:15px;height:15px;vertical-align:-2px}
+.cl-chiffres b.etoiles{letter-spacing:.1em;color:#FFD98A}.cl-chiffres b.etoiles span{color:#3A4A8C}
+.cl-chiffres i{font-style:normal;font-weight:800;font-size:9.5px;letter-spacing:.08em;text-transform:uppercase;color:#B9C6F2;text-align:center}
+.cl-grand-in{box-shadow:0 16px 34px rgba(5,11,30,.55),0 0 26px rgba(61,139,255,.25)}
