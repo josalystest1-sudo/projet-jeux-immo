@@ -92,6 +92,7 @@ const VERSION='__VERSION__';
 <script src="src/maquettes.js"></script>
 <script src="src/carte_lieu.js"></script>
 <script src="src/dos_carte.js"></script>
+<script src="src/booster.js"></script>
 <script src="src/regles/pseudo.js"></script>
 <script src="src/icones.js"></script>
 <script src="https://unpkg.com/@supabase/supabase-js@2.118.0/dist/umd/supabase.js"></script>
@@ -1608,48 +1609,50 @@ function texRayon(){ const c=document.createElement('canvas'); c.width=64; c.hei
   g.globalCompositeOperation='destination-in'; const h=g.createLinearGradient(0,0,64,0); h.addColorStop(0,'rgba(0,0,0,0)'); h.addColorStop(0.5,'rgba(0,0,0,1)'); h.addColorStop(1,'rgba(0,0,0,0)'); g.fillStyle=h; g.fillRect(0,0,64,256);
   const t=new THREE.CanvasTexture(c); t.encoding=THREE.sRGBEncoding; return t; }
 function makeRough(){ const S=256; const c=document.createElement('canvas'); c.width=S; c.height=S; const g=c.getContext('2d'); const img=g.createImageData(S,S); const d=img.data; for(let i=0;i<S*S;i++){ const v=150+Math.random()*60; d[i*4]=d[i*4+1]=d[i*4+2]=v; d[i*4+3]=255; } g.putImageData(img,0,0); const t=new THREE.CanvasTexture(c); t.wrapS=t.wrapT=THREE.RepeatWrapping; t.repeat.set(3,3); return t; }
+// les lumières de la scène du pack : faibles, le booster brille de lui-même (Gautier, 16 nov. : « le booster brille trop »)
+const LUM_PACK={ cle:30, bleue:5, doree:4 };
 function initGL(){ const cv=document.getElementById('pkgl'); const r=new THREE.WebGLRenderer({canvas:cv, antialias:true, alpha:false}); r.setPixelRatio(Math.min(1.5,devicePixelRatio)); r.setSize(cv.clientWidth, cv.clientHeight, false);
   r.outputEncoding=THREE.sRGBEncoding; r.toneMapping=THREE.ACESFilmicToneMapping; r.toneMappingExposure=1.0; r.physicallyCorrectLights=true;
   const sc=new THREE.Scene(); sc.background=fondScene(); const cam=new THREE.PerspectiveCamera(32, cv.clientWidth/cv.clientHeight, 0.1, 100); cam.position.set(0,0.1,10.2);
   // environnement de studio généré (reflets) : aucun fichier
   const pm=new THREE.PMREMGenerator(r); sc.environment=pm.fromScene(new THREE.RoomEnvironment(), 0.04).texture;
-  const key=new THREE.SpotLight(0xfff2dd, 380, 40, Math.PI/5, 0.5); key.position.set(4,6,8); sc.add(key);
-  const rim=new THREE.PointLight(0x7fa6ff, 200, 30); rim.position.set(-5,2,-3); sc.add(rim);
-  const warm=new THREE.PointLight(0xffd65a, 150, 30); warm.position.set(-3,-2,6); sc.add(warm);
+  const key=new THREE.SpotLight(0xfff2dd, LUM_PACK.cle, 40, Math.PI/5, 0.5); key.position.set(4,6,8); sc.add(key);
+  const rim=new THREE.PointLight(0x7fa6ff, LUM_PACK.bleue, 30); rim.position.set(-5,2,-3); sc.add(rim);
+  const warm=new THREE.PointLight(0xffd65a, LUM_PACK.doree, 30); warm.position.set(-3,-2,6); sc.add(warm);
   // la pochette : un sachet métallisé bombé (refonte du 4 nov. : avant, une boîte), soudé en bas et en haut par des bandes
   // dentelées ; le haut, au-dessus de la ligne de déchirure, est une pièce à part qui s'arrache (pivot, poserCharniere)
-  const art=makeArt(), dos=makeArtDos(), nrm=makeNormalSachet(), epaisseur=makeEpaisseurHolo();
-  // le foil (6 nov., Gautier : « holo partout, arc-en-ciel franc qui bouge avec l'inclinaison ») : film irisé à fond, dont
-  // l'épaisseur varie sur le sachet (makeEpaisseurHolo), vernis plus présent, froissé plus discret pour ne pas hacher l'arc-en-ciel
-  const matiere=(t,iris)=>new THREE.MeshPhysicalMaterial({ map:t.couleur, metalnessMap:t.metal, roughnessMap:t.metal, metalness:1, roughness:1, normalMap:nrm, normalScale:new THREE.Vector2(0.35,0.35),
-    clearcoat:0.4, clearcoatRoughness:0.25, iridescence:iris, iridescenceMap:t.iris, iridescenceIOR:1.35, iridescenceThicknessRange:[220,640], iridescenceThicknessMap:epaisseur, envMapIntensity:1.35 });
-  const recto=matiere(art,0.8), verso=matiere(dos,0.45),
-    pail=new THREE.MeshBasicMaterial({ map:makePaillettes(), transparent:true, opacity:0.2, blending:THREE.AdditiveBlending, depthWrite:false, polygonOffset:true, polygonOffsetFactor:-1, polygonOffsetUnits:-2 }), dedans=new THREE.MeshStandardMaterial({ color:0x0a1024, roughness:0.55, metalness:0.5, side:THREE.BackSide, polygonOffset:true, polygonOffsetFactor:2, polygonOffsetUnits:6 });
+  // le booster « nuit et néon » (16 nov., src/booster.js) : un sachet holographique, le nom en enseigne de néon ; le booster du jour
+  // porte une ligne de toits, le payé une tour Eiffel d'or. (Avant : dessinPochette, un sachet de métal bleu et or.)
+  const habit=Booster.habiller(THREE, PACK_PREMIUM ? 'paye' : 'jour', 1-(SACHET.dech-SACHET.bas)/(SACHET.haut-SACHET.bas), SACHET.soudure/(SACHET.haut-SACHET.bas)*1.25);
+  const recto=habit.recto, verso=habit.verso,
+    pail=new THREE.MeshBasicMaterial({ visible:false, transparent:true, opacity:0, blending:THREE.AdditiveBlending, depthWrite:false, polygonOffset:true, polygonOffsetFactor:-1, polygonOffsetUnits:-2 }), dedans=new THREE.MeshStandardMaterial({ color:0x0a1024, roughness:0.55, metalness:0.5, side:THREE.BackSide, polygonOffset:true, polygonOffsetFactor:2, polygonOffsetUnits:6 });
   const pack=new THREE.Group();
-  const morceau=(y0,y1)=>{ const g=new THREE.Group(), a=geoSachet(y0,y1,false), b=geoSachet(y0,y1,true); g.add(new THREE.Mesh(a,recto), new THREE.Mesh(b,verso), new THREE.Mesh(a,dedans), new THREE.Mesh(b,dedans), new THREE.Mesh(a,pail)); return g; };
+  const morceau=(y0,y1)=>{ const g=new THREE.Group(), a=geoSachet(y0,y1,false), b=geoSachet(y0,y1,true); g.add(new THREE.Mesh(a,recto), new THREE.Mesh(b,verso), new THREE.Mesh(a,dedans), new THREE.Mesh(b,dedans)); g.userData.geos=[a,b]; return g; };
   const body=morceau(SACHET.bas, SACHET.dech); pack.add(body);
-  const strip=morceau(SACHET.dech, SACHET.haut);
+  const strip=morceau(SACHET.dech, SACHET.haut); for(const geo of strip.userData.geos) geo.userData.repos=geo.attributes.position.array.slice();   // (la languette s'enroule : Booster.enrouler)
+  // la lumière qui sort par l'ouverture, derrière la languette : on ne la voit que là où elle est décollée
+  const lueur=new THREE.Mesh(new THREE.PlaneGeometry(SACHET.l*0.94, 0.08), new THREE.MeshBasicMaterial({ color:habit.eclair, transparent:true })); lueur.position.set(0, SACHET.dech+0.04, 0); lueur.visible=false; pack.add(lueur);
   // le haut se déchire depuis le côté où le doigt commence : il tourne autour d'une charnière à l'autre bout (poserCharniere)
   const pivot=new THREE.Group(); pivot.position.set(1.15,SACHET.dech,0); strip.position.set(-1.15,-SACHET.dech,0); pivot.add(strip); pack.add(pivot);
   // l'étincelle au point de déchirure, et de petits éclats qui en jaillissent
-  const spark=new THREE.Sprite(new THREE.SpriteMaterial({ map:texEtincelle(), color:0xfff2b0, transparent:true, opacity:0, blending:THREE.AdditiveBlending, depthWrite:false })); spark.scale.set(0.8,0.8,1); spark.position.set(-1.15,1.17,0.24); pack.add(spark);
+  const spark=new THREE.Sprite(new THREE.SpriteMaterial({ map:texEtincelle(), color:habit.eclair, transparent:true, opacity:0, blending:THREE.AdditiveBlending, depthWrite:false })); spark.scale.set(0.8,0.8,1); spark.position.set(-1.15,1.17,0.24); pack.add(spark);
   const M=60, eg=new THREE.BufferGeometry(), epos=new Float32Array(M*3), evie=[]; for(let i=0;i<M;i++){ epos[i*3+1]=-99; evie.push({ age:9, x:0, y:0, vx:0, vy:0 }); } eg.setAttribute('position', new THREE.BufferAttribute(epos,3));
-  const eclatsD=new THREE.Points(eg, new THREE.PointsMaterial({ color:0xffe08a, size:0.11, transparent:true, opacity:0.95, blending:THREE.AdditiveBlending, depthWrite:false })); pack.add(eclatsD);
+  const eclatsD=new THREE.Points(eg, new THREE.PointsMaterial({ color:habit.eclair, size:0.11, transparent:true, opacity:0.95, blending:THREE.AdditiveBlending, depthWrite:false })); pack.add(eclatsD);
   // la ligne de déchirure : des tirets qui épousent le bombé
   { const N=46, pos=[], idx=[]; for(let i=0;i<=N;i++){ const x=-1.15+2.3*i/N, z=bombeSachet(x,SACHET.dech)+0.004; pos.push(x,SACHET.dech-0.011,z, x,SACHET.dech+0.011,z); if(i<N && i%2===0){ const a=i*2; idx.push(a,a+2,a+1, a+1,a+2,a+3); } }
     const dg=new THREE.BufferGeometry(); dg.setAttribute('position', new THREE.Float32BufferAttribute(pos,3)); dg.setIndex(idx);
     pack.add(new THREE.Mesh(dg, new THREE.MeshBasicMaterial({ color:0xfff1c9, transparent:true, opacity:0.85, side:THREE.DoubleSide }))); }
   // le rayon de lumière de l'ouverture (animGL, quand la bande est arrachée) : un plan vertical en lumière additive, posé
   // sur la ligne d'ouverture, qui s'étire vers le haut
-  const rayon=new THREE.Mesh(new THREE.PlaneGeometry(1.3,4.5).translate(0,2.25,0), new THREE.MeshBasicMaterial({ map:texRayon(), color:0xfff1c9, transparent:true, opacity:0, blending:THREE.AdditiveBlending, depthWrite:false, side:THREE.DoubleSide }));
+  const rayon=new THREE.Mesh(new THREE.PlaneGeometry(1.3,4.5).translate(0,2.25,0), new THREE.MeshBasicMaterial({ map:texRayon(), color:habit.eclair, transparent:true, opacity:0, blending:THREE.AdditiveBlending, depthWrite:false, side:THREE.DoubleSide }));
   rayon.position.set(0,SACHET.dech,0.3); rayon.scale.y=0.001; pack.add(rayon);
   sc.add(pack);
   const N=260; const pg=new THREE.BufferGeometry(); const pos=new Float32Array(N*3); const vel=[]; for(let i=0;i<N;i++){ pos[i*3]=0; pos[i*3+1]=1.4; pos[i*3+2]=0; vel.push([ (Math.random()-.5)*4, Math.random()*4+1, (Math.random()-.5)*3 ]); }
   pg.setAttribute('position', new THREE.BufferAttribute(pos,3)); const parts=new THREE.Points(pg, new THREE.PointsMaterial({color:0xffe08a, size:0.08, transparent:true, opacity:0, blending:THREE.AdditiveBlending, depthWrite:false})); sc.add(parts);
   // bloom
-  const composer=new THREE.EffectComposer(r); composer.addPass(new THREE.RenderPass(sc,cam)); const bloom=new THREE.UnrealBloomPass(new THREE.Vector2(cv.clientWidth/2,cv.clientHeight/2), 0.35, 0.5, 0.92); composer.addPass(bloom);
-  Object.assign(GL,{r,scene:sc,cam,pack,strip,pivot,spark,eclatsD,evie,parts,vel,key,rim,warm,pail,rayon,rmax:null,composer,bloom,uni:{uReady:{value:0}},t0:performance.now(),torn:false,tilt:{x:0,y:0},target:{x:0,y:0},tornAt:0,
-    dech:{ p:0, cible:0, sens:1, actif:false, pas:0 }, tPrec:performance.now()});
+  const composer=new THREE.EffectComposer(r); composer.addPass(new THREE.RenderPass(sc,cam)); const bloom=new THREE.UnrealBloomPass(new THREE.Vector2(cv.clientWidth/2,cv.clientHeight/2), 0.22, 0.3, 0.9); composer.addPass(bloom);
+  Object.assign(GL,{r,scene:sc,cam,pack,strip,pivot,lueur,habit,enroule:null,spark,eclatsD,evie,parts,vel,key,rim,warm,pail,rayon,rmax:null,composer,bloom,uni:{uReady:{value:0}},t0:performance.now(),torn:false,tilt:{x:0,y:0},target:{x:0,y:0},tornAt:0,
+    dech:{ p:0, cible:0, sens:1, actif:false, pas:0, leve:1, leveCible:1 }, tPrec:performance.now()});
   cancelAnimationFrame(GL.raf); animGL(); }
 function animGL(){ GL.raf=requestAnimationFrame(animGL); const g=GL; if(!g.r) return; const t=(performance.now()-g.t0)/1000;
   if(g.cam){ const z=document.body.classList.contains('vitrine') ? 13.4*Math.min(1.35, Math.max(1, 740/innerHeight)) : 10.2; const y=document.body.classList.contains('vitrine') ? -0.3 : 0.1; if(Math.abs(g.cam.position.z-z)>0.01 || Math.abs(g.cam.position.y-y)>0.01){ g.cam.position.z+=(z-g.cam.position.z)*0.12; g.cam.position.y+=(y-g.cam.position.y)*0.12; } }   // (l'accueil : src/accueil.js)
@@ -1663,18 +1666,22 @@ function animGL(){ GL.raf=requestAnimationFrame(animGL); const g=GL; if(!g.r) re
   g.rim.position.set(Math.cos(t*1.6)*5, 2+Math.sin(t*0.9)*1.5, Math.sin(t*1.6)*4); g.warm.position.set(-Math.cos(t*1.3)*4.5, -1.5+Math.cos(t*0.8)*1.2, 3+Math.sin(t*1.3)*3);
   // les paillettes scintillent quand le sachet est de biais, et une Épique ou mieux dans le pack fait pulser la lumière
   if(packCards && g.rmax==null){ g.rmax=Math.max(1, ...packCards.map(c=>rarete(c))); if(g.rmax>=3){ g.eclatsD.material.color.set(COULEUR_RARETE[g.rmax]); g.rayon.material.color.set(COULEUR_RARETE[g.rmax]); } }
-  const biais=Math.min(1, Math.abs(g.pack.rotation.y)/0.35+Math.abs(g.pack.rotation.x)/0.3); g.pail.opacity=0.06+0.42*biais*(0.75+0.25*Math.sin(t*7.3));
-  const pouls=(g.rmax>=4 && !g.torn) ? 0.5+0.5*Math.sin(t*2.6) : 0; g.key.intensity=380+260*pouls;
-  g.bloom.strength = 0.3 + 0.15*g.uni.uReady.value*(0.5+0.5*Math.sin(t*2.2)) + 0.2*pouls;
+  const biais=Math.min(1, Math.abs(g.pack.rotation.y)/0.35+Math.abs(g.pack.rotation.x)/0.3); 
+  const pouls=(g.rmax>=4 && !g.torn) ? 0.5+0.5*Math.sin(t*2.6) : 0; g.key.intensity=LUM_PACK.cle*(1+0.7*pouls);
+  g.bloom.strength = 0.2 + 0.06*g.uni.uReady.value*(0.5+0.5*Math.sin(t*2.2)) + 0.14*pouls;
   const maintenant=performance.now(), pasT=Math.min(0.05,(maintenant-g.tPrec)/1000); g.tPrec=maintenant; const d=g.dech;
   if(!g.torn){ d.p+=(d.cible-d.p)*(d.actif ? 0.35 : 0.16); if(d.p<0.001) d.p=0;
     // le rabat se soulève depuis le côté du doigt ; l'étincelle suit le point de déchirure
-    g.pivot.rotation.z=-d.sens*d.p*0.55; g.pivot.rotation.x=d.p*0.45;   // vers le joueur, comme une languette qu'on tire
+    // la languette se décolle derrière le doigt, le long d'une courbe, plus haut quand le doigt monte (Gautier, 16 nov. : « comme
+    // Pokémon Pocket, plutôt qu'un trait droit et sec ») ; les formes ne sont recalculées que si quelque chose a bougé
+    d.leve+=(d.leveCible-d.leve)*0.25; { const cle=Math.round(d.p*500)+':'+d.sens+':'+Math.round(d.leve*40); if(cle!==g.enroule){ g.enroule=cle; Booster.enrouler(g.strip.userData.geos, d.p, d.sens, d.leve, SACHET.l, SACHET.dech); } }
+    g.lueur.visible=d.p>0.01; g.lueur.material.opacity=0.75+0.25*Math.sin(t*14);
     const xd=-1.15*d.sens+2.3*d.sens*d.p; g.spark.position.x=xd;
     g.spark.material.opacity = d.actif && d.p>0.02 ? 0.75+0.25*Math.sin(t*38) : Math.max(0, g.spark.material.opacity-0.08);
     if(d.actif && d.cible>d.p+0.004) eclatsDechirure(g, xd, 3); }
   avancerEclats(g, pasT);
-  if(g.torn){ const dt=(performance.now()-g.tornAt)/1000, s0=d.sens; g.pivot.position.y=1.17+dt*5; g.pivot.position.x=1.15*s0+s0*dt*1.4; g.pivot.rotation.z=-s0*(0.55+dt*2.6); g.pivot.rotation.x=0.45+dt*2.4;
+  if(g.torn){ const dt=(performance.now()-g.tornAt)/1000, s0=d.sens; if(g.enroule!=='fin'){ g.enroule='fin'; Booster.enrouler(g.strip.userData.geos, 1, s0, d.leve, SACHET.l, SACHET.dech); }
+    g.pivot.position.y=1.17+dt*5; g.pivot.position.x=1.15*s0+s0*dt*1.4; g.pivot.position.z=dt*1.2; g.pivot.rotation.z=-s0*dt*2.6; g.pivot.rotation.x=-dt*1.6; g.lueur.visible=dt<0.9; g.lueur.material.opacity=Math.max(0,1-dt/0.9);
     g.spark.material.opacity=Math.max(0,0.9-dt*2.5);
     // le rayon de lumière jaillit de l'ouverture (0,5 s), puis s'éteint
     { const k=Math.min(1,dt*2.2); g.rayon.scale.y=Math.max(0.001,k); g.rayon.material.opacity=0.9*k*Math.max(0,1-Math.max(0,dt-0.6)/1.2); }
@@ -1684,9 +1691,9 @@ function animGL(){ GL.raf=requestAnimationFrame(animGL); const g=GL; if(!g.r) re
       if(SORTIE.clip && SORTIE.ecran) clipSortie(SORTIE.ecran.top+(1-w.y)/2*SORTIE.ecran.height);
       // le sachet est sorti de l'écran par le bas : on l'efface tout de suite (le moteur 3D ne coûte plus rien)
       if(w.y<-1.06){ if(SORTIE.clip) clipSortie(1e9); document.getElementById('pkgl').style.display='none'; disposeGL(); return; } }
-    const a=g.parts.geometry.attributes.position; for(let i=0;i<a.count;i++){ const v=g.vel[i]; a.setXYZ(i, v[0]*dt, 1.4+v[1]*dt-4.5*dt*dt, v[2]*dt); } a.needsUpdate=true; g.parts.material.opacity=Math.max(0,1-dt*0.9); g.bloom.strength=0.7; }
+    const a=g.parts.geometry.attributes.position; for(let i=0;i<a.count;i++){ const v=g.vel[i]; a.setXYZ(i, v[0]*dt, 1.4+v[1]*dt-4.5*dt*dt, v[2]*dt); } a.needsUpdate=true; g.parts.material.opacity=Math.max(0,1-dt*0.9); g.bloom.strength=0.5; }
   g.composer.render(); }
-function disposeGL(){ cancelAnimationFrame(GL.raf); sonDechirureFin(); if(GL.r){ GL.r.dispose(); GL.r=null; } }
+function disposeGL(){ cancelAnimationFrame(GL.raf); sonDechirureFin(); if(GL.habit){ Booster.liberer(GL.habit.recto); Booster.liberer(GL.habit.verso); GL.habit=null; } if(GL.r){ GL.r.dispose(); GL.r=null; } }
 // la déchirure : charnière du côté opposé au doigt, étincelle (texture dessinée), éclats qui jaillissent puis retombent
 function poserCharniere(sens){ if(!GL.pivot) return; GL.pivot.position.x=1.15*sens; GL.strip.position.x=-1.15*sens; }
 function texEtincelle(){ const c=document.createElement('canvas'); c.width=c.height=128; const g=c.getContext('2d');
@@ -1714,6 +1721,7 @@ function askGyro(){ if(gyroOn) return; const D=window.DeviceOrientationEvent; co
     if(!dech.actif && Math.abs(dx)>12){ dech.actif=true; dech.sens=dx>0?1:-1; dech.pas=0; poserCharniere(dech.sens); GL.target.x=0; GL.target.y=0; sonDechirureDebut(); document.getElementById('pkhint').textContent='Continue jusqu’au bout !'; }
     if(!dech.actif) return;
     const largeur=Math.max(120, Math.abs(bords.d.x-bords.g.x)*0.8); dech.cible=Math.max(dech.cible, Math.min(1, dech.sens*dx/largeur));
+    dech.leveCible=0.75+Math.max(0, Math.min(1.2, ((bords.g.y+bords.d.y)/2-e.clientY)/(innerHeight*0.1)))*0.75;
     const t=performance.now(), vitesse=Math.abs(e.clientX-dernier.x)/Math.max(1,t-dernier.t); dernier={ x:e.clientX, t }; sonDechirureVitesse(vitesse);
     const pas=Math.floor(dech.cible*5); if(pas>dech.pas){ dech.pas=pas; vibrer(8); }
     if(dech.cible>=0.85){ x0=null; dechirer(); } });
