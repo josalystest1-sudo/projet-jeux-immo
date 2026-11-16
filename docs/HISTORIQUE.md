@@ -394,6 +394,7 @@ Puis une PR par étape, fusionnée en squash :
 | #202 | 16/11 | Le dos bleu et or dans le jeu (plaque de rue ornée, ville de nuit, anneaux qui tournent) ; corrigé : la bordure qui allait et venait sur les cartes |
 | #203 | 16/11 | La roulette de la révélation en bleu et or, une roulette des villes après le département ; corrigé : l'éclair de la carte du dessous sur la carte en main |
 | #204 | 16/11 | La roulette des villes sur tout le département, découpé en ses communes (contours embarqués, `data/communes/`) |
+| #205 | 16/11 | La pile de cartes plus claire : dos éclairé, lueur derrière la pile (retour de Gautier sur téléphone) |
 | #200 | 16/11 | Prototype du booster validé par Gautier : brillance moyenne fixée, boutons de réglage retirés |
 | #199 | 16/11 | Prototype du booster : une ligne de toits en néon sur le booster du jour, à la place de la maison |
 | #198 | 16/11 | Prototype du booster : moins brillant, lettres cernées, trois niveaux de brillance à choisir |
