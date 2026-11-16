@@ -44,7 +44,6 @@ a{color:#9FE8FF}
 <p class="sous" id="aide">Penche ton téléphone : le sachet change de couleur. Pose le doigt en haut du sachet et glisse en travers : la languette se décolle derrière lui.</p>
 <div class="rangee" id="sortes"><button data-s="jour" class="on">Booster du jour</button><button data-s="paye">Booster payé</button></div>
 <div class="scene" id="scene"><canvas id="vue" role="img" aria-label="Le booster en 3D"></canvas><div class="trace" id="trace"></div><div class="eclair" id="eclair"></div><div class="attente" id="attente">Préparation du booster…</div></div>
-<div class="rangee" id="brillances"><button data-b="douce">Brillance douce</button><button data-b="moyenne" class="on">Moyenne</button><button data-b="forte">Forte</button></div>
 <div class="rangee"><button id="rejouer">Recommencer</button><button id="incliner" hidden>Activer l’inclinaison</button></div>
 <p class="note">Après la sortie des cartes, chacune se révèle d’un toucher, comme sur <a href="cartes.html?v=199&amp;c=orne&amp;d=or&amp;dos">la page des cartes</a>.</p>
 
@@ -288,7 +287,7 @@ a{color:#9FE8FF}
   function remettre() { etat = 'vitrine'; coupe = 0; doigt = null; lueur.visible = false; if (languette.children.length) enrouler(0, 1, 1); charniere.rotation.set(0, 0, 0); charniere.position.set(L / 2, YC, 0); sachet.position.set(0, 0, 0); for (const m of mats) m.opacity = 1; for (const c of cartes.children) { c.visible = false; c.position.y = -0.25; c.rotation.z = 0; c.scale.setScalar(1); }
     $('eclair').classList.remove('on'); $('trace').style.opacity = 0; $('aide').textContent = 'Penche ton téléphone : le sachet change de couleur. Pose le doigt en haut du sachet et glisse en travers : la languette se décolle derrière lui.'; }
   $('rejouer').addEventListener('click', remettre);
-  $('brillances').addEventListener('click', (e) => { const b = e.target.closest('button'); if (b) { brillance = b.dataset.b; appliquerBrillance(); } });
+  // (brillance « moyenne » gardée par Gautier le 16 nov. ; les boutons sont retirés, ?b=douce|forte reste pour comparer)
   $('sortes').addEventListener('click', (e) => { const b = e.target.closest('button'); if (!b) return; sorte = b.dataset.s; for (const x of document.querySelectorAll('#sortes button')) x.classList.toggle('on', x === b); construire(); remettre(); });
 
   // ---------------------------------------------------------------- la boucle
