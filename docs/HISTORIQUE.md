@@ -426,6 +426,7 @@ Puis une PR par étape, fusionnée en squash :
 | #234 | 18/11 | Plus « jeu » (6) : la ville en bleu nuit ; bâtiments par genre (maison, immeuble, bureaux, hangar, annexe), fenêtres variées, vitrines des commerces |
 | #235 | 18/11 | Les fenêtres et les vitrines de la carte seulement de près (zoom 16,6) |
 | #236 | 18/11 | La carte au centre (1) : le jeu s'ouvre sur la vraie carte, « comme Pokémon GO » ; boutons ronds posés sur la carte ; une pièce à toucher sur mes lieux ; le tour de mes lieux |
+| #237 | 18/11 | La carte au centre (2) : recherche et filtres complets dans la collection (nom, région, département, commune, rareté, bâtiment) ; le tour de mes lieux suit les filtres |
 | #200 | 16/11 | Prototype du booster validé par Gautier : brillance moyenne fixée, boutons de réglage retirés |
 | #199 | 16/11 | Prototype du booster : une ligne de toits en néon sur le booster du jour, à la place de la maison |
 | #198 | 16/11 | Prototype du booster : moins brillant, lettres cernées, trois niveaux de brillance à choisir |

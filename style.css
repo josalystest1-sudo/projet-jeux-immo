@@ -1983,3 +1983,21 @@ body.fiche-ouverte #tour-lieux,body.promenade #tour-lieux,body.promenade .piece-
 #tl-nom b{font-size:13px;font-weight:900;max-width:52vw;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 html.pocket body.booster-la #nav button.centre i{width:52px;height:52px;margin-top:-6px}
 html.pocket body.booster-la #nav button.centre i .ico-svg{width:28px!important;height:28px!important}
+
+/* ===== Retrouver un lieu dans la collection (18 nov.) : recherche et listes déroulantes ===== */
+.coll-cherche{display:flex;align-items:center;gap:8px;height:46px;padding:0 14px;border-radius:14px;background:#fff;border:2px solid var(--trait);margin:0 0 8px}
+.coll-cherche input{flex:1;min-width:0;border:0;background:none;outline:0;font:inherit;font-size:16px;font-weight:800;color:inherit}
+.coll-listes{display:flex;gap:7px;overflow-x:auto;padding:2px 2px 8px;margin:0 -2px;scrollbar-width:none}
+.coll-listes::-webkit-scrollbar{display:none}
+.coll-liste{flex:none;position:relative}
+.coll-liste select{appearance:none;-webkit-appearance:none;border:2px solid var(--trait);background:#fff;color:inherit;border-radius:999px;padding:7px 28px 7px 13px;font:inherit;font-size:13px;font-weight:900;max-width:46vw;text-overflow:ellipsis;cursor:pointer}
+.coll-liste::after{content:"";position:absolute;right:12px;top:50%;width:7px;height:7px;margin-top:-6px;border-right:2px solid currentColor;border-bottom:2px solid currentColor;transform:rotate(45deg);pointer-events:none;opacity:.7}
+.coll-bilan{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:0 2px 10px;font-size:13px;font-weight:800;min-height:34px}
+.coll-bilan span{margin-right:auto}
+.coll-bilan .lien{border:0;background:none;font:inherit;font-weight:900;color:var(--accent);cursor:pointer;padding:6px 2px}
+html.pocket.nuit .coll-cherche,html.pocket.nuit .coll-liste select{background:#0B1437;border-color:rgba(90,168,255,.45);color:#fff}
+html.pocket.nuit .coll-cherche input::placeholder{color:#8FA0CE}
+html.pocket.nuit .coll-liste.on select{border-color:#FFD065;color:#FFD98A;box-shadow:0 0 10px rgba(255,200,80,.3)}
+html.pocket.nuit .coll-liste select option{background:#0B1437;color:#fff}
+html.pocket.nuit .coll-bilan{color:#C9D6F5}
+html.pocket.nuit .coll-bilan .lien{color:#8FC0FF}

@@ -2454,15 +2454,13 @@ function showScreen(name){ vibrer(8); if(window.PROGRESSION && !PROGRESSION.ouve
 document.querySelectorAll('#nav button[data-s]').forEach(b=>b.onclick=()=>showScreen(b.dataset.s));
 document.getElementById('cloche').onclick=()=>showScreen('notifs');
 
-let filtrePatri=0; // 0 = toutes les raretés
 const TRIS = { rarete:['Rareté',(a,b)=>rarete(b)-rarete(a) || valeur(b)-valeur(a)], valeur:['Valeur',(a,b)=>valeur(b)-valeur(a)], loyer:['Loyer',(a,b)=>loyer(b)-loyer(a) || valeur(b)-valeur(a)], commune:['Commune',(a,b)=>communeName(a.citycode,a.city).localeCompare(communeName(b.citycode,b.city),'fr') || rarete(b)-rarete(a)] };
 let triPatri='rarete';
-function changerTri(){ const k=Object.keys(TRIS); triPatri=k[(k.indexOf(triPatri)+1)%k.length]; renderPatrimoine(); }
-function filtrerPatri(r){ filtrePatri = filtrePatri===r ? 0 : r; renderPatrimoine(); }
+function changerTri(){ const k=Object.keys(TRIS); triPatri=k[(k.indexOf(triPatri)+1)%k.length]; renderPatrimoine(); }   // (le bouton montre le tri en cours : tout l'écran se redessine)
+function filtrerPatri(r){ FILTRES.rarete = FILTRES.rarete===r ? 0 : r; renderPatrimoine(); }
 // Mon patrimoine : une collection de cartes (cadre de la couleur de la rareté) ; toucher une carte ouvre son détail
 function renderPatrimoine(){ const el=document.getElementById('s-patrimoine'); const deplies=new Set([...el.querySelectorAll('details[data-k][open]')].map(d=>d.dataset.k)), replies=new Set([...el.querySelectorAll('details[data-k]:not([open])')].map(d=>d.dataset.k));   // (les blocs replies, 18 nov. : la collection d'abord ; on garde ce que le joueur a ouvert ou fermé)
   const tous=Object.values(state.owned); const total=tous.reduce((s,a)=>s+valeur(a),0);
-  const list = filtrePatri ? tous.filter(a=>rarete(a)===filtrePatri) : tous.slice();
   const p=Math.floor(pendingRent());
   let h=`<h1 class="entete">Mon patrimoine ${sceneEntete('patrimoine')}<button class="btn sm clair act" onclick="ouvrirClassements('patrimoine')">🏆 Classements</button></h1><div class="kpis"><div class="kpi"><i>🏘️</i><b>${tous.length}</b><small>lieu${tous.length>1?'x':''}</small></div><div class="kpi"><i>💎</i><b>${nb(total)}<i class="pc"></i></b><small>de valeur</small></div><div class="kpi"><i>📈</i><b style="color:var(--cadre2)">${(v=>(v<0?'−':'+')+nb(Math.abs(v)))(SALAIRE+loyerTotal()-MON.parJour(tous))}</b><small>par jour</small></div></div>`;
   h+=`<div class="card flex"><div><div class="t">🌾 ${p>=1?`<span style="color:var(--cadre2)">+${nb(p)}</span> à récolter`:'Les loyers poussent…'}</div><div class="m">Salaire ${nb(SALAIRE)} + loyers ${nb(loyerTotal())} par jour, stockés 24 h au plus.</div></div>${p>=1?`<button class="btn vert" onclick="recolter({x:event.clientX,y:event.clientY})">Récolter</button>`:''}</div>`;
@@ -2485,14 +2483,47 @@ function renderPatrimoine(){ const el=document.getElementById('s-patrimoine'); c
   if(ventes.length) h+=`<details class="card repli" data-k="ventes"><summary><span class="t">💰 En vente (${ventes.length})</span></summary>${ventes.map(a=>`<div class="rank"><span class="who" onclick="ouvrirFicheLieu('${a.id}')">${echapper(a.label)}</span><button class="prix-vente" onclick="mettreEnVente('${a.id}')" aria-label="Changer le prix">${nb(prixDemande(a))}<i class="pc"></i> ✏️</button><button class="btn sm" onclick="retirerVente('${a.id}')">Retirer</button></div>`).join('')}</details>`;
   if(!tous.length){ h+=`<div class="card vide"><div class="ico">🎁</div><div class="t">Ta collection est vide</div><div class="m">Ton pack du jour contient ${BOU.cartesDuJour(state.pass, now(), premierPack())} lieux de toute la France.</div>${packDispo()?`<button class="btn large" onclick="ouvrirPack()">Ouvrir mon pack</button>`:`<button class="btn bleu large" onclick="showScreen('carte')">Explorer la carte</button>`}</div>`; el.innerHTML=h; return; }
   const counts={}; tous.forEach(a=>{ counts[rarete(a)]=(counts[rarete(a)]||0)+1; });
-  h+=`<h2 class="section flex">Ma collection <button class="btn clair sm" onclick="changerTri()">↕︎ ${TRIS[triPatri][0]}</button></h2><div class="filtres"><button class="filtre${filtrePatri?'':' on'}" onclick="filtrerPatri(0)">Toutes <b>${tous.length}</b></button>${[6,5,4,3,2,1].map(r=>`<button class="filtre r${r}${filtrePatri===r?' on':''}" onclick="filtrerPatri(${r})"><i class="dot"></i>${RARETES[r]} <b>${counts[r]||0}</b></button>`).join('')}</div>`;
-  if(!list.length) h+=`<div class="card vide"><div class="ico">🔍</div><div class="t">Aucune carte ${RARETES[filtrePatri]}</div><div class="m">${filtrePatri===6?'Les monuments ne sortent pas des packs : ils se gagnent aux enchères':'Elles tombent dans les packs'}.</div></div>`;
-  // la collection : la grille des cartes de lieu (le même badge que dans le pack : plan d'or, maquette de porcelaine qui
-  // tourne, plaque émaillée), à l'échelle de la colonne ; les maquettes ne sont préparées que pour les cartes à l'écran
-  h+=`<div class="collection">`;
-  list.sort(TRIS[triPatri][1]).forEach(a=>{ const lv=a.niveau||0, r=rarete(a);
-    h+=`<div class="ccl r${r}" role="button" data-id="${a.id}" onclick="ouvrirFicheLieu('${a.id}')"><div class="ccl-in">${faceCarte(a, r)}</div>${lv?`<span class="niv">${NIVEAUX[lv].icone}</span>`:''}${a.enVente?'<span class="vente">En vente</span>':''}</div>`; });
-  h+=`</div>`; viderScenesCollection(); el.innerHTML=h; el.querySelectorAll('details[data-k]').forEach(d=>{ if(deplies.has(d.dataset.k)) d.open=true; else if(replies.has(d.dataset.k)) d.open=false; }); brancherCollection(el); }
+  h+=`<h2 class="section flex">Ma collection <button class="btn clair sm" onclick="changerTri()">↕︎ ${TRIS[triPatri][0]}</button></h2>
+    <div class="coll-cherche"><span class="loupe">🔍</span><input id="coll-q" type="search" placeholder="Nom, rue, commune…" autocomplete="off" enterkeyhint="search" value="${echapper(FILTRES.q)}" oninput="FILTRES.q=this.value; rendreCollection()"></div>
+    <div id="coll-filtres"></div><div id="coll-grille"></div>`;
+  viderScenesCollection(); el.innerHTML=h; el.querySelectorAll('details[data-k]').forEach(d=>{ if(deplies.has(d.dataset.k)) d.open=true; else if(replies.has(d.dataset.k)) d.open=false; }); rendreCollection(); }
+// Retrouver un lieu parmi des centaines (18 nov., Gautier : « j'ai plus de 200 adresses », « une option complète de filtres :
+// nom, département, région, commune, rareté, bâtiment amélioré… ») : un champ de recherche et des listes déroulantes qui ne
+// proposent que ce que la collection contient, avec le nombre de lieux. La grille se redessine seule (rendreCollection) :
+// le champ garde le curseur. Le tour de mes lieux, sur la carte, suit les filtres.
+const FILTRES={ q:'', region:'', dep:'', commune:'', rarete:0, bati:'' };
+const sansAccent = t => String(t||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();
+const INFO_LIEU=new Map();   // (gardé : avec des centaines de lieux, chaque filtre le demande pour chacun)
+function infoLieu(a){ const cle=a.id+'|'+a.citycode; let I=INFO_LIEU.get(cle); if(I) return I; const d=depOf(a.citycode); let region=''; if(d) for(const [nom,ds] of Object.entries(REGIONS)) if(ds.includes(d.code)){ region=nom; break; }
+  I={ dep:d ? d.code : '', depNom:d ? d.nom : '', region, commune:communeName(a.citycode, a.city) }; INFO_LIEU.set(cle, I); return I; }
+const BATIS_FILTRE = { sans:['Sans bâtiment', a=>!(a.niveau||0)], avec:['Avec un bâtiment', a=>(a.niveau||0)>0], ameliorable:['À améliorer', a=>(a.niveau||0)<plafond(a)], max:['Au maximum', a=>(a.niveau||0)>=plafond(a) && plafond(a)>0], vente:['En vente', a=>!!a.enVente] };
+function passeFiltres(a, sauf){ const F=FILTRES, I=infoLieu(a);
+  if(sauf!=='region' && F.region && I.region!==F.region) return false; if(sauf!=='dep' && F.dep && I.dep!==F.dep) return false; if(sauf!=='commune' && F.commune && I.commune!==F.commune) return false;
+  if(sauf!=='rarete' && F.rarete && rarete(a)!==F.rarete) return false;
+  if(sauf!=='bati' && F.bati){ const f=BATIS_FILTRE[F.bati]; if(f){ if(!f[1](a)) return false; } else if((a.niveau||0)!==+F.bati.slice(1)) return false; }
+  if(F.q.trim()){ const mots=sansAccent(F.q).split(/\s+/).filter(Boolean), texte=sansAccent([a.label, a.nom, I.commune, I.depNom, I.dep, I.region].join(' ')); if(!mots.every(m=>texte.includes(m))) return false; }
+  return true; }
+const filtresActifs = () => !!(FILTRES.q.trim() || FILTRES.region || FILTRES.dep || FILTRES.commune || FILTRES.rarete || FILTRES.bati);
+const lieuxFiltres = () => Object.values(state.owned).filter(a=>passeFiltres(a)).sort(TRIS[triPatri][1]);
+function poserFiltre(k, v){ FILTRES[k] = k==='rarete' ? +v : v; if(k==='region'){ FILTRES.dep=''; FILTRES.commune=''; } if(k==='dep') FILTRES.commune=''; rendreCollection(); }
+function effacerFiltres(){ Object.assign(FILTRES, { q:'', region:'', dep:'', commune:'', rarete:0, bati:'' }); const q=document.getElementById('coll-q'); if(q) q.value=''; rendreCollection(); }
+function rendreCollection(){ const el=document.getElementById('s-patrimoine'), zf=document.getElementById('coll-filtres'), zg=document.getElementById('coll-grille'); if(!zf || !zg) return;
+  const tous=Object.values(state.owned), F=FILTRES, list=lieuxFiltres();
+  // chaque liste ne propose que ce qui reste possible avec les autres filtres, avec le nombre de lieux
+  const compter=(cle, de)=>{ const o={}; for(const a of tous) if(passeFiltres(a, cle)){ const v=de(a); if(v!=='' && v!=null) o[v]=(o[v]||0)+1; } return o; };
+  const liste=(cle, titre, o, nom, tri)=>{ const ks=Object.keys(o); if(F[cle] && !ks.includes(String(F[cle]))) ks.push(String(F[cle])); if(ks.length<2 && !F[cle]) return '';
+    ks.sort(tri || ((x,y)=>x.localeCompare(y,'fr')));
+    return `<label class="coll-liste${F[cle]?' on':''}"><select onchange="poserFiltre('${cle}', this.value)" aria-label="${titre}"><option value="">${titre}</option>${ks.map(k=>`<option value="${echapper(k)}"${String(F[cle])===k?' selected':''}>${echapper(nom?nom(k):k)} (${o[k]||0})</option>`).join('')}</select></label>`; };
+  const nomsDep={}; for(const a of tous){ const I=infoLieu(a); if(I.dep) nomsDep[I.dep]=I.depNom; }
+  const oBati={}; for(const a of tous) if(passeFiltres(a,'bati')){ for(const [k,f] of Object.entries(BATIS_FILTRE)) if(f[1](a)) oBati[k]=(oBati[k]||0)+1; const n=a.niveau||0; if(n>0) oBati['n'+n]=(oBati['n'+n]||0)+1; }
+  const ordreBati=['ameliorable','max','avec','sans','vente'], rangBati=k=>k[0]==='n' && !isNaN(+k.slice(1)) ? 10+ +k.slice(1) : ordreBati.indexOf(k);
+  zf.innerHTML=`<div class="coll-listes">${liste('rarete','Rareté', compter('rarete', a=>rarete(a)), k=>RARETES[k], (x,y)=>y-x)}${liste('bati','Bâtiment', oBati, k=>BATIS_FILTRE[k] ? BATIS_FILTRE[k][0] : NIVEAUX[+k.slice(1)].nom, (x,y)=>rangBati(x)-rangBati(y))}${liste('region','Région', compter('region', a=>infoLieu(a).region))}${liste('dep','Département', compter('dep', a=>infoLieu(a).dep), k=>`${k} · ${nomsDep[k]||''}`)}${liste('commune','Commune', compter('commune', a=>infoLieu(a).commune))}</div>
+    <div class="coll-bilan"><span><b>${list.length}</b> lieu${list.length>1?'x':''}${filtresActifs()?` sur ${tous.length}`:''}</span>${filtresActifs()?`<button class="lien" onclick="effacerFiltres()">Tout afficher</button>`:''}${list.length && filtresActifs()?`<button class="btn clair sm" onclick="voirFiltresSurCarte()">🗺️ Les voir sur la carte</button>`:''}</div>`;
+  let h=''; if(!list.length) h=`<div class="card vide"><div class="ico">🔍</div><div class="t">Aucun lieu ne correspond</div><div class="m">Change un filtre, ou affiche tout.</div></div>`;
+  else { h=`<div class="collection">`; list.forEach(a=>{ const lv=a.niveau||0, r=rarete(a);
+    h+=`<div class="ccl r${r}" role="button" data-id="${a.id}" onclick="ouvrirFicheLieu('${a.id}')"><div class="ccl-in">${faceCarte(a, r)}</div>${lv?`<span class="niv">${NIVEAUX[lv].icone}</span>`:''}${a.enVente?'<span class="vente">En vente</span>':''}</div>`; }); h+=`</div>`; }
+  viderScenesCollection(); zg.innerHTML=h; brancherCollection(el); TOUR_CLE=''; TOUR_I=-1; }
+function voirFiltresSurCarte(){ ARRIVEE_FAITE=true; showScreen('carte'); TOUR_I=-1; majMesLieuxCarte(); tourLieux(1); }
 // les maquettes de la collection : créées quand une carte approche de l'écran, libérées quand elle s'en éloigne
 const SCENES_COLL=new Map(); let OBS_COLL=null;
 function viderScenesCollection(){ for(const sc of SCENES_COLL.values()) if(sc && sc.jeter) sc.jeter(); SCENES_COLL.clear(); if(OBS_COLL){ OBS_COLL.disconnect(); OBS_COLL=null; } }
@@ -3049,19 +3080,19 @@ function reduireImageAvatar(fichier){ return new Promise((ok, non)=>{ if(!fichie
 // ils existent toujours, la classe « a-recolter » du body les montre) ; on la touche, les pièces volent vers la bourse.
 // Le tour de mes lieux (#tour-lieux) saute d'un lieu au suivant par allerA.
 const PIECES_CARTE={}; let TOUR_CLE='', TOUR_I=-1;
-const mesLieuxTour = () => Object.values(state.owned).filter(a=>isFinite(a.lon) && isFinite(a.lat));
-function majMesLieuxCarte(){ if(typeof map==='undefined' || !map) return; const l=mesLieuxTour(), cle=l.map(a=>a.id).join('|');
+const mesLieuxTour = () => (typeof filtresActifs==='function' && filtresActifs() ? lieuxFiltres() : Object.values(state.owned)).filter(a=>isFinite(a.lon) && isFinite(a.lat));
+function majMesLieuxCarte(){ if(typeof map==='undefined' || !map) return; const l=Object.values(state.owned).filter(a=>isFinite(a.lon) && isFinite(a.lat)), cle=l.map(a=>a.id).join('|')+'#'+mesLieuxTour().length;   // (les pièces : sur tous mes lieux ; le tour : ceux des filtres)
   if(cle!==TOUR_CLE){ TOUR_CLE=cle; const ids=new Set(l.map(a=>a.id));
     for(const id of Object.keys(PIECES_CARTE)) if(!ids.has(id)){ PIECES_CARTE[id].remove(); delete PIECES_CARTE[id]; }
     for(const a of l) if(!PIECES_CARTE[a.id]){ const el=document.createElement('button'); el.className='piece-carte'; el.setAttribute('aria-label','Récolter'); el.innerHTML='<i class="pc"></i>';
       el.onclick=ev=>{ ev.stopPropagation(); recolter({ x:ev.clientX, y:ev.clientY }); }; PIECES_CARTE[a.id]=new maplibregl.Marker({ element:el, anchor:'bottom', offset:[0,-30] }).setLngLat([a.lon,a.lat]).addTo(map); }
-    if(TOUR_I>=l.length) TOUR_I=l.length-1; majTourLieux(); } }
+    if(TOUR_I>=mesLieuxTour().length) TOUR_I=mesLieuxTour().length-1; majTourLieux(); } }
 function majTourLieux(){ const el=document.getElementById('tour-lieux'), l=mesLieuxTour(); el.hidden=!l.length; if(!l.length) return;
   const a=l[TOUR_I]; document.getElementById('tl-rang').textContent = a ? `${TOUR_I+1} / ${l.length}` : `${l.length}`;
-  document.getElementById('tl-texte').textContent = a ? (a.label||a.nom||'') : (l.length>1 ? 'Mes lieux' : 'Mon lieu'); if(!a) document.getElementById('tl-texte').removeAttribute('data-pas-traduire'); else document.getElementById('tl-texte').setAttribute('data-pas-traduire',''); }
+  document.getElementById('tl-texte').textContent = a ? (a.label||a.nom||'') : (typeof filtresActifs==='function' && filtresActifs() ? 'Lieux filtrés' : (l.length>1 ? 'Mes lieux' : 'Mon lieu')); if(!a) document.getElementById('tl-texte').removeAttribute('data-pas-traduire'); else document.getElementById('tl-texte').setAttribute('data-pas-traduire',''); }
 function tourLieux(pas){ const l=mesLieuxTour(); if(!l.length) return; TOUR_I = TOUR_I<0 ? (pas<0 ? l.length-1 : 0) : (TOUR_I+pas+l.length)%l.length; const a=l[TOUR_I]; majTourLieux(); vibrer(8);
   ARRIVEE_FAITE=true; allerA(a.lon, a.lat, 17.3, null, a.label||a.nom, communeName(a.citycode, a.city)); }
-document.getElementById('tl-avant').onclick=()=>tourLieux(-1); document.getElementById('tl-apres').onclick=()=>tourLieux(1); document.getElementById('tl-nom').onclick=()=>tourLieux(TOUR_I<0 ? 1 : 0);
+document.getElementById('tl-avant').onclick=()=>tourLieux(-1); document.getElementById('tl-apres').onclick=()=>tourLieux(1); document.getElementById('tl-nom').onclick=()=>{ showScreen('patrimoine'); const q=document.getElementById('coll-q'), e=document.getElementById('s-patrimoine'); if(q && e) e.scrollTop=Math.max(0, q.getBoundingClientRect().top - e.getBoundingClientRect().top + e.scrollTop - 70); };   // (jamais scrollIntoView : il ferait défiler toute la page)   // (chercher un lieu précis : les filtres de la collection)
 function refreshTop(){ afficherBourse(dispo()); { const g=document.getElementById('gemmes'); if(g) g.textContent=nb(state.gemmes||0); } document.getElementById('meav').innerHTML=avatarHTML(state.avatar, '🙂'); document.getElementById('mename').textContent=disp(ME); const n=Object.keys(state.owned).length; document.getElementById('count').textContent = `${n} lieu${n>1?'x':''}${MODE_SERVEUR?' · serveur':''}`;
   const p=Math.floor(pendingRent()); document.getElementById('pending').textContent = p>0 ? `+${nb(p)}` : ''; document.body.classList.toggle('a-recolter', p>=1); majMesLieuxCarte();
   const unread=state.notifs.filter(n=>!n.read).length; const c=document.getElementById('cnt-notif'); c.style.display=unread?'block':'none'; c.textContent=unread; refreshPack(); }
