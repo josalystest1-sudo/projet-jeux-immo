@@ -43,7 +43,7 @@
     'Cour, jardin ou voirie': 'Courtyard, garden or road', 'Pas d’adresse': 'No address', 'Rien à posséder ici': 'Nothing to own here',
     'Bac ou liaison maritime': 'Ferry or sea link', 'Route empierrée': 'Gravel road', 'Route à {n} chaussée': 'Single-carriageway road',
     'Route à {n} chaussées': 'Dual-carriageway road', 'Données IGN non chargées (réseau bloqué ?).': 'IGN data not loaded (network blocked?).',
-    'Erreur de style :': 'Style error:', 'Touche un bâtiment': 'Tap a building', 'Mon lieu': 'My place', 'Mes lieux': 'My places', 'Lieu précédent': 'Previous place', 'Lieu suivant': 'Next place',
+    'Erreur de style :': 'Style error:', 'Touche un bâtiment': 'Tap a building', 'Mon lieu': 'My place', 'Mes lieux': 'My places', 'Lieu précédent': 'Previous place', 'Lieu suivant': 'Next place', 'Lieux filtrés': 'Filtered places', 'Nom, rue, commune…': 'Name, street, town…', 'Bâtiment': 'Building', 'Région': 'Region', 'Département': 'Department', 'Sans bâtiment': 'No building', 'Avec un bâtiment': 'With a building', 'À améliorer': 'Can be upgraded', 'Au maximum': 'Maxed out', 'Tout afficher': 'Show all', 'Les voir sur la carte': 'See them on the map', 'Aucun lieu ne correspond': 'No place matches', 'Change un filtre, ou affiche tout.': 'Change a filter, or show all.',
     'Un autre joueur': 'Another player', 'Plusieurs joueurs': 'Several players', 'En vente par un joueur': 'For sale by a player',
 
     // ---------------------------------------------------------------- la fiche d'un lieu
