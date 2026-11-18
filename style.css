@@ -1915,3 +1915,15 @@ details.repli[open]>summary{margin-bottom:8px}
 @keyframes bf-halo{0%{transform:scale(.3);opacity:0}30%{opacity:1}100%{transform:scale(1.25);opacity:.55}}
 @keyframes bf-texte{from{transform:translateY(10px);opacity:0}to{transform:none;opacity:1}}
 @media (prefers-reduced-motion:reduce){ .echelle.horizon .pas.suivant .bati,.bati-fete .bf-img,.bati-fete .bf-halo{animation:none} }
+
+/* ===== La récolte mise en scène (18 nov.) : les pièces volent jusqu'à la bourse ; la petite ville de la fenêtre de récolte ===== */
+.vol-pieces{position:fixed;left:0;top:0;width:0;height:0;z-index:95;pointer-events:none}
+.vol-pieces .pc{position:absolute;left:-13px;top:-13px;width:26px;height:26px;will-change:transform,opacity}
+.recu{animation:bourse-recu .22s ease-out}
+@keyframes bourse-recu{0%{transform:scale(1)}45%{transform:scale(1.13)}100%{transform:scale(1)}}
+.rec-ville{display:flex;align-items:flex-end;justify-content:center;gap:6px;height:112px;margin:10px 0 2px;padding:0 4px 6px;border-bottom:2px solid rgba(90,168,255,.55);background:radial-gradient(ellipse 70% 60% at 50% 100%,rgba(90,168,255,.22),transparent 70%)}
+.rec-bati{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;min-width:0;flex:0 1 auto}
+.rec-bati .bati{height:calc(var(--h) * 1.25);width:auto;max-width:100%;object-fit:contain;object-position:50% 100%;display:block;filter:drop-shadow(0 0 5px rgba(90,168,255,.55))}
+.rec-bati .pc{width:18px;height:18px;margin-bottom:4px;animation:rec-piece 1.5s ease-in-out infinite;animation-delay:calc(var(--i) * -.3s)}
+@keyframes rec-piece{0%,100%{transform:translateY(0)}50%{transform:translateY(-7px)}}
+html.pocket:not(.nuit) .rec-ville{background:linear-gradient(#16233f,#0d1730);border-radius:14px 14px 0 0;border-bottom-color:#5aa8ff}
