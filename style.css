@@ -1846,3 +1846,15 @@ html.pocket.nuit .ag-brique span{color:#EEF3FF}
 html.pocket.nuit .plaque{background:#0A1233;border:0;box-shadow:0 0 0 2px #5AA8FF,0 0 16px rgba(90,168,255,.6),inset 0 0 14px rgba(90,168,255,.25);text-shadow:0 0 10px rgba(140,200,255,.9)}
 html.pocket.nuit .plaque::before,html.pocket.nuit .plaque::after{background:#5AA8FF;box-shadow:0 0 6px #5AA8FF;width:4px;height:4px;margin-top:-2px}
 html.pocket.nuit .plaque small{border-bottom-color:rgba(90,168,255,.6)}
+
+/* l'agence : embauches en rafale et bouton « Max » (18 nov.) */
+.ag-case{display:flex;flex-direction:column;gap:6px;min-width:0}
+.ag-case .ag-poste{width:100%;flex:1;touch-action:manipulation}
+.ag-max{border:0;border-radius:12px;padding:6px 4px;min-height:44px;font:inherit;font-weight:900;font-size:13px;line-height:1.15;color:#2A1A00;background:linear-gradient(180deg,#FFE08A,#F2A93B);box-shadow:0 0 14px rgba(255,200,80,.4),0 3px 8px rgba(0,0,0,.25);cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;min-width:0;touch-action:manipulation;animation:ag-max-entre .18s ease-out}
+.ag-max[hidden]{display:none}
+.ag-max small{display:flex;align-items:center;gap:2px;font-size:11px;font-weight:800;opacity:.85}
+.ag-max small .pc{width:11px;height:11px}
+.ag-max:active{transform:translateY(1px)}
+@keyframes ag-max-entre{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion:reduce){ .ag-max{animation:none} }
+.ag-embauches{align-items:start}
