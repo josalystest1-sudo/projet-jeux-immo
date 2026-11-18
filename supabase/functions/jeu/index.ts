@@ -1225,15 +1225,20 @@ Deno.serve(async (req: Request) => {
     await noterEmpreinte(data.user.id, req).catch((e) => console.error('empreinte', e));
     // la chasse au trésor (une position toutes les 2 secondes) passe vite : ni tour du monde ni partie recalculée
     if (corps.action === 'chasse_position' || corps.action === 'chasse') return repondre({ ok: true, ...(await action(data.user.id, corps)) });
+    // l'agence passe vite elle aussi (18 nov. : « l'agence met quelques dizaines de secondes à s'ouvrir », « l'action n'est
+    // pas instantanée ») : la regarder ne fait ni le tour du monde ni le calcul de la partie ; y embaucher ou poser une
+    // brique ne fait pas le tour du monde (l'horloge et les autres actions s'en chargent), mais rend la partie (les pièces)
+    if (corps.action === 'agence') { await rpc('jeu_vu', { j: data.user.id }).catch((e) => console.error('visite', e)); return repondre({ ok: true, ...(await action(data.user.id, corps)) }); }
+    const vite = corps.action === 'agence_embaucher' || corps.action === 'agence_brique';
     // le calendrier des enchères (lots finis clos, lots de la semaine ouverts) : une panne ici ne bloque pas le jeu
-    await tenirEncheres().catch((e) => console.error('enchères', e));
+    if (!vite) await tenirEncheres().catch((e) => console.error('enchères', e));
     // ma visite (un Maire absent depuis trop longtemps perd le titre) ; les fins de mandat de Maire à annoncer
     if (corps.action !== 'supprimer_compte') await rpc('jeu_vu', { j: data.user.id }).catch((e) => console.error('visite', e));
-    await tenirMairies().catch((e) => console.error('mairies', e));
-    await tenirRaretes().catch((e) => console.error('raretés', e));
+    if (!vite) await tenirMairies().catch((e) => console.error('mairies', e));
+    if (!vite) await tenirRaretes().catch((e) => console.error('raretés', e));
     await payerEntretien(data.user.id).catch((e) => console.error('entretien', e));
-    await verifierPaiementsSiBesoin(data.user.id).catch((e) => console.error('paiements', e));
-    await tenirMonuments().catch((e) => console.error('monuments', e));
+    if (!vite) await verifierPaiementsSiBesoin(data.user.id).catch((e) => console.error('paiements', e));
+    if (!vite) await tenirMonuments().catch((e) => console.error('monuments', e));
     const res = await action(data.user.id, corps);
     // les robots jouent un tour après la réponse (sans faire attendre le vrai joueur)
     const runtime = (globalThis as Ligne).EdgeRuntime; if (runtime && runtime.waitUntil) runtime.waitUntil(robotsTour().catch((e) => console.error('robots', e)));
