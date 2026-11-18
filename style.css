@@ -1862,3 +1862,16 @@ html.pocket.nuit .plaque small{border-bottom-color:rgba(90,168,255,.6)}
 html.pocket.nuit #accueil{background:radial-gradient(circle at 50% 42%,#1B2C6E 0,#0B1437 50%,#060B20 100%)}
 html.pocket.nuit #accueil .logo-jeu{filter:drop-shadow(0 0 26px rgba(90,168,255,.45)) drop-shadow(0 12px 22px rgba(0,0,0,.5))}
 html.pocket.nuit #voyage{background:radial-gradient(circle at 50% 42%,rgba(27,44,110,.97) 0,rgba(11,20,55,.98) 50%,rgba(6,11,32,.99) 100%);color:#EEF3FF}
+
+/* revue d'interface, suite (18 nov.) */
+/* Patrimoine : la collection d'abord ; l'entretien, le marché, les ventes et les échanges en une ligne qui se déplie */
+details.repli>summary{list-style:none;cursor:pointer;display:flex;align-items:center;gap:8px;min-height:28px}
+details.repli>summary::-webkit-details-marker{display:none}
+details.repli>summary .t{margin:0;min-width:0}
+details.repli>summary::after{content:'';flex:none;margin-left:auto;width:8px;height:8px;border-right:2px solid currentColor;border-bottom:2px solid currentColor;transform:rotate(45deg) translate(-2px,-2px);opacity:.6;transition:transform .15s}
+details.repli[open]>summary::after{transform:rotate(-135deg) translate(-2px,-2px)}
+details.repli[open]>summary{margin-bottom:8px}
+/* la carte ouverte en grand : valeur, loyer et standing sont sous la carte ; la fiche ne garde que l'entretien d'un monument */
+.addr.sans-doublon .stats .stat:not(.rouge){display:none}
+.addr.sans-doublon .stats:not(:has(.stat.rouge)){display:none}
+.addr.sans-doublon .stats:has(.stat.rouge){grid-template-columns:1fr}
