@@ -58,7 +58,12 @@ async function nouveauJoueur(publique, secrete) {
     const cons = await jeu({ action: 'construire', id: 'pas-a-moi', niveau: 1 });
     verifier(cons.corps && cons.corps.ok === false && cons.corps.code === 'pas_a_toi', 'construire sur un lieu qui n’est pas à moi : refusé', cons);
     // le pack du jour : tiré par le serveur, une fois par jour ; puis construire sur la carte la moins chère
+    // le pack préparé d'avance (220_pack_pret.sql) : le serveur tire les cartes avant l'ouverture ; l'ouverture est alors rapide
+    const prep = await jeu({ action: 'pack_preparer' });
+    verifier(prep.corps && prep.corps.ok && prep.corps.pret === true && !prep.corps.cartes, 'pack préparé d’avance (les cartes ne sont pas montrées)', prep);
+    const t0 = Date.now();
     const pack = await jeu({ action: 'pack' });
+    console.log(`  (ouverture du pack préparé : ${Date.now() - t0} ms)`);
     const cartes = (pack.corps && pack.corps.cartes) || [];
     verifier(pack.corps && pack.corps.ok && cartes.length >= 1 && cartes.every((c) => R.rarete(c) <= 5), `pack du jour : ${cartes.length} carte(s) (raretés ${cartes.map((c) => R.rarete(c)).join(', ')})`, pack);
     // (serveur d'essai accéléré : un jour = une minute ; si le jour vient de changer, le deuxième pack est permis)

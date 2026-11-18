@@ -2377,7 +2377,11 @@ function boutonBooster(){ const bp=document.getElementById('booster-pret'); if(!
   const cache = !packDispo() || document.getElementById('packbtn').dataset.ouverture || document.querySelector('#packscene.on, #modal.on, #s-accueil.on, #s-agence.on, #guide, .rev-scene, #sheet.open') || !state.pseudo
     || (typeof PROM!=='undefined' && PROM.on) || (window.CHASSE && CHASSE.dans) || (window.Compte && Compte.bloque && Compte.bloque());
   if(bp.classList.contains('on')===!!cache) bp.classList.toggle('on', !cache); if(document.body.classList.contains('booster-la')===!!cache) document.body.classList.toggle('booster-la', !cache); const surCarte=!document.querySelector('.screen.on'); if(bp.classList.contains('carte')!==surCarte) bp.classList.toggle('carte', surCarte); }
-function refreshPack(){ boutonBooster(); const b=document.getElementById('packbtn'), t=document.getElementById('packt'); if(!b||b.dataset.ouverture) return;
+// le pack préparé d'avance (18 nov.) : dès que le pack est disponible, on demande au serveur de tirer ses cartes en
+// arrière-plan (une fois par pack) ; à l'ouverture, elles sont déjà prêtes (supabase/sql/220_pack_pret.sql)
+let PACK_PREPARE=null;
+function preparerPackDavance(){ if(!MODE_SERVEUR || !window.ETAT_RECU || !state.pseudo || !packDispo()) return; const cle=String(state.dernierJour); if(PACK_PREPARE===cle) return; PACK_PREPARE=cle; appelServeur('pack_preparer').catch(()=>{}); }
+function refreshPack(){ boutonBooster(); preparerPackDavance(); const b=document.getElementById('packbtn'), t=document.getElementById('packt'); if(!b||b.dataset.ouverture) return;
   if(packDispo()){ b.classList.add('pret'); b.classList.remove('attente'); t.textContent='Ouvrir !'; }
   else { b.classList.remove('pret'); b.classList.add('attente'); const s=secondesAvantPack(); t.textContent = dureeCourte(s); } }
 function dureeCourte(s){ return s>=3600 ? `${Math.floor(s/3600)} h ${String(Math.floor(s%3600/60)).padStart(2,'0')}` : (s>=60 ? `${Math.floor(s/60)} min ${String(s%60).padStart(2,'0')}` : `${s} s`); }
