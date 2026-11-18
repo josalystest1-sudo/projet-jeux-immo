@@ -52,6 +52,7 @@ async function nouveauJoueur(publique, secrete) {
     const anonyme = await jeu({ action: 'etat' }, publique.startsWith('sb_') ? null : publique);
     verifier(anonyme.corps && anonyme.corps.ok === false && anonyme.corps.code === 'non_connecte', 'sans compte : refusé', anonyme);
     const etat = await jeu({ action: 'etat' });
+    { const t1 = Date.now(), e2 = await jeu({ action: 'etat' }); console.log(`  (ma partie, deuxième demande : ${Date.now() - t1} ms vus d'ici ; côté serveur ${JSON.stringify(e2.corps && e2.corps._ms)})`); }
     verifier(etat.corps && etat.corps.ok && etat.corps.pieces === ECO.solde_depart && Array.isArray(etat.corps.lieux) && etat.corps.lieux.length === 0, `nouveau joueur : ${ECO.solde_depart} pièces, aucun lieu`, etat);
     const rec = await jeu({ action: 'recolter' });
     verifier(rec.corps && rec.corps.ok && rec.corps.pieces >= ECO.solde_depart, 'récolter répond', rec);
@@ -63,7 +64,7 @@ async function nouveauJoueur(publique, secrete) {
     verifier(prep.corps && prep.corps.ok && prep.corps.pret === true && !prep.corps.cartes, 'pack préparé d’avance (les cartes ne sont pas montrées)', prep);
     const t0 = Date.now();
     const pack = await jeu({ action: 'pack' });
-    console.log(`  (ouverture du pack préparé : ${Date.now() - t0} ms)`);
+    console.log(`  (ouverture du pack préparé : ${Date.now() - t0} ms ; côté serveur ${JSON.stringify(pack.corps && pack.corps._ms)})`);
     const cartes = (pack.corps && pack.corps.cartes) || [];
     verifier(pack.corps && pack.corps.ok && cartes.length >= 1 && cartes.every((c) => R.rarete(c) <= 5), `pack du jour : ${cartes.length} carte(s) (raretés ${cartes.map((c) => R.rarete(c)).join(', ')})`, pack);
     // (serveur d'essai accéléré : un jour = une minute ; si le jour vient de changer, le deuxième pack est permis)
