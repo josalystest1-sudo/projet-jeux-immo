@@ -1875,3 +1875,11 @@ details.repli[open]>summary{margin-bottom:8px}
 .addr.sans-doublon .stats .stat:not(.rouge){display:none}
 .addr.sans-doublon .stats:not(:has(.stat.rouge)){display:none}
 .addr.sans-doublon .stats:has(.stat.rouge){grid-template-columns:1fr}
+
+/* l'icône de profil importée (18 nov.) : une petite image ronde, à la taille de l'émoji qu'elle remplace */
+.av-img{width:1.3em;height:1.3em;border-radius:50%;object-fit:cover;display:inline-block;vertical-align:-.3em;flex:none}
+.av .av-img,.pion .corps .av-img{width:100%;height:100%;vertical-align:top}
+.av{overflow:hidden}
+.av-import{display:flex;align-items:center;gap:10px;margin:0 0 6px}
+.av-import .av{width:44px;height:44px;border:2.5px solid var(--plaque)}
+.av-regle{margin:0 0 12px}

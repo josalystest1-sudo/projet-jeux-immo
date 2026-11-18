@@ -187,7 +187,7 @@
   }
   function rendreClassement() {
     if (!classement) return '<div class="m">Chargement…</div>';
-    const moi = monUid(), lignes = classement.top.map((x, i) => `<div class="ag-rang${x.joueur === moi ? ' moi' : ''}"><b>${i + 1}</b><span class="ag-nomj">${echapper((x.avatar || '') + ' ' + (x.pseudo || '?'))}</span><b>${nb(x.n)}</b></div>`).join('');
+    const moi = monUid(), lignes = classement.top.map((x, i) => `<div class="ag-rang${x.joueur === moi ? ' moi' : ''}"><b>${i + 1}</b><span class="ag-nomj">${avatarHTML(x.avatar, ' ')} ${echapper(x.pseudo || '?')}</span><b>${nb(x.n)}</b></div>`).join('');
     return `${lignes || '<div class="m">Personne n’a encore posé de brique cette saison.</div>'}${classement.rang && classement.rang > classement.top.length ? `<div class="m ag-note">Ta place : <b>${nb(classement.rang)}</b></div>` : ''}`;
   }
   function ouvrirClassement() {
