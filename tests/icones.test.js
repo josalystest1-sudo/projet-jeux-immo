@@ -41,3 +41,12 @@ test('le logo de Gautier (src/logo.js) et la pièce ronde à la maison (5 nov.)'
   const html = fs.readFileSync(path.join(__dirname, '..', 'index.html'), 'utf8');
   assert.ok(!html.includes('M16 2.3 29.7 13.5'), 'plus de pièce-maison');
 });
+
+test('les médailles et les embellissements des communes ont leur dessin en couleur', () => {
+  for (const [e, nom] of Object.entries(I.EMOJI_DESSIN)) {
+    assert.ok(I.DESSINS[nom], `${e} → ${nom} : pas de dessin`);
+    assert.ok(!(e in I.EMOJI_ICONE), `${e} : en couleur ou au trait, pas les deux`);
+    assert.ok(!/url\(#|<linearGradient|<radialGradient/.test(I.DESSINS[nom]), `${nom} : pas de dégradé (identifiants répétés dans la page)`);
+  }
+  assert.match(I.ico('or'), /^<svg class="ico-svg dessin"/);
+});

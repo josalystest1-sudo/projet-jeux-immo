@@ -68,12 +68,28 @@
     '🤝': 'echange', '✏': 'crayon', '📷': 'photo', '✅': 'coche', '❌': 'croix', '📖': 'livre', '🎉': 'fete', '🚩': 'drapeau', '👆': 'doigt',
     '🎲': 'de', '💳': 'cb', '🌤': 'meteo', '📜': 'parchemin', '🧭': 'boussole', '🚧': 'travaux'
   };
+  // Les dessins en couleur (18 nov. 2026, « plus jeu ») : les médailles des classements et les embellissements des communes
+  // ne sont plus des émojis du téléphone (différents d'un appareil à l'autre) mais de petits dessins du jeu, en couleur.
+  // Pas de dégradé (un identifiant répété dans la page se marcherait dessus) : des aplats et un trait clair.
+  const medaille = (clair, fonce, bord, n) => '<path d="M7.5 2.5h3.2l2 6.2H9.5Z" fill="#3d7bff"/><path d="M16.5 2.5h-3.2l-2 6.2h3.2Z" fill="#7fb4ff"/><circle cx="12" cy="14.6" r="6.6" fill="' + fonce + '" stroke="' + bord + '" stroke-width=".9"/><circle cx="12" cy="14.6" r="4.7" fill="' + clair + '"/><path d="' + n + '" fill="none" stroke="' + bord + '" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>';
+  const DESSINS = {
+    or: medaille('#ffe27a', '#f5b62e', '#8a5a00', 'M10.8 13.2 12.3 12v5.4'),
+    argent: medaille('#f1f5fb', '#b9c4d6', '#56627a', 'M10.4 13.1a1.7 1.7 0 1 1 2.9 1.3l-2.9 2.9h3.3'),
+    bronze: medaille('#f3b98a', '#cf8046', '#6e3a12', 'M10.5 12.3h3l-1.7 2.1a1.6 1.6 0 1 1-1.5 2'),
+    arbre: '<path d="M12 21v-7.5" stroke="#c98a4b" stroke-width="2" stroke-linecap="round"/><circle cx="12" cy="8.8" r="6.2" fill="#1f9d57" stroke="#6dffa8" stroke-width="1.1"/><circle cx="9.7" cy="7" r="1.7" fill="#6dffa8" opacity=".6"/><path d="M7 21h10" stroke="#5aa8ff" stroke-width="1.2" stroke-linecap="round"/>',
+    lampadaire: '<circle cx="12" cy="6.8" r="5.6" fill="#ffd45a" opacity=".22"/><path d="M12 21V10" stroke="#9db7e8" stroke-width="1.8" stroke-linecap="round"/><path d="M9.3 4.6h5.4l-1.1 5.2h-3.2Z" fill="#ffd45a" stroke="#fff3c0" stroke-width="1" stroke-linejoin="round"/><path d="M8.8 4.4h6.4M9 21h6" stroke="#9db7e8" stroke-width="1.6" stroke-linecap="round"/>',
+    fleurs: '<path d="M6 20v-6M12 20v-9M18 20v-6" stroke="#3fd07f" stroke-width="1.6" stroke-linecap="round"/><circle cx="6" cy="11.4" r="3.1" fill="#ff6fa8"/><circle cx="12" cy="7.8" r="3.5" fill="#ffd45a"/><circle cx="18" cy="11.4" r="3.1" fill="#b98cff"/><circle cx="6" cy="11.4" r="1.1" fill="#fff"/><circle cx="12" cy="7.8" r="1.3" fill="#fff"/><circle cx="18" cy="11.4" r="1.1" fill="#fff"/><path d="M3.5 20.5h17" stroke="#5aa8ff" stroke-width="1.4" stroke-linecap="round"/>',
+    fontaine: '<path d="M12 6c-3.2-3.6-6.2-1-6.6 3.4M12 6c3.2-3.6 6.2-1 6.6 3.4" fill="none" stroke="#7fe3ff" stroke-width="1.5" stroke-linecap="round"/><path d="M12 15V5.5" stroke="#9db7e8" stroke-width="1.6" stroke-linecap="round"/><circle cx="12" cy="3.8" r="1.3" fill="#7fe3ff"/><path d="M4 14.8h16l-1.6 5.7H5.6Z" fill="#1c3f8a" stroke="#6aa8ff" stroke-width="1.2" stroke-linejoin="round"/><path d="M6.5 17.2h11" stroke="#7fe3ff" stroke-width="1.1" stroke-linecap="round"/>',
+    kiosque: '<circle cx="12" cy="2.9" r="1.1" fill="#ffd45a"/><path d="M3.5 10 12 4l8.5 6Z" fill="#c2503f" stroke="#ff9d8f" stroke-width="1.1" stroke-linejoin="round"/><path d="M6 10.4v7.6M10 10.4v7.6M14 10.4v7.6M18 10.4v7.6" stroke="#e8eefc" stroke-width="1.4" stroke-linecap="round"/><path d="M4 18.3h16V21H4Z" fill="#1c3f8a" stroke="#6aa8ff" stroke-width="1" stroke-linejoin="round"/>'
+  };
+  const EMOJI_DESSIN = { '🥇': 'or', '🥈': 'argent', '🥉': 'bronze', '🌳': 'arbre', '🏮': 'lampadaire', '🌷': 'fleurs', '⛲': 'fontaine', '🎶': 'kiosque' };
   // ce qui garde ses émojis en couleur : un contenu, pas l'interface
   const EXCLUS = '#map,#packscene,#reveal,.c3d,.cl,.ccarte,.rcard,.art,.ico-lieu,.av,.avgrid,.voyage-pin,svg,select,option,textarea,input,script,style,.pas-icone-garder';
-  const cles = Object.keys(EMOJI_ICONE).sort((a, b) => b.length - a.length);
+  const cles = Object.keys(EMOJI_ICONE).concat(Object.keys(EMOJI_DESSIN)).sort((a, b) => b.length - a.length);
   const RE = new RegExp('(?:' + cles.join('|') + ')️?', 'gu');
   const echapper = (t) => t.replace(/[&<>]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c]));
   function ico(nom, classe) {
+    if (DESSINS[nom]) return '<svg class="ico-svg dessin' + (classe ? ' ' + classe : '') + '" viewBox="0 0 24 24" aria-hidden="true">' + DESSINS[nom] + '</svg>';
     const d = ICONES[nom]; if (!d) return '';
     return '<svg class="ico-svg' + (classe ? ' ' + classe : '') + '" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + d + '</svg>';
   }
@@ -82,7 +98,7 @@
     const p = t.parentNode; if (!p || p.nodeType !== 1 || p.closest(EXCLUS)) return;
     RE.lastIndex = 0;
     const s = document.createElement('ico-t');   // une balise à part : aucune règle « span » du jeu ne la touche (la légende repliée cache ses span)
-    s.innerHTML = echapper(v).replace(RE, (m) => ico(EMOJI_ICONE[m.replace('️', '')]));
+    s.innerHTML = echapper(v).replace(RE, (m) => { const e = m.replace('️', ''); return ico(EMOJI_ICONE[e] || EMOJI_DESSIN[e]); });
     p.replaceChild(s, t);
   }
   function iconiser(racine) {
@@ -103,7 +119,7 @@
   if (typeof document !== 'undefined') {
     if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', demarrer); else demarrer();
   }
-  const Icones = { ICONES, EMOJI_ICONE, ico, iconiser };
+  const Icones = { ICONES, EMOJI_ICONE, DESSINS, EMOJI_DESSIN, ico, iconiser };
   if (typeof window !== 'undefined') { window.Icones = Icones; window.ico = ico; }
   if (typeof module !== 'undefined') module.exports = Icones;
 })();

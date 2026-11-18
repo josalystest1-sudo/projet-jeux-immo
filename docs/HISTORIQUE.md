@@ -421,6 +421,7 @@ Puis une PR par étape, fusionnée en squash :
 | #229 | 18/11 | Plus « jeu » (1) : sept bâtiments dessinés en verre et néon ; l'échelle de construction en ligne de toits ; le bâtiment construit montré en grand |
 | #230 | 18/11 | Plus « jeu » (2) : la récolte mise en scène (les pièces volent jusqu'à la bourse, petite ville de mes bâtiments dans la fenêtre de récolte) |
 | #231 | 18/11 | Plus « jeu » (3) : les en-têtes illustrés (Patrimoine : mes bâtiments ; Enchères : le Prestige ; Communes : la mairie) |
+| #232 | 18/11 | Plus « jeu » (4) : médailles des classements et embellissements des communes dessinés en couleur (plus d'émojis du téléphone) |
 | #200 | 16/11 | Prototype du booster validé par Gautier : brillance moyenne fixée, boutons de réglage retirés |
 | #199 | 16/11 | Prototype du booster : une ligne de toits en néon sur le booster du jour, à la place de la maison |
 | #198 | 16/11 | Prototype du booster : moins brillant, lettres cernées, trois niveaux de brillance à choisir |
