@@ -2433,7 +2433,7 @@ function renderPatrimoine(){ const el=document.getElementById('s-patrimoine'); c
   const tous=Object.values(state.owned); const total=tous.reduce((s,a)=>s+valeur(a),0);
   const list = filtrePatri ? tous.filter(a=>rarete(a)===filtrePatri) : tous.slice();
   const p=Math.floor(pendingRent());
-  let h=`<h1>Mon patrimoine <button class="btn sm clair act" onclick="ouvrirClassements('patrimoine')">🏆 Classements</button></h1><div class="kpis"><div class="kpi"><i>🏘️</i><b>${tous.length}</b><small>lieu${tous.length>1?'x':''}</small></div><div class="kpi"><i>💎</i><b>${nb(total)}<i class="pc"></i></b><small>de valeur</small></div><div class="kpi"><i>📈</i><b style="color:var(--cadre2)">${(v=>(v<0?'−':'+')+nb(Math.abs(v)))(SALAIRE+loyerTotal()-MON.parJour(tous))}</b><small>par jour</small></div></div>`;
+  let h=`<h1 class="entete">Mon patrimoine ${sceneEntete('patrimoine')}<button class="btn sm clair act" onclick="ouvrirClassements('patrimoine')">🏆 Classements</button></h1><div class="kpis"><div class="kpi"><i>🏘️</i><b>${tous.length}</b><small>lieu${tous.length>1?'x':''}</small></div><div class="kpi"><i>💎</i><b>${nb(total)}<i class="pc"></i></b><small>de valeur</small></div><div class="kpi"><i>📈</i><b style="color:var(--cadre2)">${(v=>(v<0?'−':'+')+nb(Math.abs(v)))(SALAIRE+loyerTotal()-MON.parJour(tous))}</b><small>par jour</small></div></div>`;
   h+=`<div class="card flex"><div><div class="t">🌾 ${p>=1?`<span style="color:var(--cadre2)">+${nb(p)}</span> à récolter`:'Les loyers poussent…'}</div><div class="m">Salaire ${nb(SALAIRE)} + loyers ${nb(loyerTotal())} par jour, stockés 24 h au plus.</div></div>${p>=1?`<button class="btn vert" onclick="recolter({x:event.clientX,y:event.clientY})">Récolter</button>`:''}</div>`;
   { const mons=MON.entretiens(tous), e=state.entretien||{}; if(mons.length){ const jr=MON.joursAvantReprise(e.impayeDepuis, now(), JOUR), cher=mons[mons.length-1];
       h+=`<details class="card repli entretien${e.dette>0?' impaye':''}" data-k="entretien"${e.dette>0?' open':''}><summary><span class="t">🏛️ Entretien : ${pcs(MON.parMois(tous))} par mois</span></summary>
@@ -2494,7 +2494,7 @@ function renderEncheres(){ const el=document.getElementById('s-encheres');
   if(MODE_SERVEUR && !ENCH){ el.innerHTML=`<h1>Enchères</h1><div class="card"><div class="t">Les enchères arrivent…</div><div class="m">Le serveur prépare les monuments de la semaine.</div></div>`; chargerEncheres(); return; }
   const ouverts=[...el.querySelectorAll('details')].map(d=>d.open);
   const idx=semaineEnCours(), debut=MODE_SERVEUR ? ENCH.debut : idx*SEMAINE, finS=MODE_SERVEUR ? ENCH.fin : debut+SEMAINE, reste=Math.max(0, finS-now()), pct=Math.min(100, 100*(now()-debut)/(finS-debut));
-  let h=`<h1>Enchères <span class="act compte-a-rebours">⏳ ${dureeTexte(reste)}</span></h1>
+  let h=`<h1 class="entete">Enchères ${sceneEntete('encheres')}<span class="act compte-a-rebours">⏳ ${dureeTexte(reste)}</span></h1>
     <div class="card"><div class="t">Les 3 monuments de la semaine</div>
     <div class="bar"><i style="width:${pct}%"></i></div><div class="flex"><span class="m" style="margin:0">Disponible pour miser</span><span class="montant" style="font-size:20px">${nb(dispo())}<i class="pc"></i></span></div></div>`;
   if(!lotsDe(idx).length) h+=`<div class="card vide"><div class="ico">🏛️</div><div class="t">Pas de monument cette semaine</div><div class="m">Tous les monuments ont déjà un propriétaire.</div></div>`;
@@ -2763,7 +2763,7 @@ function fermerCommune(){ communeVue=null; renderCommunes(); }
 // une commune de mes lieux : le point d'un de mes lieux sert à « Voir sur la carte »
 function ouvrirMaCommune(k){ const a=Object.values(state.owned).find(x=>communeName(x.citycode,x.city)===k); ouvrirCommune(k, '', a?a.lon:null, a?a.lat:null); }
 function renderCommunes(){ const el=document.getElementById('s-communes'); const mine=mesLieuxParCommune();
-  let h=`<h1>Communes</h1>
+  let h=`<h1 class="entete seule">Communes ${sceneEntete('communes')}</h1>
     <div class="recherche-commune"><span class="loupe">🔍</span><input class="txt" id="com-q" type="search" enterkeyhint="search" autocomplete="off" placeholder="Chercher une commune…" aria-label="Chercher une commune"><div id="com-sugg"></div></div>`;
   h+=carteSaison();
   if(communeVue) h+=carteCommune(communeVue.k, communeVue.sous, communeVue.lon, communeVue.lat);
@@ -3031,6 +3031,13 @@ async function recolteConnexion(ensuite){ if(MODE_SERVEUR){ const r=await synchr
   document.getElementById('modal').classList.add('on');
   { const el=box.querySelector('#rec-n'), t0=performance.now(), pas=()=>{ if(!el.isConnected) return; const t=Math.min(1,(performance.now()-t0)/700); el.textContent=nb(Math.round(p*(1-Math.pow(1-t,3)))); if(t<1) requestAnimationFrame(pas); }; el.textContent=nb(p); if(document.visibilityState==='visible'){ el.textContent='0'; requestAnimationFrame(pas); setTimeout(()=>{ if(el.isConnected) el.textContent=nb(p); }, 900); } }
   box.querySelector('#recolter').onclick=ev=>{ const r=ev.currentTarget.getBoundingClientRect(), d={ x:r.left+r.width/2, y:r.top+r.height/2 }; closeModal(); recolter(d); setTimeout(ensuite, 1300); }; }
+// les en-têtes illustrés (18 nov., « plus jeu ») : une petite scène de bâtiments à côté du titre de l'écran. Patrimoine :
+// mes bâtiments les plus hauts ; Enchères : un Prestige sous son halo arc-en-ciel ; Communes : la mairie entre deux maisons.
+function sceneEntete(cle){ const img=(i, c)=>`<span class="es-b${c?' '+c:''}">${imageBati(i)}</span>`; let h='';
+  if(cle==='patrimoine'){ const l=Object.values(state.owned).map(a=>a.niveau||0).sort((a,b)=>b-a).slice(0,4).reverse(); h=(l.length?l:[0]).map(n=>img(n)).join(''); }
+  else if(cle==='encheres') h=img(3,'loin')+img(6,'vedette')+img(4,'loin');
+  else if(cle==='communes') h=img(1)+img(5,'vedette')+img(1)+img(2);
+  return `<span class="en-scene s-${cle}" aria-hidden="true">${h}</span>`; }
 // la petite ville de la fenêtre de récolte : mes bâtiments les plus hauts, une pièce qui flotte au-dessus de chacun
 function villeRecolte(){ const l=Object.values(state.owned).sort((a,b)=>(b.niveau||0)-(a.niveau||0)).slice(0,5); if(!l.length) return '';
   const ordre=[3,1,0,2,4].map(i=>l[i]).filter(Boolean);   // le plus haut au milieu
