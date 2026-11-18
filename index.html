@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="fr" class="pocket">
 <head>
-<script>/* essai des menus « nuit néon » (18 nov.) : ?menus=nuit (ou ?menus=clair pour revenir), gardé pour l'onglet */try{var m=new URLSearchParams(location.search).get('menus');if(m)sessionStorage.setItem('menus',m);if(sessionStorage.getItem('menus')==='nuit')document.documentElement.classList.add('nuit');}catch(e){}</script>
+<script>/* les menus « nuit néon » (18 nov., choix de Gautier) : par défaut ; ?menus=clair rend les anciens menus clairs pour l'onglet (secours), ?menus=nuit y revient */try{var m=new URLSearchParams(location.search).get('menus');if(m)sessionStorage.setItem('menus',m);if(sessionStorage.getItem('menus')!=='clair')document.documentElement.classList.add('nuit');}catch(e){document.documentElement.classList.add('nuit');}</script>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>StreetKeep</title>
