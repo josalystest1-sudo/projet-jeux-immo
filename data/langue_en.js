@@ -43,7 +43,7 @@
     'Cour, jardin ou voirie': 'Courtyard, garden or road', 'Pas d’adresse': 'No address', 'Rien à posséder ici': 'Nothing to own here',
     'Bac ou liaison maritime': 'Ferry or sea link', 'Route empierrée': 'Gravel road', 'Route à {n} chaussée': 'Single-carriageway road',
     'Route à {n} chaussées': 'Dual-carriageway road', 'Données IGN non chargées (réseau bloqué ?).': 'IGN data not loaded (network blocked?).',
-    'Erreur de style :': 'Style error:', 'Touche un bâtiment': 'Tap a building', 'Mon lieu': 'My place', 'Mes lieux': 'My places',
+    'Erreur de style :': 'Style error:', 'Touche un bâtiment': 'Tap a building', 'Mon lieu': 'My place', 'Mes lieux': 'My places', 'Lieu précédent': 'Previous place', 'Lieu suivant': 'Next place',
     'Un autre joueur': 'Another player', 'Plusieurs joueurs': 'Several players', 'En vente par un joueur': 'For sale by a player',
 
     // ---------------------------------------------------------------- la fiche d'un lieu

@@ -1954,3 +1954,32 @@ html.pocket:not(.nuit) .screen h1.entete .act{position:static;margin-left:auto}
 /* ===== La ville en bleu nuit (18 nov.) : la légende suit les couleurs de la carte de nuit ===== */
 html.carte-nuit #legend .l-moi{background:#4FC3FF!important}
 html.carte-nuit #legend .l-libre{background:#1B2A6B!important;box-shadow:inset 0 0 0 1.5px #5AA8FF!important}
+
+/* ===== La carte, écran principal (18 nov., « comme Pokémon GO ») : la carte au centre de la barre, des boutons ronds posés
+   sur la carte, une pièce au-dessus de mes lieux, le tour de mes lieux ===== */
+#nav button.centre{flex:1.25;justify-content:flex-end;padding-bottom:6px;gap:1px}
+html.pocket #nav button.centre i{width:62px;height:62px;margin-top:-30px;border-radius:50%;background:radial-gradient(circle at 35% 28%,#FFE08A,#F2A51E 62%,#B56D00);box-shadow:0 0 0 3px #FFF1C0,0 0 22px rgba(255,200,80,.7),inset 0 3px 0 rgba(255,255,255,.4);color:#5A3200!important;filter:none}
+#nav button.centre i .ico-svg{width:32px!important;height:32px!important;stroke-width:1.9}
+html.pocket.nuit #nav button.centre,html.pocket.nuit #nav button.centre.on{color:#FFD98A}
+html.pocket.nuit #nav button.centre.on i{background:radial-gradient(circle at 35% 28%,#FFE08A,#F2A51E 62%,#B56D00);box-shadow:0 0 0 3px #fff,0 0 26px rgba(255,200,80,.9),inset 0 3px 0 rgba(255,255,255,.4)}
+html.pocket.nuit #nav button.centre i,html.pocket.nuit #nav button.centre.on i{color:#5A3200!important}
+/* sur la carte : plus de barre, des boutons ronds qui flottent */
+html.pocket.nuit body.sur-carte #nav{background:linear-gradient(180deg,rgba(6,11,32,0),rgba(6,11,32,.72) 55%);border-top:0;box-shadow:none;pointer-events:none}
+body.sur-carte #nav button{pointer-events:auto;text-shadow:0 1px 3px #000}
+html.pocket.nuit body.sur-carte #nav button:not(.centre):not(.pack-nav) i{width:46px;height:46px;border-radius:50%;background:radial-gradient(circle at 35% 28%,#2A4FB8,#0E1E5C);box-shadow:0 0 0 1.5px #5AA8FF,0 0 12px rgba(90,168,255,.5),inset 0 2px 0 rgba(255,255,255,.16);color:#fff}
+html.pocket.nuit body.sur-carte #nav button:not(.centre){color:#DCE6FF;justify-content:flex-end;padding-bottom:6px;gap:3px}
+body.sur-carte{--nav:92px}
+body.sur-carte.booster-la{--nav:138px}
+.piece-carte{display:none;border:0;background:none;padding:6px;cursor:pointer;z-index:3}
+body.a-recolter .piece-carte{display:block}
+.piece-carte .pc{display:block;width:30px;height:30px;animation:rec-piece 1.5s ease-in-out infinite;filter:drop-shadow(0 0 6px rgba(255,200,80,.95))}
+#tour-lieux{position:absolute;left:50%;bottom:calc(var(--nav) + env(safe-area-inset-bottom) + 50px);transform:translateX(-50%);z-index:36;display:none;align-items:center;gap:0;max-width:calc(100vw - 24px);border-radius:22px;background:rgba(8,16,48,.88);border:1.5px solid rgba(90,168,255,.65);box-shadow:0 0 14px rgba(90,168,255,.35);color:#fff}
+body.sur-carte #tour-lieux:not([hidden]){display:flex}
+body.fiche-ouverte #tour-lieux,body.promenade #tour-lieux,body.promenade .piece-carte{display:none!important}
+#tour-lieux button{border:0;background:none;color:inherit;font:inherit;cursor:pointer}
+#tl-avant,#tl-apres{width:46px;height:46px;font-size:30px!important;font-weight:900;line-height:1;color:#FFD98A!important;flex:none;font-family:system-ui,sans-serif!important}
+#tl-nom{min-width:0;display:flex;flex-direction:column;align-items:center;padding:3px 2px;line-height:1.15}
+#tl-nom small{font-size:10px;font-weight:800;color:#8FB6FF;letter-spacing:.06em}
+#tl-nom b{font-size:13px;font-weight:900;max-width:52vw;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+html.pocket body.booster-la #nav button.centre i{width:52px;height:52px;margin-top:-6px}
+html.pocket body.booster-la #nav button.centre i .ico-svg{width:28px!important;height:28px!important}
