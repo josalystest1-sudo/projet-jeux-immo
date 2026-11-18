@@ -1311,30 +1311,38 @@ Deno.serve(async (req: Request) => {
       rpc('jeu_cadence', { j: moi, limite: ECO.anti_triche.actions_par_minute }).catch((e) => { console.error('cadence', e); return true; }),
       noterEmpreinte(moi, req).catch((e) => console.error('empreinte', e)),
       !leger && nom !== 'supprimer_compte' ? rpc('jeu_vu', { j: moi }).catch((e) => console.error('visite', e)) : null,
-      complet ? tenirEncheres().catch((e) => console.error('enchères', e)) : null,
     ]);
     if (cadence === false) throw new Refus('cadence', 'Doucement : trop d’actions d’un coup. Réessaie dans une minute.');
     if (leger || agence) return repondre({ ok: true, ...(await action(moi, corps)) });
-    // deuxième vague : l'entretien de mes monuments, et le reste du tour du monde (fins de mandat, raretés, paiements,
-    // monuments des absents)
-    await Promise.all([
-      payerEntretien(moi).catch((e) => console.error('entretien', e)),
-      ...(complet ? [
-        tenirMairies().catch((e) => console.error('mairies', e)),
-        tenirRaretes().catch((e) => console.error('raretés', e)),
-        verifierPaiementsSiBesoin(moi).catch((e) => console.error('paiements', e)),
-        tenirMonuments().catch((e) => console.error('monuments', e)),
-      ] : []),
-    ]);
+    // puis l'entretien de mes monuments (il touche mes pièces : avant l'action)
+    await payerEntretien(moi).catch((e) => console.error('entretien', e));
+    // le tour du monde (enchères à clore ou à ouvrir, fins de mandat, raretés, paiements, monuments des absents) ne fait
+    // plus attendre le joueur (18 nov. : au réveil du serveur, il prenait plus de 6 secondes sur la première demande) : il
+    // se fait après la réponse, avec le tour des robots. Les actions qui en ont besoin tout de suite le font elles-mêmes
+    // (« encheres » et « miser » tiennent les enchères) ; l'horloge le fait de toute façon toutes les 10 minutes.
+    const tour = async () => {
+      if (complet) {
+        await tenirEncheres().catch((e) => console.error('enchères', e));
+        await Promise.all([
+          tenirMairies().catch((e) => console.error('mairies', e)),
+          tenirRaretes().catch((e) => console.error('raretés', e)),
+          verifierPaiementsSiBesoin(moi).catch((e) => console.error('paiements', e)),
+          tenirMonuments().catch((e) => console.error('monuments', e)),
+        ]);
+      }
+      await robotsTour().catch((e) => console.error('robots', e));
+    };
     temps.monde = Date.now() - t0 - temps.compte;
     const tA = Date.now(), res = await action(data.user.id, corps);
     temps.action = Date.now() - tA;
     // les robots jouent un tour après la réponse (sans faire attendre le vrai joueur)
-    const runtime = (globalThis as Ligne).EdgeRuntime; if (runtime && runtime.waitUntil) runtime.waitUntil(robotsTour().catch((e) => console.error('robots', e)));
+    const runtime = (globalThis as Ligne).EdgeRuntime;
     // après une action qui change la partie, sa partie à jour (pièces, lieux, récolte) pour que le jeu se recale
     const tE = Date.now();
     if (corps.action !== 'etat' && corps.action !== 'encheres' && corps.action !== 'supprimer_compte') res.etat = await etatDe(data.user.id);
     temps.partie = Date.now() - tE; temps.total = Date.now() - t0;
+    // le tour du monde et les robots, après la réponse (sans « waitUntil », le tour du monde se fait avant de répondre)
+    if (runtime && runtime.waitUntil) runtime.waitUntil(tour()); else if (complet) await tour();
     return repondre({ ok: true, ...res, _ms: temps });
   } catch (e) {
     if (e instanceof Refus) return repondre({ ok: false, code: e.code, message: e.message });
