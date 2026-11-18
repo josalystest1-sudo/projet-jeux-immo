@@ -2375,7 +2375,7 @@ document.getElementById('packbtn').onclick=ouvrirPack; document.getElementById('
 function boutonBooster(){ const bp=document.getElementById('booster-pret'); if(!bp) return;
   const cache = !packDispo() || document.getElementById('packbtn').dataset.ouverture || document.querySelector('#packscene.on, #modal.on, #s-accueil.on, #s-agence.on, #guide, .rev-scene, #sheet.open') || !state.pseudo
     || (typeof PROM!=='undefined' && PROM.on) || (window.CHASSE && CHASSE.dans) || (window.Compte && Compte.bloque && Compte.bloque());
-  if(bp.classList.contains('on')===!!cache) bp.classList.toggle('on', !cache); const surCarte=!document.querySelector('.screen.on'); if(bp.classList.contains('carte')!==surCarte) bp.classList.toggle('carte', surCarte); }
+  if(bp.classList.contains('on')===!!cache) bp.classList.toggle('on', !cache); if(document.body.classList.contains('booster-la')===!!cache) document.body.classList.toggle('booster-la', !cache); const surCarte=!document.querySelector('.screen.on'); if(bp.classList.contains('carte')!==surCarte) bp.classList.toggle('carte', surCarte); }
 function refreshPack(){ boutonBooster(); const b=document.getElementById('packbtn'), t=document.getElementById('packt'); if(!b||b.dataset.ouverture) return;
   if(packDispo()){ b.classList.add('pret'); b.classList.remove('attente'); t.textContent='Ouvrir !'; }
   else { b.classList.remove('pret'); b.classList.add('attente'); const s=secondesAvantPack(); t.textContent = dureeCourte(s); } }
