@@ -91,11 +91,26 @@
     poseEl.innerHTML = pret ? `<button class="btn large ag-poser" data-a="poser">${pret > 1 ? `Poser <b>${nb(pret)}</b> briques` : 'Poser la brique'}</button><div class="ag-note">Tes employés et ton renom repartent de zéro, avec <b>+${Math.round(ECO.agence.brique.bonus * 100)} %</b> de renom en plus.</div>` : '';
     poseEl.dataset.pret = pret ? '1' : '';
     document.getElementById('ag-brique').classList.toggle('pleine', !!pret);
-    zone.innerHTML = AG.POSTES.map((p) => { const c = AG.cout(p, a.e[p]), g = AG.gain(a, p), premier = p === 'agent' && !a.e.agent;
-      return `<button class="ag-poste${c <= fonds ? '' : ' cher'}${premier ? ' pulse' : ''}" data-poste="${p}">${mieux && mieux.p === p && a.e.agent > 0 ? '<span class="ag-mieux">Meilleur choix</span>' : ''}
+    if (zone.children.length !== AG.POSTES.length) zone.innerHTML = AG.POSTES.map((p) => `<div class="ag-case" data-case="${p}"><button class="ag-poste" data-poste="${p}"><span class="ag-mieux" hidden>Meilleur choix</span>
         <span class="ag-tete">${perso(p, ' fixe')}</span><b class="ag-qui">${UN[p]}</b><span class="ag-effet">${EFFET[p]}</span>
-        <span class="ag-prix">${pcs(c)}</span><span class="ag-gain">${g > 0 ? `+${debitTexte(g)} par heure` : 'Il faut un agent'}</span></button>`; }).join('');
+        <span class="ag-prix" data-pas-traduire></span><span class="ag-gain"></span></button><button class="ag-max" data-max="${p}" hidden></button></div>`).join('');
+    for (const p of AG.POSTES) { const c = AG.cout(p, a.e[p]), g = AG.gain(a, p), premier = p === 'agent' && !a.e.agent, bt = zone.querySelector(`[data-poste="${p}"]`);
+      bt.classList.toggle('cher', c > fonds); bt.classList.toggle('pulse', premier); bt.querySelector('.ag-mieux').hidden = !(mieux && mieux.p === p && a.e.agent > 0);
+      const prix = bt.querySelector('.ag-prix'); if (prix.dataset.n !== String(c)) { prix.dataset.n = c; prix.innerHTML = pcs(c); }
+      const gt = g > 0 ? `+${debitTexte(g)} par heure` : 'Il faut un agent', ge = bt.querySelector('.ag-gain'); if (ge.dataset.t !== gt) { ge.dataset.t = gt; ge.textContent = gt; } }
+    majMax(a);
     if (window.ajusterChiffres) try { ajusterChiffres(zone); } catch (e) { /* tant pis */ }
+  }
+  // le bouton « Max » (18 nov., Gautier) : après deux touchers de suite sur le même poste, un petit bouton propose d'embaucher
+  // d'un coup tout ce que les pièces permettent (25 au plus par demande : la limite du serveur)
+  const MAX_LOT = 25; let serie = { poste: '', n: 0, t: 0 };
+  function lot(a, poste, n, fonds) { let b = a, total = 0, faits = 0, refus = null; for (let k = 0; k < n; k++) { const r = AG.embaucher(b, poste, fonds - total); if (!r.ok) { refus = r; break; } b = r.agence; total += r.cout; faits++; } return { agence: b, total, faits, refus }; }
+  function majMax(a) {
+    const zone = document.getElementById('ag-embauches'); if (!zone) return; a = a || courante(); if (!a) return;
+    for (const p of AG.POSTES) { const m = zone.querySelector(`[data-max="${p}"]`); if (!m) continue;
+      const l = serie.poste === p && serie.n >= 2 && Date.now() - serie.t < 6000 && !pose ? lot(a, p, MAX_LOT, Math.floor(dispo())) : null, montre = !!(l && l.faits >= 2);
+      if (m.hidden === montre) m.hidden = !montre;
+      if (montre) { const t = l.faits + ':' + l.total; if (m.dataset.t !== t) { m.dataset.t = t; m.dataset.n = l.faits; m.innerHTML = `Max <b data-pas-traduire>×${nb(l.faits)}</b><small data-pas-traduire>${pcs(l.total)}</small>`; } } }
   }
   // ---------------------------------------------------------------- le direct : le renom, la brique, les étincelles
   function battre() {
@@ -115,6 +130,7 @@
     const pi = document.getElementById('ag-pieces'), f = Math.floor(dispo()); if (pi && pi.dataset.n !== String(f)) { pi.dataset.n = f; pi.textContent = nb(f); if (!pose) majCommandes(a); }
     const lo = document.getElementById('ag-loyer'), p = Math.floor(pendingRent()); if (lo) lo.textContent = p >= 1 ? '+' + nb(p) : '';
     const pr = ecran().querySelector('.ag-prochain'), pk = document.getElementById('ag-pack'), bo = document.getElementById('ag-booster'); if (pr) { const d = packDispo(); if (pr.hidden !== !!d) pr.hidden = !!d; if (bo && bo.hidden !== !d) bo.hidden = !d; if (!d && pk) pk.textContent = dureeCourte(secondesAvantPack()); }
+    majMax(a);
     if (++tour % 5 === 0) noterVue(a);
   }
   function etincelle() {
@@ -148,8 +164,9 @@
   }
   function ouvrir() { showScreen('agence'); }
   function clic(e) {
-    const b = e.target.closest('[data-a],[data-poste]'); if (!b) return; vibrer(8);
-    if (b.dataset.poste) return embaucher(b.dataset.poste, b);
+    const b = e.target.closest('[data-a],[data-poste],[data-max]'); if (!b) return; vibrer(8);
+    if (b.dataset.max) { serie.t = Date.now(); return embaucher(b.dataset.max, Number(b.dataset.n) || 1); }
+    if (b.dataset.poste) { const p = b.dataset.poste, t = Date.now(); serie = serie.poste === p && t - serie.t < 4000 ? { poste: p, n: serie.n + 1, t } : { poste: p, n: 1, t }; embaucher(p, 1); return majMax(); }
     const a = b.dataset.a; if (a === 'poser') return poser(); if (a === 'booster') return ouvrirPack(); if (a === 'pieces') return recolter(); if (a === 'regles') return regles(); if (a === 'classement') return ouvrirClassement();
   }
   function regles() {
@@ -183,19 +200,27 @@
     i.style.left = (r.left - s.left + r.width / 2).toFixed(0) + 'px'; i.style.top = (r.top - s.top + sc.scrollTop).toFixed(0) + 'px';
     i.addEventListener('animationend', () => i.remove()); sc.appendChild(i);
   }
-  async function embaucher(poste, bouton) {
-    if (occupe || pose) return; const a = courante(); if (!a) return;
-    const essai = AG.embaucher(a, poste, Math.floor(dispo())), gain = AG.gain(a, poste);
-    if (!essai.ok) { vibrer(30); return toast(essai.raison === 'fonds' ? `Il te manque ${fmt(essai.cout - Math.floor(dispo()))} pour cette embauche` : 'Ton agence est pleine : pose une brique pour repartir'); }
-    occupe = true;
-    try {
-      if (MODE_SERVEUR) { const r = await agir('agence_embaucher', { poste }); if (r) recevoir(r.agence); }
-      else { encaisser(true); state.wallet -= essai.cout; state.agence = essai.agence; save(); }
-    } finally { occupe = false; }
-    vibrer(10); refreshTop(); if (!visible()) return;
-    const apres = courante(); majScene(apres); majCommandes(apres); demarrer();
-    const et = document.querySelector(`#ag-scene [data-etage="${poste}"]`); if (et) { et.classList.remove('eclat'); void et.offsetWidth; et.classList.add('eclat'); }
-    if (gain > 0) flotter(document.getElementById('ag-debit'), `+${debitTexte(gain)}`);
+  // embaucher : les touchers ne se perdent plus pendant que le serveur répond (18 nov., Gautier : « on ne peut pas spammer
+  // le bouton ») : ils s'ajoutent à une file par poste, envoyée en une seule demande dès que la précédente est revenue
+  const file = {};
+  function embaucher(poste, n) { if (pose) return; file[poste] = Math.min(MAX_LOT, (file[poste] || 0) + (n || 1)); if (!occupe) vider(); }
+  async function vider() {
+    for (;;) {
+      const poste = AG.POSTES.find((p) => file[p] > 0); if (!poste || occupe || pose) return;
+      const voulu = file[poste]; file[poste] = 0;
+      const a = courante(); if (!a) return;
+      const l = lot(a, poste, voulu, Math.floor(dispo())), gain = l.faits ? AG.debit(l.agence.e, a.briques) - AG.debit(a.e, a.briques) : 0;
+      if (!l.faits) { vibrer(30); const r = l.refus || {}; toast(r.raison === 'fonds' ? `Il te manque ${fmt(r.cout - Math.floor(dispo()))} pour cette embauche` : 'Ton agence est pleine : pose une brique pour repartir'); continue; }
+      occupe = true;
+      try {
+        if (MODE_SERVEUR) { const r = await agir('agence_embaucher', { poste, n: l.faits }); if (r) recevoir(r.agence); }
+        else { encaisser(true); state.wallet -= l.total; state.agence = l.agence; save(); }
+      } finally { occupe = false; }
+      vibrer(10); refreshTop(); if (!visible()) return;
+      const apres = courante(); majScene(apres); majCommandes(apres); demarrer();
+      const et = document.querySelector(`#ag-scene [data-etage="${poste}"]`); if (et) { et.classList.remove('eclat'); void et.offsetWidth; et.classList.add('eclat'); }
+      if (gain > 0) flotter(document.getElementById('ag-debit'), `+${debitTexte(gain)}`);
+    }
   }
   async function poser() {
     if (occupe || pose) return; const a = courante(); if (!a) return; const r = AG.poser(a);
