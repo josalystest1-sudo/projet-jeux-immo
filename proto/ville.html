@@ -1,0 +1,81 @@
+<!doctype html><html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>StreetKeep : essai « Ma ville »</title>
+<!-- Essai (18 nov. 2026) : l'écran principal « Ma ville », manié comme Pokémon GO (réponses de Gautier : « Pokémon GO », « Ma ville »,
+     et tout ce qui fait tableau de contrôle : trop de chiffres, des panneaux empilés, rien ne bouge, trop d'écrans).
+     Une scène plein écran où mes bâtiments sont posés ; les menus sont de petits boutons ronds par-dessus. Page d'essai, hors du jeu. -->
+<style>
+@font-face{font-family:'Nunito';font-weight:800;src:url(../fonts/nunito-latin-800-normal.woff2) format('woff2')}
+@font-face{font-family:'Nunito';font-weight:900;src:url(../fonts/nunito-latin-900-normal.woff2) format('woff2')}
+@font-face{font-family:'Barlow Condensed';font-weight:700;src:url(../fonts/barlow-condensed-latin-700-normal.woff2) format('woff2')}
+*{box-sizing:border-box}html,body{margin:0;height:100%;background:#050A1E;font-family:Nunito,system-ui,sans-serif;color:#fff;overflow:hidden}
+#jeu{position:relative;width:100%;height:100%;overflow:hidden;background:radial-gradient(ellipse 90% 55% at 50% 58%,#17307A 0%,#0B1640 55%,#050A1E 100%)}
+#ciel{position:absolute;inset:0 0 auto 0;height:38%;background:linear-gradient(#060B24,#0C1A4A 70%,transparent)}
+#ciel i{position:absolute;width:2px;height:2px;border-radius:50%;background:#CFE2FF;opacity:.7}
+#lune{position:absolute;right:13%;top:13%;width:34px;height:34px;border-radius:50%;background:#FFE9B0;box-shadow:0 0 30px 8px rgba(255,220,150,.35)}
+#horizon{position:absolute;left:0;right:0;top:22%;height:70px;opacity:.5}
+#scene{position:absolute;left:50%;top:49%;width:0;height:0;transform:scale(var(--ech,1))}
+.plot{position:absolute;width:92px;height:46px;margin:-23px 0 0 -46px}
+.plot svg{position:absolute;inset:0;overflow:visible}
+.bati{position:absolute;left:50%;bottom:9px;transform:translateX(-50%);pointer-events:none;filter:drop-shadow(0 0 6px rgba(90,168,255,.6))}
+.piece{position:absolute;left:50%;width:22px;height:22px;margin-left:-11px;background:url(../icones/piece.svg) center/contain no-repeat;animation:flotte 1.6s ease-in-out infinite;filter:drop-shadow(0 0 5px rgba(255,200,80,.9))}
+@keyframes flotte{0%,100%{transform:translateY(0)}50%{transform:translateY(-7px)}}
+.etiq{position:absolute;left:50%;transform:translateX(-50%);white-space:nowrap;font:700 12px 'Barlow Condensed',sans-serif;letter-spacing:.08em;text-transform:uppercase;padding:2px 8px;border-radius:7px;background:rgba(8,16,48,.85);border:1.5px solid #5AA8FF;box-shadow:0 0 8px rgba(90,168,255,.6)}
+.etiq.or{border-color:#FFC94A;color:#FFE08A;box-shadow:0 0 10px rgba(255,200,80,.7)}
+.booster{position:absolute;left:50%;bottom:16px;width:34px;height:48px;margin-left:-17px;border-radius:5px;background:linear-gradient(135deg,#3F7BFF,#152C8A 55%,#FFC94A);border:1.5px solid #FFE08A;box-shadow:0 0 16px 3px rgba(255,200,80,.75);animation:flotte 1.8s ease-in-out infinite}
+.booster::after{content:"";position:absolute;inset:6px 5px auto;height:2px;background:#FFE08A;box-shadow:0 30px 0 #FFE08A}
+.perso{position:absolute;width:8px;height:14px;animation:marche 7s linear infinite}
+.perso::before{content:"";position:absolute;left:1px;top:0;width:6px;height:6px;border-radius:50%;background:#FFE08A}
+.perso::after{content:"";position:absolute;left:2px;top:6px;width:4px;height:8px;border-radius:2px;background:#7FE3FF}
+@keyframes marche{0%{transform:translate(0,0)}50%{transform:translate(78px,39px)}100%{transform:translate(0,0)}}
+/* les commandes, posées par-dessus */
+.haut{position:absolute;left:12px;right:12px;top:12px;display:flex;align-items:center;gap:8px}
+.pastille{display:flex;align-items:center;gap:6px;height:38px;padding:0 12px 0 6px;border-radius:19px;background:rgba(8,16,48,.82);border:1.5px solid rgba(90,168,255,.6);font-weight:900;font-size:16px}
+.pastille .pc{width:26px;height:26px;background:url(../icones/piece.svg) center/contain no-repeat}
+.pastille .gem{width:22px;height:22px;margin-left:3px}
+.pastille small{color:#5CE08A;font-size:12px}
+.saison{margin:0 auto 0 0;height:30px;padding:0 10px;border-radius:15px;font:700 13px 'Barlow Condensed',sans-serif;letter-spacing:.08em;text-transform:uppercase;display:flex;align-items:center;background:rgba(8,16,48,.7);border:1px solid rgba(255,200,80,.6);color:#FFE08A}
+.rond{position:absolute;display:flex;flex-direction:column;align-items:center;gap:3px;font-weight:800;font-size:11px;text-shadow:0 1px 3px #000}
+.rond b{display:grid;place-items:center;width:58px;height:58px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#2A4FB8,#0E1E5C);border:2px solid #5AA8FF;box-shadow:0 0 14px rgba(90,168,255,.55),inset 0 2px 0 rgba(255,255,255,.18)}
+.rond svg{width:28px;height:28px;fill:rgba(255,255,255,.16);stroke:#fff;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+.rond.gros b{width:84px;height:84px;background:radial-gradient(circle at 35% 30%,#FFE08A,#F2A51E 60%,#B56D00);border:3px solid #FFF1C0;box-shadow:0 0 26px rgba(255,200,80,.8),inset 0 3px 0 rgba(255,255,255,.4)}
+.rond.gros svg{width:44px;height:44px;stroke:#5A3200;fill:rgba(90,50,0,.18);stroke-width:1.9}
+.rond .pt{position:absolute;right:-2px;top:-2px;min-width:20px;height:20px;border-radius:10px;background:#FF4D6D;font-size:12px;font-weight:900;display:grid;place-items:center;border:2px solid #0B1640}
+.avatar b{background:radial-gradient(circle at 35% 30%,#FFD98A,#E08A2E);font-size:30px}
+.bulle{position:absolute;left:50%;bottom:132px;transform:translateX(-50%);white-space:nowrap;padding:8px 14px;border-radius:16px;background:rgba(8,16,48,.9);border:1.5px solid #FFC94A;font-weight:800;font-size:14px;box-shadow:0 0 14px rgba(255,200,80,.45)}
+.bulle::after{content:"";position:absolute;left:50%;bottom:-7px;width:12px;height:12px;margin-left:-6px;background:rgba(8,16,48,.95);border-right:1.5px solid #FFC94A;border-bottom:1.5px solid #FFC94A;transform:rotate(45deg)}
+@media (max-width:350px){.rond b{width:46px;height:46px}.rond svg{width:22px;height:22px}.rond.gros b{width:66px;height:66px}.rond.gros{margin-left:-33px!important}.rond.gros svg{width:34px;height:34px}.rond{font-size:10px}.g2{left:72px!important}.d2{right:72px!important}.pastille{font-size:13px;padding:0 8px 0 4px;white-space:nowrap}.pastille small{display:none}.saison{font-size:11px;white-space:nowrap}.bulle{font-size:12px;bottom:118px}}
+</style></head><body>
+<div id="jeu">
+  <div id="ciel"></div><div id="lune"></div>
+  <svg id="horizon" viewBox="0 0 390 70" preserveAspectRatio="none"><path d="M0 70V48h18V30h14v18h20V20h10v-8h4v8h10v28h16V36h22v12h14V26h18v22h12V40h26v8h10V16h16v32h20V34h12v14h22V24h8v-6h4v6h8v24h18V38h20v10h14V70Z" fill="#0E1F5E" stroke="#3F7BFF" stroke-width="1"/></svg>
+  <div id="scene"></div>
+  <div class="haut"><span class="saison">Saison 1 · 12 j</span>
+    <span class="pastille"><svg class="gem" viewBox="0 0 24 24" fill="#7FE3FF" stroke="#DDF6FF" stroke-width="1.4" stroke-linejoin="round"><path d="M6 4h12l4 6-10 11L2 10Z"/></svg>120</span>
+    <span class="pastille"><i class="pc"></i>48 250 <small>+1 310</small></span></div>
+  <div class="bulle">Touche les pièces pour récolter tes loyers</div>
+  <div class="rond avatar" style="left:18px;bottom:26px"><b>🦁</b>Marius</div>
+  <div class="rond g2" style="left:92px;bottom:60px"><b><svg viewBox="0 0 24 24"><rect x="8" y="3" width="12" height="16" rx="2"/><path d="M5 6.5v12A2.5 2.5 0 0 0 7.5 21H15"/></svg></b>Collection</div>
+  <div class="rond gros" style="left:50%;margin-left:-42px;bottom:22px"><b><svg viewBox="0 0 24 24"><path d="M3 11.5 12 4l9 7.5"/><path d="M5.5 10v10h13V10"/><path d="M10 20v-5.5h4V20"/></svg></b></div>
+  <div class="rond d2" style="right:92px;bottom:60px"><b><svg viewBox="0 0 24 24"><path d="m14.5 12.5-8 8a2.1 2.1 0 0 1-3-3l8-8"/><path d="m16 16 5-5"/><path d="m8 8 5-5"/><path d="m9.5 6.5 8 8"/><path d="m20.5 11.5-8-8"/></svg><span class="pt">3</span></b>Enchères</div>
+  <div class="rond" style="right:18px;bottom:26px"><b><svg viewBox="0 0 24 24"><path d="M9 3.5 3.5 5.5v15l5.5-2 6 2 5.5-2v-15l-5.5 2-6-2Z"/><path d="M9 3.5v15M15 5.5v15"/></svg></b>Carte</div>
+</div>
+<script>
+// le ciel
+const ciel=document.getElementById('ciel'); for(let i=0;i<46;i++){ const e=document.createElement('i'); e.style.left=(i*37%100)+'%'; e.style.top=(i*53%78)+'%'; e.style.opacity=.3+(i%5)/8; ciel.appendChild(e); }
+// la ville : un damier vu en biais ; chaque case porte un de mes lieux (niveau du bâtiment), l'agence au milieu, des terrains libres
+const NOMS=['terrain','maison','immeuble','tour','gratte_ciel','palace','prestige'], H=[24,40,56,70,90,68,66];
+const CASES=[ // i, j, niveau (ou sorte), loyer en attente ?
+  [0,0,2,1],[1,0,1,0],[2,0,3,1],[3,0,1,1],
+  [0,1,1,0],[1,1,'agence'],[2,1,5,1],[3,1,2,0],
+  [0,2,4,1],[1,2,2,0],[2,2,3,0],[3,2,1,1],
+  [0,3,6,1],[1,3,1,0],[2,3,'libre'],[3,3,'booster'] ];
+const scene=document.getElementById('scene'); document.getElementById('jeu').style.setProperty('--ech', Math.min(1.7, innerWidth/285)); const TW=104, TH=52;
+CASES.sort((a,b)=>(a[0]+a[1])-(b[0]+b[1])).forEach(([i,j,n,loyer])=>{ const p=document.createElement('div'); p.className='plot'; const x=(i-j)*TW/2*0.88, y=(i+j-3)*TH/2*0.88; p.style.left=x+'px'; p.style.top=y+'px'; p.style.zIndex=10+i+j;
+  const or=n==='agence'||n==='booster', libre=n==='libre';
+  let h=`<svg viewBox="0 0 104 52"><path d="M52 2 102 26 52 50 2 26Z" fill="${or?'rgba(255,200,80,.12)':'rgba(40,80,200,.22)'}" stroke="${or?'#FFC94A':'#5AA8FF'}" stroke-width="1.6" ${libre?'stroke-dasharray="5 5"':''}/></svg>`;
+  if(n==='agence') h+=`<img class="bati" src="../icones/batiments/gratte_ciel.png" style="height:118px;filter:drop-shadow(0 0 10px rgba(255,200,80,.9))"><span class="etiq or" style="bottom:132px">Mon agence · 38 renom/h</span>`;
+  else if(n==='booster') h+=`<i class="booster"></i><span class="etiq or" style="bottom:-16px">Booster prêt</span>`;
+  else if(libre) h+=`<span class="etiq" style="bottom:14px;border-style:dashed;opacity:.8">+ Terrain libre</span>`;
+  else { h+=`<img class="bati" src="../icones/batiments/${NOMS[n]}.png" style="height:${H[n]}px">`; if(loyer) h+=`<i class="piece" style="bottom:${H[n]+14}px;animation-delay:${-(i*3+j)*0.21}s"></i>`; }
+  p.innerHTML=h; scene.appendChild(p); });
+for(const [x,y,d] of [[-150,-6,0],[-30,60,-3],[40,-70,-5]]){ const e=document.createElement('div'); e.className='perso'; e.style.left=x+'px'; e.style.top=y+'px'; e.style.zIndex=30; e.style.animationDelay=d+'s'; scene.appendChild(e); }
+</script></body></html>

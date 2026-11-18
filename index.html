@@ -138,13 +138,16 @@ const VERSION='__VERSION__';
 <div class="screen" id="s-notifs"></div>
 
 <div id="nav">
-  <button data-s="agence" class="on"><i>🏢</i>Agence</button>
-  <button data-s="carte"><i>🗺️</i>Carte</button>
+  <button data-s="agence"><i>🏢</i>Agence</button>
   <button data-s="patrimoine"><i>🏘️</i>Patrimoine</button>
+  <button data-s="carte" class="centre"><i>🗺️</i>Carte</button>
   <button id="packbtn" class="pack-nav attente" aria-label="Pack du jour"><span class="pack-rond">🎁</span><span class="pack-t" id="packt">Pack</span></button>
   <button data-s="encheres"><i>🔨</i>Enchères<span class="cnt" id="cnt-ench"></span></button>
   <button data-s="communes"><i>🏛️</i>Communes</button>
 </div>
+
+<!-- le tour de mes lieux (18 nov.) : sur la carte, on saute d'un de ses lieux au suivant -->
+<div id="tour-lieux" hidden><button id="tl-avant" aria-label="Lieu précédent">‹</button><button id="tl-nom" aria-label="Mes lieux"><small id="tl-rang" data-pas-traduire></small><b id="tl-texte" data-pas-traduire></b></button><button id="tl-apres" aria-label="Lieu suivant">›</button></div>
 
 <!-- le pack du jour est prêt : un bouton à l'écran, sur tous les écrans (16 nov. : l'accueil ne sert plus qu'au tout premier pack) -->
 <button id="booster-pret" aria-label="Booster disponible"><span class="bp-sachet"></span><span class="bp-texte"><b>Booster disponible</b><small>Touche pour l’ouvrir</small></span></button>
@@ -2444,7 +2447,7 @@ function dureeCourte(s){ return s>=3600 ? `${Math.floor(s/3600)} h ${String(Math
 // =================== écrans ===================
 function showScreen(name){ vibrer(8); if(window.PROGRESSION && !PROGRESSION.ouvert(name)) return PROGRESSION.ferme(name);   // (un écran fermé d'un cadenas : src/progression.js)
   if(name!=='accueil' && window.ACCUEIL) ACCUEIL.fermerVitrine(); document.querySelectorAll('.screen').forEach(s=>s.classList.remove('on')); document.querySelectorAll('#nav button[data-s]').forEach(b=>b.classList.toggle('on', b.dataset.s===name));
-  const hide = name!=='carte'; ['top','ctrls','legend'].forEach(id=>document.getElementById(id).style.display = hide?'none':''); closeSheet(); if(!(window.Compte && Compte.bloque && Compte.bloque())) closeModal();
+  document.body.classList.toggle('sur-carte', name==='carte'); const hide = name!=='carte'; ['top','ctrls','legend'].forEach(id=>document.getElementById(id).style.display = hide?'none':''); closeSheet(); if(!(window.Compte && Compte.bloque && Compte.bloque())) closeModal();
   if(name==='patrimoine') renderPatrimoine(); if(name==='encheres') renderEncheres(); if(name==='communes'){ if(MODE_SERVEUR){ for(const k of Object.keys(CAISSES)) delete CAISSES[k]; CLASSES.lu=0; CLASSES.communes={}; } renderCommunes(); } if(name==='notifs') renderNotifs();
   if(hide) document.getElementById('s-'+name).classList.add('on'); else { map.resize(); if(!ARRIVEE_FAITE){ const go=()=>setTimeout(descenteArrivee, 150); if(map.loaded()) go(); else { map.once('idle', go); setTimeout(go, 2500); } } }
   if(name==='accueil' && window.ACCUEIL) ACCUEIL.render(); if(name==='agence' && window.AGENCE) AGENCE.montrer(); boutonBooster(); }
@@ -3041,14 +3044,32 @@ function reduireImageAvatar(fichier){ return new Promise((ok, non)=>{ if(!fichie
       let d=''; for(const q of [0.85, 0.7, 0.55, 0.4]){ d=c.toDataURL('image/jpeg', q); if(d.length<=16000) break; }
       URL.revokeObjectURL(url); if(d.length>16000 || !AVATAR_IMAGE.test(d)) return non(new Error('lourde')); ok(d); }catch(e){ URL.revokeObjectURL(url); non(e); } };
   im.onerror=()=>{ URL.revokeObjectURL(url); non(new Error('image')); }; im.src=url; }); }
+// La carte, écran principal (18 nov., Gautier : le jeu se manie « comme Pokémon GO », la vraie carte au centre) :
+// une pièce flotte au-dessus de chacun de mes lieux quand il y a à récolter (repères HTML : la carte ne se repeint pas ;
+// ils existent toujours, la classe « a-recolter » du body les montre) ; on la touche, les pièces volent vers la bourse.
+// Le tour de mes lieux (#tour-lieux) saute d'un lieu au suivant par allerA.
+const PIECES_CARTE={}; let TOUR_CLE='', TOUR_I=-1;
+const mesLieuxTour = () => Object.values(state.owned).filter(a=>isFinite(a.lon) && isFinite(a.lat));
+function majMesLieuxCarte(){ if(typeof map==='undefined' || !map) return; const l=mesLieuxTour(), cle=l.map(a=>a.id).join('|');
+  if(cle!==TOUR_CLE){ TOUR_CLE=cle; const ids=new Set(l.map(a=>a.id));
+    for(const id of Object.keys(PIECES_CARTE)) if(!ids.has(id)){ PIECES_CARTE[id].remove(); delete PIECES_CARTE[id]; }
+    for(const a of l) if(!PIECES_CARTE[a.id]){ const el=document.createElement('button'); el.className='piece-carte'; el.setAttribute('aria-label','Récolter'); el.innerHTML='<i class="pc"></i>';
+      el.onclick=ev=>{ ev.stopPropagation(); recolter({ x:ev.clientX, y:ev.clientY }); }; PIECES_CARTE[a.id]=new maplibregl.Marker({ element:el, anchor:'bottom', offset:[0,-30] }).setLngLat([a.lon,a.lat]).addTo(map); }
+    if(TOUR_I>=l.length) TOUR_I=l.length-1; majTourLieux(); } }
+function majTourLieux(){ const el=document.getElementById('tour-lieux'), l=mesLieuxTour(); el.hidden=!l.length; if(!l.length) return;
+  const a=l[TOUR_I]; document.getElementById('tl-rang').textContent = a ? `${TOUR_I+1} / ${l.length}` : `${l.length}`;
+  document.getElementById('tl-texte').textContent = a ? (a.label||a.nom||'') : (l.length>1 ? 'Mes lieux' : 'Mon lieu'); if(!a) document.getElementById('tl-texte').removeAttribute('data-pas-traduire'); else document.getElementById('tl-texte').setAttribute('data-pas-traduire',''); }
+function tourLieux(pas){ const l=mesLieuxTour(); if(!l.length) return; TOUR_I = TOUR_I<0 ? (pas<0 ? l.length-1 : 0) : (TOUR_I+pas+l.length)%l.length; const a=l[TOUR_I]; majTourLieux(); vibrer(8);
+  ARRIVEE_FAITE=true; allerA(a.lon, a.lat, 17.3, null, a.label||a.nom, communeName(a.citycode, a.city)); }
+document.getElementById('tl-avant').onclick=()=>tourLieux(-1); document.getElementById('tl-apres').onclick=()=>tourLieux(1); document.getElementById('tl-nom').onclick=()=>tourLieux(TOUR_I<0 ? 1 : 0);
 function refreshTop(){ afficherBourse(dispo()); { const g=document.getElementById('gemmes'); if(g) g.textContent=nb(state.gemmes||0); } document.getElementById('meav').innerHTML=avatarHTML(state.avatar, '🙂'); document.getElementById('mename').textContent=disp(ME); const n=Object.keys(state.owned).length; document.getElementById('count').textContent = `${n} lieu${n>1?'x':''}${MODE_SERVEUR?' · serveur':''}`;
-  const p=Math.floor(pendingRent()); document.getElementById('pending').textContent = p>0 ? `+${nb(p)}` : '';
+  const p=Math.floor(pendingRent()); document.getElementById('pending').textContent = p>0 ? `+${nb(p)}` : ''; document.body.classList.toggle('a-recolter', p>=1); majMesLieuxCarte();
   const unread=state.notifs.filter(n=>!n.read).length; const c=document.getElementById('cnt-notif'); c.style.display=unread?'block':'none'; c.textContent=unread; refreshPack(); }
 setInterval(()=>{ refreshTop(); if(!MODE_SERVEUR){ tickOffers(); tickAuction(); tickMairie(); tickSaison(); tickMonuments(); const cf=document.getElementById('caisse-fin'); if(cf) cf.textContent='⏳ '+dureeTexte(finMandat(mandatCourant())-now());
     const sf=document.getElementById('saison-fin'); if(sf) sf.textContent='⏳ '+dureeTexte(finSaison(CLA.saison(mandatCourant()))-now()); } else { refreshPack(); tickEncheresServeur(); } }, 1000);
 // À la connexion : la récolte des loyers (24 h au plus), puis le pack du jour s'il est prêt
 // l'accueil ne sert plus qu'au tout premier pack (16 nov.) : un joueur installé arrive dans son agence, le bouton « Booster disponible » à l'écran
-function packAuDemarrage(){ const acc=document.getElementById('s-accueil').classList.contains('on'); if(premierPack()){ if(acc) ACCUEIL.render(); else showScreen('accueil'); } else if(acc) showScreen('agence'); boutonBooster(); }
+function packAuDemarrage(){ const acc=document.getElementById('s-accueil').classList.contains('on'); if(premierPack()){ if(acc) ACCUEIL.render(); else showScreen('accueil'); } else if(acc) showScreen('carte'); boutonBooster(); }
 async function recolteConnexion(ensuite){ if(MODE_SERVEUR){ const r=await synchroniser(); if(!r || !r.ok){ toast((r&&r.message)||'Serveur injoignable'); return ensuite(); } }
   const p=Math.floor(pendingRent()); if(p<1) return ensuite();
   const absent=now()-state.encaisse, plein=absent>=ECO.stock_loyer_heures*JOUR/24, lieux=Object.keys(state.owned).length;
@@ -3078,7 +3099,7 @@ refreshTop(); if(!MODE_SERVEUR) tickAuction();
 <script src="src/accueil.js"></script>
 <script src="src/progression.js"></script>
 <script>PROGRESSION.verifier();</script>
-<script>showScreen(premierPack() ? 'accueil' : 'agence');   // le jeu s'ouvre sur l'agence (16 nov.) ; l'accueil, seulement pour le tout premier pack</script>
+<script>showScreen(premierPack() ? 'accueil' : 'carte');   // le jeu s'ouvre sur la vraie carte (18 nov., choix de Gautier : « comme Pokémon GO ») ; l'accueil, seulement pour le tout premier pack</script>
 <script src="src/chasse_jeu.js"></script>
 <script src="src/compte.js?v=20261103b"></script>
 </body>
