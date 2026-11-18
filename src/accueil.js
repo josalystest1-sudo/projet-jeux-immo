@@ -41,6 +41,16 @@
     const l = ids.length ? ids.map((id) => state.owned[id]) : Object.values(state.owned).sort((a, b) => (b.depuis || 0) - (a.depuis || 0)).slice(0, 5);
     return l.slice(0, 8);
   }
+  // les cartes de l'éventail sont les cartes néon de la collection (18 nov.) : leur maquette légère, libérée à chaque nouveau dessin
+  let scenes = [];
+  function animerEventail(el) {
+    for (const sc of scenes) if (sc && sc.jeter) sc.jeter(); scenes = [];
+    const cs = el.querySelectorAll('.acc-carte.ccl'); if (!cs.length) return;
+    const w = cs[0].clientWidth; if (w > 0) el.querySelector('.acc-eventail').style.setProperty('--k', (w / 240).toFixed(4));
+    if (!window.CarteLieu || !CarteLieu.animer) return;
+    cs.forEach((c) => { const a = state.owned[c.dataset.id]; if (!a) return;
+      CarteLieu.animer(c.querySelector('.cl'), a, rarete(a), { leger: true }).then((sc) => { if (c.isConnected) scenes.push(sc); else if (sc && sc.jeter) sc.jeter(); }).catch(() => {}); });
+  }
   A.render = () => {
     const el = ecran(); if (!el || !visible()) return;
     const pret = packDispo(), act = action();
@@ -53,9 +63,10 @@
       : `<div class="acc-titre"><small>Prochain pack dans</small><b class="acc-compte">${dureeCourte(secondesAvantPack())}</b></div>`;
     const cartes = pret ? [] : cartesDuJour();
     const centre = pret ? '<div class="acc-centre"></div>'
-      : `<div class="acc-centre"><div class="acc-eventail" style="--n:${cartes.length}">${cartes.map((a, i) => `<button class="acc-carte ccarte r${rarete(a)}" data-id="${echapper(a.id)}" style="--i:${i - (cartes.length - 1) / 2}">${carteArt(a, '')}</button>`).join('')}</div>${cartes.length ? `<div class="acc-legende">${state.cartesDuJour ? 'Tes cartes du jour' : 'Tes dernières cartes'}</div>` : ''}</div>`;
+      : `<div class="acc-centre"><div class="acc-eventail" style="--n:${cartes.length}">${cartes.map((a, i) => `<button class="acc-carte ccl r${rarete(a)}" data-id="${echapper(a.id)}" style="--i:${i - (cartes.length - 1) / 2}"><div class="ccl-in">${faceCarte(a, rarete(a))}</div></button>`).join('')}</div>${cartes.length ? `<div class="acc-legende">${state.cartesDuJour ? 'Tes cartes du jour' : 'Tes dernières cartes'}</div>` : ''}</div>`;
     const bas = `<div class="acc-bas"><button class="acc-gros ${act.or ? 'or' : ''} ${premier ? 'pulse' : ''}" data-a="gros">${echapper(premier ? 'Ouvrir mon premier pack' : act.texte)}${act.piece ? ' <i class="pc"></i>' : ''}</button><span class="acc-sous">${echapper(premier ? `${nb(BOU.cartesDuJour(state.pass, now(), premierLancement()))} vrais lieux de France, tirés au hasard : ils seront à toi.` : act.sous || '')}</span></div>`;
     el.innerHTML = haut + titre + centre + bas;
+    animerEventail(el);
     el.onclick = (e) => { const b = e.target.closest('[data-a],[data-id]'); if (!b) return; vibrer(8);
       if (b.dataset.id) return ouvrirFicheLieu(b.dataset.id);
       const a = b.dataset.a; if (a === 'gros') return act.f(); if (a === 'profil') return showPlayer(ME); if (a === 'gemmes') return ouvrirBoutique(); if (a === 'pieces') return recolter(); };

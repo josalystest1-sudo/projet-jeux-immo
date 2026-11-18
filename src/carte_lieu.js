@@ -237,7 +237,8 @@
   }
   // les chiffres du lieu, sous la carte ouverte en grand (Gautier, 16 nov. : plus sur la carte)
   function chiffres(s) {
-    return `<div class="cl-chiffres"><div><b>${s.valeur}</b><i>Valeur</i></div><div><b>+${s.loyer}</b><i>Loyer / jour</i></div><div><b>${s.potentiel}</b><i>Potentiel</i></div><div><b class="etoiles">${'★'.repeat(s.standing)}<span>${'★'.repeat(Math.max(0, 3 - s.standing))}</span></b><i>Standing</i></div></div>`;
+    const long = [s.valeur, '+' + s.loyer, s.potentiel].some((t) => String(t).replace(/<[^>]*>/g, '').replace(/&nbsp;/g, ' ').trim().length > 7);   // (au-delà, quatre cases de front rogneraient le chiffre)
+    return `<div class="cl-chiffres${long ? ' long' : ''}"><div><b>${s.valeur}</b><i>Valeur</i></div><div><b>+${s.loyer}</b><i>Loyer / jour</i></div><div><b>${s.potentiel}</b><i>Potentiel</i></div><div><b class="etoiles">${'★'.repeat(s.standing)}<span>${'★'.repeat(Math.max(0, 3 - s.standing))}</span></b><i>Standing</i></div></div>`;
   }
   // ---------------------------------------------------------------- la maquette d'un monument
   // Un monument qui a sa maquette sur la carte du jeu (src/maquettes.js) la montre aussi sur sa carte (Gautier, 4 nov. :
