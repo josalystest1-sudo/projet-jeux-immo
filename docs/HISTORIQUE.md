@@ -415,6 +415,7 @@ Puis une PR par étape, fusionnée en squash :
 | #223 | 18/11 | Les boosters payants (national, régional) sont préparés d'avance dès l'ouverture de la boutique : plus d'attente à l'achat |
 | #224 | 18/11 | Serveur plus rapide (1) : moins d'allers-retours vers la base à chaque action, et des mesures de temps dans chaque réponse |
 | #225 | 18/11 | Serveur plus rapide (2) : les vérifications de chaque action partent en même temps, et le rangement d'après-pack se fait après la réponse |
+| #226 | 18/11 | Serveur plus rapide (3) : le tour du monde se fait après la réponse (il prenait plus de 6 secondes sur la première demande au réveil du serveur) |
 | #200 | 16/11 | Prototype du booster validé par Gautier : brillance moyenne fixée, boutons de réglage retirés |
 | #199 | 16/11 | Prototype du booster : une ligne de toits en néon sur le booster du jour, à la place de la maison |
 | #198 | 16/11 | Prototype du booster : moins brillant, lettres cernées, trois niveaux de brillance à choisir |
