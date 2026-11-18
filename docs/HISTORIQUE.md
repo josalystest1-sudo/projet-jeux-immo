@@ -208,6 +208,13 @@ Rien d'important ne vit dans une conversation : tout est dans le dépôt ou sur 
 - **L'horloge du serveur** (PR #155). Dans la même série : toutes les 10 minutes, GitHub appelle le serveur pour clore les enchères, faire tourner les mandats et les saisons, tenir les monuments et faire jouer les robots, même sans joueur.
 - **L'anti-triche** (PR #150). Dans la foulée : pas plus de 60 actions par minute pour un compte, et une empreinte chiffrée de la connexion (jamais l'adresse IP) ; dès 3 comptes sur une même connexion dans la journée, une alerte pour Gautier, sans rien bloquer (familles, réseaux partagés, multi-comptes tolérés en V1).
 
+### 18 novembre 2026, après-midi : « plus jeu, moins tableau de contrôle » (PR #230 à #243)
+
+Gautier, sur son téléphone, demande d'abord « tout ce qui est facile », sans outil externe : la récolte mise en scène (les pièces volent vers la bourse, PR #230), les en-têtes illustrés (#231), les médailles et les embellissements des communes dessinés (#232), le Palace et le Prestige affinés (#233).
+
+- **La carte en bleu nuit, des bâtiments vivants** (PR #234, #235). Devant trois essais de couleurs, Gautier : « tant qu'à faire, il faut rendre les bâtiments plus vivants que de simples blocs ». Des fenêtres partout : « il y a trop de fenêtres, bien arrangé ça rend moche ; il faut varier ; faire une différence entre les immeubles, les maisons, les magasins ». La BD TOPO donne l'usage et le nombre de logements de chaque bâtiment : maisons, immeubles, bureaux, hangars, annexes, vitrines des commerces. « Tu peux passer en bleu nuit » ; les façades seulement de près.
+- **La refonte de l'ergonomie** (PR #236 à #242). Gautier : « il faut revoir toute l'interface et l'ergonomie du jeu pour que ça fasse plus jeu et moins tableau de contrôle ». À trois questions, il répond : se manier **comme Pokémon GO** ; ce qui gêne : trop de chiffres et de texte, des panneaux empilés, rien ne bouge, trop d'écrans. Une ville personnelle « Ma ville » (ses adresses réunies dans une scène) est maquettée (`proto/ville.html`) ; Gautier : « quel est l'intérêt d'avoir sa propre ville ? » ; réponse honnête : aucune règle nouvelle ; il choisit **la vraie carte comme écran principal**. Faits : ouverture sur la carte, la Carte au centre de la barre, des boutons ronds sur la carte, une pièce à toucher sur ses lieux, le tour de ses lieux (#236) ; « j'ai plus de 200 adresses » : recherche et filtres complets dans la collection (#237) ; Patrimoine, la collection d'abord (#238) ; les enchères, un monument à la fois (#239) ; la mairie en scène (#240) ; puis, Gautier absent (« continue jusqu'à ce que tu ne puisses plus rien faire »), une passe sur tous les écrans (#241, #242).
+
 ## Toutes les PR
 
 Heures de Paris. Avant la PR #1, le travail était poussé directement sur `main` :
@@ -432,6 +439,7 @@ Puis une PR par étape, fusionnée en squash :
 | #240 | 18/11 | La carte au centre (5) : la mairie en scène (commune ouverte en tête, mairie dessinée, un bouton « Verser », le reste à déplier) |
 | #241 | 18/11 | L'alerte « Données IGN non chargées » ne reste plus affichée par-dessus les autres écrans |
 | #242 | 18/11 | Retouches : la ville de nuit dès le premier chargement ; la fiche fermée ne dépasse plus ; les écrans arrivent bloc après bloc ; test de syntaxe des scripts |
+| #243 | 18/11 | Documents : le récit du 18 nov. (« plus jeu, moins tableau de contrôle »), ce qui reste à faire, les règles de navigation de `docs/DESIGN.md` |
 | #200 | 16/11 | Prototype du booster validé par Gautier : brillance moyenne fixée, boutons de réglage retirés |
 | #199 | 16/11 | Prototype du booster : une ligne de toits en néon sur le booster du jour, à la place de la maison |
 | #198 | 16/11 | Prototype du booster : moins brillant, lettres cernées, trois niveaux de brillance à choisir |
@@ -528,6 +536,11 @@ Les décisions du 2 novembre (interview) sont dans `CLAUDE.md` § 4 et dans le G
 | 6 nov. | **Pas de commune « en mode jeu vidéo »** (bâtiments fabriqués avec toits, fenêtres, arbres) : essayée en preuve, écartée (« pas joli, trop chargé ») |
 
 ## Ce qui reste à faire (au 4 novembre après-midi)
+
+- **La refonte « plus jeu » (18 nov.)**, ce qui attend Gautier :
+  - **à vérifier sur son téléphone** (tout a été vu en captures, en démo) : la fluidité de la carte avec les façades, le vol des pièces, les sauts du tour de ses lieux avec plus de 200 adresses, les filtres sur sa vraie collection, les enchères et les communes sur le vrai serveur ;
+  - **à décider** : les petites icônes (au trait, « néon rempli » ou en couleurs : trois essais envoyés, sans réponse) ; la couleur de ses lieux sur la carte (bleu clair choisi par Claude, l'or étant pris par les monuments) ; des sons (le plugin SoundWeaver n'est pas activé) ; un générateur d'images payant ou non (rien de branché) ;
+  - **idées non faites** : entrer dans une commune en touchant sa mairie sur la carte (aujourd'hui : l'étiquette de la commune) ; le booster posé sur la carte comme un objet ; la fiche d'un lieu allégée ; visiter le profil d'un joueur depuis la carte.
 
 - **Le serveur, suite** (phase 8) :
   - 8.2 : le mode serveur par défaut et la fin des joueurs simulés sont faits (PR #148 ; la démo reste par `?demo`). Reste l'inscription des amis : Brevo est prêt (PR #161 : domaine authentifié, expéditeur noreply@citydeck.fr) ; la clé SMTP est posée (secret `BREVO_SMTP_KEY_CITY_DECK`, PR #162).
