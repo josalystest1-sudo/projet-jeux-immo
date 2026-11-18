@@ -1664,3 +1664,185 @@ body.booster-la #nav{padding-top:46px}
 body.promenade #booster-pret{display:none}
 /* 3. l'éventail de l'accueil montre les cartes néon */
 .acc-carte.ccl{aspect-ratio:240/350;background:none}
+
+/* ===== essai des menus « nuit néon » (18 nov., direction A de la revue) : seulement avec ?menus=nuit ===== */
+html.pocket.nuit{
+  --encre:#EEF3FF; --encre2:#C4D0F2; --gris:#8FA0CE; --trait:#243474; --ciel:#060B20; --blanc:#0E1840;
+  --accent:#5AA8FF; --accent2:#2E6BFF; --accent-clair:#152663;
+  --plaque:#5AA8FF; --plaque2:#2E6BFF; --plaque-clair:#152663; --piece-clair:#141F4D;
+  --nuance:#0A1233; --or:#FFD065; --or2:#F2A93B; --neon:rgba(90,168,255,.55);
+  --ombre:0 0 0 1px rgba(90,168,255,.28),0 10px 26px rgba(0,0,0,.45); --ombre-forte:0 0 0 1px rgba(90,168,255,.4),0 22px 50px rgba(0,0,0,.6);
+  --gold:#FFD065; --ok:#5BE3A0;
+}
+html.nuit,html.nuit body{background:#060B20}
+/* le fond : la nuit, avec le plan d'une ville en filigrane */
+html.nuit .screen{background:
+  radial-gradient(120% 55% at 50% 0%,rgba(46,107,255,.22) 0%,transparent 70%),
+  repeating-linear-gradient(0deg,rgba(90,168,255,.05) 0 1px,transparent 1px 44px),
+  repeating-linear-gradient(90deg,rgba(90,168,255,.05) 0 1px,transparent 1px 44px),#060B20}
+/* les titres : la police des plaques, en capitales */
+html.nuit .screen h1{font-family:var(--panneau);font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#fff;text-shadow:0 0 18px rgba(90,168,255,.65)}
+html.nuit h2,html.nuit h3{color:#fff}
+/* -- fonds clairs passés en nuit (liste tirée de la feuille) -- */
+html.pocket.nuit .btn.danger,html.pocket.nuit .btn.sm.danger{background:var(--blanc)}
+html.pocket.nuit .btn.clair,html.pocket.nuit .btn.ghost,html.pocket.nuit .btn.sm{background:var(--blanc)}
+html.pocket.nuit .chip.vert{background:rgba(91,227,160,.16)}
+html.pocket.nuit .tag.r1,html.pocket.nuit .tag.r2,html.pocket.nuit .tag.r3,html.pocket.nuit .tag.r4,html.pocket.nuit .tag.r5,html.pocket.nuit .tag.r6{background:color-mix(in srgb,var(--rc) 22%,#0E1840)}
+html.pocket.nuit .own.me{background:#152663}
+html.pocket.nuit .own.other{background:rgba(255,120,90,.16)}
+html.pocket.nuit .own.libre{background:rgba(91,227,160,.16)}
+html.pocket.nuit .pill{background:var(--blanc)}
+html.pocket.nuit .gain{background:rgba(91,227,160,.16)}
+html.pocket.nuit #search{background:var(--blanc)}
+html.pocket.nuit .rond{background:var(--blanc)}
+html.pocket.nuit #sugg{background:var(--blanc)}
+html.pocket.nuit .seg{background:var(--blanc)}
+html.pocket.nuit #bnorth{background:var(--blanc)}
+html.pocket.nuit #legend{background:rgba(12,20,56,.94)}
+html.pocket.nuit #nav{background:var(--blanc)}
+html.pocket.nuit .card{background:var(--blanc)}
+html.pocket.nuit .kpi{background:var(--blanc)}
+html.pocket.nuit input.txt,html.pocket.nuit input.num{background:var(--blanc)}
+html.pocket.nuit #sheet{background:var(--blanc)}
+html.pocket.nuit #sheet::before{background:#152663}
+html.pocket.nuit .svwrap{background:#152663}
+html.pocket.nuit .sv{background:#152663}
+html.pocket.nuit .addr{background:var(--blanc)}
+html.pocket.nuit .echelle .rond-pas{background:#18245A}
+html.pocket.nuit .echelle .pas.fait .rond-pas{background:rgba(91,227,160,.16)}
+html.pocket.nuit .ccarte .niv{background:var(--blanc)}
+html.pocket.nuit .filtre{background:var(--blanc)}
+html.pocket.nuit #modal .box{background:var(--blanc)}
+html.pocket.nuit .avgrid button{background:var(--blanc)}
+html.pocket.nuit .raisons button{background:var(--blanc)}
+html.pocket.nuit .badge{background:var(--blanc)}
+html.pocket.nuit #rlabels .l.rar{background:rgba(12,20,56,.94)}
+html.pocket.nuit #guide .bulle{background:var(--blanc)}
+html.pocket.nuit #charge{background:var(--blanc)}
+html.pocket.nuit .champ-prix{background:var(--blanc)}
+html.pocket.nuit .ech-lieu{background:var(--blanc)}
+html.pocket.nuit .pied-modal{background:var(--blanc)}
+html.pocket.nuit .stat.vert{background:rgba(91,227,160,.16)}
+html.pocket.nuit #com-sugg{background:var(--blanc)}
+html.pocket.nuit .sugg-commune{background:var(--blanc)}
+html.pocket.nuit .offre-valeur .ecart.plus{background:rgba(91,227,160,.16)}
+html.pocket.nuit .offre-valeur .ecart.moins{background:rgba(255,120,90,.16)}
+html.pocket.nuit #rlabels .l.rar{background:color-mix(in srgb,var(--rc,#8E9AAF) 22%,transparent)}
+html.pocket.nuit .saison-rangs>div{background:var(--blanc)}
+html.pocket.nuit .card.entretien.impaye{background:#18245A}
+html.pocket.nuit .offre-gemmes{background:var(--blanc)}
+html.pocket.nuit .devises button{background:var(--blanc)}
+html.pocket.nuit .card,html.pocket.nuit .kpi,html.pocket.nuit .notif{background:var(--blanc)}
+html.pocket.nuit .btn.clair,html.pocket.nuit .btn.ghost,html.pocket.nuit .btn.sm{background:var(--blanc)}
+html.pocket.nuit .btn.danger,html.pocket.nuit .btn.sm.danger{background:var(--blanc)}
+html.pocket.nuit .close,html.pocket.nuit .fermer-commune{background:#18245A}
+html.pocket.nuit #nav{background:var(--blanc)}
+html.pocket.nuit .pack-nav.attente .pack-rond{background:#18245A}
+html.pocket.nuit #sheet{background:var(--blanc)}
+html.pocket.nuit #sheet::before{background:#18245A}
+html.pocket.nuit .addr{background:var(--blanc)}
+html.pocket.nuit .addr.r6{background:var(--blanc)}
+html.pocket.nuit .tag{background:#18245A}
+html.pocket.nuit .tag.r1,html.pocket.nuit .tag.r2,html.pocket.nuit .tag.r3,html.pocket.nuit .tag.r4,html.pocket.nuit .tag.r5{background:color-mix(in srgb,var(--rc) 22%,#0E1840)}
+html.pocket.nuit .tag.r6{background:#18245A}
+html.pocket.nuit .own.other,html.pocket.nuit .own.libre{background:#18245A}
+html.pocket.nuit .echelle .pas::before{background:#18245A}
+html.pocket.nuit .echelle .rond-pas{background:var(--blanc)}
+html.pocket.nuit .echelle .pas.suivant .rond-pas{background:var(--blanc)}
+html.pocket.nuit .filtre{background:var(--blanc)}
+html.pocket.nuit .offre-valeur .ecart.plus{background:#18245A}
+html.pocket.nuit .offre-valeur .ecart.moins{background:rgba(255,120,90,.16)}
+html.pocket.nuit .bar{background:#18245A}
+html.pocket.nuit .card.lot.nat{background:var(--blanc)}
+html.pocket.nuit .saison-carte{background:var(--blanc)!important}
+html.pocket.nuit .cel-nom{background:var(--blanc)}
+html.pocket.nuit .mlabel{background:var(--blanc)}
+html.pocket.nuit select{background:var(--blanc)}
+html.pocket.nuit .cr-liste button{background:var(--blanc)}
+html.pocket.nuit #commune-chip{background:rgba(12,20,56,.94)}
+html.pocket.nuit .acc-pill{background:var(--blanc)}
+html.pocket.nuit .prog-ic span{background:var(--blanc)}
+html.pocket.nuit .prog-etape{background:#18245A}
+html.pocket.nuit .prog-etape .prog-barre{background:#152663}
+html.pocket.nuit .ag-brique{background:#18245A}
+html.pocket.nuit .ag-poste{background:var(--blanc)}
+html.pocket.nuit .ag-poste.cher .ag-prix{background:#18245A}
+/* -- textes et bordures passés en nuit -- */
+html.pocket.nuit .btn.danger,html.pocket.nuit .btn.sm.danger{border:2px solid #7A3A3A}
+html.pocket.nuit .chip.or{color:#FFD98A}
+html.pocket.nuit .chip.or b{color:#FFD98A}
+html.pocket.nuit .tag.monument{color:#FFD98A}
+html.pocket.nuit .tag.lieu{color:#FFD98A}
+html.pocket.nuit .own.me{color:#9CC4FF}
+html.pocket.nuit .pack-nav .pack-t{color:#FFD98A}
+html.pocket.nuit .addr{border:2.5px solid color-mix(in srgb,var(--rc,#22306F) 55%,#fff)}
+html.pocket.nuit .echelle .pas.suivant{color:#FFD98A}
+html.pocket.nuit .vente-valeur{color:#FFD98A}
+html.pocket.nuit .prix-note.err{color:#FF8A7A}
+html.pocket.nuit .prix-vente{color:#FFD98A}
+html.pocket.nuit .ech-balance.err{color:#FF8A7A}
+html.pocket.nuit .stat.or b{color:#FFD98A}
+html.pocket.nuit .tag.r6{color:#D9B8FF!important}
+html.pocket.nuit .card.lot.r6:not(.nat){border:3px solid #4A3A8C}
+html.pocket.nuit .sugg-commune .maire-mini{color:#FFD98A}
+html.pocket.nuit .maire-gain{color:#FFD98A}
+html.pocket.nuit .stat.rouge b{color:#FF8A7A}
+html.pocket.nuit .alerte-impaye{color:#FF8A7A}
+html.pocket.nuit .pill.gemmes b{color:#C9A7FF}
+html.pocket.nuit .pass-actif{color:#FFD98A}
+html.pocket.nuit .offre-gemmes b{color:#C9A7FF}
+html.pocket.nuit .btn.clair,html.pocket.nuit .btn.ghost,html.pocket.nuit .btn.sm{border:1px solid #2A3C86}
+html.pocket.nuit .btn.danger,html.pocket.nuit .btn.sm.danger{color:#FF8A7A;border:1px solid #7A3A3A}
+html.pocket.nuit .tag.r6{color:#D9B8FF!important}
+html.pocket.nuit .stat,html.pocket.nuit .stat.or,html.pocket.nuit .stat.vert{border:1px solid #22306F}
+html.pocket.nuit .stat.rouge b{color:#FF8A7A}
+html.pocket.nuit .echelle .rond-pas{border:1.5px solid #2A3C86}
+html.pocket.nuit .raccourci{border:1px solid #22306F}
+html.pocket.nuit input.txt,html.pocket.nuit input.num,html.pocket.nuit .champ-prix{border:1px solid #2A3C86}
+html.pocket.nuit .filtre{border:1px solid #2A3C86}
+html.pocket.nuit .notif .ico{border:1px solid #22306F}
+html.pocket.nuit .offre-valeur .ecart.plus{color:#5BE3A0}
+html.pocket.nuit .offre-valeur .ecart.moins{color:#FFB070}
+html.pocket.nuit .saison-rangs>div{border:1px solid #22306F}
+html.pocket.nuit .article,html.pocket.nuit .article.pass{border:1px solid #22306F}
+html.pocket.nuit .offre-gemmes{border:1px solid #22306F}
+html.pocket.nuit select{border:1px solid #2A3C86}
+html.pocket.nuit .cr-nom{color:var(--accent,#7CC0FF)}
+html.pocket.nuit .cr-liste button{border:1px solid #2A3C86}
+html.pocket.nuit .travaux-niv{color:var(--accent,#7CC0FF)}
+html.pocket.nuit .prog-nouveau{color:var(--plaque,#7CC0FF)}
+
+/* -- composants de nuit, écrits à la main -- */
+html.pocket.nuit .card,html.pocket.nuit .kpi,html.pocket.nuit .notif,html.pocket.nuit .addr,html.pocket.nuit #modal .box,html.pocket.nuit #sheet,html.pocket.nuit .saison-carte,html.pocket.nuit .ag-poste{background:linear-gradient(180deg,#111D4E 0%,#0B1437 100%)!important;border:1px solid rgba(90,168,255,.3);box-shadow:0 10px 26px rgba(0,0,0,.45),inset 0 1px 0 rgba(140,190,255,.12);color:var(--encre)}
+html.pocket.nuit #sheet{border-radius:26px 26px 0 0;border-bottom:0}
+html.pocket.nuit #sheet::before{background:#3A4C9A}
+/* l'action : l'or ; le reste : un trait de néon */
+html.pocket.nuit .btn,html.pocket.nuit .btn.vert,html.pocket.nuit .btn.bleu,html.pocket.nuit .btn.sm.vert,html.pocket.nuit .btn.sm.bleu,html.pocket.nuit .btn.sm.next,html.pocket.nuit .ag-prix{background:linear-gradient(180deg,#FFE08A 0%,#FFC94D 50%,#F2A93B 100%);color:#2A1A00;border:0;box-shadow:inset 0 1px 0 rgba(255,255,255,.55),0 0 18px rgba(255,200,80,.35),0 4px 12px rgba(0,0,0,.4)}
+html.pocket.nuit .btn.clair,html.pocket.nuit .btn.ghost,html.pocket.nuit .btn.sm:not(.vert):not(.bleu):not(.next):not(.danger){background:rgba(90,168,255,.08);color:#DCE9FF;border:1px solid rgba(90,168,255,.5);box-shadow:none}
+html.pocket.nuit .btn.danger,html.pocket.nuit .btn.sm.danger{background:rgba(255,120,90,.1);color:#FF9A8A;border:1px solid rgba(255,120,90,.5);box-shadow:none}
+html.pocket.nuit .ag-poste.cher .ag-prix{background:#1B2864;color:#8FA0CE;box-shadow:none}
+/* la barre du bas */
+html.pocket.nuit #nav{background:linear-gradient(180deg,#0B1437,#060B20);border-top:1px solid rgba(90,168,255,.45);box-shadow:0 -8px 26px rgba(46,107,255,.18)}
+html.pocket.nuit #nav button,html.pocket.nuit #nav button i{color:#8FA0CE}
+html.pocket.nuit #nav button.on,html.pocket.nuit #nav button.on i{color:#FFD98A}
+html.pocket.nuit #nav button.on i{background:rgba(255,208,101,.12);box-shadow:0 0 0 1px rgba(255,208,101,.45),0 0 14px rgba(255,200,80,.25)}
+/* saisies */
+html.pocket.nuit input.txt,html.pocket.nuit input.num,html.pocket.nuit .champ-prix,html.pocket.nuit #search,html.pocket.nuit select,html.pocket.nuit input[type=text],html.pocket.nuit input[type=search],html.pocket.nuit input[type=email],html.pocket.nuit input[type=password]{background:#0A1233;color:#fff;border-color:#2A3C86}
+html.pocket.nuit input::placeholder{color:#7F92C8}
+html.pocket.nuit .champ-prix input{background:transparent;color:#fff}
+/* petits repères */
+html.pocket.nuit .screen .titre-section,html.pocket.nuit .screen h4,html.pocket.nuit .sec{color:#7CC0FF}
+html.pocket.nuit .sw input{background:#22306F}
+html.pocket.nuit .sw input:checked{background:#F2A93B}
+html.pocket.nuit .pc{filter:drop-shadow(0 0 4px rgba(255,200,80,.45))}
+/* -- retouches après les premières captures -- */
+html.pocket.nuit .tag.r1,html.pocket.nuit .tag.r2,html.pocket.nuit .tag.r3,html.pocket.nuit .tag.r4,html.pocket.nuit .tag.r5{background:color-mix(in srgb,var(--rc) 20%,#0E1840);color:color-mix(in srgb,var(--rc) 55%,#fff)!important;box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--rc) 55%,transparent)}
+html.pocket.nuit .tag.r6{background:#231A4D;color:#E3CCFF}
+html.pocket.nuit .compte-a-rebours{background:#0A1233;color:#FFD98A;box-shadow:inset 0 0 0 1px rgba(255,208,101,.5)}
+html.pocket.nuit #bprom,html.pocket.nuit .rond,html.pocket.nuit #bnorth,html.pocket.nuit .seg,html.pocket.nuit .pill,html.pocket.nuit #commune-chip,html.pocket.nuit #legend{background:rgba(10,18,51,.92);color:#DCE9FF;box-shadow:0 0 0 1px rgba(90,168,255,.4),0 6px 16px rgba(0,0,0,.45)}
+html.pocket.nuit .ag-brique{background:#0A1233;border-color:#2A3C86}
+html.pocket.nuit .ag-brique span{color:#EEF3FF}
+/* la plaque de rue : en néon, comme sur les cartes */
+html.pocket.nuit .plaque{background:#0A1233;border:0;box-shadow:0 0 0 2px #5AA8FF,0 0 16px rgba(90,168,255,.6),inset 0 0 14px rgba(90,168,255,.25);text-shadow:0 0 10px rgba(140,200,255,.9)}
+html.pocket.nuit .plaque::before,html.pocket.nuit .plaque::after{background:#5AA8FF;box-shadow:0 0 6px #5AA8FF;width:4px;height:4px;margin-top:-2px}
+html.pocket.nuit .plaque small{border-bottom-color:rgba(90,168,255,.6)}

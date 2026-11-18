@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="fr" class="pocket">
 <head>
+<script>/* essai des menus « nuit néon » (18 nov.) : ?menus=nuit (ou ?menus=clair pour revenir), gardé pour l'onglet */try{var m=new URLSearchParams(location.search).get('menus');if(m)sessionStorage.setItem('menus',m);if(sessionStorage.getItem('menus')==='nuit')document.documentElement.classList.add('nuit');}catch(e){}</script>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>StreetKeep</title>
@@ -446,7 +447,7 @@ const COULEURS_CARTE = [ // calque, propriété, de jour, de nuit
   ['road','line-color',['case',CHEMIN,'#E8CF94',IMPORTANT,'#59627A','#666F86'],['case',CHEMIN,'#5E4E33',IMPORTANT,'#38425C','#323B53']], ['road-axis','line-color','#FFFFFF','#AEB8CC'],
   ['road-label','text-color','#FFFFFF','#E3E8F2'], ['road-label','text-halo-color','#2F3749','#0A0F1E'], ['bati-3d','fill-extrusion-color',COULEUR_BATI,COULEUR_BATI_NUIT],
   ['bati-toit','fill-extrusion-color',COULEUR_TOIT,COULEUR_TOIT_NUIT], ['bati-ombre','fill-color','rgba(25,60,30,0.32)','rgba(0,0,0,0.38)'], ['bati-pied','line-color','rgba(20,40,30,0.45)','rgba(0,0,0,0.55)'] ];
-function estNuit(){ const q=new URLSearchParams(location.search).get('carte'); if(q==='nuit') return true; if(q==='jour') return false;
+function estNuit(){ const q=new URLSearchParams(location.search).get('carte'); if(q==='nuit') return true; if(q==='jour') return false; if(document.documentElement.classList.contains('nuit')) return true;   // (essai des menus de nuit : la ville de nuit aussi)
   const h=new Date().getHours(); return h>=20 || h<7; }
 function couleursCarte(){ const n=estNuit(); if(n===CARTE_NUIT_POSEE || !map.isStyleLoaded()) return; CARTE_NUIT=CARTE_NUIT_POSEE=n;
   COULEURS_CARTE.forEach(([c,p,j,nu])=>{ try{ map.setPaintProperty(c,p,n?nu:j); }catch(e){} });
