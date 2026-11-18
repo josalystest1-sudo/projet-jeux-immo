@@ -481,7 +481,8 @@ const COULEURS_CARTE = [ // calque, propriété, de jour, de nuit
   ['bati-toit','fill-extrusion-color',COULEUR_TOIT,COULEUR_TOIT_NUIT], ['bati-ombre','fill-color','rgba(25,60,30,0.32)','rgba(0,0,0,0.38)'], ['bati-pied','line-color','rgba(20,40,30,0.45)','rgba(90,168,255,0.9)'] ];
 function estNuit(){ const q=new URLSearchParams(location.search).get('carte'); if(q==='nuit') return true; if(q==='jour') return false; if(document.documentElement.classList.contains('nuit')) return true;   // (essai des menus de nuit : la ville de nuit aussi)
   const h=new Date().getHours(); return h>=20 || h<7; }
-function couleursCarte(){ const n=estNuit(); if(n===CARTE_NUIT_POSEE || !map.isStyleLoaded()) return; CARTE_NUIT=CARTE_NUIT_POSEE=n;
+// (les couleurs se posent dès que le style est lu, sans attendre les tuiles : sinon la ville restait blanche tout le premier chargement)
+function couleursCarte(){ const n=estNuit(); if(n===CARTE_NUIT_POSEE || !(map.style && map.style._loaded)) return; CARTE_NUIT=CARTE_NUIT_POSEE=n;
   COULEURS_CARTE.forEach(([c,p,j,nu])=>{ try{ map.setPaintProperty(c,p,n?nu:j); }catch(e){} });
   try{ map.setLight(n ? { anchor:'viewport', color:'#dfe6ff', intensity:0.55, position:[1.3,210,35] } : { anchor:'viewport', color:'#ffffff', intensity:0.7, position:[1.2,220,35] }); }catch(e){}
   try{ map.setSky(n ? { 'sky-color':'#0B1530', 'horizon-color':'#26365E', 'fog-color':'#16263C', 'sky-horizon-blend':0.6, 'horizon-fog-blend':0.6, 'fog-ground-blend':0.55 }
@@ -507,7 +508,8 @@ function poserFacades(){ if(map.getLayer('bati-fenetres')) return;
     calque('bati-fenetres', ['in',GENRE_BATI,['literal',['maison','immeuble','bureau']]], { 'fill-extrusion-pattern':['match',GENRE_BATI,'maison','f-maison','bureau','f-bureau','f-immeuble'], 'fill-extrusion-height':HAUT_BATI, 'fill-extrusion-base':0 });
     calque('bati-vitrines', A_VITRINE, { 'fill-extrusion-pattern':'f-vitrine', 'fill-extrusion-height':3.8, 'fill-extrusion-base':0 });
   }catch(e){ console.warn('façades', e); } }
-map.on('load', ()=>{ couleursCarte(); poserFacades(); }); setInterval(couleursCarte, 60000);
+const habillerCarte=()=>{ try{ couleursCarte(); poserFacades(); }catch(e){ console.warn('carte', e); } };
+map.on('style.load', habillerCarte); map.on('load', habillerCarte); if(map.style && map.style._loaded) habillerCarte(); setInterval(couleursCarte, 60000);
 // l'arrivée : la caméra descend du ciel sur le lieu (si personne n'a encore bougé la carte) ; puis la vue est gardée à chaque
 // arrêt, pour revenir au même endroit à la prochaine connexion (pas pendant une balade, une chasse ou un voyage)
 let ARRIVEE_FAITE=false;
@@ -2455,7 +2457,8 @@ function showScreen(name){ vibrer(8); if(window.PROGRESSION && !PROGRESSION.ouve
   if(name!=='accueil' && window.ACCUEIL) ACCUEIL.fermerVitrine(); document.querySelectorAll('.screen').forEach(s=>s.classList.remove('on')); document.querySelectorAll('#nav button[data-s]').forEach(b=>b.classList.toggle('on', b.dataset.s===name));
   document.body.classList.toggle('sur-carte', name==='carte'); const hide = name!=='carte'; ['top','ctrls','legend'].forEach(id=>document.getElementById(id).style.display = hide?'none':''); closeSheet(); if(!(window.Compte && Compte.bloque && Compte.bloque())) closeModal();
   if(name==='patrimoine') renderPatrimoine(); if(name==='encheres') renderEncheres(); if(name==='communes'){ if(MODE_SERVEUR){ for(const k of Object.keys(CAISSES)) delete CAISSES[k]; CLASSES.lu=0; CLASSES.communes={}; } renderCommunes(); } if(name==='notifs') renderNotifs();
-  if(hide) document.getElementById('s-'+name).classList.add('on'); else { map.resize(); if(!ARRIVEE_FAITE){ const go=()=>setTimeout(descenteArrivee, 150); if(map.loaded()) go(); else { map.once('idle', go); setTimeout(go, 2500); } } }
+  // (l'écran arrive : ses blocs montent l'un après l'autre, une seule fois : classe « entree »)
+  if(hide){ const e=document.getElementById('s-'+name); e.classList.add('on'); e.classList.remove('entree'); void e.offsetWidth; e.classList.add('entree'); clearTimeout(e._entree); e._entree=setTimeout(()=>e.classList.remove('entree'), 700); } else { map.resize(); if(!ARRIVEE_FAITE){ const go=()=>setTimeout(descenteArrivee, 150); if(map.loaded()) go(); else { map.once('idle', go); setTimeout(go, 2500); } } }
   if(name==='accueil' && window.ACCUEIL) ACCUEIL.render(); if(name==='agence' && window.AGENCE) AGENCE.montrer(); boutonBooster(); }
 document.querySelectorAll('#nav button[data-s]').forEach(b=>b.onclick=()=>showScreen(b.dataset.s));
 document.getElementById('cloche').onclick=()=>showScreen('notifs');

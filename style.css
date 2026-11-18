@@ -2080,3 +2080,13 @@ html.pocket.nuit .com-plus summary{color:#DCE6FF}
 html.pocket.nuit .com-plus.bloc{border-top-color:rgba(90,168,255,.25)}
 html.pocket.nuit .com-plus.accroche{background:linear-gradient(180deg,#101C4E,#0A1236);border:1.5px solid rgba(90,168,255,.4)}
 html.pocket.nuit .mairie-maire .mm-nom{color:#FFE08A}
+
+/* ===== Un peu de vie (18 nov., « rien ne bouge ») : un écran arrive bloc après bloc ; ce qu'on touche s'enfonce ===== */
+@keyframes arrive{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+.screen.entree > *{animation:arrive .32s cubic-bezier(.2,.8,.3,1) both}
+.screen.entree > *:nth-child(2){animation-delay:.04s}.screen.entree > *:nth-child(3){animation-delay:.08s}.screen.entree > *:nth-child(4){animation-delay:.12s}.screen.entree > *:nth-child(5){animation-delay:.16s}.screen.entree > *:nth-child(n+6){animation-delay:.2s}
+#nav button:active i,.ccl:active,.pat-pastille:active,.ligne-commune:active,.piece-carte:active,#tour-lieux button:active{transform:scale(.94)}
+#nav button i,.ccl,.pat-pastille,.ligne-commune{transition:transform .12s}
+/* la fiche fermée ne dépasse plus sous les boutons ronds de la carte (la barre y est transparente) */
+#sheet:not(.open){visibility:hidden;transition:transform .32s cubic-bezier(.2,.9,.25,1),visibility 0s .32s}
+#sheet.open{visibility:visible}

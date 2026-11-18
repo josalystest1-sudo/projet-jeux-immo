@@ -431,6 +431,7 @@ Puis une PR par étape, fusionnée en squash :
 | #239 | 18/11 | La carte au centre (4) : les enchères mises en scène (un monument à la fois, sa carte en grand, un seul bouton pour miser) |
 | #240 | 18/11 | La carte au centre (5) : la mairie en scène (commune ouverte en tête, mairie dessinée, un bouton « Verser », le reste à déplier) |
 | #241 | 18/11 | L'alerte « Données IGN non chargées » ne reste plus affichée par-dessus les autres écrans |
+| #242 | 18/11 | Retouches : la ville de nuit dès le premier chargement ; la fiche fermée ne dépasse plus ; les écrans arrivent bloc après bloc ; test de syntaxe des scripts |
 | #200 | 16/11 | Prototype du booster validé par Gautier : brillance moyenne fixée, boutons de réglage retirés |
 | #199 | 16/11 | Prototype du booster : une ligne de toits en néon sur le booster du jour, à la place de la maison |
 | #198 | 16/11 | Prototype du booster : moins brillant, lettres cernées, trois niveaux de brillance à choisir |
