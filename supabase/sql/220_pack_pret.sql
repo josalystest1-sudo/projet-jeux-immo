@@ -11,3 +11,9 @@ create table if not exists public.packs_prets (
 alter table public.packs_prets enable row level security;
 revoke all on public.packs_prets from anon, authenticated;
 grant all on public.packs_prets to service_role;
+
+-- Les boosters payants aussi (18 nov., plus tard) : un pack préparé par sorte et par joueur : « jour » (le pack du jour),
+-- « national », « region:<nom> » (une seule région à la fois : la dernière choisie dans la boutique).
+alter table public.packs_prets add column if not exists sorte text not null default 'jour';
+alter table public.packs_prets drop constraint if exists packs_prets_pkey;
+alter table public.packs_prets add primary key (joueur, sorte);

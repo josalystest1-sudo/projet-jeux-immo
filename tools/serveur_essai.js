@@ -255,7 +255,12 @@ async function nouveauJoueur(publique, secrete) {
     verifier(g0.corps && g0.corps.ok && g0.corps.gemmes >= 1000, 'des gemmes d’essai (serveur d’essai)', g0);
     const pass = await jeu({ action: 'acheter_pass' });
     verifier(pass.corps && pass.corps.ok && pass.corps.etat.gemmes === g0.corps.gemmes - 300 && pass.corps.etat.pass.bons === 1 && pass.corps.etat.pass.fin > Date.now(), 'le Pass 15 jours : 300 gemmes, un bon', pass.corps && pass.corps.etat && { g: pass.corps.etat.gemmes, p: pass.corps.etat.pass });
+    // le booster national préparé d'avance, puis acheté
+    const prepNat = await jeu({ action: 'pack_preparer', article: 'pack_national' });
+    verifier(prepNat.corps && prepNat.corps.ok && prepNat.corps.pret === true && !prepNat.corps.cartes, 'booster national préparé d’avance (les cartes ne sont pas montrées)', prepNat);
+    const tNat = Date.now();
     const nat = await jeu({ action: 'acheter_pack', article: 'pack_national' });
+    console.log(`  (achat du booster national préparé : ${Date.now() - tNat} ms)`);
     verifier(nat.corps && nat.corps.ok && nat.corps.cartes.length >= 1 && nat.corps.etat.gemmes === g0.corps.gemmes - 500 && nat.corps.cartes.every((c) => nat.corps.etat.lieux.some((l) => l.id === c.id)), `un pack national : ${nat.corps && nat.corps.cartes && nat.corps.cartes.length} lieux à moi, 200 gemmes`, nat.corps && { g: nat.corps.etat && nat.corps.etat.gemmes, n: nat.corps.cartes && nat.corps.cartes.length });
     const reg = await jeu({ action: 'acheter_pack', article: 'pack_regional', region: 'Bretagne' });
     const bzh = require('../src/regles/regions.js').REGIONS.Bretagne, dep = (c) => (String(c).startsWith('97') ? String(c).slice(0, 3) : String(c).slice(0, 2));
