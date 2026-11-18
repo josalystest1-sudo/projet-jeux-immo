@@ -2566,32 +2566,60 @@ async function recolter(depuis){ if(!(depuis && depuis.x!=null)) depuis=null; co
 
 function arrondiMise(x){ return x<10000 ? Math.ceil(x/50)*50 : Math.ceil(x/100)*100; }
 function dureeTexte(ms){ const s=Math.max(0,Math.floor(ms/1000)); const j=Math.floor(s/86400), h=Math.floor(s%86400/3600), m=Math.floor(s%3600/60); return j ? `${j} j ${h} h` : (h ? `${h} h ${String(m).padStart(2,'0')}` : `${m} min ${String(s%60).padStart(2,'0')} s`); }
+// Les enchères mises en scène (18 nov., Gautier : « plus jeu, moins tableau de contrôle » ; « trop de chiffres », « des panneaux
+// empilés », « rien ne bouge ») : un monument à la fois, sa carte en grand (la maquette tourne), la meilleure mise et un seul
+// bouton doré pour miser ; on glisse d'un monument à l'autre. Le reste (autre montant, historique, voir sur la carte, les
+// règles, les semaines suivantes) s'ouvre à la demande. L'écran est rappelé souvent (chaque mise, chaque seconde en démo) :
+// le décor et les cartes ne sont posés qu'une fois par semaine d'enchères (ENCH_DECOR), seul l'état de chaque lot est réécrit.
+let ENCH_DECOR='', OBS_ENCH=null; const SCENES_ENCH=new Map(), ENCH_OUVERTS=new Set();
+const lieuDuLot = m => ({ id:'mon:'+m.id, label:m.nom, lon:m.lon, lat:m.lat, citycode:m.insee, city:m.ville, type:'monument', niveau:0 });
+function viderScenesEncheres(){ for(const sc of SCENES_ENCH.values()) if(sc && sc.jeter) sc.jeter(); SCENES_ENCH.clear(); if(OBS_ENCH){ OBS_ENCH.disconnect(); OBS_ENCH=null; } }
+function etatLot(lot){ const mises=misesDe(lot), top=ENC.meilleure(mises), min=ENC.miseMin(lot.m, mises), id='bid-'+lot.cle.replace(':','-');
+  const moi=mesMises(lot.cle), derniere=moi.length?moi[moi.length-1].montant:0, valeur=saisieEnch[lot.cle]||min, jeMene=top&&top.qui===ME;
+  const base = top ? top.montant : ENC.miseDepart(lot.m), plus10=Math.max(min, arrondiMise(base*1.10)), plus25=Math.max(min, arrondiMise(base*1.25));
+  const statut = !derniere ? '' : (jeMene ? '<span class="chip vert">🏆 Tu mènes</span>' : '<span class="chip depasse">⚠️ Dépassé</span>');
+  return `<div class="ench-mise"><small>${top?'Meilleure mise':'Mise de départ'}</small><b>${nb(top?top.montant:ENC.miseDepart(lot.m))}<i class="pc"></i></b>
+      <span class="ench-meneur">${top?`<span class="own ${jeMene?'me':'other'}" onclick="showPlayer('${top.qui}')">${jeMene?'🎉 Toi':'👤 '+echapper(top.qui)}</span>`:'Aucune mise'}${statut}</span></div>
+    <button class="btn large ench-miser" onclick="encherir('${lot.cle}', ${min})">${jeMene?'Surenchérir':'Miser'} <span class="montant">${nb(min)}<i class="pc"></i></span></button>
+    <details class="ench-plus" data-cle="${lot.cle}"${ENCH_OUVERTS.has(lot.cle)?' open':''} ontoggle="this.open ? ENCH_OUVERTS.add('${lot.cle}') : ENCH_OUVERTS.delete('${lot.cle}')"><summary>Plus d’options</summary>
+      <div class="rapides"><button class="btn clair" onclick="encherir('${lot.cle}', ${plus10})"><span>+10 %</span><span class="montant">${nb(plus10)}<i class="pc"></i></span></button><button class="btn clair" onclick="encherir('${lot.cle}', ${plus25})"><span>+25 %</span><span class="montant">${nb(plus25)}<i class="pc"></i></span></button></div>
+      <div class="offre" style="display:flex;gap:8px;margin-top:8px"><input class="num" id="${id}" type="number" inputmode="numeric" value="${valeur}" oninput="saisieEnch['${lot.cle}']=parseInt(this.value)||0" style="flex:1;min-width:0"><button class="btn bleu" onclick="encherir('${lot.cle}', parseInt(document.getElementById('${id}').value)||0)">Enchérir</button></div>
+      <div class="ench-histo"><div class="m">Historique des mises (${mises.length})</div>${mises.slice().sort((a,b)=>b.ts-a.ts).slice(0,8).map(b=>`<div class="rank"><span class="who" onclick="showPlayer('${b.qui}')">${echapper(disp(b.qui))}</span><b>${nb(b.montant)}<i class="pc"></i></b></div>`).join('')||'<div class="m">Aucune mise pour l’instant.</div>'}</div>
+      <button class="btn clair sm" style="margin-top:10px" onclick="voirMonument('${lot.m.id}')">🗺️ Voir sur la carte</button></details>`; }
+function aideEncheres(){ const box=document.getElementById('modalbox');
+  box.innerHTML=`<h2>🔨 Comment ça marche ?</h2><div class="m">Des monuments Extraordinaires, qui ne sortent jamais des packs : un national et deux régionaux, pour toute la France. ${MODE_SERVEUR ? (enVraisJours() ? 'Les enchères se terminent à minuit, heure de Paris, au bout de la semaine.' : `Serveur d’essai : une semaine dure ${Math.round(7*JOUR/60000)} minutes.`) : 'Démo : une semaine dure 7 minutes.'}</div><div class="m" style="margin-top:8px">🏛️ Entretien : ton prochain monument coûtera ${pcs(MON.prochain(Object.values(state.owned)))} par mois (il double à chaque monument). Un monument est remis aux enchères si son propriétaire ne vient pas pendant ${MON.M.absence_jours} jours.</div><div class="m" style="margin-top:8px">Ta mise doit être couverte par tes pièces, moins ce que tu as déjà engagé sur les autres enchères où tu mènes. Si quelqu’un te dépasse, tes pièces sont libérées. À la clôture, si le meneur n’a plus les fonds, le monument va à la mise suivante.</div><button class="btn clair large" style="width:100%;margin-top:14px" onclick="closeModal()">Fermer</button>`;
+  document.getElementById('modal').classList.add('on'); }
+function suiteEncheres(){ const box=document.getElementById('modalbox'), idx=semaineEnCours(); let h=`<h2>⏳ Les semaines suivantes</h2>`;
+  for(let k=1;k<=2;k++) for(const l of lotsDe(idx+k)) h+=`<div class="rank"><span class="pos">${k===1?'S+1':'S+2'}</span><span class="who">${l.m.icone} ${echapper(l.m.nom)}</span><b style="font-size:14px">${nb(ENC.miseDepart(l.m))}<i class="pc"></i></b></div>`;
+  box.innerHTML=h+`<button class="btn clair large" style="width:100%;margin-top:14px" onclick="closeModal()">Fermer</button>`; document.getElementById('modal').classList.add('on'); }
 function renderEncheres(){ const el=document.getElementById('s-encheres');
-  if(MODE_SERVEUR && !ENCH){ el.innerHTML=`<h1>Enchères</h1><div class="card"><div class="t">Les enchères arrivent…</div><div class="m">Le serveur prépare les monuments de la semaine.</div></div>`; chargerEncheres(); return; }
-  const ouverts=[...el.querySelectorAll('details')].map(d=>d.open);
-  const idx=semaineEnCours(), debut=MODE_SERVEUR ? ENCH.debut : idx*SEMAINE, finS=MODE_SERVEUR ? ENCH.fin : debut+SEMAINE, reste=Math.max(0, finS-now()), pct=Math.min(100, 100*(now()-debut)/(finS-debut));
-  let h=`<h1 class="entete">Enchères ${sceneEntete('encheres')}<span class="act compte-a-rebours">⏳ ${dureeTexte(reste)}</span></h1>
-    <div class="card"><div class="t">Les 3 monuments de la semaine</div>
-    <div class="bar"><i style="width:${pct}%"></i></div><div class="flex"><span class="m" style="margin:0">Disponible pour miser</span><span class="montant" style="font-size:20px">${nb(dispo())}<i class="pc"></i></span></div></div>`;
-  if(!lotsDe(idx).length) h+=`<div class="card vide"><div class="ico">🏛️</div><div class="t">Pas de monument cette semaine</div><div class="m">Tous les monuments ont déjà un propriétaire.</div></div>`;
-  for(const lot of lotsDe(idx)){ const mises=misesDe(lot), top=ENC.meilleure(mises), min=ENC.miseMin(lot.m, mises), nat=lot.palier==='national', id='bid-'+lot.cle.replace(':','-');
-    const moi=mesMises(lot.cle), derniere=moi.length?moi[moi.length-1].montant:0, valeur=saisieEnch[lot.cle]||min, jeMene=top&&top.qui===ME;
-    const base = top ? top.montant : ENC.miseDepart(lot.m); const rapides=[min, Math.max(min, arrondiMise(base*1.10)), Math.max(min, arrondiMise(base*1.25))];
-    const statut = !derniere ? '' : (jeMene ? '<span class="chip vert">🏆 Tu mènes · fonds bloqués</span>' : '<span class="chip" style="background:#FDE3DE;color:var(--brique2)">⚠️ Dépassé · fonds libérés</span>');
-    h+=`<div class="card lot r6${nat?' nat':''}">
-      <div class="tete" style="display:flex;gap:12px;align-items:center"><div class="ico-lieu r6">${lot.m.icone}</div><div style="flex:1;min-width:0">
-        <span class="tag r6" style="margin:0 0 4px">${nat?'👑 Extraordinaire · national':'Extraordinaire · régional'}</span>
-        <div class="t" style="line-height:1.15">${echapper(lot.m.nom)}</div><div class="m">${echapper(lot.m.ville)} · départ ${pcs(ENC.miseDepart(lot.m))}</div></div></div>
-      <div class="flex" style="margin-top:12px;align-items:flex-end"><div><div class="m" style="margin:0">Meilleure mise</div><div class="mise">${top?nb(top.montant):'—'}${top?'<i class="pc"></i>':''}</div></div>
-        <div style="text-align:right">${top?`<span class="own ${jeMene?'me':'other'}" onclick="showPlayer('${top.qui}')">${jeMene?'🎉 Toi':'👤 '+echapper(top.qui)}</span>`:'<span class="m">Aucune mise</span>'}</div></div>
-      ${statut?`<div style="margin-top:8px">${statut}</div>`:''}
-      <div class="rapides">${rapides.map((v,i)=>`<button class="btn${i===0?'':' clair'}" onclick="encherir('${lot.cle}', ${v})"><span>${i===0?'Miser':i===1?'+10 %':'+25 %'}</span><span class="montant">${nb(v)}<i class="pc"></i></span></button>`).join('')}</div>
-      <details><summary>Autre montant</summary><div class="offre" style="display:flex;gap:8px;margin-top:8px"><input class="num" id="${id}" type="number" inputmode="numeric" value="${valeur}" oninput="saisieEnch['${lot.cle}']=parseInt(this.value)||0" style="flex:1"><button class="btn bleu" onclick="encherir('${lot.cle}', parseInt(document.getElementById('${id}').value)||0)">Enchérir</button></div></details>
-      <details><summary>Historique des mises (${mises.length})</summary>${mises.slice().sort((a,b)=>b.ts-a.ts).map(b=>`<div class="rank"><span class="who" onclick="showPlayer('${b.qui}')">${echapper(disp(b.qui))}</span><b>${nb(b.montant)}<i class="pc"></i></b></div>`).join('')||'<div class="m">Aucune mise pour l’instant.</div>'}</details>
-      <button class="btn clair sm" style="margin-top:10px" onclick="voirMonument('${lot.m.id}')">🗺️ Voir sur la carte</button></div>`; }
-  h+=`<div class="card"><details><summary class="t" style="color:var(--encre)">Comment ça marche ?</summary><div class="m" style="margin-top:8px">Des monuments Extraordinaires, qui ne sortent jamais des packs : un national et deux régionaux, pour toute la France. ${MODE_SERVEUR ? (enVraisJours() ? 'Les enchères se terminent à minuit, heure de Paris, au bout de la semaine.' : `Serveur d’essai : une semaine dure ${Math.round(7*JOUR/60000)} minutes.`) : 'Démo : une semaine dure 7 minutes.'}</div><div class="m" style="margin-top:8px">🏛️ Entretien : ton prochain monument coûtera ${pcs(MON.prochain(Object.values(state.owned)))} par mois (il double à chaque monument). Un monument est remis aux enchères si son propriétaire ne vient pas pendant ${MON.M.absence_jours} jours.</div><div class="m" style="margin-top:8px">Ta mise doit être couverte par tes pièces, moins ce que tu as déjà engagé sur les autres enchères où tu mènes. Si quelqu’un te dépasse, tes pièces sont libérées. À la clôture, si le meneur n’a plus les fonds, le monument va à la mise suivante.</div></details></div>`;
-  h+=`<h2 class="section">Les semaines suivantes</h2><div class="card">`; for(let k=1;k<=2;k++) for(const l of lotsDe(idx+k)) h+=`<div class="rank"><span class="pos">${k===1?'S+1':'S+2'}</span><span class="who">${l.m.icone} ${echapper(l.m.nom)}</span><b style="font-size:14px">${nb(ENC.miseDepart(l.m))}<i class="pc"></i></b></div>`; h+=`</div>`;
-  el.innerHTML=h; el.querySelectorAll('details').forEach((d,i)=>{ if(ouverts[i]) d.open=true; }); }
+  if(MODE_SERVEUR && !ENCH){ viderScenesEncheres(); ENCH_DECOR=''; el.innerHTML=`<h1 class="entete seule">Enchères ${sceneEntete('encheres')}</h1><div class="card"><div class="t">Les enchères arrivent…</div><div class="m">Le serveur prépare les monuments de la semaine.</div></div>`; chargerEncheres(); return; }
+  const idx=semaineEnCours(), debut=MODE_SERVEUR ? ENCH.debut : idx*SEMAINE, finS=MODE_SERVEUR ? ENCH.fin : debut+SEMAINE, reste=Math.max(0, finS-now()), lots=lotsDe(idx);
+  const decor=idx+'|'+lots.map(l=>l.cle).join(',');
+  if(decor!==ENCH_DECOR || !el.querySelector('.ench-scene, .ench-vide')){ ENCH_DECOR=decor; viderScenesEncheres();
+    let h=`<h1 class="entete">Enchères ${sceneEntete('encheres')}<span class="act compte-a-rebours">⏳ ${dureeTexte(reste)}</span></h1>`;
+    if(!lots.length) h+=`<div class="card vide ench-vide"><div class="ico">🏛️</div><div class="t">Pas de monument cette semaine</div><div class="m">Tous les monuments ont déjà un propriétaire.</div></div>`;
+    else { h+=`<div class="ench-scene">`;
+      for(const lot of lots){ const nat=lot.palier==='national', a=lieuDuLot(lot.m);
+        h+=`<section class="ench-lot${nat?' nat':''}" data-cle="${lot.cle}"><span class="tag r6">${nat?'👑 Extraordinaire · national':'Extraordinaire · régional'}</span>
+          <div class="ench-carte ccl r6" data-id="${a.id}"><div class="ccl-in">${CarteLieu.html({ r:6, rarete:RARETES[6], nom:echapper(lot.m.nom), commune:echapper(lot.m.ville), valeur:'', loyer:0, potentiel:'', standing:0 })}</div></div>
+          <div class="ench-etat"></div></section>`; }
+      h+=`</div>${lots.length>1?`<div class="ench-points">${lots.map((l,i)=>`<i${i?'':' class="on"'}></i>`).join('')}</div>`:''}`; }
+    h+=`<div class="ench-pied"><span>Disponible pour miser <b id="ench-dispo"></b></span><button class="lien" onclick="aideEncheres()">Comment ça marche ?</button><button class="lien" onclick="suiteEncheres()">Les semaines suivantes</button></div>`;
+    el.innerHTML=h;
+    const sc=el.querySelector('.ench-scene'); if(sc){ const pts=[...el.querySelectorAll('.ench-points i')];
+      sc.onscroll=()=>{ const i=Math.round(sc.scrollLeft/Math.max(1, sc.scrollWidth/lots.length)); pts.forEach((p,k)=>p.classList.toggle('on', k===i)); };
+      const echelle=(essai)=>{ const c=sc.querySelector('.ench-carte'); if(!c) return; const w=c.clientWidth; if(w>0) sc.style.setProperty('--k', (w/240).toFixed(4)); else if((essai||0)<40) setTimeout(()=>echelle((essai||0)+1), 50); }; echelle();
+      if(window.IntersectionObserver && window.CarteLieu){ const parCle=Object.fromEntries(lots.map(l=>[ 'mon:'+l.m.id, lieuDuLot(l.m) ]));
+        OBS_ENCH=new IntersectionObserver((entrees)=>{ for(const e of entrees){ const id=e.target.dataset.id, a=parCle[id]; if(!a) continue;
+            if(e.isIntersecting){ if(!SCENES_ENCH.has(id)){ SCENES_ENCH.set(id, null); CarteLieu.animer(e.target.querySelector('.cl'), a, 6, { leger:true }).then(s=>{ if(SCENES_ENCH.has(id)) SCENES_ENCH.set(id, s); else if(s) s.jeter(); }).catch(()=>{}); } }
+            else if(SCENES_ENCH.has(id)){ const s=SCENES_ENCH.get(id); SCENES_ENCH.delete(id); if(s) s.jeter(); } } }, { rootMargin:'0px 200px' });
+        el.querySelectorAll('.ench-carte').forEach(c=>OBS_ENCH.observe(c)); } } }
+  // ce qui bouge : l'état de chaque lot (sauf celui où l'on tape une mise), le compte à rebours, ce qu'on peut miser
+  const actif=document.activeElement;
+  for(const lot of lots){ const z=el.querySelector(`.ench-lot[data-cle="${lot.cle}"] .ench-etat`); if(!z || (actif && z.contains(actif) && actif.tagName==='INPUT')) continue; const h=etatLot(lot); if(z.dataset.h!==h){ z.dataset.h=h; z.innerHTML=h; } }
+  const c=el.querySelector('.compte-a-rebours'); if(c) c.textContent='⏳ '+dureeTexte(reste);
+  const d=document.getElementById('ench-dispo'); if(d) d.innerHTML=pcs(dispo()); }
 
 // =================== le Maire par caisse de travaux (GDD § 5, décisions de Gautier du 4 nov. 2026) ===================
 // Chaque commune a une caisse de travaux. Pendant un mandat (2 semaines du jeu ; démo : 14 minutes), ses propriétaires y
