@@ -494,7 +494,7 @@ function poserFacades(){ if(map.getLayer('bati-fenetres')) return;
       x.fillStyle = a<38 ? 'rgba(255,190,100,0.95)' : 'rgba(10,14,40,0.5)'; x.fillRect(i*P+16,j*P+14,14,18); } }), { pixelRatio:2 });
     map.addImage('f-bureau', img(192,96, x=>{ for(let j=0;j<4;j++) for(let i=0;i<6;i++){ const a=al(i+1,j+2); x.fillStyle = a<35 ? 'rgba(170,225,255,0.92)' : (a<75 ? 'rgba(60,110,190,0.55)' : 'rgba(8,14,44,0.5)'); x.fillRect(i*32+2,j*24+7,28,11); } }), { pixelRatio:2 });
     map.addImage('f-vitrine', img(288,48, x=>{ const T=['255,184,84','255,120,150','110,225,215']; for(let i=0;i<3;i++){ x.fillStyle='rgba('+T[i]+',0.95)'; x.fillRect(i*96+8,0,80,48); x.fillStyle='rgba(20,14,30,0.55)'; x.fillRect(i*96+46,0,3,48); x.fillStyle='rgba(255,255,255,0.55)'; x.fillRect(i*96+8,0,80,5); } }), { pixelRatio:2 });
-    const calque=(id, filtre, paint)=>map.addLayer({ id, type:'fill-extrusion', source:'topo', 'source-layer':'batiment', minzoom:15.6, filter:['all',FILTRE_BATI,filtre], layout:{ visibility: CARTE_NUIT ? 'visible' : 'none' }, paint }, 'bati-toit');
+    const calque=(id, filtre, paint)=>map.addLayer({ id, type:'fill-extrusion', source:'topo', 'source-layer':'batiment', minzoom:16.6, filter:['all',FILTRE_BATI,filtre], layout:{ visibility: CARTE_NUIT ? 'visible' : 'none' }, paint }, 'bati-toit');
     calque('bati-fenetres', ['in',GENRE_BATI,['literal',['maison','immeuble','bureau']]], { 'fill-extrusion-pattern':['match',GENRE_BATI,'maison','f-maison','bureau','f-bureau','f-immeuble'], 'fill-extrusion-height':HAUT_BATI, 'fill-extrusion-base':0 });
     calque('bati-vitrines', A_VITRINE, { 'fill-extrusion-pattern':'f-vitrine', 'fill-extrusion-height':3.8, 'fill-extrusion-base':0 });
   }catch(e){ console.warn('façades', e); } }
