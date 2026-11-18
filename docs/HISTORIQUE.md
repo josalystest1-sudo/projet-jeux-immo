@@ -423,6 +423,7 @@ Puis une PR par étape, fusionnée en squash :
 | #231 | 18/11 | Plus « jeu » (3) : les en-têtes illustrés (Patrimoine : mes bâtiments ; Enchères : le Prestige ; Communes : la mairie) |
 | #232 | 18/11 | Plus « jeu » (4) : médailles des classements et embellissements des communes dessinés en couleur (plus d'émojis du téléphone) |
 | #233 | 18/11 | Plus « jeu » (5) : le Palace (grand hôtel à dôme) et le Prestige (temple arc-en-ciel) redessinés, traits plus fins |
+| #234 | 18/11 | Plus « jeu » (6) : la ville en bleu nuit ; bâtiments par genre (maison, immeuble, bureaux, hangar, annexe), fenêtres variées, vitrines des commerces |
 | #200 | 16/11 | Prototype du booster validé par Gautier : brillance moyenne fixée, boutons de réglage retirés |
 | #199 | 16/11 | Prototype du booster : une ligne de toits en néon sur le booster du jour, à la place de la maison |
 | #198 | 16/11 | Prototype du booster : moins brillant, lettres cernées, trois niveaux de brillance à choisir |

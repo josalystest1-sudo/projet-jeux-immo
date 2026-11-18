@@ -122,10 +122,10 @@ const VERSION='__VERSION__';
 </div>
 <div id="legend" class="repliee" onclick="this.classList.toggle('repliee')" role="button" aria-label="Légende des couleurs">
   <b class="titre-legende">🎨 Légende</b>
-  <span><i class="dot" style="background:var(--me)"></i>À moi</span>
+  <span><i class="dot l-moi" style="background:var(--me)"></i>À moi</span>
   <span><i class="dot" style="background:var(--other)"></i>Autres</span>
   <span><i class="dot" style="background:var(--mixed)"></i>Partagée</span>
-  <span><i class="dot" style="background:#fff;box-shadow:inset 0 0 0 1.5px #B9C3D6"></i>Libre</span>
+  <span><i class="dot l-libre" style="background:#fff;box-shadow:inset 0 0 0 1.5px #B9C3D6"></i>Libre</span>
   <span>💰 En vente</span>
 </div>
 
@@ -384,7 +384,15 @@ const MON_BATI = ['boolean',['feature-state','monument'],false];
 const HAUT_BATI = ['case', MON_BATI, ['*',HAUTEUR,1.15], HAUTEUR];
 const FILTRE_BATI = ['all',['!=',['get','construction_legere'],true],['!',['in',['get','cleabs'],['literal',Maquettes.MASQUES]]]];
 const toitBati = (libre, moi, autre, mixte) => ['case', MON_BATI, '#E8A317', SEL, '#E0A000', ['match',ST,'me',moi,'other',autre,'mixed',mixte, libre]];
-const COULEUR_TOIT = toitBati('#FFFFFF', '#2C5FD4','#C73E28','#7442C8'), COULEUR_TOIT_NUIT = toitBati('#9AA1AD', '#3567DA','#B13A28','#6A3DC0');
+// Le genre d'un bâtiment (18 nov., Gautier : « rendre les bâtiments plus vivants que de simples blocs », « faire une différence
+// entre les immeubles, les maisons, les magasins ») : d'après l'usage et le nombre de logements que donne la BD TOPO.
+// maison (habitation, 1 ou 2 logements, basse), immeuble, bureau (commerces et services), hangar, annexe (garages, remises), autre.
+const USAGE1 = ['coalesce',['get','usage_1'],''], USAGE2 = ['coalesce',['get','usage_2'],''], LOGEMENTS = ['to-number',['coalesce',['get','nombre_de_logements'],0]], HAUT_M = ['to-number',['coalesce',['get','hauteur'],9]];
+const GENRE_BATI = ['case', ['all',['==',USAGE1,'Résidentiel'],['<=',LOGEMENTS,2],['<',HAUT_M,11]], 'maison', ['==',USAGE1,'Résidentiel'], 'immeuble', ['==',USAGE1,'Commercial et services'], 'bureau',
+  ['in',USAGE1,['literal',['Industriel','Agricole']]], 'hangar', ['==',USAGE1,'Annexe'], 'annexe', ['in',USAGE1,['literal',['Religieux','Sportif']]], 'autre', ['>=',HAUT_M,11], 'immeuble', ['>=',HAUT_M,5], 'maison', 'annexe'];
+const A_VITRINE = ['any',['==',USAGE2,'Commercial et services'],['all',['==',USAGE1,'Commercial et services'],['<',HAUT_M,14]]];
+const TOIT_LIBRE_NUIT = ['match',GENRE_BATI, 'maison','#8A4A4A', 'immeuble','#3C56A8', 'bureau','#1E4A7A', 'hangar','#5A6590', 'annexe','#222C5E', '#34478F'];
+const COULEUR_TOIT = toitBati('#FFFFFF', '#2C5FD4','#C73E28','#7442C8'), COULEUR_TOIT_NUIT = toitBati(TOIT_LIBRE_NUIT, '#2FA8EE','#B13A28','#6A3DC0');
 const OMBRE_BATI = ['interpolate',['linear'],['zoom'],15,['literal',[4,6]],19,['literal',[34,46]]];
 // La vue d'arrivée (Gautier, 6 nov. : « quand on se connecte, on se retrouve au milieu de dizaines, voire de centaines de gros
 // blocs blancs ; ça ne donne pas envie de jouer ») : avant, tout le monde arrivait dans Paris 9e. Maintenant, chez soi : là où
@@ -453,15 +461,15 @@ function styleParcelles(deDessus){ map.setPaintProperty('parcel-line','line-widt
 // ?carte=nuit ou ?carte=jour pour essayer). Les couleurs ne sont reposées que quand on passe du jour à la nuit : la carte
 // doit pouvoir se reposer. Les couleurs des lieux (à moi, aux autres, partagés) restent les mêmes de jour et de nuit.
 let CARTE_NUIT=false, CARTE_NUIT_POSEE=null;
-const LIBRE_NUIT = ['match',TEINTE, 0,'#4A505E', 1,'#474D5B', 2,'#4D5361', 3,'#454B59', 4,'#4B515F', '#4A505E'];
-const COULEUR_BATI_NUIT = ['case', ['boolean',['feature-state','monument'],false], ['interpolate',['linear'],['coalesce',['get','hauteur'],9], 0,'#C9973A', 60,'#E9C77B', 200,'#FFF1C8'], SEL, '#FFC233', ['match',ST,'me','#5B93FF','other','#D9533E','mixed','#9466EE', LIBRE_NUIT]];
+const LIBRE_NUIT = ['match',GENRE_BATI, 'maison','#2A3F8C', 'immeuble','#1B2A6B', 'bureau','#14305E', 'hangar','#2B3558', 'annexe','#141C45', '#232F66'];   // la ville en bleu nuit (18 nov.) : une teinte par genre de bâtiment
+const COULEUR_BATI_NUIT = ['case', ['boolean',['feature-state','monument'],false], ['interpolate',['linear'],['coalesce',['get','hauteur'],9], 0,'#C9973A', 60,'#E9C77B', 200,'#FFF1C8'], SEL, '#FFC233', ['match',ST,'me','#4FC3FF','other','#D9533E','mixed','#9466EE', LIBRE_NUIT]];
 const COULEURS_CARTE = [ // calque, propriété, de jour, de nuit
-  ['bg','background-color','#86CC70','#132A24'], ['ilot','fill-color','#A6DE84','#1A352B'], ['veget','fill-color','#62BF52','#1E4430'],
-  ['parc','fill-color','#5CBB4C','#214A35'], ['sport','fill-color','#56C17C','#1D4639'], ['water','fill-color','#2FB4F0','#123A63'],
-  ['rail','line-color','#7C8899','#3A4158'], ['road-side','line-color','#E4E9F1','#2A3550'], ['road-casing','line-color',['case',CHEMIN,'#B88A4A','#3F4860'],['case',CHEMIN,'#6E5530','#121826']],
-  ['road','line-color',['case',CHEMIN,'#E8CF94',IMPORTANT,'#59627A','#666F86'],['case',CHEMIN,'#5E4E33',IMPORTANT,'#38425C','#323B53']], ['road-axis','line-color','#FFFFFF','#AEB8CC'],
+  ['bg','background-color','#86CC70','#0A1230'], ['ilot','fill-color','#A6DE84','#0F1B45'], ['veget','fill-color','#62BF52','#0F3A3A'],
+  ['parc','fill-color','#5CBB4C','#11443F'], ['sport','fill-color','#56C17C','#0F3F45'], ['water','fill-color','#2FB4F0','#1560C8'],
+  ['rail','line-color','#7C8899','#3A4158'], ['road-side','line-color','#E4E9F1','#16224F'], ['road-casing','line-color',['case',CHEMIN,'#B88A4A','#3F4860'],['case',CHEMIN,'#6E5530','#3F9BFF']],
+  ['road','line-color',['case',CHEMIN,'#E8CF94',IMPORTANT,'#59627A','#666F86'],['case',CHEMIN,'#4A4030',IMPORTANT,'#182456','#131D45']], ['road-axis','line-color','#FFFFFF','#5AA8FF'],
   ['road-label','text-color','#FFFFFF','#E3E8F2'], ['road-label','text-halo-color','#2F3749','#0A0F1E'], ['bati-3d','fill-extrusion-color',COULEUR_BATI,COULEUR_BATI_NUIT],
-  ['bati-toit','fill-extrusion-color',COULEUR_TOIT,COULEUR_TOIT_NUIT], ['bati-ombre','fill-color','rgba(25,60,30,0.32)','rgba(0,0,0,0.38)'], ['bati-pied','line-color','rgba(20,40,30,0.45)','rgba(0,0,0,0.55)'] ];
+  ['bati-toit','fill-extrusion-color',COULEUR_TOIT,COULEUR_TOIT_NUIT], ['bati-ombre','fill-color','rgba(25,60,30,0.32)','rgba(0,0,0,0.38)'], ['bati-pied','line-color','rgba(20,40,30,0.45)','rgba(90,168,255,0.9)'] ];
 function estNuit(){ const q=new URLSearchParams(location.search).get('carte'); if(q==='nuit') return true; if(q==='jour') return false; if(document.documentElement.classList.contains('nuit')) return true;   // (essai des menus de nuit : la ville de nuit aussi)
   const h=new Date().getHours(); return h>=20 || h<7; }
 function couleursCarte(){ const n=estNuit(); if(n===CARTE_NUIT_POSEE || !map.isStyleLoaded()) return; CARTE_NUIT=CARTE_NUIT_POSEE=n;
@@ -469,8 +477,28 @@ function couleursCarte(){ const n=estNuit(); if(n===CARTE_NUIT_POSEE || !map.isS
   try{ map.setLight(n ? { anchor:'viewport', color:'#dfe6ff', intensity:0.55, position:[1.3,210,35] } : { anchor:'viewport', color:'#ffffff', intensity:0.7, position:[1.2,220,35] }); }catch(e){}
   try{ map.setSky(n ? { 'sky-color':'#0B1530', 'horizon-color':'#26365E', 'fog-color':'#16263C', 'sky-horizon-blend':0.6, 'horizon-fog-blend':0.6, 'fog-ground-blend':0.55 }
     : { 'sky-color':'#5EC2FF', 'horizon-color':'#EAF8FF', 'fog-color':'#E4F4DA', 'sky-horizon-blend':0.6, 'horizon-fog-blend':0.6, 'fog-ground-blend':0.55 }); }catch(e){}
+  for(const c of ['bati-fenetres','bati-vitrines']) if(map.getLayer(c)) map.setLayoutProperty(c,'visibility', n?'visible':'none');
   styleParcelles(map.getPitch()<=5); document.documentElement.classList.toggle('carte-nuit', n); }
-map.on('load', couleursCarte); setInterval(couleursCarte, 60000);
+// Les façades (18 nov.) : deux calques de plus sur les bâtiments, des motifs peints une fois dans un canevas et posés sur les
+// murs (fill-extrusion-pattern ; le genre vient des données, jamais d'un état : un motif ne suit pas feature-state).
+// « bati-fenetres » : peu de fenêtres, irrégulières, selon le genre (maison à volets, immeuble à étages et balcons, bandeaux
+// vitrés des bureaux) ; « bati-vitrines » : le rez-de-chaussée éclairé des commerces. Même filtre et même hauteur que
+// « bati-3d » ; posés avant « bati-toit », qui garde le toit uni. De nuit seulement (les couleurs de jour ne les ont pas).
+function poserFacades(){ if(map.getLayer('bati-fenetres')) return;
+  const img=(w,h,f)=>{ const c=document.createElement('canvas'); c.width=w; c.height=h; const x=c.getContext('2d'); f(x); return x.getImageData(0,0,w,h); }, al=(i,j)=>(i*73+j*151+i*j*29+7)%100;
+  try{
+    map.addImage('f-immeuble', img(192,192, x=>{ const P=24; for(let j=0;j<8;j++){ x.fillStyle='rgba(0,0,10,0.16)'; x.fillRect(0,j*P,192,2);
+      for(let i=0;i<8;i++){ const a=al(i,j); if(a<22){ x.fillStyle = a<5 ? 'rgba(255,240,190,0.98)' : 'rgba(255,196,92,0.95)'; x.fillRect(i*P+8,j*P+7,9,12); } else if(a<50){ x.fillStyle='rgba(8,12,40,0.38)'; x.fillRect(i*P+8,j*P+7,9,12); }
+        if(a%9===0){ x.fillStyle='rgba(0,0,10,0.4)'; x.fillRect(i*P+5,j*P+19,15,2); } } } }), { pixelRatio:2 });
+    map.addImage('f-maison', img(192,96, x=>{ const P=48; for(let j=0;j<2;j++) for(let i=0;i<4;i++){ const a=al(i+3,j+5); if(a%4===3) continue; x.fillStyle='rgba(40,24,20,0.55)'; x.fillRect(i*P+11,j*P+14,5,18); x.fillRect(i*P+30,j*P+14,5,18);
+      x.fillStyle = a<38 ? 'rgba(255,190,100,0.95)' : 'rgba(10,14,40,0.5)'; x.fillRect(i*P+16,j*P+14,14,18); } }), { pixelRatio:2 });
+    map.addImage('f-bureau', img(192,96, x=>{ for(let j=0;j<4;j++) for(let i=0;i<6;i++){ const a=al(i+1,j+2); x.fillStyle = a<35 ? 'rgba(170,225,255,0.92)' : (a<75 ? 'rgba(60,110,190,0.55)' : 'rgba(8,14,44,0.5)'); x.fillRect(i*32+2,j*24+7,28,11); } }), { pixelRatio:2 });
+    map.addImage('f-vitrine', img(288,48, x=>{ const T=['255,184,84','255,120,150','110,225,215']; for(let i=0;i<3;i++){ x.fillStyle='rgba('+T[i]+',0.95)'; x.fillRect(i*96+8,0,80,48); x.fillStyle='rgba(20,14,30,0.55)'; x.fillRect(i*96+46,0,3,48); x.fillStyle='rgba(255,255,255,0.55)'; x.fillRect(i*96+8,0,80,5); } }), { pixelRatio:2 });
+    const calque=(id, filtre, paint)=>map.addLayer({ id, type:'fill-extrusion', source:'topo', 'source-layer':'batiment', minzoom:15.6, filter:['all',FILTRE_BATI,filtre], layout:{ visibility: CARTE_NUIT ? 'visible' : 'none' }, paint }, 'bati-toit');
+    calque('bati-fenetres', ['in',GENRE_BATI,['literal',['maison','immeuble','bureau']]], { 'fill-extrusion-pattern':['match',GENRE_BATI,'maison','f-maison','bureau','f-bureau','f-immeuble'], 'fill-extrusion-height':HAUT_BATI, 'fill-extrusion-base':0 });
+    calque('bati-vitrines', A_VITRINE, { 'fill-extrusion-pattern':'f-vitrine', 'fill-extrusion-height':3.8, 'fill-extrusion-base':0 });
+  }catch(e){ console.warn('façades', e); } }
+map.on('load', ()=>{ couleursCarte(); poserFacades(); }); setInterval(couleursCarte, 60000);
 // l'arrivée : la caméra descend du ciel sur le lieu (si personne n'a encore bougé la carte) ; puis la vue est gardée à chaque
 // arrêt, pour revenir au même endroit à la prochaine connexion (pas pendant une balade, une chasse ou un voyage)
 let ARRIVEE_FAITE=false;

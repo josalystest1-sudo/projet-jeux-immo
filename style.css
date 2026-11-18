@@ -1950,3 +1950,7 @@ html.pocket:not(.nuit) .screen h1.entete .act{position:static;margin-left:auto}
 .pod .ico-svg.dessin{width:20px;height:20px;align-self:center}
 .travaux-etapes .etape .ico-svg.dessin{width:38px;height:38px;filter:drop-shadow(0 0 5px rgba(90,168,255,.45))}
 .trav-mini .ico-svg.dessin,#commune-chip .trav .ico-svg.dessin{width:15px;height:15px;margin-left:1px}
+
+/* ===== La ville en bleu nuit (18 nov.) : la légende suit les couleurs de la carte de nuit ===== */
+html.carte-nuit #legend .l-moi{background:#4FC3FF!important}
+html.carte-nuit #legend .l-libre{background:#1B2A6B!important;box-shadow:inset 0 0 0 1.5px #5AA8FF!important}
