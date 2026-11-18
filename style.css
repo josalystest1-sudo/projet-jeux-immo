@@ -1943,3 +1943,10 @@ html.pocket:not(.nuit) .screen h1.entete{padding-top:0;border-bottom:0}
 html.pocket:not(.nuit) .screen h1.entete .act{position:static;margin-left:auto}
 @media (max-width:360px){.en-scene .es-b:first-child{display:none}}
 .screen h1.entete.seule{padding-top:6px}
+
+/* ===== Les dessins en couleur (18 nov.) : médailles des classements, embellissements des communes ===== */
+.ico-svg.dessin{width:1.3em;height:1.3em;vertical-align:-.28em}
+.rank .pos .ico-svg.dessin{width:26px;height:26px;vertical-align:middle}
+.pod .ico-svg.dessin{width:20px;height:20px;align-self:center}
+.travaux-etapes .etape .ico-svg.dessin{width:38px;height:38px;filter:drop-shadow(0 0 5px rgba(90,168,255,.45))}
+.trav-mini .ico-svg.dessin,#commune-chip .trav .ico-svg.dessin{width:15px;height:15px;margin-left:1px}
