@@ -1153,14 +1153,17 @@ function echapper(t){ return String(t==null?'':t).replace(/[&<>"]/g, c=>({'&':'&
 // après une action sur un lieu : tout ce qui l'affiche se redessine
 function apresAction(){ if(window.PROGRESSION) PROGRESSION.verifier(); if(window.ACCUEIL) ACCUEIL.render(); if(currentParcel) renderAddrs(); if(PROM.on) promCarte(); if(document.getElementById('s-patrimoine').classList.contains('on')) renderPatrimoine(); if(ficheOuverte) ouvrirFicheLieu(ficheOuverte); }
 let ficheOuverte=null;
+// les bâtiments dessinés (18 nov. : « rendre le jeu plus jeu ») : verre et néon, comme les cartes ; icones/batiments/<id>.png,
+// faits par tools/batiments (le moteur 3D du jeu). Hauteur à l'écran selon le niveau : l'échelle se lit comme une ligne de toits.
+const HAUT_BATI_ICONE=[24,34,44,54,64,52,52];
+const imageBati=(i, classe)=>`<img class="bati${classe?' '+classe:''}" src="icones/batiments/${NIVEAUX[i].id}.png" alt="" style="--h:${HAUT_BATI_ICONE[i]||44}px" draggable="false">`;
 function echelleHTML(a, lv, pl, moi, rec){
   // Terrain → Tour pour tous (le reste grisé « Hors plafond ») ; au-delà, jusqu'au bâtiment de sa rareté. Une longue échelle
   // (Légendaire, Extraordinaire) commence à la Maison : le Terrain n'apprend rien et prend une place précieuse.
-  const max = Math.max(3, pl), debut = max>=5 ? 1 : 0; let h=`<div class="echelle${max-debut>=5?' longue':''}">`;
+  const max = Math.max(3, pl), debut = max>=5 ? 1 : 0; let h=`<div class="echelle horizon${max-debut>=5?' longue':''}">`;
   for(let i=debut;i<=max;i++){ const n=NIVEAUX[i]; let etat = i<=lv ? 'fait' : (i>pl ? 'bloque' : (moi && i===lv+1 ? 'suivant' : 'futur'));
-    const icone = i===0 ? '🌱' : (etat==='bloque' ? '🔒' : n.icone);
     const texte = etat==='bloque' ? 'Hors plafond' : (etat==='suivant' ? `${n.nom}<br><span class="prix">${nb(coutNiveau(rec,i))}<i class="pc"></i></span>` : n.nom);
-    h+=`<div class="pas ${etat}"${etat==='suivant' ? ` role="button" data-construire="${i}"` : ''}><div class="rond-pas">${icone}</div><div>${texte}</div></div>`; }
+    h+=`<div class="pas ${etat}${i===lv?' ici':''}"${etat==='suivant' ? ` role="button" data-construire="${i}"` : ''}><div class="bati-pas">${imageBati(i)}${etat==='bloque'?'<span class="verrou-bati">🔒</span>':''}</div><div>${texte}</div></div>`; }
   return h+'</div>'; }
 function addrRow(a, withBuild){
   const o = ownerOf(a); const lv = levelOf(a); const rec = state.owned[a.id] || Object.assign({}, a, {niveau:lv}); const pl = plafond(a); const r = rarete(a);
@@ -1263,7 +1266,11 @@ function mettreEnVente(id){ const a=state.owned[id]; if(!a) return; const retour
 async function construire(id, niveau, cost){ const a=state.owned[id]; if(!a || dispo()<cost) return;
   if(MODE_SERVEUR){ if(serveurOccupe) return; const r=await agir('construire', {id, niveau}); if(!r) return; }
   else { encaisser(true); state.wallet -= cost; a.niveau = niveau; save(); }
-  refreshTop(); if(a.idu) paintParcel(a.idu); setBadge(a, niveau); toast(`${NIVEAUX[niveau].icone} ${NIVEAUX[niveau].nom} construit${niveau===1?'e':''} : ${a.label}`); fete(); apresAction(); }
+  refreshTop(); if(a.idu) paintParcel(a.idu); setBadge(a, niveau); toast(`${NIVEAUX[niveau].icone} ${NIVEAUX[niveau].nom} construit${niveau===1?'e':''} : ${a.label}`); fete(); montrerConstruction(niveau, a); apresAction(); }
+// le bâtiment qu'on vient de construire, en grand, un instant (18 nov.) : il monte du sol dans un halo, puis s'efface ; un toucher le ferme
+function montrerConstruction(niveau, a){ const vieux=document.querySelector('.bati-fete'); if(vieux) vieux.remove();
+  const w=document.createElement('div'); w.className='bati-fete r'+rarete(a); w.innerHTML=`<div class="bf-halo"></div>${imageBati(niveau,'bf-img')}<div class="bf-nom">${echapper(NIVEAUX[niveau].nom)}</div><div class="bf-sous">+${nb(loyer(Object.assign({}, a, {niveau})))} par jour</div>`;
+  const fin=()=>{ w.classList.add('fin'); setTimeout(()=>w.remove(), 350); }; w.onclick=fin; document.body.appendChild(w); setTimeout(fin, 2200); }
 // la fiche se ferme en la faisant glisser vers le bas (quand elle est tout en haut de son défilement)
 (function(){ const sh=document.getElementById('sheet'); let y0=null, dy=0;
   sh.addEventListener('touchstart', e=>{ if(sh.scrollTop>0) { y0=null; return; } y0=e.touches[0].clientY; dy=0; }, {passive:true});
