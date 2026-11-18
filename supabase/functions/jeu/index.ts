@@ -879,12 +879,20 @@ ACTIONS.acheter_pack = async (j, corps) => {
   const article = corps.article === 'pack_regional' ? 'pack_regional' : 'pack_national', jr = await joueur(j);
   if (!BOU.peutPayer(article, Number(jr.gemmes || 0))) throw new Refus('gemmes', REFUS_SQL.gemmes);
   if (await paysSansPacks(j)) throw new Refus('pays', 'Les packs ne sont pas vendus en Belgique ni aux Pays-Bas : le Pass et les offres restent possibles.');
-  let zone = null;
-  if (article === 'pack_regional') { const deps = (Regions.REGIONS as Record<string, string[]>)[String(corps.region || '')]; if (!deps) throw new Refus('region', 'Choisis une région.'); zone = { deps }; }
-  const cartes = await TIRAGE.tirerPack(crypto.randomUUID(), ECO.pack.chances, BOU.B.pack_cartes, zone, BOU.B.pack_garantie);
+  const s = sorteAchat({ article, region: corps.region });
+  if (!s) throw new Refus('region', 'Choisis une région.');
+  // le booster préparé d'avance (packs_prets), seulement s'il est complet et que tous ses lieux sont encore libres (sa
+  // garantie de rareté tient à l'ensemble) ; sinon, tiré sur le moment comme avant
+  const prets: Ligne[] = await packPret(j, s.sorte).catch((e) => { console.error('pack prêt', e); return []; });
+  const entier = prets.length === BOU.B.pack_cartes && (await Promise.all(prets.map((c) => estLibre(c).catch(() => false)))).every(Boolean);
+  const cartes = entier ? prets : await TIRAGE.tirerPack(crypto.randomUUID(), ECO.pack.chances, BOU.B.pack_cartes, s.zone, BOU.B.pack_garantie);
   if (!cartes.length) throw new Refus('vide', REFUS_SQL.vide);
   const lignes = cartes.map((c: Ligne) => ({ ...c, commune: Regles.nomCommune(c.citycode, c.city), rarete: R.rarete(c) }));
   const gagnes: string[] = await rpc('jeu_pack_achete', { j, article, prix: BOU.prix(article), cartes: lignes });
+  // le booster préparé est consommé ; s'il reste de quoi en payer un autre, le suivant se prépare après la réponse
+  await oublierPack(j, s.sorte);
+  const runtime = (globalThis as Ligne).EdgeRuntime;
+  if (runtime && runtime.waitUntil && BOU.peutPayer(article, Number(jr.gemmes || 0) - BOU.prix(article))) runtime.waitUntil(preparerPackAchete(j, s).catch((e) => console.error('pack suivant', e)));
   const maintenant = Date.now();
   return { cartes: cartes.filter((c: Ligne) => gagnes.includes(c.id)).map((c: Ligne) => ({ ...c, niveau: 0, depuis: maintenant })), article };
 };
@@ -1028,22 +1036,47 @@ ACTIONS.agence_brique = async (j) => {
 // à l'avance et gardées (packs_prets, illisible par le jeu) ; à l'ouverture, on prend celles qui sont encore libres et on
 // ne tire sur le moment que ce qui manque (un lieu pris entre-temps, un Pass acheté depuis).
 const cartesDuPack = (jr: Ligne, premier: boolean) => BOU.cartesDuJour({ fin: jr.pass_fin ? ms(jr.pass_fin) : null }, Date.now(), premier);
-async function packPret(j: string): Promise<Ligne[]> {
-  const { data, error } = await admin.from('packs_prets').select('cartes').eq('joueur', j).maybeSingle();
+async function packPret(j: string, sorte = 'jour'): Promise<Ligne[]> {
+  const { data, error } = await admin.from('packs_prets').select('cartes').eq('joueur', j).eq('sorte', sorte).maybeSingle();
   if (error) throw error;
   return data && Array.isArray(data.cartes) ? data.cartes : [];
 }
+async function garderPack(j: string, sorte: string, cartes: Ligne[]) {
+  const { error } = await admin.from('packs_prets').upsert({ joueur: j, sorte, cartes, cree_le: new Date().toISOString() }, { onConflict: 'joueur,sorte' });
+  if (error) throw error;
+}
+const oublierPack = (j: string, sorte: string) => admin.from('packs_prets').delete().eq('joueur', j).eq('sorte', sorte);
 async function preparerPack(j: string, n: number) {
   const deja = await packPret(j); if (deja.length >= n) return true;
   const plus = await TIRAGE.tirerPack(crypto.randomUUID() + ':pret', ECO.pack.chances, n - deja.length);
   const cartes = deja.concat(plus.filter((c: Ligne) => !deja.some((x) => x.id === c.id)));
   if (!cartes.length) return false;
-  const { error } = await admin.from('packs_prets').upsert({ joueur: j, cartes, cree_le: new Date().toISOString() });
-  if (error) throw error;
+  await garderPack(j, 'jour', cartes);
   return cartes.length >= n;
 }
+// les boosters payants : la sorte (national, ou une région) et sa zone ; préparés seulement pour qui peut les payer
+function sorteAchat(corps: Ligne) {
+  if (corps.article !== 'pack_regional') return { article: 'pack_national', sorte: 'national', zone: null };
+  const deps = (Regions.REGIONS as Record<string, string[]>)[String(corps.region || '')];
+  return deps ? { article: 'pack_regional', sorte: 'region:' + String(corps.region), zone: { deps } } : null;
+}
+async function preparerPackAchete(j: string, s: Ligne) {
+  if ((await packPret(j, s.sorte)).length >= BOU.B.pack_cartes) return true;
+  const cartes = await TIRAGE.tirerPack(crypto.randomUUID() + ':pret', ECO.pack.chances, BOU.B.pack_cartes, s.zone, BOU.B.pack_garantie);
+  if (cartes.length < BOU.B.pack_cartes) return false;
+  // une seule région gardée à la fois : la dernière choisie
+  if (s.zone) await admin.from('packs_prets').delete().eq('joueur', j).like('sorte', 'region:%').neq('sorte', s.sorte);
+  await garderPack(j, s.sorte, cartes);
+  return true;
+}
 // le jeu annonce que le pack est disponible : le préparer s'il ne l'est pas (rien n'est rendu des cartes)
-ACTIONS.pack_preparer = async (j) => { const jr = await joueur(j); return { pret: await preparerPack(j, cartesDuPack(jr, jr.dernier_jour == null)) }; };
+ACTIONS.pack_preparer = async (j, corps) => {
+  const jr = await joueur(j);
+  if (!corps.article) return { pret: await preparerPack(j, cartesDuPack(jr, jr.dernier_jour == null)) };
+  const s = sorteAchat(corps);
+  if (!s || !BOU.peutPayer(s.article, Number(jr.gemmes || 0)) || await paysSansPacks(j)) return { pret: false };
+  return { pret: await preparerPackAchete(j, s) };
+};
 ACTIONS.pack = async (j) => {
   const jm = await jourMs(), jour = Regles.jourDuJeu(Date.now(), jm), jr = await joueur(j);
   if (jr.dernier_jour != null && Number(jr.dernier_jour) >= jour) throw new Refus('deja', REFUS_SQL.deja);
@@ -1060,7 +1093,7 @@ ACTIONS.pack = async (j) => {
   // la rareté des lieux gagnés, tout de suite (classement de patrimoine)
   if (gagnes.length) await rpc('jeu_raretes', { ids: gagnes, rs: gagnes.map((id) => R.rarete(cartes.find((c: Ligne) => c.id === id))) }).catch((e) => console.error('raretés', e));
   // le pack préparé est consommé ; le suivant se prépare après la réponse (sans faire attendre le joueur)
-  await admin.from('packs_prets').delete().eq('joueur', j);
+  await oublierPack(j, 'jour');
   const runtime = (globalThis as Ligne).EdgeRuntime, suivant = () => preparerPack(j, cartesDuPack(jr, false)).catch((e) => console.error('pack suivant', e));
   if (runtime && runtime.waitUntil) runtime.waitUntil(suivant());
   const maintenant = Date.now();
@@ -1261,7 +1294,7 @@ Deno.serve(async (req: Request) => {
     // préparer le pack d'avance : en arrière-plan pour le jeu, ni tour du monde ni partie
     if (corps.action === 'pack_preparer') return repondre({ ok: true, ...(await action(data.user.id, corps)) });
     if (corps.action === 'agence') { await rpc('jeu_vu', { j: data.user.id }).catch((e) => console.error('visite', e)); return repondre({ ok: true, ...(await action(data.user.id, corps)) }); }
-    const vite = corps.action === 'agence_embaucher' || corps.action === 'agence_brique' || corps.action === 'pack';   // (ouvrir son pack ne fait pas attendre le tour du monde)
+    const vite = corps.action === 'agence_embaucher' || corps.action === 'agence_brique' || corps.action === 'pack' || corps.action === 'acheter_pack';   // (ouvrir son pack ne fait pas attendre le tour du monde)
     // le calendrier des enchères (lots finis clos, lots de la semaine ouverts) : une panne ici ne bloque pas le jeu
     if (!vite) await tenirEncheres().catch((e) => console.error('enchères', e));
     // ma visite (un Maire absent depuis trop longtemps perd le titre) ; les fins de mandat de Maire à annoncer

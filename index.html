@@ -2292,6 +2292,11 @@ function ouvrirBoutique(){ const box=document.getElementById('modalbox'), t=now(
     <button class="btn clair large" style="width:100%;margin-top:12px" onclick="closeModal()">Fermer</button>`;
   document.getElementById('modal').classList.add('on');
   const region=choixRegion(box.querySelector('#bq-region'), maRegion());
+  // les boosters payants préparés d'avance (18 nov.) : dès que la boutique s'ouvre, le serveur tire en arrière-plan le pack
+  // national et celui de la région affichée (seulement si on peut les payer) ; à l'achat, les cartes sont déjà prêtes
+  if(MODE_SERVEUR){ const prep=(article, r)=>{ if(BOU.peutPayer(article, state.gemmes||0)) appelServeur('pack_preparer', { article, region:r||null }).catch(()=>{}); };
+    let tempo=0; const prepRegion=()=>{ clearTimeout(tempo); tempo=setTimeout(()=>{ if(box.querySelector('#bq-region')) prep('pack_regional', region()); }, 700); };
+    prep('pack_national'); prepRegion(); box.querySelector('#bq-region').addEventListener('click', prepRegion); }
   box.querySelectorAll('[data-article]').forEach(b=>b.onclick=()=>{ const a=b.dataset.article;
     if(!BOU.peutPayer(a, state.gemmes||0)) return toast(`Il te manque ${nb(BOU.prix(a)-(state.gemmes||0))} 💎`);
     if(a==='pass') return acheterPass();
