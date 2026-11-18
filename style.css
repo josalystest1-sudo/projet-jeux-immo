@@ -1858,3 +1858,7 @@ html.pocket.nuit .plaque small{border-bottom-color:rgba(90,168,255,.6)}
 @keyframes ag-max-entre{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:none}}
 @media (prefers-reduced-motion:reduce){ .ag-max{animation:none} }
 .ag-embauches{align-items:start}
+/* -- menus de nuit par défaut (18 nov.) : l'écran de chargement et le voyage -- */
+html.pocket.nuit #accueil{background:radial-gradient(circle at 50% 42%,#1B2C6E 0,#0B1437 50%,#060B20 100%)}
+html.pocket.nuit #accueil .logo-jeu{filter:drop-shadow(0 0 26px rgba(90,168,255,.45)) drop-shadow(0 12px 22px rgba(0,0,0,.5))}
+html.pocket.nuit #voyage{background:radial-gradient(circle at 50% 42%,rgba(27,44,110,.97) 0,rgba(11,20,55,.98) 50%,rgba(6,11,32,.99) 100%);color:#EEF3FF}
