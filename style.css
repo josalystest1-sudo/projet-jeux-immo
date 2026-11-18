@@ -1883,3 +1883,35 @@ details.repli[open]>summary{margin-bottom:8px}
 .av-import{display:flex;align-items:center;gap:10px;margin:0 0 6px}
 .av-import .av{width:44px;height:44px;border:2.5px solid var(--plaque)}
 .av-regle{margin:0 0 12px}
+
+/* les bâtiments dessinés (18 nov.) : l'échelle de construction en ligne de toits, et le bâtiment construit montré en grand */
+.echelle.horizon{align-items:flex-start}
+.echelle.horizon .bati-pas{position:relative;z-index:1;width:100%;height:70px;display:flex;align-items:flex-end;justify-content:center}
+.echelle.horizon.longue .bati-pas{height:66px}
+.echelle.horizon .bati{height:var(--h);width:auto;max-width:94%;object-fit:contain;object-position:50% 100%;display:block;filter:drop-shadow(0 0 5px rgba(90,168,255,.55));transition:filter .2s,opacity .2s}
+.echelle.horizon.longue .bati{height:calc(var(--h) * .86)}
+.echelle.horizon .pas::before,html.pocket .echelle.horizon .pas::before,html.pocket .echelle.horizon.longue .pas::before{top:69px;height:2px;left:-50%;right:50%;background:#22306F}
+.echelle.horizon.longue .pas::before,html.pocket .echelle.horizon.longue .pas::before{top:65px}
+.echelle.horizon .pas:first-child::before{display:block;left:0;right:50%}
+.echelle.horizon .pas::after{content:'';position:absolute;top:69px;height:2px;left:50%;right:0;background:#22306F;z-index:0}
+.echelle.horizon.longue .pas::after{top:65px}
+.echelle.horizon .pas.fait::before,html.pocket .echelle.horizon .pas.fait::before,.echelle.horizon .pas.fait:not(.ici)::after{background:#5AA8FF;box-shadow:0 0 8px rgba(90,168,255,.8)}
+.echelle.horizon .pas.futur .bati{opacity:.6;filter:saturate(.55)}
+.echelle.horizon .pas.bloque .bati{opacity:.9;filter:brightness(.28) saturate(.3)}
+.echelle.horizon .pas.suivant .bati{filter:drop-shadow(0 0 7px rgba(255,200,80,.95)) drop-shadow(0 0 2px rgba(255,220,140,.9));animation:bati-appel 1.8s ease-in-out infinite}
+.echelle.horizon .pas.ici .bati{filter:drop-shadow(0 0 9px rgba(120,190,255,.95))}
+.echelle.horizon .verrou-bati{position:absolute;left:50%;bottom:8px;transform:translateX(-50%);font-size:13px;color:#8FA0CE;display:flex}
+.echelle.horizon .verrou-bati .ico-svg{width:15px;height:15px}
+.echelle.horizon .pas>div:last-child{margin-top:5px}
+@keyframes bati-appel{0%,100%{transform:translateY(0)}50%{transform:translateY(-3px)}}
+.bati-fete{position:fixed;inset:0;z-index:79;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;background:radial-gradient(circle at 50% 46%,rgba(20,40,110,.82) 0,rgba(6,11,32,.9) 60%);animation:bf-entre .25s ease-out;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.bati-fete.fin{opacity:0;transition:opacity .3s}
+.bati-fete .bf-halo{position:absolute;left:50%;top:44%;width:300px;height:300px;margin:-150px 0 0 -150px;border-radius:50%;background:radial-gradient(circle,color-mix(in srgb,var(--rc,#5AA8FF) 55%,transparent) 0,transparent 68%);animation:bf-halo 2.2s ease-out}
+.bati-fete .bf-img{position:relative;height:min(46vh,280px);width:auto;max-width:78vw;object-fit:contain;filter:drop-shadow(0 0 18px rgba(120,190,255,.85));animation:bf-monte .7s cubic-bezier(.2,1.25,.4,1)}
+.bati-fete .bf-nom{position:relative;font-family:var(--panneau);font-weight:700;font-size:34px;letter-spacing:.08em;text-transform:uppercase;color:#fff;text-shadow:0 0 18px rgba(120,190,255,.9);animation:bf-texte .5s .35s both}
+.bati-fete .bf-sous{position:relative;font-weight:900;font-size:16px;color:#5BE3A0;animation:bf-texte .5s .5s both}
+@keyframes bf-entre{from{opacity:0}to{opacity:1}}
+@keyframes bf-monte{from{transform:translateY(70px) scale(.5);opacity:0}to{transform:none;opacity:1}}
+@keyframes bf-halo{0%{transform:scale(.3);opacity:0}30%{opacity:1}100%{transform:scale(1.25);opacity:.55}}
+@keyframes bf-texte{from{transform:translateY(10px);opacity:0}to{transform:none;opacity:1}}
+@media (prefers-reduced-motion:reduce){ .echelle.horizon .pas.suivant .bati,.bati-fete .bf-img,.bati-fete .bf-halo{animation:none} }
