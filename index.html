@@ -293,6 +293,21 @@ function dist(a,b){ const dx=(a[0]-b[0])*Math.cos(a[1]*Math.PI/180)*111320, dy=(
 function fete(n){ n=n||14; const w=document.createElement('div'); w.className='fete';
   for(let i=0;i<n;i++){ const e=document.createElement('i'); const sorte=['pc','✨','pc','⭐'][i%4]; if(sorte==='pc') e.className='pc'; else e.textContent=sorte; e.style.setProperty('--dx',Math.round((Math.random()*2-1)*150)+'px'); e.style.setProperty('--dy',Math.round(-90-Math.random()*170)+'px'); e.style.animationDelay=Math.round(Math.random()*140)+'ms'; w.appendChild(e); }
   document.body.appendChild(w); setTimeout(()=>w.remove(), 1500); try{ sonGain(); }catch(e){} vibrer([12,40,18]); }
+// la récolte mise en scène (18 nov., « plus jeu ») : les pièces jaillissent de l'endroit touché puis volent jusqu'à la bourse
+// affichée (celle de l'agence, de l'accueil ou de la barre du haut), qui bat à chaque pièce reçue. Transformations et opacité seulement.
+function ciblePieces(){ for(const s of ['#ag-pieces','.acc-pill[data-a="pieces"] b','#wallet']) for(const el of document.querySelectorAll(s)){ const r=el.getBoundingClientRect(); if(r.width>0 && r.height>0 && r.bottom>0 && r.top<innerHeight) return el.closest('button')||el; } return null; }
+function sonPieces(n){ const a=audio(); if(!a) return; for(let i=0;i<Math.min(n,7);i++){ const o=a.createOscillator(), g=a.createGain(); o.type='sine'; o.frequency.value=1250*Math.pow(1.07,i); const t=a.currentTime+0.5+i*0.07; g.gain.setValueAtTime(0.0001,t); g.gain.exponentialRampToValueAtTime(0.09,t+0.008); g.gain.exponentialRampToValueAtTime(0.0001,t+0.16); o.connect(g); g.connect(a.destination); o.start(t); o.stop(t+0.18); } }
+function volPieces(n, depuis){ const cible=ciblePieces(), calme=window.matchMedia && matchMedia('(prefers-reduced-motion:reduce)').matches;
+  if(!cible || calme || !document.body.animate) return fete(n);
+  const c=cible.getBoundingClientRect(), bx=c.left+Math.min(c.width/2, 16), by=c.top+c.height/2, ox=depuis ? depuis.x : innerWidth/2, oy=depuis ? depuis.y : innerHeight*0.55;
+  const w=document.createElement('div'); w.className='vol-pieces'; document.body.appendChild(w); let recues=0;
+  for(let i=0;i<n;i++){ const e=document.createElement('i'); e.className='pc'; w.appendChild(e);
+    const ang=Math.random()*Math.PI*2, d=40+Math.random()*70, mx=ox+Math.cos(ang)*d, my=oy+Math.sin(ang)*d*0.7-30, retard=i*32;
+    const an=e.animate([{ transform:`translate(${ox}px,${oy}px) scale(.3)`, opacity:0 }, { transform:`translate(${mx}px,${my}px) scale(1.15)`, opacity:1, offset:0.32, easing:'cubic-bezier(.5,0,.8,.4)' }, { transform:`translate(${bx}px,${by}px) scale(.55)`, opacity:1, offset:0.95 }, { transform:`translate(${bx}px,${by}px) scale(.3)`, opacity:0 }], { duration:820, delay:retard, easing:'cubic-bezier(.2,.8,.3,1)', fill:'both' });
+    an.onfinish=()=>{ e.remove(); recues++; cible.classList.remove('recu'); void cible.offsetWidth; cible.classList.add('recu'); if(recues===n){ w.remove(); setTimeout(()=>cible.classList.remove('recu'), 400); } }; }
+  setTimeout(()=>w.remove(), 820+n*32+600);
+  try{ sonGain(); sonPieces(n); }catch(e){} vibrer([12,40,18]); }
+const piecesEnVol = g => Math.min(18, 7+Math.floor(Math.log10(Math.max(1,g))*3));
 function sonGain(){ const a=audio(); if(!a) return; [988,1319].forEach((f,i)=>{ const o=a.createOscillator(), g=a.createGain(); o.type='triangle'; o.frequency.value=f; const t=a.currentTime+i*0.09; g.gain.setValueAtTime(0.0001,t); g.gain.exponentialRampToValueAtTime(0.16,t+0.01); g.gain.exponentialRampToValueAtTime(0.0001,t+0.28); o.connect(g); g.connect(a.destination); o.start(t); o.stop(t+0.3); }); }
 function vibrer(motif){ if(state.prefs && state.prefs.vibrations===false) return; if(navigator.vibrate) navigator.vibrate(motif); }
 let toastMinuterie=0;
@@ -2419,7 +2434,7 @@ function renderPatrimoine(){ const el=document.getElementById('s-patrimoine'); c
   const list = filtrePatri ? tous.filter(a=>rarete(a)===filtrePatri) : tous.slice();
   const p=Math.floor(pendingRent());
   let h=`<h1>Mon patrimoine <button class="btn sm clair act" onclick="ouvrirClassements('patrimoine')">🏆 Classements</button></h1><div class="kpis"><div class="kpi"><i>🏘️</i><b>${tous.length}</b><small>lieu${tous.length>1?'x':''}</small></div><div class="kpi"><i>💎</i><b>${nb(total)}<i class="pc"></i></b><small>de valeur</small></div><div class="kpi"><i>📈</i><b style="color:var(--cadre2)">${(v=>(v<0?'−':'+')+nb(Math.abs(v)))(SALAIRE+loyerTotal()-MON.parJour(tous))}</b><small>par jour</small></div></div>`;
-  h+=`<div class="card flex"><div><div class="t">🌾 ${p>=1?`<span style="color:var(--cadre2)">+${nb(p)}</span> à récolter`:'Les loyers poussent…'}</div><div class="m">Salaire ${nb(SALAIRE)} + loyers ${nb(loyerTotal())} par jour, stockés 24 h au plus.</div></div>${p>=1?`<button class="btn vert" onclick="recolter()">Récolter</button>`:''}</div>`;
+  h+=`<div class="card flex"><div><div class="t">🌾 ${p>=1?`<span style="color:var(--cadre2)">+${nb(p)}</span> à récolter`:'Les loyers poussent…'}</div><div class="m">Salaire ${nb(SALAIRE)} + loyers ${nb(loyerTotal())} par jour, stockés 24 h au plus.</div></div>${p>=1?`<button class="btn vert" onclick="recolter({x:event.clientX,y:event.clientY})">Récolter</button>`:''}</div>`;
   { const mons=MON.entretiens(tous), e=state.entretien||{}; if(mons.length){ const jr=MON.joursAvantReprise(e.impayeDepuis, now(), JOUR), cher=mons[mons.length-1];
       h+=`<details class="card repli entretien${e.dette>0?' impaye':''}" data-k="entretien"${e.dette>0?' open':''}><summary><span class="t">🏛️ Entretien : ${pcs(MON.parMois(tous))} par mois</span></summary>
         <div class="m">${mons.map(x=>`${echapper(x.label)} <b>${nb(x.parMois)}</b>`).join(' · ')}</div>
@@ -2469,9 +2484,9 @@ function ouvrirFicheLieu(id){ const a=state.owned[id]; const box=document.getEle
   const pied=document.createElement('div'); pied.className='liste-btn';
   pied.innerHTML=`<button class="btn bleu large" onclick="flyToAddr(state.owned['${a.id}'])">🗺️ Voir sur la carte</button><button class="btn clair large" onclick="closeModal()">Fermer</button>`;
   box.appendChild(pied); document.getElementById('modal').classList.add('on'); }
-async function recolter(){ const p=Math.floor(pendingRent()); if(p<1) return toast('Rien à récolter pour l’instant');
-  if(MODE_SERVEUR){ const r=await agir('recolter'); if(!r) return; const g=r.recolte||0; if(g<1) return toast('Rien à récolter pour l’instant'); fete(Math.min(22, 8+Math.floor(g/200))); toast(`+${nb(g)} 🪙 récoltées`); apresAction(); refreshTop(); return; }
-  encaisser(true); fete(Math.min(22, 8+Math.floor(p/200))); toast(`+${nb(p)} 🪙 récoltées`); apresAction(); refreshTop(); }
+async function recolter(depuis){ if(!(depuis && depuis.x!=null)) depuis=null; const p=Math.floor(pendingRent()); if(p<1) return toast('Rien à récolter pour l’instant');
+  if(MODE_SERVEUR){ const r=await agir('recolter'); if(!r) return; const g=r.recolte||0; if(g<1) return toast('Rien à récolter pour l’instant'); volPieces(piecesEnVol(g), depuis); toast(`+${nb(g)} 🪙 récoltées`); apresAction(); refreshTop(); return; }
+  encaisser(true); volPieces(piecesEnVol(p), depuis); toast(`+${nb(p)} 🪙 récoltées`); apresAction(); refreshTop(); }
 
 function arrondiMise(x){ return x<10000 ? Math.ceil(x/50)*50 : Math.ceil(x/100)*100; }
 function dureeTexte(ms){ const s=Math.max(0,Math.floor(ms/1000)); const j=Math.floor(s/86400), h=Math.floor(s%86400/3600), m=Math.floor(s%3600/60); return j ? `${j} j ${h} h` : (h ? `${h} h ${String(m).padStart(2,'0')}` : `${m} min ${String(s%60).padStart(2,'0')} s`); }
@@ -3011,10 +3026,15 @@ async function recolteConnexion(ensuite){ if(MODE_SERVEUR){ const r=await synchr
   const absent=now()-state.encaisse, plein=absent>=ECO.stock_loyer_heures*JOUR/24, lieux=Object.keys(state.owned).length;
   const box=document.getElementById('modalbox');
   box.innerHTML=`<h2>🌾 La récolte</h2><div class="sub">Pendant ton absence, ton salaire${lieux?` et les loyers de tes ${lieux} lieu${lieux>1?'x':''}`:''} ont rapporté :</div>
-    <div class="recolte">+${nb(p)}<i class="pc"></i></div><div class="m" style="text-align:center;margin-bottom:12px">${plein?'Ton stock était plein : les loyers s’arrêtent au bout de 24 h. Reviens chaque jour pour ne rien perdre.':'Les loyers s’accumulent jusqu’à 24 h, puis s’arrêtent.'}</div>
+    ${villeRecolte()}<div class="recolte">+<b id="rec-n" data-pas-traduire>0</b><i class="pc"></i></div><div class="m" style="text-align:center;margin-bottom:12px">${plein?'Ton stock était plein : les loyers s’arrêtent au bout de 24 h. Reviens chaque jour pour ne rien perdre.':'Les loyers s’accumulent jusqu’à 24 h, puis s’arrêtent.'}</div>
     <button class="btn vert large" id="recolter">Récolter</button>`;
   document.getElementById('modal').classList.add('on');
-  box.querySelector('#recolter').onclick=()=>{ closeModal(); recolter(); setTimeout(ensuite, 1000); }; }
+  { const el=box.querySelector('#rec-n'), t0=performance.now(), pas=()=>{ if(!el.isConnected) return; const t=Math.min(1,(performance.now()-t0)/700); el.textContent=nb(Math.round(p*(1-Math.pow(1-t,3)))); if(t<1) requestAnimationFrame(pas); }; el.textContent=nb(p); if(document.visibilityState==='visible'){ el.textContent='0'; requestAnimationFrame(pas); setTimeout(()=>{ if(el.isConnected) el.textContent=nb(p); }, 900); } }
+  box.querySelector('#recolter').onclick=ev=>{ const r=ev.currentTarget.getBoundingClientRect(), d={ x:r.left+r.width/2, y:r.top+r.height/2 }; closeModal(); recolter(d); setTimeout(ensuite, 1300); }; }
+// la petite ville de la fenêtre de récolte : mes bâtiments les plus hauts, une pièce qui flotte au-dessus de chacun
+function villeRecolte(){ const l=Object.values(state.owned).sort((a,b)=>(b.niveau||0)-(a.niveau||0)).slice(0,5); if(!l.length) return '';
+  const ordre=[3,1,0,2,4].map(i=>l[i]).filter(Boolean);   // le plus haut au milieu
+  return `<div class="rec-ville" aria-hidden="true">${ordre.map((a,i)=>`<span class="rec-bati" style="--i:${i}"><i class="pc"></i>${imageBati(a.niveau||0)}</span>`).join('')}</div>`; }
 // sans serveur (data/serveur.json vide) : le profil local ; avec serveur, src/compte.js passe d'abord par le compte
 function demarrageLocal(){ if(!state.pseudo) setTimeout(creationProfil, 600); else setTimeout(()=>recolteConnexion(packAuDemarrage), 500); }
 refreshTop(); if(!MODE_SERVEUR) tickAuction();

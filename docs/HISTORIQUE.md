@@ -419,6 +419,7 @@ Puis une PR par étape, fusionnée en squash :
 | #227 | 18/11 | Revue de l'interface, suite : la collection en premier dans Patrimoine (le reste en lignes qui se déplient), plus de chiffres en double sous la carte ouverte, en-tête des Enchères allégé |
 | #228 | 18/11 | Icône de profil : on peut importer une image (réduite à une vignette), en plus des émojis |
 | #229 | 18/11 | Plus « jeu » (1) : sept bâtiments dessinés en verre et néon ; l'échelle de construction en ligne de toits ; le bâtiment construit montré en grand |
+| #230 | 18/11 | Plus « jeu » (2) : la récolte mise en scène (les pièces volent jusqu'à la bourse, petite ville de mes bâtiments dans la fenêtre de récolte) |
 | #200 | 16/11 | Prototype du booster validé par Gautier : brillance moyenne fixée, boutons de réglage retirés |
 | #199 | 16/11 | Prototype du booster : une ligne de toits en néon sur le booster du jour, à la place de la maison |
 | #198 | 16/11 | Prototype du booster : moins brillant, lettres cernées, trois niveaux de brillance à choisir |
