@@ -162,7 +162,7 @@
       let mq = CH.marqueurs[k];
       if (mq && mq.sorte !== sorte) { mq.remove(); mq = null; }
       if (!mq) { const el = document.createElement('div'); el.className = 'pion autre ' + sorte;
-        el.innerHTML = sorte === 'groupe' ? '<i class="ombre"></i><i class="corps"><b></b></i>' : (sorte === 'proche' ? `<i class="ombre"></i><i class="corps">${echapper(g.a.avatar || '🙂')}</i><small data-pas-traduire>${echapper(g.a.pseudo)}</small>` : '<i class="point"></i>');
+        el.innerHTML = sorte === 'groupe' ? '<i class="ombre"></i><i class="corps"><b></b></i>' : (sorte === 'proche' ? `<i class="ombre"></i><i class="corps">${avatarHTML(g.a.avatar)}</i><small data-pas-traduire>${echapper(g.a.pseudo)}</small>` : '<i class="point"></i>');
         mq = CH.marqueurs[k] = new maplibregl.Marker({ element: el, anchor: 'bottom' }).setLngLat([g.lon, g.lat]).addTo(map); mq.sorte = sorte; }
       if (sorte === 'groupe') mq.getElement().querySelector('b').textContent = '×' + g.n;
       mq.setLngLat([g.lon, g.lat]).setOffset(Chasse.distance(PROM, g) < 12 ? [38, -6] : [0, 0]);   // (collés à moi : juste à côté de mon pion)

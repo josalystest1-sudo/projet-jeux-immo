@@ -417,6 +417,7 @@ Puis une PR par étape, fusionnée en squash :
 | #225 | 18/11 | Serveur plus rapide (2) : les vérifications de chaque action partent en même temps, et le rangement d'après-pack se fait après la réponse |
 | #226 | 18/11 | Serveur plus rapide (3) : le tour du monde se fait après la réponse (il prenait plus de 6 secondes sur la première demande au réveil du serveur) |
 | #227 | 18/11 | Revue de l'interface, suite : la collection en premier dans Patrimoine (le reste en lignes qui se déplient), plus de chiffres en double sous la carte ouverte, en-tête des Enchères allégé |
+| #228 | 18/11 | Icône de profil : on peut importer une image (réduite à une vignette), en plus des émojis |
 | #200 | 16/11 | Prototype du booster validé par Gautier : brillance moyenne fixée, boutons de réglage retirés |
 | #199 | 16/11 | Prototype du booster : une ligne de toits en néon sur le booster du jour, à la place de la maison |
 | #198 | 16/11 | Prototype du booster : moins brillant, lettres cernées, trois niveaux de brillance à choisir |

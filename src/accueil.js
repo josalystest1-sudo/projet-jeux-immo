@@ -56,7 +56,7 @@
     const pret = packDispo(), act = action();
     if (pret) ouvrirVitrine(); else A.fermerVitrine();
     el.classList.toggle('vitrine', pret);
-    const haut = `<div class="acc-haut"><button class="acc-pill moi" data-a="profil"><span class="av">${echapper(state.avatar || '🙂')}</span><b data-pas-traduire>${echapper(state.pseudo || '')}</b></button><span class="acc-esp"></span>
+    const haut = `<div class="acc-haut"><button class="acc-pill moi" data-a="profil"><span class="av">${avatarHTML(state.avatar)}</span><b data-pas-traduire>${echapper(state.pseudo || '')}</b></button><span class="acc-esp"></span>
       <button class="acc-pill" data-a="gemmes">💎 <b>${nb(state.gemmes || 0)}</b></button><button class="acc-pill" data-a="pieces"><i class="pc"></i><b>${nb(dispo())}</b></button></div>`;
     const premier = pret && premierLancement();
     const titre = premier ? '<div class="acc-titre"><small>Bienvenue !</small><b>Ton premier pack t’attend</b></div>' : pret ? '<div class="acc-titre"><small>Pack du jour</small><b>Ton pack est prêt !</b></div>'

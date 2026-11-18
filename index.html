@@ -992,7 +992,7 @@ function promMarqueur(){ if(PROM.sv){   // (la promenade : à plat sur la carte,
     if(!PROM.marqueur){ const el=document.createElement('div'); el.className='marcheur'; el.innerHTML='<i class="cone"></i><i class="pt"></i>';
       PROM.marqueur=new maplibregl.Marker({element:el, rotationAlignment:'map', pitchAlignment:'map'}).setLngLat([PROM.lon,PROM.lat]).addTo(map); }
     PROM.marqueur.setLngLat([PROM.lon,PROM.lat]).setRotation(PROM.cap); return; }
-  if(!PROM.marqueur){ const el=document.createElement('div'); el.className='pion'; el.innerHTML=`<i class="fleche"></i><i class="ombre"></i><i class="corps">${echapper(state.avatar||'🙂')}</i>`;
+  if(!PROM.marqueur){ const el=document.createElement('div'); el.className='pion'; el.innerHTML=`<i class="fleche"></i><i class="ombre"></i><i class="corps">${avatarHTML(state.avatar)}</i>`;
     PROM.marqueur=new maplibregl.Marker({element:el, anchor:'bottom'}).setLngLat([PROM.lon,PROM.lat]).addTo(map); }
   PROM.marqueur.setLngLat([PROM.lon,PROM.lat]); PROM.marqueur.getElement().querySelector('.fleche').style.transform=`scaleY(.45) rotate(${norm360(PROM.cap-PROM.camCap)}deg)`; }
 function promNomRue(){ const r=MARCHE.nomDeRue(ruesBalade(), PROM); document.getElementById('prom-rue').textContent='🚶 '+(r || 'En promenade'); }
@@ -2852,11 +2852,11 @@ function ouvrirReglages(){ const box=document.getElementById('modalbox');
 // le profil d'un joueur (le mien : icône, réglages, compte)
 function showPlayer(name){ const box=document.getElementById('modalbox'); let h;
   if(name===ME){ const list=Object.values(state.owned), maires=mesMairies();
-    h=`<div class="profil-tete"><span class="av">${state.avatar}</span><div class="plaque"><small>Joueur</small>${echapper(disp(ME))}</div><div class="sub">Membre depuis aujourd’hui</div></div>
+    h=`<div class="profil-tete"><span class="av">${avatarHTML(state.avatar)}</span><div class="plaque"><small>Joueur</small>${echapper(disp(ME))}</div><div class="sub">Membre depuis aujourd’hui</div></div>
       <div class="kpis"><div class="kpi"><b>${list.length}</b><small>lieu${list.length>1?'x':''}</small></div><div class="kpi"><b>${nb(list.reduce((s,a)=>s+valeur(a),0))}<i class="pc"></i></b><small>de valeur</small></div><div class="kpi"><b>${list.filter(a=>a.niveau>0).length}</b><small>construit${list.filter(a=>a.niveau>0).length>1?'s':''}</small></div></div>
       ${maires.length?`<div class="card" style="box-shadow:none;background:var(--piece-clair)"><div class="t">👑 Maire de ${maires.map(echapper).join(', ')}</div></div>`:''}
       <div class="liste-btn"><button class="btn bleu large" onclick="creationProfil()">🎨 Changer mon icône</button><button class="btn clair large" onclick="ouvrirClassements('patrimoine')">🏆 Les classements</button><button class="btn clair large" onclick="ouvrirReglages()">⚙️ Réglages</button></div>`; }
-  else if(MODE_SERVEUR){ h=`<div class="profil-tete"><span class="av">${echapper((JOUEURS[PAR_PSEUDO[name]]||{}).avatar||'🙂')}</span><div class="plaque"><small>Joueur</small>${echapper(name)}</div><div class="sub" id="pj-depuis">…</div></div><div id="pj-chiffres" class="m" style="text-align:center;margin:10px 0">Chargement…</div>`;
+  else if(MODE_SERVEUR){ h=`<div class="profil-tete"><span class="av">${avatarHTML((JOUEURS[PAR_PSEUDO[name]]||{}).avatar)}</span><div class="plaque"><small>Joueur</small>${echapper(name)}</div><div class="sub" id="pj-depuis">…</div></div><div id="pj-chiffres" class="m" style="text-align:center;margin:10px 0">Chargement…</div>`;
     setTimeout(()=>profilReel(name), 0); }
   else { const n=5+hash(name)%40, c=1+hash(name+'c')%4, b=Math.floor(n*(0.3+ (hash(name+'b')%50)/100)); const v=n*1200+b*900;
     h=`<div class="profil-tete"><span class="av">${['🦊','🐻','🐼','🐯','🐸','🦄'][hash(name)%6]}</span><div class="plaque"><small>Joueur</small>${echapper(name)}</div><div class="sub">Membre depuis ${1+hash(name+'d')%60} jours</div></div>
@@ -2891,7 +2891,7 @@ async function profilReel(name){ let uid=PAR_PSEUDO[name];
   const liste=(data||[]).map(lieuDuServeur);
   const n=liste.length, v=liste.reduce((s,a)=>s+valeur(a),0), b=liste.filter(a=>a.niveau>0).length, c=new Set((data||[]).map(r=>r.commune)).size;
   const j=Math.max(0, Math.floor((Date.now()-Date.parse((JOUEURS[uid]||{}).cree_le||Date.now()))/86400000));
-  const av=document.querySelector('#modalbox .profil-tete .av'); if(av && (JOUEURS[uid]||{}).avatar) av.textContent=JOUEURS[uid].avatar;
+  const av=document.querySelector('#modalbox .profil-tete .av'); if(av && (JOUEURS[uid]||{}).avatar) av.innerHTML=avatarHTML(JOUEURS[uid].avatar);
   const dep=document.getElementById('pj-depuis'); if(dep) dep.textContent = j ? `Membre depuis ${j} jour${j>1?'s':''}` : 'Membre depuis aujourd’hui';
   zone.outerHTML=`<div class="kpis"><div class="kpi"><b>${n}</b><small>lieu${n>1?'x':''}</small></div><div class="kpi"><b>${nb(v)}<i class="pc"></i></b><small>de valeur</small></div><div class="kpi"><b>${b}</b><small>construit${b>1?'s':''}</small></div></div>
     <div class="card" style="box-shadow:none;background:var(--ciel)"><div class="t">📍 Présent dans ${c} commune${c>1?'s':''}</div><div class="m">Ses lieux sont en rouge sur la carte.</div></div>`; }
@@ -2935,7 +2935,14 @@ function creationProfil(){ const box=document.getElementById('modalbox'); let av
   box.innerHTML = creation
     ? `<h2>Bienvenue !</h2><div class="sub">Choisis ton pseudo et ton icône, visibles par les autres joueurs. <b>Ton pseudo est définitif</b> : tu ne pourras plus le changer.</div><input class="txt" id="pseudo" maxlength="16" placeholder="Ton pseudo" autocomplete="off"><div class="err" id="pseudoerr"></div><div class="avgrid" id="avgrid"></div><button class="btn" style="width:100%" id="okprofil">C’est parti</button>`
     : `<h2>Mon icône</h2><div class="sub">Ton pseudo : <b>${disp(ME)}</b> (définitif). Choisis l’icône que les autres joueurs voient.</div><div class="err" id="pseudoerr"></div><div class="avgrid" id="avgrid"></div><button class="btn" style="width:100%" id="okprofil">Enregistrer</button>`;
-  const grid=box.querySelector('#avgrid'); AVATARS.forEach(e=>{ const b=document.createElement('button'); b.textContent=e; b.className=e===av?'on':''; b.onclick=()=>{ av=e; grid.querySelectorAll('button').forEach(x=>x.classList.toggle('on',x.textContent===e)); }; grid.appendChild(b); });
+  const grid=box.querySelector('#avgrid'); AVATARS.forEach(e=>{ const b=document.createElement('button'); b.textContent=e; b.className=e===av?'on':''; b.onclick=()=>{ av=e; poserImage(); grid.querySelectorAll('button').forEach(x=>x.classList.toggle('on',x.textContent===e)); }; grid.appendChild(b); });
+  // importer une image (18 nov.) : choisie dans le téléphone, réduite ici à un petit carré ; elle remplace l'émoji
+  grid.insertAdjacentHTML('afterend', `<div class="av-import"><span class="av" id="av-apercu" hidden></span><button type="button" class="btn clair sm" id="av-importer">Importer une image</button><input type="file" id="av-fichier" accept="image/*" hidden></div><div class="m petit av-regle">Une image à toi, qui convient à tous les âges. Une icône signalée peut être retirée.</div>`);
+  const apercu=box.querySelector('#av-apercu'), fichier=box.querySelector('#av-fichier');
+  function poserImage(){ const img=AVATAR_IMAGE.test(av); apercu.hidden=!img; if(img){ apercu.innerHTML=avatarHTML(av); grid.querySelectorAll('button').forEach(x=>x.classList.remove('on')); } }
+  box.querySelector('#av-importer').onclick=()=>fichier.click();
+  fichier.onchange=async()=>{ const f=fichier.files && fichier.files[0]; fichier.value=''; if(!f) return; try{ av=await reduireImageAvatar(f); poserImage(); box.querySelector('#pseudoerr').textContent=''; }catch(e){ box.querySelector('#pseudoerr').textContent='Cette image n’a pas pu être lue : essaies-en une autre.'; } };
+  poserImage();
   const champ=box.querySelector('#pseudo'), err=box.querySelector('#pseudoerr'), bouton=box.querySelector('#okprofil');
   let aConfirmer=''; // à la création, le pseudo se confirme d'un second appui (il est définitif)
   // Entrée valide, comme le bouton (joueurs sur ordinateur, Gautier, 5 nov.) : le pseudo reste à confirmer d'un second appui
@@ -2973,7 +2980,18 @@ function afficherBourse(cible){ const el=document.getElementById('wallet'); cibl
   function ajuster(){ if(en) return; en=true; crans.forEach(c=>top.classList.remove(c)); for(const c of crans){ if(!deborde()) break; top.classList.add(c); } en=false; }
   const ro=new ResizeObserver(()=>requestAnimationFrame(ajuster)); lignes.forEach(l=>{ ro.observe(l); [...l.children].forEach(x=>ro.observe(x)); });
   top.querySelectorAll('.pill').forEach(x=>ro.observe(x)); window.addEventListener('resize', ajuster); })();
-function refreshTop(){ afficherBourse(dispo()); { const g=document.getElementById('gemmes'); if(g) g.textContent=nb(state.gemmes||0); } document.getElementById('meav').textContent=state.avatar||'🙂'; document.getElementById('mename').textContent=disp(ME); const n=Object.keys(state.owned).length; document.getElementById('count').textContent = `${n} lieu${n>1?'x':''}${MODE_SERVEUR?' · serveur':''}`;
+// l'icône d'un joueur (18 nov. : un émoji, ou une image importée, gardée en « data: » dans le profil) : toujours par ici
+const AVATAR_IMAGE=/^data:image\/(jpeg|png|webp);base64,[A-Za-z0-9+/]+=*$/;
+function avatarHTML(av, defaut){ av=av||defaut||'🙂'; return AVATAR_IMAGE.test(av) ? `<img class="av-img" src="${av}" alt="">` : echapper(av); }
+// une image choisie dans le téléphone → un carré de 96 px (le milieu de l'image), en JPEG, de 16 000 caractères au plus
+function reduireImageAvatar(fichier){ return new Promise((ok, non)=>{ if(!fichier || !/^image\//.test(fichier.type)) return non(new Error('image'));
+  const url=URL.createObjectURL(fichier), im=new Image();
+  im.onload=()=>{ try{ const T=96, c=document.createElement('canvas'); c.width=c.height=T; const g=c.getContext('2d'), s=Math.min(im.naturalWidth, im.naturalHeight);
+      g.fillStyle='#fff'; g.fillRect(0,0,T,T); g.drawImage(im, (im.naturalWidth-s)/2, (im.naturalHeight-s)/2, s, s, 0, 0, T, T);
+      let d=''; for(const q of [0.85, 0.7, 0.55, 0.4]){ d=c.toDataURL('image/jpeg', q); if(d.length<=16000) break; }
+      URL.revokeObjectURL(url); if(d.length>16000 || !AVATAR_IMAGE.test(d)) return non(new Error('lourde')); ok(d); }catch(e){ URL.revokeObjectURL(url); non(e); } };
+  im.onerror=()=>{ URL.revokeObjectURL(url); non(new Error('image')); }; im.src=url; }); }
+function refreshTop(){ afficherBourse(dispo()); { const g=document.getElementById('gemmes'); if(g) g.textContent=nb(state.gemmes||0); } document.getElementById('meav').innerHTML=avatarHTML(state.avatar, '🙂'); document.getElementById('mename').textContent=disp(ME); const n=Object.keys(state.owned).length; document.getElementById('count').textContent = `${n} lieu${n>1?'x':''}${MODE_SERVEUR?' · serveur':''}`;
   const p=Math.floor(pendingRent()); document.getElementById('pending').textContent = p>0 ? `+${nb(p)}` : '';
   const unread=state.notifs.filter(n=>!n.read).length; const c=document.getElementById('cnt-notif'); c.style.display=unread?'block':'none'; c.textContent=unread; refreshPack(); }
 setInterval(()=>{ refreshTop(); if(!MODE_SERVEUR){ tickOffers(); tickAuction(); tickMairie(); tickSaison(); tickMonuments(); const cf=document.getElementById('caisse-fin'); if(cf) cf.textContent='⏳ '+dureeTexte(finMandat(mandatCourant())-now());
