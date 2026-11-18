@@ -165,4 +165,5 @@ Ce fichier dit **ce qu'est le jeu, comment on travaille, ce qui est décidé et 
   - pas traduits : la carte (`#map`), les plaques (`.plaque`, `.numero` : le nom d'un lieu), tout ce qui porte `data-pas-traduire` ;
   - pour trouver ce qui manque : ouvrir le jeu avec `?langue=en&collecte`, parcourir les écrans, puis lire `window.__MANQUANTS` ;
   - sans choix du joueur, la langue du téléphone (`langueAppareil` : français s'il est en français, anglais sinon) ; le choix fait est gardé dans le téléphone (`localStorage` `citydeck-langue`) et passe avant ; `Langue.choisir('fr' | 'en')` recharge la page. Les outils de capture se mettent en français (`locale`, ou `LANGUE=en`).
+- **Jamais de commentaire « // » au milieu d'une ligne de `index.html`** : les lignes y sont longues, tout ce qui suit sur la ligne disparaît sans bruit (arrivé deux fois le 18 nov. : le jeu ne démarrait plus). Le commentaire va sur la ligne d'avant ; `tests/syntaxe.test.js` lit tous les scripts.
 - **Vérifier l'interface** : `tools/visite_ecrans.js` capture tous les écrans au format téléphone (prérequis en tête du fichier), `tools/planche.py` les assemble en planches à relire d'un coup.
