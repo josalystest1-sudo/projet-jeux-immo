@@ -409,6 +409,7 @@ Puis une PR par étape, fusionnée en squash :
 | #217 | 18/11 | Essai des menus « nuit néon » (direction A), visible seulement à l'adresse `?menus=nuit` : le jeu par défaut ne change pas |
 | #218 | 18/11 | Agence : les touchers répétés sur un bouton d'embauche comptent tous, et un bouton « Max » apparaît après deux touchers pour embaucher tout ce que les pièces permettent |
 | #219 | 18/11 | Les menus « nuit néon » deviennent le style du jeu (choix de Gautier après essai) ; `?menus=clair` garde les anciens menus en secours |
+| #220 | 18/11 | Agence sans latence : l'embauche s'affiche tout de suite puis part au serveur, l'agence s'ouvre aussitôt (gardée dans le téléphone), et le serveur répond plus vite aux actions de l'agence |
 | #200 | 16/11 | Prototype du booster validé par Gautier : brillance moyenne fixée, boutons de réglage retirés |
 | #199 | 16/11 | Prototype du booster : une ligne de toits en néon sur le booster du jour, à la place de la maison |
 | #198 | 16/11 | Prototype du booster : moins brillant, lettres cernées, trois niveaux de brillance à choisir |

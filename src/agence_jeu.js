@@ -26,7 +26,13 @@
     if (!recue) return null;
     return AG.avancer(Object.assign({}, recue, { le: recueLe }), Date.now(), JOUR, recue.saison);
   }
-  function recevoir(a) { if (a) { recue = a; recueLe = Date.now(); } }
+  // l'agence reçue est gardée dans le téléphone (18 nov., Gautier : « l'agence met quelques dizaines de secondes à s'ouvrir ») :
+  // à l'ouverture, on montre tout de suite la dernière connue, avancée jusqu'à maintenant ; le serveur la corrige en arrivant
+  const cleMemoire = () => 'cadastra-agence-' + (monUid() || '');
+  function recevoir(a) { if (a) { recue = a; recueLe = Date.now(); try { localStorage.setItem(cleMemoire(), JSON.stringify({ a, t: recueLe })); } catch (e) { /* stockage fermé */ } } }
+  function rappeler() { if (recue || !MODE_SERVEUR || !monUid()) return; try { const m = JSON.parse(localStorage.getItem(cleMemoire()) || 'null'); if (m && m.a && m.a.e && m.t <= Date.now()) { recue = m.a; recueLe = m.t; } } catch (e) { /* tant pis */ } }
+  // les pièces qu'on peut dépenser ici : moins celles des embauches déjà montrées à l'écran mais pas encore confirmées par le serveur
+  let engage = 0; const fonds = () => Math.max(0, Math.floor(dispo()) - engage);
   const debitTexte = (x) => (x >= 100 ? nb(Math.round(x)) : String(Math.round(x * 10) / 10).replace('.', ','));
   // le renom à l'écran : assez de décimales pour qu'on le voie bouger (au vrai rythme, une heure du jeu dure une heure)
   function decimales(debit) { if (!(debit > 0)) return 0; const parSeconde = debit / (JOUR / 24 / 1000); return parSeconde >= 2 ? 0 : parSeconde >= 0.2 ? 1 : parSeconde >= 0.02 ? 2 : 3; }
@@ -66,7 +72,7 @@
   }
   function haut() {
     const p = Math.floor(pendingRent());
-    return `<div class="acc-haut ag-haut"><h1>Mon agence</h1><span class="acc-esp"></span><button class="acc-pill" data-a="pieces"><i class="pc"></i><b id="ag-pieces">${nb(Math.floor(dispo()))}</b>${p >= 1 ? `<small class="ag-loyer" id="ag-loyer">+${nb(p)}</small>` : '<small class="ag-loyer" id="ag-loyer"></small>'}</button></div>`;
+    return `<div class="acc-haut ag-haut"><h1>Mon agence</h1><span class="acc-esp"></span><button class="acc-pill" data-a="pieces"><i class="pc"></i><b id="ag-pieces">${nb(fonds())}</b>${p >= 1 ? `<small class="ag-loyer" id="ag-loyer">+${nb(p)}</small>` : '<small class="ag-loyer" id="ag-loyer"></small>'}</button></div>`;
   }
   // les étages et le chantier : on n'ajoute et n'enlève que ce qui change (les animations des autres continuent)
   function majScene(a, sansEntree) {
@@ -86,7 +92,7 @@
   // les boutons : poser une brique, embaucher
   function majCommandes(a) {
     const zone = document.getElementById('ag-embauches'), poseEl = document.getElementById('ag-pose'); if (!zone) return;
-    const b = a.briques, pret = AG.briquesPossibles(a.renom, b), fonds = Math.floor(dispo());
+    const b = a.briques, pret = AG.briquesPossibles(a.renom, b), argent = fonds();
     let mieux = null; for (const p of AG.POSTES) { const g = AG.gain(a, p) / AG.cout(p, a.e[p]); if (g > 0 && (!mieux || g > mieux.g)) mieux = { p, g }; }
     poseEl.innerHTML = pret ? `<button class="btn large ag-poser" data-a="poser">${pret > 1 ? `Poser <b>${nb(pret)}</b> briques` : 'Poser la brique'}</button><div class="ag-note">Tes employés et ton renom repartent de zéro, avec <b>+${Math.round(ECO.agence.brique.bonus * 100)} %</b> de renom en plus.</div>` : '';
     poseEl.dataset.pret = pret ? '1' : '';
@@ -95,7 +101,7 @@
         <span class="ag-tete">${perso(p, ' fixe')}</span><b class="ag-qui">${UN[p]}</b><span class="ag-effet">${EFFET[p]}</span>
         <span class="ag-prix" data-pas-traduire></span><span class="ag-gain"></span></button><button class="ag-max" data-max="${p}" hidden></button></div>`).join('');
     for (const p of AG.POSTES) { const c = AG.cout(p, a.e[p]), g = AG.gain(a, p), premier = p === 'agent' && !a.e.agent, bt = zone.querySelector(`[data-poste="${p}"]`);
-      bt.classList.toggle('cher', c > fonds); bt.classList.toggle('pulse', premier); bt.querySelector('.ag-mieux').hidden = !(mieux && mieux.p === p && a.e.agent > 0);
+      bt.classList.toggle('cher', c > argent); bt.classList.toggle('pulse', premier); bt.querySelector('.ag-mieux').hidden = !(mieux && mieux.p === p && a.e.agent > 0);
       const prix = bt.querySelector('.ag-prix'); if (prix.dataset.n !== String(c)) { prix.dataset.n = c; prix.innerHTML = pcs(c); }
       const gt = g > 0 ? `+${debitTexte(g)} par heure` : 'Il faut un agent', ge = bt.querySelector('.ag-gain'); if (ge.dataset.t !== gt) { ge.dataset.t = gt; ge.textContent = gt; } }
     majMax(a);
@@ -108,7 +114,7 @@
   function majMax(a) {
     const zone = document.getElementById('ag-embauches'); if (!zone) return; a = a || courante(); if (!a) return;
     for (const p of AG.POSTES) { const m = zone.querySelector(`[data-max="${p}"]`); if (!m) continue;
-      const l = serie.poste === p && serie.n >= 2 && Date.now() - serie.t < 6000 && !pose ? lot(a, p, MAX_LOT, Math.floor(dispo())) : null, montre = !!(l && l.faits >= 2);
+      const l = serie.poste === p && serie.n >= 2 && Date.now() - serie.t < 6000 && !pose ? lot(a, p, MAX_LOT, fonds()) : null, montre = !!(l && l.faits >= 2);
       if (m.hidden === montre) m.hidden = !montre;
       if (montre) { const t = l.faits + ':' + l.total; if (m.dataset.t !== t) { m.dataset.t = t; m.dataset.n = l.faits; m.innerHTML = `Max <b data-pas-traduire>×${nb(l.faits)}</b><small data-pas-traduire>${pcs(l.total)}</small>`; } } }
   }
@@ -127,7 +133,7 @@
   let tour = 0;
   function seconde() {
     if (!visible()) return arreter(); const a = courante(); if (!a) return;
-    const pi = document.getElementById('ag-pieces'), f = Math.floor(dispo()); if (pi && pi.dataset.n !== String(f)) { pi.dataset.n = f; pi.textContent = nb(f); if (!pose) majCommandes(a); }
+    const pi = document.getElementById('ag-pieces'), f = fonds(); if (pi && pi.dataset.n !== String(f)) { pi.dataset.n = f; pi.textContent = nb(f); if (!pose) majCommandes(a); }
     const lo = document.getElementById('ag-loyer'), p = Math.floor(pendingRent()); if (lo) lo.textContent = p >= 1 ? '+' + nb(p) : '';
     const pr = ecran().querySelector('.ag-prochain'), pk = document.getElementById('ag-pack'), bo = document.getElementById('ag-booster'); if (pr) { const d = packDispo(); if (pr.hidden !== !!d) pr.hidden = !!d; if (bo && bo.hidden !== !d) bo.hidden = !d; if (!d && pk) pk.textContent = dureeCourte(secondesAvantPack()); }
     majMax(a);
@@ -159,8 +165,9 @@
   }
   // ---------------------------------------------------------------- ouvrir l'écran
   async function montrer() {
-    rendre(); demarrer(); let a = courante(); if (a && !MODE_SERVEUR) direAbsence(a);
-    if (MODE_SERVEUR) { const r = await agir('agence'); if (r && r.agence) { const neuve = !recue; recevoir(r.agence); if (!visible()) return; if (neuve) rendre(); else { a = courante(); majScene(a, true); majCommandes(a); } demarrer(); direAbsence(courante()); } }
+    rappeler(); rendre(); demarrer(); let a = courante(); if (a && !MODE_SERVEUR) direAbsence(a);
+    if (MODE_SERVEUR) { const v = version, r = await agir('agence'); if (r && r.agence) { if (enVol || attente.length || v !== version) return;   // (des embauches sont en route : leur réponse fera foi)
+      const neuve = !recue; recevoir(r.agence); if (!visible()) return; if (neuve) rendre(); else { a = courante(); majScene(a, true); majCommandes(a); } demarrer(); direAbsence(courante()); } }
   }
   function ouvrir() { showScreen('agence'); }
   function clic(e) {
@@ -200,30 +207,38 @@
     i.style.left = (r.left - s.left + r.width / 2).toFixed(0) + 'px'; i.style.top = (r.top - s.top + sc.scrollTop).toFixed(0) + 'px';
     i.addEventListener('animationend', () => i.remove()); sc.appendChild(i);
   }
-  // embaucher : les touchers ne se perdent plus pendant que le serveur répond (18 nov., Gautier : « on ne peut pas spammer
-  // le bouton ») : ils s'ajoutent à une file par poste, envoyée en une seule demande dès que la précédente est revenue
-  const file = {};
-  function embaucher(poste, n) { if (pose) return; file[poste] = Math.min(MAX_LOT, (file[poste] || 0) + (n || 1)); if (!occupe) vider(); }
-  async function vider() {
-    for (;;) {
-      const poste = AG.POSTES.find((p) => file[p] > 0); if (!poste || occupe || pose) return;
-      const voulu = file[poste]; file[poste] = 0;
-      const a = courante(); if (!a) return;
-      const l = lot(a, poste, voulu, Math.floor(dispo())), gain = l.faits ? AG.debit(l.agence.e, a.briques) - AG.debit(a.e, a.briques) : 0;
-      if (!l.faits) { vibrer(30); const r = l.refus || {}; toast(r.raison === 'fonds' ? `Il te manque ${fmt(r.cout - Math.floor(dispo()))} pour cette embauche` : 'Ton agence est pleine : pose une brique pour repartir'); continue; }
-      occupe = true;
-      try {
-        if (MODE_SERVEUR) { const r = await agir('agence_embaucher', { poste, n: l.faits }); if (r) recevoir(r.agence); }
-        else { encaisser(true); state.wallet -= l.total; state.agence = l.agence; save(); }
-      } finally { occupe = false; }
-      vibrer(10); refreshTop(); if (!visible()) return;
-      const apres = courante(); majScene(apres); majCommandes(apres); demarrer();
-      const et = document.querySelector(`#ag-scene [data-etage="${poste}"]`); if (et) { et.classList.remove('eclat'); void et.offsetWidth; et.classList.add('eclat'); }
-      if (gain > 0) flotter(document.getElementById('ag-debit'), `+${debitTexte(gain)}`);
-    }
+  // embaucher (18 nov., Gautier : « l'action n'est pas instantanée ») : l'embauche se voit tout de suite à l'écran (employé,
+  // prix suivant, pièces), puis part au serveur. Les demandes partent l'une après l'autre ; celles du même poste qui
+  // attendent se regroupent (25 au plus). Tant qu'il en reste en route, l'écran garde sa version ; à la dernière réponse,
+  // celle du serveur fait foi. Un refus du serveur : on reprend son agence telle qu'il la donne.
+  let attente = [], enVol = false, version = 0;   // (version : une réponse partie avant une embauche ne doit pas l'effacer)
+  function embaucher(poste, n) {
+    if (pose) return; const a = courante(); if (!a) return;
+    const l = lot(a, poste, Math.min(MAX_LOT, n || 1), fonds());
+    if (!l.faits) { vibrer(30); const r = l.refus || {}; return toast(r.raison === 'fonds' ? `Il te manque ${fmt(r.cout - fonds())} pour cette embauche` : 'Ton agence est pleine : pose une brique pour repartir'); }
+    const gain = AG.debit(l.agence.e, a.briques) - AG.debit(a.e, a.briques);
+    if (MODE_SERVEUR) { version++; recue = l.agence; recueLe = Date.now(); engage += l.total;
+      const d = attente[attente.length - 1]; if (d && d.poste === poste && d.n + l.faits <= MAX_LOT) { d.n += l.faits; d.total += l.total; } else attente.push({ poste, n: l.faits, total: l.total });
+      envoyer(); }
+    else { encaisser(true); state.wallet -= l.total; state.agence = l.agence; save(); refreshTop(); }
+    vibrer(10); if (!visible()) return;
+    const apres = courante(), pi = document.getElementById('ag-pieces'); if (pi) { pi.dataset.n = fonds(); pi.textContent = nb(fonds()); }
+    majScene(apres); majCommandes(apres); demarrer();
+    const et = document.querySelector(`#ag-scene [data-etage="${poste}"]`); if (et) { et.classList.remove('eclat'); void et.offsetWidth; et.classList.add('eclat'); }
+    if (gain > 0) flotter(document.getElementById('ag-debit'), `+${debitTexte(gain)}`);
+  }
+  async function envoyer() {
+    if (enVol || !attente.length) return; const d = attente.shift(); enVol = true; let r = null;
+    try { r = await agir('agence_embaucher', { poste: d.poste, n: d.n }); } finally { enVol = false; engage = Math.max(0, engage - d.total); }
+    if (!r) { attente = []; engage = 0; const x = await agir('agence'); if (x && x.agence) recevoir(x.agence); }   // (refusé : l'agence du serveur)
+    else if (!attente.length) recevoir(r.agence);
+    refreshTop();
+    if (attente.length) return envoyer();
+    if (visible()) { const a = courante(); majScene(a, true); majCommandes(a); }
   }
   async function poser() {
-    if (occupe || pose) return; const a = courante(); if (!a) return; const r = AG.poser(a);
+    if (occupe || pose) return; if (enVol || attente.length) return toast('Un instant : tes embauches arrivent');
+    const a = courante(); if (!a) return; const r = AG.poser(a);
     if (!r.ok) { vibrer(30); return toast(`Encore ${nb(r.manque)} de renom avant la prochaine brique`); }
     occupe = true; let n = r.briques;
     try {
