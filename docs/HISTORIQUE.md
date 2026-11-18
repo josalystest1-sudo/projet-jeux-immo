@@ -428,6 +428,7 @@ Puis une PR par étape, fusionnée en squash :
 | #236 | 18/11 | La carte au centre (1) : le jeu s'ouvre sur la vraie carte, « comme Pokémon GO » ; boutons ronds posés sur la carte ; une pièce à toucher sur mes lieux ; le tour de mes lieux |
 | #237 | 18/11 | La carte au centre (2) : recherche et filtres complets dans la collection (nom, région, département, commune, rareté, bâtiment) ; le tour de mes lieux suit les filtres |
 | #238 | 18/11 | La carte au centre (3) : Patrimoine montre la collection d'abord (une ligne de chiffres, des pastilles à la place des panneaux) ; l'alerte IGN s'efface quand la carte a chargé |
+| #239 | 18/11 | La carte au centre (4) : les enchères mises en scène (un monument à la fois, sa carte en grand, un seul bouton pour miser) |
 | #200 | 16/11 | Prototype du booster validé par Gautier : brillance moyenne fixée, boutons de réglage retirés |
 | #199 | 16/11 | Prototype du booster : une ligne de toits en néon sur le booster du jour, à la place de la maison |
 | #198 | 16/11 | Prototype du booster : moins brillant, lettres cernées, trois niveaux de brillance à choisir |

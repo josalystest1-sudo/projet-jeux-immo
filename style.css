@@ -2019,3 +2019,40 @@ html.pocket.nuit .pat-resume .plus b{color:#5CE08A}
 html.pocket.nuit .pat-pastille{background:#0B1437;border-color:rgba(90,168,255,.45);color:#DCE6FF}
 html.pocket.nuit .pat-pastille.or{background:linear-gradient(#FFD86B,#F2A51E);border-color:#FFE9A8;color:#4A2A00}
 html.pocket.nuit .pat-pastille.alerte{border-color:#FF7A66;color:#FF9D8F}
+
+/* ===== Les enchères mises en scène (18 nov.) : un monument à la fois, sa carte en grand, un seul bouton doré ===== */
+.ench-scene{display:flex;gap:12px;overflow-x:auto;scroll-snap-type:x mandatory;margin:0 -16px;padding:4px 16px 6px;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+.ench-scene::-webkit-scrollbar{display:none}
+.ench-lot{flex:0 0 100%;scroll-snap-align:center;display:flex;flex-direction:column;align-items:center;gap:10px;min-width:0;padding:14px 12px 14px;border-radius:22px;background:#fff;box-shadow:var(--ombre)}
+.ench-lot .tag{margin:0}
+.ench-carte{width:min(58vw,236px);flex:none;cursor:default}
+.ench-etat{width:100%;display:flex;flex-direction:column;align-items:stretch;gap:10px}
+.ench-mise{display:flex;flex-direction:column;align-items:center;gap:2px;text-align:center}
+.ench-mise small{font-size:12px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;opacity:.7}
+.ench-mise b{font-family:var(--titre);font-size:36px;font-weight:900;line-height:1.05;display:flex;align-items:center;gap:8px}
+.ench-mise b .pc{width:32px;height:32px}
+.ench-meneur{display:flex;align-items:center;gap:8px;flex-wrap:wrap;justify-content:center;font-size:13px;font-weight:800;min-height:28px}
+.chip.depasse{background:#FDE3DE;color:var(--brique2)}
+.ench-miser{width:100%;gap:10px}
+.ench-miser .montant{display:inline-flex;align-items:center;gap:4px}
+.ench-plus{width:100%}
+.ench-plus summary{list-style:none;text-align:center;font-size:13px;font-weight:900;color:var(--accent);cursor:pointer;padding:6px}
+.ench-plus summary::-webkit-details-marker{display:none}
+.ench-plus .rapides{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-top:6px}
+.ench-plus .rapides .btn{flex-direction:column;gap:2px;padding:8px 4px 6px;font-size:15px;line-height:1}
+.ench-plus .rapides .btn .montant{font-size:13px}
+.ench-histo{margin-top:10px}
+.ench-points{display:flex;justify-content:center;gap:7px;margin:8px 0 4px}
+.ench-points i{width:8px;height:8px;border-radius:50%;background:currentColor;opacity:.3}
+.ench-points i.on{opacity:1;background:#FFC94A}
+.ench-pied{display:flex;flex-direction:column;align-items:center;gap:2px;margin:8px 0 6px;font-size:13px;font-weight:800;text-align:center}
+.ench-pied b{display:inline-flex;align-items:center;gap:3px}
+.ench-pied .lien{border:0;background:none;font:inherit;font-weight:900;color:var(--accent);cursor:pointer;padding:7px 4px}
+html.pocket.nuit .ench-lot{background:linear-gradient(180deg,#101C4E,#0A1236);border:1.5px solid rgba(90,168,255,.4);box-shadow:0 0 22px rgba(46,107,255,.18)}
+html.pocket.nuit .ench-lot.nat{border:2px solid transparent;background:linear-gradient(180deg,#101C4E,#0A1236) padding-box,var(--arc) border-box}
+html.pocket.nuit .ench-mise b{color:#FFE08A;text-shadow:0 0 18px rgba(255,200,80,.45)}
+html.pocket.nuit .ench-mise small,html.pocket.nuit .ench-meneur,html.pocket.nuit .ench-pied{color:#C9D6F5}
+html.pocket.nuit .ench-plus summary,html.pocket.nuit .ench-pied .lien{color:#8FC0FF}
+html.pocket.nuit .chip.depasse{background:rgba(255,110,90,.16);color:#FF9D8F}
+html.pocket.nuit .ench-points{color:#8FA0CE}
+@media (max-height:700px){.ench-carte{width:min(44vw,168px)}.ench-mise b{font-size:30px}.ench-lot{gap:7px;padding:10px 12px}}
