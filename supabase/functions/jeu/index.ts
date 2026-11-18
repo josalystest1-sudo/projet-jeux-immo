@@ -121,10 +121,20 @@ function lieuDe(l: Ligne) {
   if (l.prix_vente != null) { a.enVente = true; a.prixVente = Number(l.prix_vente); a.deviseVente = l.devise_vente || 'pieces'; }
   return a;
 }
+// (18 nov., serveur plus rapide : la ligne du joueur n'est créée qu'une fois ; une fois vue, on ne redemande plus sa
+// création à chaque lecture, ce qui faisait un aller-retour de plus vers la base, plusieurs fois par action)
+const joueursConnus = new Set<string>();
+const COLS_JOUEUR = 'pieces, encaisse, dernier_jour, dette, impaye_depuis, gemmes, pass_fin, bons';
 async function joueur(j: string) {
+  if (joueursConnus.has(j)) {
+    const { data } = await admin.from('joueurs').select(COLS_JOUEUR).eq('id', j).maybeSingle();
+    if (data) return data;
+    joueursConnus.delete(j);   // (la ligne a disparu : compte supprimé puis recréé ; on repasse par la création)
+  }
   await rpc('jeu_nouveau_joueur', { j, depart: ECO.solde_depart });
-  const { data, error } = await admin.from('joueurs').select('pieces, encaisse, dernier_jour, dette, impaye_depuis, gemmes, pass_fin, bons').eq('id', j).single();
+  const { data, error } = await admin.from('joueurs').select(COLS_JOUEUR).eq('id', j).single();
   if (error || !data) throw error || new Error('joueur introuvable');
+  joueursConnus.add(j);
   return data;
 }
 async function mesLieux(j: string) {
@@ -173,7 +183,7 @@ async function bonusDe(lieux: Ligne[], jm: number, maintenant: number) {
 
 async function recolter(j: string) {
   for (let essai = 0; essai < 3; essai++) {
-    const jr = await joueur(j), lieux = await mesLieux(j), maintenant = Date.now(), jm = await jourMs(), b = await bonusDe(lieux, jm, maintenant);
+    const [jr, lieux, jm] = await Promise.all([joueur(j), mesLieux(j), jourMs()]), maintenant = Date.now(), b = await bonusDe(lieux, jm, maintenant);
     const montant = R.aEncaisser(lieux, ms(jr.encaisse), maintenant, jm, b.f);
     if (montant < 1) return { recolte: 0, pieces: Number(jr.pieces) };
     const p = await rpc('jeu_recolter', { j, montant, avant: jr.encaisse, maintenant: new Date(maintenant).toISOString() });
@@ -201,7 +211,7 @@ const TIRAGE = Tirage.creer({
 
 // ma partie : pièces, lieux, ce qui attend d'être récolté (rendue aussi après chaque action : le jeu se recale dessus)
 async function etatDe(j: string) {
-  const jr = await joueur(j), lieux = await mesLieux(j), maintenant = Date.now(), jm = await jourMs();
+  const [jr, lieux, jm] = await Promise.all([joueur(j), mesLieux(j), jourMs()]), maintenant = Date.now();
   const [offres, echanges, notifs, encheres, b] = await Promise.all([mesOffres(j), mesEchanges(j), mesNotifs(j), mesEncheres(j), bonusDe(lieux, jm, maintenant)]);
   return {
     pieces: Number(jr.pieces), encaisse: ms(jr.encaisse), dernierJour: jr.dernier_jour == null ? null : Number(jr.dernier_jour), jour: Regles.jourDuJeu(maintenant, jm),
@@ -1276,7 +1286,9 @@ Deno.serve(async (req: Request) => {
       if (c.action !== 'horloge') throw new Refus('action', 'Action inconnue.');
       return repondre({ ok: true, ...(await tic()) });
     }
+    const t0 = Date.now(), temps: Record<string, number> = {};   // (ce que chaque étape a pris, rendu dans « _ms » : pour mesurer, sans rien de secret)
     const { data, error } = jeton ? await admin.auth.getUser(jeton) : { data: { user: null }, error: null };
+    temps.compte = Date.now() - t0;
     if (error || !data.user) throw new Refus('non_connecte', 'Connecte-toi pour jouer.');
     const corps = await req.json().catch(() => ({}));
     const action = ACTIONS[String(corps.action || '')];
@@ -1299,17 +1311,25 @@ Deno.serve(async (req: Request) => {
     if (!vite) await tenirEncheres().catch((e) => console.error('enchères', e));
     // ma visite (un Maire absent depuis trop longtemps perd le titre) ; les fins de mandat de Maire à annoncer
     if (corps.action !== 'supprimer_compte') await rpc('jeu_vu', { j: data.user.id }).catch((e) => console.error('visite', e));
-    if (!vite) await tenirMairies().catch((e) => console.error('mairies', e));
-    if (!vite) await tenirRaretes().catch((e) => console.error('raretés', e));
+    // le reste du tour du monde : des tâches qui ne dépendent pas l'une de l'autre, menées en même temps (18 nov.) ;
+    // l'entretien de mes monuments d'abord (il touche mes pièces), seul
     await payerEntretien(data.user.id).catch((e) => console.error('entretien', e));
-    if (!vite) await verifierPaiementsSiBesoin(data.user.id).catch((e) => console.error('paiements', e));
-    if (!vite) await tenirMonuments().catch((e) => console.error('monuments', e));
-    const res = await action(data.user.id, corps);
+    if (!vite) await Promise.all([
+      tenirMairies().catch((e) => console.error('mairies', e)),
+      tenirRaretes().catch((e) => console.error('raretés', e)),
+      verifierPaiementsSiBesoin(data.user.id).catch((e) => console.error('paiements', e)),
+      tenirMonuments().catch((e) => console.error('monuments', e)),
+    ]);
+    temps.monde = Date.now() - t0 - temps.compte;
+    const tA = Date.now(), res = await action(data.user.id, corps);
+    temps.action = Date.now() - tA;
     // les robots jouent un tour après la réponse (sans faire attendre le vrai joueur)
     const runtime = (globalThis as Ligne).EdgeRuntime; if (runtime && runtime.waitUntil) runtime.waitUntil(robotsTour().catch((e) => console.error('robots', e)));
     // après une action qui change la partie, sa partie à jour (pièces, lieux, récolte) pour que le jeu se recale
+    const tE = Date.now();
     if (corps.action !== 'etat' && corps.action !== 'encheres' && corps.action !== 'supprimer_compte') res.etat = await etatDe(data.user.id);
-    return repondre({ ok: true, ...res });
+    temps.partie = Date.now() - tE; temps.total = Date.now() - t0;
+    return repondre({ ok: true, ...res, _ms: temps });
   } catch (e) {
     if (e instanceof Refus) return repondre({ ok: false, code: e.code, message: e.message });
     console.error(e);
