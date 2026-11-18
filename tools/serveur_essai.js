@@ -49,9 +49,11 @@ async function nouveauJoueur(publique, secrete) {
     const acces = cnx.corps && cnx.corps.access_token; verifier(!!acces, 'le joueur d’essai se connecte', cnx.statut);
     const jeu = (corps, jeton = acces) => requete(`${URL}/functions/v1/jeu`, { method: 'POST', headers: { apikey: publique, ...(jeton ? { Authorization: `Bearer ${jeton}` } : {}), 'Content-Type': 'application/json', Origin: 'https://josalystest1-sudo.github.io' }, body: JSON.stringify(corps) });
 
+    const tFroid = Date.now();
     const anonyme = await jeu({ action: 'etat' }, publique.startsWith('sb_') ? null : publique);
     verifier(anonyme.corps && anonyme.corps.ok === false && anonyme.corps.code === 'non_connecte', 'sans compte : refusé', anonyme);
     const etat = await jeu({ action: 'etat' });
+    console.log(`  (les deux premières demandes après la mise à jour, serveur à froid : ${Date.now() - tFroid} ms ; côté serveur pour la seconde ${JSON.stringify(etat.corps && etat.corps._ms)})`);
     { const t1 = Date.now(), e2 = await jeu({ action: 'etat' }); console.log(`  (ma partie, deuxième demande : ${Date.now() - t1} ms vus d'ici ; côté serveur ${JSON.stringify(e2.corps && e2.corps._ms)})`); }
     verifier(etat.corps && etat.corps.ok && etat.corps.pieces === ECO.solde_depart && Array.isArray(etat.corps.lieux) && etat.corps.lieux.length === 0, `nouveau joueur : ${ECO.solde_depart} pièces, aucun lieu`, etat);
     const rec = await jeu({ action: 'recolter' });
@@ -261,7 +263,7 @@ async function nouveauJoueur(publique, secrete) {
     verifier(prepNat.corps && prepNat.corps.ok && prepNat.corps.pret === true && !prepNat.corps.cartes, 'booster national préparé d’avance (les cartes ne sont pas montrées)', prepNat);
     const tNat = Date.now();
     const nat = await jeu({ action: 'acheter_pack', article: 'pack_national' });
-    console.log(`  (achat du booster national préparé : ${Date.now() - tNat} ms)`);
+    console.log(`  (achat du booster national préparé : ${Date.now() - tNat} ms ; côté serveur ${JSON.stringify(nat.corps && nat.corps._ms)})`);
     verifier(nat.corps && nat.corps.ok && nat.corps.cartes.length >= 1 && nat.corps.etat.gemmes === g0.corps.gemmes - 500 && nat.corps.cartes.every((c) => nat.corps.etat.lieux.some((l) => l.id === c.id)), `un pack national : ${nat.corps && nat.corps.cartes && nat.corps.cartes.length} lieux à moi, 200 gemmes`, nat.corps && { g: nat.corps.etat && nat.corps.etat.gemmes, n: nat.corps.cartes && nat.corps.cartes.length });
     const reg = await jeu({ action: 'acheter_pack', article: 'pack_regional', region: 'Bretagne' });
     const bzh = require('../src/regles/regions.js').REGIONS.Bretagne, dep = (c) => (String(c).startsWith('97') ? String(c).slice(0, 3) : String(c).slice(0, 2));
