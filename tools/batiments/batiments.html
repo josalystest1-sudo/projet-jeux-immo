@@ -25,7 +25,7 @@ function fenetres(g,w,h,d,x,y,z,cols,rangs,o){ o=o||{}; const fw=(o.fw||0.5)*w/c
     const px=x-w/2+(c+0.5)*w/cols, py=y+(r+0.5)*h/rangs; const f=new THREE.Mesh(new THREE.PlaneGeometry(fw,fh),mat); f.position.set(px,py,z+d/2+0.012); g.add(f); }
   const cz=Math.max(1,Math.round(cols*d/w));
   for(let r=0;r<rangs;r++) for(let c=0;c<cz;c++){ const on=((r*5+c*4+1+(o.g||0))%5)<2; const f=new THREE.Mesh(new THREE.PlaneGeometry((o.fw||0.5)*d/cz,fh),lum(on?(o.c||OR):0x24439A)); f.rotation.y=Math.PI/2; f.position.set(x+w/2+0.012,y+(r+0.5)*h/rangs,z-d/2+(c+0.5)*d/cz); g.add(f); } }
-function toit4(g,w,d,h,x,y,z,haut,o){ o=o||{}; const geo=new THREE.CylinderGeometry((haut||0.001)*Math.SQRT1_2,Math.SQRT1_2,h,4,1); const m=new THREE.Mesh(geo,verre(o.verre||0x1B3F9A,o.op||0.7)); m.rotation.y=Math.PI/4; m.scale.set(w,1,d); m.position.set(x,y+h/2,z); g.add(m); aretes(g,m,o.c,o.t); }
+function toit4(g,w,d,h,x,y,z,haut,o){ o=o||{}; const geo=new THREE.CylinderGeometry((haut||0.001)*Math.SQRT1_2,Math.SQRT1_2,h,4,1); geo.rotateY(Math.PI/4); const m=new THREE.Mesh(geo,verre(o.verre||0x1B3F9A,o.op||0.7)); m.scale.set(w,1,d); m.position.set(x,y+h/2,z); g.add(m); aretes(g,m,o.c,o.t); }
 function pignon(g,w,d,h,x,y,z,o){ o=o||{}; const s=new THREE.Shape(); s.moveTo(-w/2,0); s.lineTo(w/2,0); s.lineTo(0,h); s.closePath(); const geo=new THREE.ExtrudeGeometry(s,{depth:d,bevelEnabled:false}); geo.translate(0,0,-d/2); const m=new THREE.Mesh(geo,verre(0x1B3F9A,0.7)); m.position.set(x,y,z); g.add(m); aretes(g,m,o.c,o.t); }
 function colonne(g,r,h,x,y,z,c){ const m=new THREE.Mesh(new THREE.CylinderGeometry(r,r,h,10),verre(0x1E4AB0,0.75)); m.position.set(x,y+h/2,z); g.add(m); for(const yy of [y,y+h]){ const a=new THREE.Mesh(new THREE.TorusGeometry(r,0.02,6,16),lum(c||NEON)); a.rotation.x=Math.PI/2; a.position.set(x,yy,z); g.add(a); } trait(g,new THREE.Vector3(x+r*0.7,y,z+r*0.7),new THREE.Vector3(x+r*0.7,y+h,z+r*0.7),c||NEON,0.018); }
 function socle(g,r,c){ if(Q.has('alpha')) return; const m=new THREE.Mesh(new THREE.CylinderGeometry(r,r*1.04,0.16,48),new THREE.MeshPhongMaterial({color:0x0C1B4D,emissive:0x0A1A55,emissiveIntensity:0.6,shininess:60})); m.position.y=-0.08; g.add(m);
@@ -40,23 +40,33 @@ const BATIS=[
  g=>{ socle(g,1.6); bloc(g,1.7,2.3,1.3,0,0,0); for(let i=1;i<5;i++){ const y=i*2.3/5; trait(g,V(-.85,y,.65),V(.85,y,.65),NEON,0.016); trait(g,V(.85,y,.65),V(.85,y,-.65),NEON,0.016); } fenetres(g,1.7,2.3,1.3,0,0,0,4,5,{fw:.5,fh:.5}); toit4(g,1.78,1.38,.5,0,2.3,0,.72); bloc(g,.16,.3,.16,-.45,2.8,0,{t:0.016}); bloc(g,.16,.3,.16,.45,2.8,0,{t:0.016}); },
  g=>{ socle(g,1.6); bloc(g,1.25,3.3,1.25,0,0,0); fenetres(g,1.25,3.3,1.25,0,0,0,3,9,{fw:.62,fh:.55,g:2}); bloc(g,.9,.7,.9,0,3.3,0); fenetres(g,.9,.7,.9,0,3.3,0,2,2,{fw:.6,fh:.5}); trait(g,V(0,4,0),V(0,4.8,0),NEON,0.025); const b=new THREE.Mesh(new THREE.SphereGeometry(.07,10,10),lum(0xFF5A6E)); b.position.set(0,4.82,0); g.add(b); },
  g=>{ socle(g,1.7); bloc(g,1.5,2.2,1.5,0,0,0); fenetres(g,1.5,2.2,1.5,0,0,0,4,7,{fw:.6,fh:.5,g:1}); bloc(g,1.15,1.9,1.15,0,2.2,0); fenetres(g,1.15,1.9,1.15,0,2.2,0,3,6,{fw:.6,fh:.5,g:3}); bloc(g,.8,1.3,.8,0,4.1,0); fenetres(g,.8,1.3,.8,0,4.1,0,2,4,{fw:.6,fh:.5,g:2}); toit4(g,.8,.8,.5,0,5.4,0,.25,{c:OR}); trait(g,V(0,5.9,0),V(0,6.9,0),OR,0.028); },
- g=>{ socle(g,2.0,OR); bloc(g,3.0,.22,1.7,0,0,0,{c:OR}); bloc(g,2.7,1.5,1.4,0,.22,0); fenetres(g,2.7,1.5,1.4,0,.22,0,7,3,{fw:.5,fh:.55}); for(let i=0;i<6;i++) colonne(g,.07,1.5,-1.2+i*.48,.22,.82,OR);
-      bloc(g,2.9,.16,1.6,0,1.72,0,{c:OR}); bloc(g,1.2,.7,1.1,0,1.88,0); fenetres(g,1.2,.7,1.1,0,1.88,0,3,1,{fw:.5,fh:.6});
-      const d=new THREE.Mesh(new THREE.SphereGeometry(.62,24,12,0,Math.PI*2,0,Math.PI/2),verre(0x2456C8,0.7)); d.position.set(0,2.58,0); g.add(d); for(let k=0;k<8;k++){ const a=k*Math.PI/4; const pts=[]; for(let s=0;s<=8;s++){ const t=s/8*Math.PI/2; pts.push(V(Math.cos(a)*.62*Math.sin(t),2.58+.62*Math.cos(t),Math.sin(a)*.62*Math.sin(t))); } for(let s=0;s<8;s++) trait(g,pts[s],pts[s+1],OR,0.016); }
-      const an=new THREE.Mesh(new THREE.TorusGeometry(.62,.03,8,48),lum(OR)); an.rotation.x=Math.PI/2; an.position.y=2.58; g.add(an); trait(g,V(0,3.2,0),V(0,3.75,0),OR,0.025);
-      for(const x of [-1.25,1.25]){ bloc(g,.5,.5,.9,x,1.88,0,{t:0.02}); toit4(g,.56,.96,.3,x,2.38,0,.3,{c:OR}); } },
- g=>{ socle(g,2.1,OR); const arc=[0xFF4D6D,0xFF9F1C,0xFFE14D,0x3DDC84,0x2F9BFF,0x8E5CFF,0xFF4DC4];
-      bloc(g,3.2,.2,2.2,0,0,0,{c:arc[0]}); bloc(g,2.9,.2,1.9,0,.2,0,{c:arc[1]}); bloc(g,2.6,.2,1.6,0,.4,0,{c:arc[2]});
-      bloc(g,1.9,1.5,1.0,0,.6,0,{op:.5,c:arc[4]}); fenetres(g,1.9,1.5,1.0,0,.6,0,5,1,{fw:.3,fh:.75});
-      for(let i=0;i<7;i++) colonne(g,.085,1.5,-1.14+i*.38,.6,.68,arc[i]); for(let i=0;i<3;i++){ colonne(g,.085,1.5,1.2,.6,.34-i*.34,arc[(i+3)%7]); }
-      bloc(g,2.7,.2,1.7,0,2.1,0,{c:arc[5]}); pignon(g,2.7,1.7,.7,0,2.3,0,{c:arc[6]});
-      const l=new THREE.Mesh(new THREE.TorusGeometry(.26,.035,8,32,Math.PI*1.5),lum(OR)); l.position.set(0,2.62,.86); l.rotation.z=Math.PI*1.25; g.add(l); const s=new THREE.Mesh(new THREE.OctahedronGeometry(.16),lum(OR)); s.position.set(0,3.3,0); g.add(s); trait(g,V(0,3,0),V(0,3.2,0),OR,0.02); },
+ g=>{ socle(g,2.0,OR); const F=0.017;   // le Palace : un grand hôtel, avant-corps à colonnes, mansarde, dôme et drapeau (traits fins)
+      bloc(g,3.3,.16,1.9,0,0,0,{c:OR,t:F}); bloc(g,3.0,1.7,1.4,0,.16,0,{t:0.02}); fenetres(g,3.0,1.7,1.4,0,.16,0,9,4,{fw:.42,fh:.55,g:1});
+      bloc(g,3.1,.1,1.5,0,1.86,0,{c:OR,t:F});
+      bloc(g,1.1,1.8,.3,0,.16,.75,{t:F,op:.5}); for(let i=0;i<4;i++) colonne(g,.045,1.55,-.45+i*.3,.16,.98,OR);
+      const porte=new THREE.Mesh(new THREE.PlaneGeometry(.3,.5),lum(OR)); porte.position.set(0,.41,.915); g.add(porte); const arche=new THREE.Mesh(new THREE.CircleGeometry(.15,16,0,Math.PI),lum(OR)); arche.position.set(0,.66,.915); g.add(arche);
+      pignon(g,1.2,.34,.34,0,1.96,.75,{c:OR,t:F});
+      bloc(g,2.6,.42,1.1,0,1.96,0,{t:F}); fenetres(g,2.6,.42,1.1,0,1.96,0,8,1,{fw:.4,fh:.6,g:2}); toit4(g,2.7,1.2,.4,0,2.38,0,.82,{t:F});
+      bloc(g,.8,.3,.8,0,2.78,0,{t:F,c:OR});
+      const d=new THREE.Mesh(new THREE.SphereGeometry(.42,24,12,0,Math.PI*2,0,Math.PI/2),verre(0x2456C8,0.7)); d.position.set(0,3.08,0); g.add(d); for(let k=0;k<8;k++){ const a=k*Math.PI/4; const pts=[]; for(let q=0;q<=8;q++){ const t=q/8*Math.PI/2; pts.push(V(Math.cos(a)*.42*Math.sin(t),3.08+.42*Math.cos(t),Math.sin(a)*.42*Math.sin(t))); } for(let q=0;q<8;q++) trait(g,pts[q],pts[q+1],OR,0.011); }
+      const an=new THREE.Mesh(new THREE.TorusGeometry(.42,.02,8,48),lum(OR)); an.rotation.x=Math.PI/2; an.position.y=3.08; g.add(an);
+      trait(g,V(0,3.5,0),V(0,4.2,0),OR,0.014); const dr=new THREE.Mesh(new THREE.PlaneGeometry(.34,.2),new THREE.MeshBasicMaterial({color:0xFF5A6E,side:THREE.DoubleSide})); dr.position.set(.12,4.08,-.12); dr.rotation.y=Math.PI/4; g.add(dr);
+      for(const x of [-1.22,1.22]){ bloc(g,.56,.42,1.2,x,1.96,0,{t:F}); toit4(g,.6,1.24,.36,x,2.38,0,.45,{c:OR,t:F}); trait(g,V(x,2.74,0),V(x,3.0,0),OR,0.012); } },
+ g=>{ socle(g,2.1,OR); const F=0.018, arc=[0xFF4D6D,0xFF9F1C,0xFFE14D,0x3DDC84,0x2F9BFF,0x8E5CFF,0xFF4DC4];   // le Prestige : un temple aux néons arc-en-ciel, couronne de laurier d'or
+      bloc(g,3.3,.16,2.3,0,0,0,{c:arc[0],t:F}); bloc(g,3.0,.16,2.0,0,.16,0,{c:arc[1],t:F}); bloc(g,2.7,.16,1.7,0,.32,0,{c:arc[2],t:F});
+      bloc(g,1.9,1.6,1.0,0,.48,0,{op:.5,c:arc[4],t:F}); fenetres(g,1.9,1.6,1.0,0,.48,0,5,1,{fw:.28,fh:.7});
+      const porte=new THREE.Mesh(new THREE.PlaneGeometry(.34,1.0),lum(OR)); porte.position.set(0,.98,.515); g.add(porte);
+      for(let i=0;i<6;i++) colonne(g,.075,1.6,-1.15+i*.46,.48,.7,arc[i]); for(let i=1;i<4;i++) colonne(g,.075,1.6,1.15,.48,.7-i*.42,arc[(i+3)%7]);
+      bloc(g,2.7,.18,1.75,0,2.08,0,{c:arc[5],t:F}); pignon(g,2.7,1.75,.68,0,2.26,0,{c:arc[6],t:F});
+      const l=new THREE.Mesh(new THREE.TorusGeometry(.2,.022,8,32,Math.PI*1.7),lum(OR)); l.position.set(0,2.5,.885); l.rotation.z=Math.PI*0.65; g.add(l); const c0=new THREE.Mesh(new THREE.CircleGeometry(.07,12),lum(0xFFE9A8)); c0.position.set(0,2.5,.885); g.add(c0);
+      trait(g,V(0,2.94,0),V(0,3.2,0),OR,0.014); const st=new THREE.Mesh(new THREE.OctahedronGeometry(.15),lum(OR)); st.scale.set(1,1.5,1); st.position.set(0,3.36,0); g.add(st);
+      for(const x of [-1.35,1.35]) for(const z of [-.87,.87]){ const b=new THREE.Mesh(new THREE.SphereGeometry(.06,10,10),lum(OR)); b.position.set(x,2.32,z); g.add(b); } },
 ];
 scene.add(new THREE.AmbientLight(0x6F98FF,0.55)); const dl=new THREE.DirectionalLight(0xBFD8FF,0.7); dl.position.set(4,8,6); scene.add(dl);
 const liste=SEUL>=0?[SEUL]:[0,1,2,3,4,5,6], PAS=4.6;
 liste.forEach((n,i)=>{ const g=new THREE.Group(); BATIS[n](g); const k=(i-(liste.length-1)/2)*PAS*Math.SQRT1_2; g.position.set(k,0,-k); scene.add(g); });
 const larg=SEUL>=0?5.6:PAS*7+0.6, haut=larg*H/W;
-const cam=new THREE.OrthographicCamera(-larg/2,larg/2,haut/2,-haut/2,-50,100); const cible=V(0,SEUL>=0?[.5,1,1.6,2.3,3.2,1.9,1.8][SEUL]:2.9,0); cam.position.copy(cible).add(V(8,6.2,8)); cam.lookAt(cible);
+const cam=new THREE.OrthographicCamera(-larg/2,larg/2,haut/2,-haut/2,-50,100); const cible=V(0,SEUL>=0?[.5,1,1.6,2.3,3.2,2.1,1.8][SEUL]:2.9,0); cam.position.copy(cible).add(V(8,6.2,8)); cam.lookAt(cible);
 if(SEUL>=0 && ALPHA){ scene.updateMatrixWorld(true); const b=new THREE.Box3().setFromObject(scene.children[scene.children.length-1]); cam.updateMatrixWorld(true); const inv=cam.matrixWorldInverse; let x0=1e9,x1=-1e9,y0=1e9,y1=-1e9; for(const X of [b.min.x,b.max.x]) for(const Y of [b.min.y,b.max.y]) for(const Z of [b.min.z,b.max.z]){ const p=V(X,Y,Z).applyMatrix4(inv); x0=Math.min(x0,p.x); x1=Math.max(x1,p.x); y0=Math.min(y0,p.y); y1=Math.max(y1,p.y); }
   const c=Math.max(x1-x0,y1-y0)*0.56, cx=(x0+x1)/2, cy=(y0+y1)/2; cam.left=cx-c; cam.right=cx+c; cam.top=cy+c; cam.bottom=cy-c; cam.updateProjectionMatrix(); ren.render(scene,cam); window.PRET=true; }
 else {
