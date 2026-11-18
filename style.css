@@ -1927,3 +1927,19 @@ details.repli[open]>summary{margin-bottom:8px}
 .rec-bati .pc{width:18px;height:18px;margin-bottom:4px;animation:rec-piece 1.5s ease-in-out infinite;animation-delay:calc(var(--i) * -.3s)}
 @keyframes rec-piece{0%,100%{transform:translateY(0)}50%{transform:translateY(-7px)}}
 html.pocket:not(.nuit) .rec-ville{background:linear-gradient(#16233f,#0d1730);border-radius:14px 14px 0 0;border-bottom-color:#5aa8ff}
+
+/* ===== Les en-têtes illustrés (18 nov.) : une petite scène de bâtiments à côté du titre ; l'action passe en haut à droite ===== */
+.screen h1.entete{position:relative;align-items:flex-end;gap:8px;padding-top:30px;padding-bottom:5px;margin-bottom:14px;border-bottom:2px solid rgba(90,168,255,.5)}
+.screen h1.entete .act{position:absolute;top:0;right:0;margin:0;z-index:1}
+.en-scene{flex:1 1 0;min-width:0;display:flex;align-items:flex-end;justify-content:flex-end;gap:3px;overflow:hidden;margin-bottom:-5px;padding:6px 2px 0 0;pointer-events:none}
+.en-scene .es-b{flex:none;display:flex;align-items:flex-end;position:relative}
+.en-scene .bati{height:calc(var(--h) * .82);width:auto;display:block;filter:drop-shadow(0 0 4px rgba(90,168,255,.55))}
+.en-scene .loin .bati{height:calc(var(--h) * .62);opacity:.55}
+.en-scene.s-encheres .vedette .bati{height:calc(var(--h) * 1.05);filter:drop-shadow(0 0 6px rgba(255,205,90,.9))}
+.en-scene.s-encheres .vedette::before{content:"";position:absolute;left:50%;bottom:0;width:150%;height:120%;transform:translateX(-50%);border-radius:50% 50% 0 0;background:var(--arc);opacity:.28;-webkit-mask:radial-gradient(ellipse 50% 100% at 50% 100%,#000 20%,transparent 72%);mask:radial-gradient(ellipse 50% 100% at 50% 100%,#000 20%,transparent 72%)}
+.en-scene.s-communes .vedette .bati{height:calc(var(--h) * .95)}
+html.pocket:not(.nuit) .en-scene{display:none}
+html.pocket:not(.nuit) .screen h1.entete{padding-top:0;border-bottom:0}
+html.pocket:not(.nuit) .screen h1.entete .act{position:static;margin-left:auto}
+@media (max-width:360px){.en-scene .es-b:first-child{display:none}}
+.screen h1.entete.seule{padding-top:6px}
