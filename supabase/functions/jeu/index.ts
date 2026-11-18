@@ -900,9 +900,8 @@ ACTIONS.acheter_pack = async (j, corps) => {
   const lignes = cartes.map((c: Ligne) => ({ ...c, commune: Regles.nomCommune(c.citycode, c.city), rarete: R.rarete(c) }));
   const gagnes: string[] = await rpc('jeu_pack_achete', { j, article, prix: BOU.prix(article), cartes: lignes });
   // le booster préparé est consommé ; s'il reste de quoi en payer un autre, le suivant se prépare après la réponse
-  await oublierPack(j, s.sorte);
-  const runtime = (globalThis as Ligne).EdgeRuntime;
-  if (runtime && runtime.waitUntil && BOU.peutPayer(article, Number(jr.gemmes || 0) - BOU.prix(article))) runtime.waitUntil(preparerPackAchete(j, s).catch((e) => console.error('pack suivant', e)));
+  const suite = async () => { await oublierPack(j, s.sorte); if (BOU.peutPayer(article, Number(jr.gemmes || 0) - BOU.prix(article))) await preparerPackAchete(j, s).catch((e) => console.error('pack suivant', e)); };
+  const runtime = (globalThis as Ligne).EdgeRuntime; if (runtime && runtime.waitUntil) runtime.waitUntil(suite()); else await suite();
   const maintenant = Date.now();
   return { cartes: cartes.filter((c: Ligne) => gagnes.includes(c.id)).map((c: Ligne) => ({ ...c, niveau: 0, depuis: maintenant })), article };
 };
@@ -1088,11 +1087,11 @@ ACTIONS.pack_preparer = async (j, corps) => {
   return { pret: await preparerPackAchete(j, s) };
 };
 ACTIONS.pack = async (j) => {
-  const jm = await jourMs(), jour = Regles.jourDuJeu(Date.now(), jm), jr = await joueur(j);
+  const [jm, jr, gardees] = await Promise.all([jourMs(), joueur(j), packPret(j).catch((e) => { console.error('pack prêt', e); return [] as Ligne[]; })]), jour = Regles.jourDuJeu(Date.now(), jm);
   if (jr.dernier_jour != null && Number(jr.dernier_jour) >= jour) throw new Refus('deja', REFUS_SQL.deja);
   const n = cartesDuPack(jr, jr.dernier_jour == null);   // (le tout premier pack : 5 cartes)
   // les cartes préparées encore libres, puis ce qui manque, tiré sur le moment
-  const prets = (await packPret(j).catch((e) => { console.error('pack prêt', e); return []; })).slice(0, n);
+  const prets = gardees.slice(0, n);
   const libres = await Promise.all(prets.map((c) => estLibre(c).catch(() => false)));
   let cartes: Ligne[] = prets.filter((_c, i) => libres[i]);
   if (cartes.length < n) { const plus = await TIRAGE.tirerPack(crypto.randomUUID() + ':' + jour, ECO.pack.chances, n - cartes.length); cartes = cartes.concat(plus.filter((c: Ligne) => !cartes.some((x) => x.id === c.id))); }
@@ -1100,12 +1099,14 @@ ACTIONS.pack = async (j) => {
   await recolter(j);   // les loyers d'avant sont encaissés : les nouveaux lieux comptent à partir de maintenant
   const lignes = cartes.map((c: Ligne) => ({ ...c, commune: Regles.nomCommune(c.citycode, c.city) }));
   const gagnes: string[] = await rpc('jeu_pack', { j, jour, cartes: lignes });
-  // la rareté des lieux gagnés, tout de suite (classement de patrimoine)
-  if (gagnes.length) await rpc('jeu_raretes', { ids: gagnes, rs: gagnes.map((id) => R.rarete(cartes.find((c: Ligne) => c.id === id))) }).catch((e) => console.error('raretés', e));
-  // le pack préparé est consommé ; le suivant se prépare après la réponse (sans faire attendre le joueur)
-  await oublierPack(j, 'jour');
-  const runtime = (globalThis as Ligne).EdgeRuntime, suivant = () => preparerPack(j, cartesDuPack(jr, false)).catch((e) => console.error('pack suivant', e));
-  if (runtime && runtime.waitUntil) runtime.waitUntil(suivant());
+  // après la réponse (sans faire attendre le joueur) : la rareté des lieux gagnés (classement de patrimoine), le pack
+  // préparé consommé, puis le suivant préparé
+  const suite = async () => {
+    if (gagnes.length) await rpc('jeu_raretes', { ids: gagnes, rs: gagnes.map((id) => R.rarete(cartes.find((c: Ligne) => c.id === id))) }).catch((e) => console.error('raretés', e));
+    await oublierPack(j, 'jour');
+    await preparerPack(j, cartesDuPack(jr, false)).catch((e) => console.error('pack suivant', e));
+  };
+  const runtime = (globalThis as Ligne).EdgeRuntime; if (runtime && runtime.waitUntil) runtime.waitUntil(suite()); else await suite();
   const maintenant = Date.now();
   return {
     cartes: cartes.filter((c: Ligne) => gagnes.includes(c.id)).map((c: Ligne) => ({ ...c, niveau: 0, depuis: maintenant })),
@@ -1293,32 +1294,37 @@ Deno.serve(async (req: Request) => {
     const corps = await req.json().catch(() => ({}));
     const action = ACTIONS[String(corps.action || '')];
     if (!action) throw new Refus('action', 'Action inconnue.');
-    // la cadence : pas plus de N actions par minute pour un compte (un programme qui joue à sa place, un bouton martelé) ;
-    // au-delà, refusé, rien n'est perdu (une panne du compteur ne bloque pas le jeu)
-    const cadence = await rpc('jeu_cadence', { j: data.user.id, limite: ECO.anti_triche.actions_par_minute }).catch((e) => { console.error('cadence', e); return true; });
+    // (18 nov., serveur plus rapide : chaque aller-retour vers la base coûte environ un dixième de seconde ; ce qui ne
+    // dépend pas l'un de l'autre part donc en même temps, en deux vagues, au lieu d'une demande après l'autre)
+    const moi = data.user.id, nom = String(corps.action || '');
+    // la chasse au trésor (une position toutes les 2 secondes) et la préparation du pack passent vite : ni visite, ni tour
+    // du monde, ni partie recalculée ; regarder l'agence : la visite seulement
+    const leger = nom === 'chasse_position' || nom === 'chasse' || nom === 'pack_preparer', agence = nom === 'agence';
+    // embaucher, poser une brique, ouvrir ou acheter un pack : pas de tour du monde (l'horloge et les autres actions s'en
+    // chargent), mais la partie est rendue (les pièces)
+    const vite = nom === 'agence_embaucher' || nom === 'agence_brique' || nom === 'pack' || nom === 'acheter_pack';
+    const complet = !leger && !agence && !vite;
+    // première vague : la cadence (pas plus de N actions par minute pour un compte : un programme qui joue à sa place, un
+    // bouton martelé ; une panne du compteur ne bloque pas le jeu), l'empreinte, ma visite (un Maire absent depuis trop
+    // longtemps perd le titre), le calendrier des enchères (lots finis clos, lots de la semaine ouverts)
+    const [cadence] = await Promise.all([
+      rpc('jeu_cadence', { j: moi, limite: ECO.anti_triche.actions_par_minute }).catch((e) => { console.error('cadence', e); return true; }),
+      noterEmpreinte(moi, req).catch((e) => console.error('empreinte', e)),
+      !leger && nom !== 'supprimer_compte' ? rpc('jeu_vu', { j: moi }).catch((e) => console.error('visite', e)) : null,
+      complet ? tenirEncheres().catch((e) => console.error('enchères', e)) : null,
+    ]);
     if (cadence === false) throw new Refus('cadence', 'Doucement : trop d’actions d’un coup. Réessaie dans une minute.');
-    await noterEmpreinte(data.user.id, req).catch((e) => console.error('empreinte', e));
-    // la chasse au trésor (une position toutes les 2 secondes) passe vite : ni tour du monde ni partie recalculée
-    if (corps.action === 'chasse_position' || corps.action === 'chasse') return repondre({ ok: true, ...(await action(data.user.id, corps)) });
-    // l'agence passe vite elle aussi (18 nov. : « l'agence met quelques dizaines de secondes à s'ouvrir », « l'action n'est
-    // pas instantanée ») : la regarder ne fait ni le tour du monde ni le calcul de la partie ; y embaucher ou poser une
-    // brique ne fait pas le tour du monde (l'horloge et les autres actions s'en chargent), mais rend la partie (les pièces)
-    // préparer le pack d'avance : en arrière-plan pour le jeu, ni tour du monde ni partie
-    if (corps.action === 'pack_preparer') return repondre({ ok: true, ...(await action(data.user.id, corps)) });
-    if (corps.action === 'agence') { await rpc('jeu_vu', { j: data.user.id }).catch((e) => console.error('visite', e)); return repondre({ ok: true, ...(await action(data.user.id, corps)) }); }
-    const vite = corps.action === 'agence_embaucher' || corps.action === 'agence_brique' || corps.action === 'pack' || corps.action === 'acheter_pack';   // (ouvrir son pack ne fait pas attendre le tour du monde)
-    // le calendrier des enchères (lots finis clos, lots de la semaine ouverts) : une panne ici ne bloque pas le jeu
-    if (!vite) await tenirEncheres().catch((e) => console.error('enchères', e));
-    // ma visite (un Maire absent depuis trop longtemps perd le titre) ; les fins de mandat de Maire à annoncer
-    if (corps.action !== 'supprimer_compte') await rpc('jeu_vu', { j: data.user.id }).catch((e) => console.error('visite', e));
-    // le reste du tour du monde : des tâches qui ne dépendent pas l'une de l'autre, menées en même temps (18 nov.) ;
-    // l'entretien de mes monuments d'abord (il touche mes pièces), seul
-    await payerEntretien(data.user.id).catch((e) => console.error('entretien', e));
-    if (!vite) await Promise.all([
-      tenirMairies().catch((e) => console.error('mairies', e)),
-      tenirRaretes().catch((e) => console.error('raretés', e)),
-      verifierPaiementsSiBesoin(data.user.id).catch((e) => console.error('paiements', e)),
-      tenirMonuments().catch((e) => console.error('monuments', e)),
+    if (leger || agence) return repondre({ ok: true, ...(await action(moi, corps)) });
+    // deuxième vague : l'entretien de mes monuments, et le reste du tour du monde (fins de mandat, raretés, paiements,
+    // monuments des absents)
+    await Promise.all([
+      payerEntretien(moi).catch((e) => console.error('entretien', e)),
+      ...(complet ? [
+        tenirMairies().catch((e) => console.error('mairies', e)),
+        tenirRaretes().catch((e) => console.error('raretés', e)),
+        verifierPaiementsSiBesoin(moi).catch((e) => console.error('paiements', e)),
+        tenirMonuments().catch((e) => console.error('monuments', e)),
+      ] : []),
     ]);
     temps.monde = Date.now() - t0 - temps.compte;
     const tA = Date.now(), res = await action(data.user.id, corps);
