@@ -457,7 +457,10 @@ map.on('error', e=>{ const m=(e&&e.error&&e.error.message)||String(e); if(/style
 // (l'alerte ne reste pas : elle s'efface dès que les données sont arrivées ; une carte lente n'est pas une carte bloquée)
 const MSG_IGN='Données IGN non chargées (réseau bloqué ?).';
 function effacerAlerteIGN(){ const i=diagMsgs.indexOf(MSG_IGN); if(i<0) return; diagMsgs.splice(i,1); diag.textContent=diagMsgs.join('\n'); if(!diagMsgs.length) diag.style.display='none'; }
-map.on('load', ()=>{ setTimeout(()=>{ if(!map.isSourceLoaded('topo')){ dsay(MSG_IGN); const voir=()=>{ if(map.isSourceLoaded('topo')){ effacerAlerteIGN(); map.off('idle', voir); map.off('sourcedata', voir); } }; map.on('idle', voir); map.on('sourcedata', voir); } }, 15000); });
+// (seulement quand la carte est à l'écran : cachée, elle ne charge pas, et l'alerte restait par-dessus les autres écrans ; relue toutes les 2 s)
+let alerteIGN=null;
+function surveillerIGN(){ clearInterval(alerteIGN); alerteIGN=setInterval(()=>{ if(map.isSourceLoaded('topo') || !document.body.classList.contains('sur-carte')){ effacerAlerteIGN(); clearInterval(alerteIGN); alerteIGN=null; } }, 2000); }
+map.on('load', ()=>{ setTimeout(()=>{ if(!map.isSourceLoaded('topo') && document.body.classList.contains('sur-carte')){ dsay(MSG_IGN); surveillerIGN(); } }, 15000); });
 
 // vues
 const b3d=document.getElementById('b3d'), b2d=document.getElementById('b2d');
