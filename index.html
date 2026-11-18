@@ -2839,25 +2839,24 @@ function blocTravaux(I){ const p=I.prochain;
     <div class="m petit">Les travaux s’usent : ils perdent ${Math.round((MAI.M.travaux_usure||0)*100)} % toutes les 2 semaines. Chaque versement à la caisse les entretient, même sans viser la mairie.</div></div>`; }
 function carteCommune(k, sous, lon, lat){ const I=infoCommune(k), medailles=['🥇','🥈','🥉'];
   let h=`<div class="card commune-ouverte"><button class="fermer-commune" onclick="fermerCommune()" aria-label="Fermer">✕</button>
+    <div class="mairie-scene" aria-hidden="true">${TRAVAUX.slice(0,2).map(([ico],i)=>`<span class="ms-deco${i<I.niveau?'':' pas'}">${ico}</span>`).join('')}${imageBati(5,'ms-mairie')}${TRAVAUX.slice(2,5).map(([ico],i)=>`<span class="ms-deco${i+2<I.niveau?'':' pas'}">${ico}</span>`).join('')}</div>
     <div style="text-align:center"><div class="plaque petite"><small>Commune</small>${echapper(k)}</div>${sous?`<div class="m" style="margin:0 0 6px">${echapper(sous)}</div>`:''}</div>
-    <div class="maire-ligne"><div style="min-width:0"><div class="m" style="margin:0">Maire${I.maires.length>1?'s':''} (2 semaines)</div><div class="t">👑 ${I.charge?echapper(nomsMaires(I.maires)):'…'}${I.jeSuisMaire?' 🎉':''}</div></div>
-    ${I.jeSuisMaire?'<span class="chip or">Tu tiens la mairie</span>':''}</div>`;
+    <div class="mairie-maire"><span class="mm-nom">👑 ${I.charge?echapper(nomsMaires(I.maires)):'…'}</span>${I.jeSuisMaire?'<span class="chip or">Tu tiens la mairie</span>':`<small>Maire${I.maires.length>1?'s':''} pour 2 semaines</small>`}</div>`;
   if(!I.charge) h+=`<div class="m" style="margin-top:10px">Chargement de la caisse de travaux…</div>`;
   else {
     if(I.jeSuisMaire) h+=`<div class="m maire-gain">Tu touches 5 % des loyers des autres joueurs de la commune : ${pcs(I.touche)} sur ${pcs(I.plafond)} ce mandat.</div>`;
     else if(!I.maires.length) h+=`<div class="m maire-gain">Pas de Maire ce mandat : personne n’avait versé ${pcs(MAI.M.seuil)} à la caisse.</div>`;
     h+=`<div class="caisse"><div class="caisse-tete"><span class="t">🏗️ Caisse de travaux</span><span class="caisse-fin" id="caisse-fin">⏳ ${dureeTexte(I.fin-now())}</span></div>
-      <div class="m" style="margin:2px 0 8px">Qui y aura versé le plus à la fin du mandat sera Maire les 2 semaines suivantes.</div>
       <div class="caisse-total"><span>Versé ce mandat</span><b>${pcs(I.total)}</b></div>`;
-    I.caisse.rangs.forEach((r,i)=>{ h+=`<div class="rank${r.qui===ME?' moi':''}"><span class="pos">${i<3?medailles[i]:i+1}</span><span class="who" onclick="showPlayer('${r.qui}')">${r.qui===ME?echapper(disp(ME))+' (toi)':echapper(r.qui)}</span><b>${pcs(r.n)}</b></div>`; });
+    I.caisse.rangs.slice(0, Math.max(3, I.rang+1)).forEach((r,i)=>{ if(i>=3 && r.qui!==ME) return; h+=`<div class="rank${r.qui===ME?' moi':''}"><span class="pos">${i<3?medailles[i]:i+1}</span><span class="who" onclick="showPlayer('${r.qui}')">${r.qui===ME?echapper(disp(ME))+' (toi)':echapper(r.qui)}</span><b>${pcs(r.n)}</b></div>`; });
     if(!I.caisse.rangs.length) h+=`<div class="m">Personne n’a encore versé : ${pcs(MAI.M.seuil)} suffisent pour devenir Maire.</div>`;
     h+= I.lieux ? `<button class="btn large" style="margin-top:12px;width:100%" id="verser-caisse">🪙 Verser à la caisse${I.manque>0?` · ${nb(I.manque)} pour mener`:''}</button>`
       : `<div class="m" style="margin-top:10px">Possède un lieu dans la commune pour verser à sa caisse.</div>`;
-    h+=`<div class="m petit">Il faut au moins ${pcs(MAI.M.seuil)} pour être élu. Dans la dernière heure du mandat, un versement ne compte qu’à moitié.</div></div>`; }
-  if(I.charge) h+=blocTravaux(I);
+    h+=`<details class="com-plus"><summary>Comment devient-on Maire ?</summary><div class="m petit">Qui aura versé le plus à la caisse à la fin du mandat sera Maire les 2 semaines suivantes. Il faut au moins ${pcs(MAI.M.seuil)} pour être élu. Dans la dernière heure du mandat, un versement ne compte qu’à moitié.</div></details></div>`; }
+  if(I.charge) h+=`<details class="com-plus bloc"><summary>🏗️ Travaux de la commune · niveau ${I.niveau}</summary>${blocTravaux(I)}</details>`;
   { const P=classementPatrimoine(k), moi=P.find(r=>r.qui===ME);
-    h+=`<div class="caisse"><div class="caisse-tete"><span class="t">🏛️ Patrimoine dans la commune</span></div>`+(MODE_SERVEUR && !CLASSES.communes[k] ? '<div class="m">Chargement…</div>' : '')+P.slice(0,5).map(r=>`<div class="rank${r.qui===ME?' moi':''}"><span class="pos">${r.rang<=3?medailles[r.rang-1]:r.rang}</span><span class="who" onclick="showPlayer('${r.qui}')">${r.qui===ME?echapper(disp(ME))+' (toi)':echapper(r.qui)}</span><b>${points(r.n)}</b></div>`).join('')
-      +(moi && moi.rang>5 ? `<div class="rank moi"><span class="pos">${moi.rang}</span><span class="who">${echapper(disp(ME))} (toi)</span><b>${points(moi.n)}</b></div>` : '')+`</div>`;
+    h+=`<details class="com-plus bloc"><summary>🏛️ Patrimoine dans la commune</summary><div class="caisse">`+(MODE_SERVEUR && !CLASSES.communes[k] ? '<div class="m">Chargement…</div>' : '')+P.slice(0,5).map(r=>`<div class="rank${r.qui===ME?' moi':''}"><span class="pos">${r.rang<=3?medailles[r.rang-1]:r.rang}</span><span class="who" onclick="showPlayer('${r.qui}')">${r.qui===ME?echapper(disp(ME))+' (toi)':echapper(r.qui)}</span><b>${points(r.n)}</b></div>`).join('')
+      +(moi && moi.rang>5 ? `<div class="rank moi"><span class="pos">${moi.rang}</span><span class="who">${echapper(disp(ME))} (toi)</span><b>${points(moi.n)}</b></div>` : '')+`</div></details>`;
     const plaques=saisonsPassees().filter(x=>x.plaques && x.plaques[k]).slice(0,6);
     if(plaques.length) h+=`<div class="plaques-saison">${plaques.map(x=>`<div class="plaque-saison">🏅 <span>Maire de la saison ${x.n}</span><b>${x.plaques[k]===ME?'toi':echapper(x.plaques[k])}</b></div>`).join('')}</div>`; }
   if(lon!=null) h+=`<button class="btn bleu large" style="margin-top:12px" id="voir-commune">🗺️ Voir la commune sur la carte</button>`;
@@ -2867,11 +2866,13 @@ function fermerCommune(){ communeVue=null; renderCommunes(); }
 // une commune de mes lieux : le point d'un de mes lieux sert à « Voir sur la carte »
 function ouvrirMaCommune(k){ const a=Object.values(state.owned).find(x=>communeName(x.citycode,x.city)===k); ouvrirCommune(k, '', a?a.lon:null, a?a.lat:null); }
 function renderCommunes(){ const el=document.getElementById('s-communes'); const mine=mesLieuxParCommune();
-  let h=`<h1 class="entete seule">Communes ${sceneEntete('communes')}</h1>
-    <div class="recherche-commune"><span class="loupe">🔍</span><input class="txt" id="com-q" type="search" enterkeyhint="search" autocomplete="off" placeholder="Chercher une commune…" aria-label="Chercher une commune"><div id="com-sugg"></div></div>`;
-  h+=carteSaison();
-  if(communeVue) h+=carteCommune(communeVue.k, communeVue.sous, communeVue.lon, communeVue.lat);
-  else h+=`<div class="card flex"><div class="couronne" style="font-size:34px">👑</div><div style="flex:1"><div class="t">Deviens Maire</div><div class="m">Chaque commune a une caisse de travaux. Toutes les 2 semaines, le joueur qui y a versé le plus de pièces devient Maire : il touche 5 % des loyers des autres joueurs de la commune.</div></div></div>`;
+  const cleCom=communeVue ? communeVue.k : '', ouverts = el.dataset.com===cleCom ? [...el.querySelectorAll('details.com-plus')].map(d=>d.open) : []; el.dataset.com=cleCom;   // (ce que le joueur a déplié reste déplié)
+  const cherche=`<div class="recherche-commune"><span class="loupe">🔍</span><input class="txt" id="com-q" type="search" enterkeyhint="search" autocomplete="off" placeholder="Chercher une commune…" aria-label="Chercher une commune"><div id="com-sugg"></div></div>`;
+  let h=`<h1 class="entete seule">Communes ${sceneEntete('communes')}</h1>`;
+  // une commune ouverte passe en premier (18 nov. : on y arrive souvent depuis la carte) ; la recherche et la saison viennent après
+  if(communeVue) h+=carteCommune(communeVue.k, communeVue.sous, communeVue.lon, communeVue.lat)+cherche+carteSaison();
+  else h+=cherche+carteSaison();
+  if(!communeVue) h+=`<details class="com-plus accroche"><summary>👑 Deviens Maire d’une de tes communes</summary><div class="m">Chaque commune a une caisse de travaux. Toutes les 2 semaines, le joueur qui y a versé le plus de pièces devient Maire : il touche 5 % des loyers des autres joueurs de la commune.</div></details>`;
   const communes=[...new Set([...Object.keys(mine), ...(MODE_SERVEUR?[]:Object.keys(state.caisse.elus||{}))])].sort((a,b)=>(mine[b]||0)-(mine[a]||0) || a.localeCompare(b,'fr'));
   h+=`<h2 class="section">Mes communes${communes.length?` (${communes.length})`:''}</h2>`;
   if(!communes.length) h+=`<div class="card vide" style="padding:18px"><div class="ico">🏘️</div><div class="m" style="margin:0">Une commune s’ajoute ici dès que tu y possèdes un lieu. En attendant, cherche n’importe quelle commune ci-dessus pour voir son Maire.</div></div>`;
@@ -2879,7 +2880,7 @@ function renderCommunes(){ const el=document.getElementById('s-communes'); const
       const droite = !I.charge ? '…' : `${I.moi?pcs(I.moi):'—'}<small>${I.moi && !I.manque ? 'tu mènes' : (I.moi ? `${I.rang+1}e · encore ${nb(I.manque)}` : `${nb(I.manque)} pour mener`)}</small>`;
       h+=`<button class="ligne-commune${communeVue&&communeVue.k===k?' on':''}" data-k="${echapper(k)}"><span class="nom">${I.jeSuisMaire?'👑 ':''}${echapper(k)}${I.niveau?`<span class="trav-mini">${TRAVAUX.slice(0,I.niveau).map(x=>x[0]).join('')}</span>`:''}<small>Maire : ${I.charge?echapper(nomsMaires(I.maires)):'…'}</small></span><span class="moi-n">${droite}</span><span class="chevron">›</span></button>`; }
     h+=`</div>`; }
-  el.innerHTML=h;
+  el.innerHTML=h; el.querySelectorAll('details.com-plus').forEach((d,i)=>{ if(ouverts[i]) d.open=true; });
   // mode serveur : les Maires de mes communes (une requête), puis l'écran redessiné s'il n'est pas en train d'être tapé
   if(MODE_SERVEUR && (CLASSES.s!==CLA.saison(mandatCourant()) || now()-CLASSES.lu>60000) && !chargeClasses){ chargeClasses=true;
     chargerClassements().finally(()=>{ chargeClasses=false; const q=document.getElementById('com-q'); if(document.getElementById('s-communes').classList.contains('on') && !(q && (q.value || document.activeElement===q))) renderCommunes(); }); }

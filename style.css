@@ -2056,3 +2056,27 @@ html.pocket.nuit .ench-plus summary,html.pocket.nuit .ench-pied .lien{color:#8FC
 html.pocket.nuit .chip.depasse{background:rgba(255,110,90,.16);color:#FF9D8F}
 html.pocket.nuit .ench-points{color:#8FA0CE}
 @media (max-height:700px){.ench-carte{width:min(44vw,168px)}.ench-mise b{font-size:30px}.ench-lot{gap:7px;padding:10px 12px}}
+
+/* ===== La mairie en scène (18 nov.) : la commune ouverte montre sa mairie, son Maire, la caisse et un bouton ; le reste se déplie ===== */
+.mairie-scene{display:flex;align-items:flex-end;justify-content:center;gap:10px;height:96px;margin:0 0 8px;border-bottom:2px solid rgba(90,168,255,.5);background:radial-gradient(ellipse 60% 70% at 50% 100%,rgba(90,168,255,.2),transparent 70%)}
+.mairie-scene .ms-mairie{height:86px;width:auto;filter:drop-shadow(0 0 8px rgba(255,200,80,.6))}
+.mairie-scene .ms-deco{display:flex;align-items:flex-end;padding-bottom:3px}
+.mairie-scene .ms-deco .ico-svg.dessin{width:30px;height:30px}
+.mairie-scene .ms-deco.pas{opacity:.22;filter:grayscale(1)}
+.mairie-maire{display:flex;flex-direction:column;align-items:center;gap:3px;margin:4px 0 10px;text-align:center}
+.mairie-maire .mm-nom{font-family:var(--titre);font-size:20px;font-weight:900}
+.mairie-maire small{font-size:12px;font-weight:800;opacity:.7}
+.com-plus{margin-top:10px}
+.com-plus summary{list-style:none;cursor:pointer;font-size:14px;font-weight:900;padding:10px 30px 10px 2px;position:relative}
+.com-plus summary::-webkit-details-marker{display:none}
+.com-plus summary::after{content:"";position:absolute;right:8px;top:50%;width:8px;height:8px;margin-top:-7px;border-right:2px solid currentColor;border-bottom:2px solid currentColor;transform:rotate(45deg);opacity:.7;transition:transform .2s}
+.com-plus[open] summary::after{transform:rotate(225deg);margin-top:-2px}
+.com-plus.bloc{border-top:1px solid var(--trait)}
+.com-plus.bloc .caisse{margin-top:0}
+.com-plus.bloc .caisse .caisse-tete{display:none}
+.com-plus.accroche{background:#fff;border-radius:18px;padding:2px 14px;box-shadow:var(--ombre)}
+.com-plus.accroche .m{margin:0 0 12px}
+html.pocket.nuit .com-plus summary{color:#DCE6FF}
+html.pocket.nuit .com-plus.bloc{border-top-color:rgba(90,168,255,.25)}
+html.pocket.nuit .com-plus.accroche{background:linear-gradient(180deg,#101C4E,#0A1236);border:1.5px solid rgba(90,168,255,.4)}
+html.pocket.nuit .mairie-maire .mm-nom{color:#FFE08A}
