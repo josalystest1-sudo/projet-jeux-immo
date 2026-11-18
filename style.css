@@ -2001,3 +2001,21 @@ html.pocket.nuit .coll-liste.on select{border-color:#FFD065;color:#FFD98A;box-sh
 html.pocket.nuit .coll-liste select option{background:#0B1437;color:#fff}
 html.pocket.nuit .coll-bilan{color:#C9D6F5}
 html.pocket.nuit .coll-bilan .lien{color:#8FC0FF}
+
+/* ===== La collection d'abord (18 nov.) : une ligne de chiffres, des pastilles, puis les cartes ===== */
+.pat-resume{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;margin:0 2px 10px;font-size:14px;font-weight:800;color:var(--encre2)}
+.pat-resume span{display:inline-flex;align-items:center;gap:4px;white-space:nowrap}
+.pat-resume b{font-size:17px;font-weight:900;color:var(--encre)}
+.pat-resume .pc{width:18px;height:18px}
+.pat-resume .plus b{color:#2BB673}.pat-resume .moins b{color:#E4573D}
+.pat-pastilles{display:flex;gap:7px;overflow-x:auto;padding:2px 2px 8px;margin:0 -2px 6px;scrollbar-width:none}
+.pat-pastilles::-webkit-scrollbar{display:none}
+.pat-pastille{flex:none;border:2px solid var(--trait);background:#fff;color:inherit;border-radius:999px;padding:8px 14px;font:inherit;font-size:13px;font-weight:900;cursor:pointer;white-space:nowrap}
+.pat-pastille.or{background:linear-gradient(#FFD86B,#F2A51E);border-color:#FFE9A8;color:#4A2A00}
+.pat-pastille.alerte{border-color:#E4573D;color:#E4573D}
+html.pocket.nuit .pat-resume{color:#A9B8E0}
+html.pocket.nuit .pat-resume b{color:#fff}
+html.pocket.nuit .pat-resume .plus b{color:#5CE08A}
+html.pocket.nuit .pat-pastille{background:#0B1437;border-color:rgba(90,168,255,.45);color:#DCE6FF}
+html.pocket.nuit .pat-pastille.or{background:linear-gradient(#FFD86B,#F2A51E);border-color:#FFE9A8;color:#4A2A00}
+html.pocket.nuit .pat-pastille.alerte{border-color:#FF7A66;color:#FF9D8F}
