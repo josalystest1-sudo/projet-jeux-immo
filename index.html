@@ -508,7 +508,32 @@ function poserFacades(){ if(map.getLayer('bati-fenetres')) return;
     calque('bati-fenetres', ['in',GENRE_BATI,['literal',['maison','immeuble','bureau']]], { 'fill-extrusion-pattern':['match',GENRE_BATI,'maison','f-maison','bureau','f-bureau','f-immeuble'], 'fill-extrusion-height':HAUT_BATI, 'fill-extrusion-base':0 });
     calque('bati-vitrines', A_VITRINE, { 'fill-extrusion-pattern':'f-vitrine', 'fill-extrusion-height':3.8, 'fill-extrusion-base':0 });
   }catch(e){ console.warn('façades', e); } }
-const habillerCarte=()=>{ try{ couleursCarte(); poserFacades(); }catch(e){ console.warn('carte', e); } };
+// Les lieux de la ville (19 nov., suite de « rendre la ville vivante » et « faire une différence entre les bâtiments ») : la BD TOPO
+// dit où sont la mairie, les écoles, les lieux de culte, les musées, l'hôpital, la poste, les pompiers… Une petite pastille de néon
+// les signale sur la carte (un calque de symboles : rien dans la page, la carte se repose). Tous les cultes ont la même pastille
+// (aucune religion distinguée). Toucher la mairie ouvre la commune (voir le « click » de la carte).
+const LIEUX_VILLE = { mairie:['#FFC94A', ['Mairie']], ecole:['#4FE0C8', ['Enseignement primaire','Collège','Lycée','Enseignement supérieur','Université','Autre établissement d\'enseignement','Centre de documentation']],
+  culte:['#B592FF', ['Culte chrétien','Culte israélite','Culte musulman','Culte divers','Culte bouddhiste','Culte hindouiste','Culte orthodoxe','Culte protestant','Culte catholique ou orthodoxe']],
+  sante:['#FF7E9A', ['Hôpital','Etablissement hospitalier','Etablissement thermal','Maison de retraite']], musee:['#FFA24A', ['Musée','Salle de spectacle ou conférence','Monument']],
+  secours:['#6FB2FF', ['Police','Gendarmerie','Caserne de pompiers']], poste:['#FFE27A', ['Poste']], sport:['#6DFFA8', ['Complexe sportif couvert','Piscine','Stade','Patinoire']] };
+function poserLieuxVille(){ if(map.getLayer('lieux-ville')) return;
+  const dessins={ mairie:x=>{ x.moveTo(13,22); x.lineTo(24,14); x.lineTo(35,22); x.closePath(); x.moveTo(15,25); x.lineTo(15,33); x.moveTo(21,25); x.lineTo(21,33); x.moveTo(27,25); x.lineTo(27,33); x.moveTo(33,25); x.lineTo(33,33); x.moveTo(12,35); x.lineTo(36,35); x.moveTo(24,14); x.lineTo(24,9); x.lineTo(29,10.5); x.lineTo(24,12); },
+    ecole:x=>{ x.moveTo(24,17); x.quadraticCurveTo(17,13,11,16); x.lineTo(11,32); x.quadraticCurveTo(17,29,24,33); x.quadraticCurveTo(31,29,37,32); x.lineTo(37,16); x.quadraticCurveTo(31,13,24,17); x.lineTo(24,33); },
+    culte:x=>{ x.moveTo(14,35); x.lineTo(14,24); x.quadraticCurveTo(14,13,24,12); x.quadraticCurveTo(34,13,34,24); x.lineTo(34,35); x.closePath(); x.moveTo(21,35); x.lineTo(21,29); x.quadraticCurveTo(21,25,24,25); x.quadraticCurveTo(27,25,27,29); x.lineTo(27,35); },
+    sante:x=>{ x.moveTo(24,13); x.lineTo(24,35); x.moveTo(13,24); x.lineTo(35,24); },
+    musee:x=>{ x.moveTo(12,21); x.lineTo(24,13); x.lineTo(36,21); x.closePath(); x.moveTo(16,24); x.lineTo(16,32); x.moveTo(24,24); x.lineTo(24,32); x.moveTo(32,24); x.lineTo(32,32); x.moveTo(12,35); x.lineTo(36,35); },
+    secours:x=>{ x.moveTo(24,12); x.lineTo(34,16); x.lineTo(34,24); x.quadraticCurveTo(34,32,24,36); x.quadraticCurveTo(14,32,14,24); x.lineTo(14,16); x.closePath(); },
+    poste:x=>{ x.rect(12,16,24,17); x.moveTo(12,17); x.lineTo(24,26); x.lineTo(36,17); },
+    sport:x=>{ x.arc(24,24,11,0,Math.PI*2); x.moveTo(13,24); x.lineTo(35,24); x.moveTo(24,13); x.quadraticCurveTo(18,24,24,35); x.moveTo(24,13); x.quadraticCurveTo(30,24,24,35); } };
+  try{ for(const [k,[coul]] of Object.entries(LIEUX_VILLE)){ const c=document.createElement('canvas'); c.width=c.height=48; const x=c.getContext('2d');
+      x.beginPath(); x.arc(24,24,21,0,Math.PI*2); x.fillStyle='rgba(8,16,48,0.92)'; x.fill(); x.lineWidth=2.5; x.strokeStyle=coul; x.stroke();
+      x.beginPath(); dessins[k](x); x.lineWidth=2.4; x.lineCap='round'; x.lineJoin='round'; x.strokeStyle=k==='mairie' ? '#FFE9A8' : '#fff'; x.stroke();
+      map.addImage('lv-'+k, x.getImageData(0,0,48,48), { pixelRatio:2 }); }
+    const image=['match',['get','nature']]; for(const [k,[,natures]] of Object.entries(LIEUX_VILLE)) image.push(natures, 'lv-'+k); image.push('');
+    map.addLayer({ id:'lieux-ville', type:'symbol', source:'topo', 'source-layer':'zone_d_activite_ou_d_interet', minzoom:15.4, filter:['in',['get','nature'],['literal',Object.values(LIEUX_VILLE).flatMap(v=>v[1])]],
+      layout:{ 'icon-image':image, 'icon-size':['interpolate',['linear'],['zoom'],15.4,['case',['==',['get','nature'],'Mairie'],0.95,0.7],18,['case',['==',['get','nature'],'Mairie'],1.5,1.05]], 'icon-allow-overlap':false, 'icon-padding':4, 'symbol-sort-key':['case',['==',['get','nature'],'Mairie'],0,1] } });
+  }catch(e){ console.warn('lieux de la ville', e); } }
+const habillerCarte=()=>{ try{ couleursCarte(); poserFacades(); poserLieuxVille(); }catch(e){ console.warn('carte', e); } };
 map.on('style.load', habillerCarte); map.on('load', habillerCarte); if(map.style && map.style._loaded) habillerCarte(); setInterval(couleursCarte, 60000);
 // l'arrivée : la caméra descend du ciel sur le lieu (si personne n'a encore bougé la carte) ; puis la vue est gardée à chaque
 // arrêt, pour revenir au même endroit à la prochaine connexion (pas pendant une balade, une chasse ou un voyage)
@@ -653,6 +678,11 @@ async function afficherCelebres(){
 // La commune au centre de la carte (GDD § 5 : le niveau des communes se voit sur la carte) : une étiquette sous la recherche
 // donne son nom, son Maire et ses travaux faits ; la toucher ouvre la commune. Paris, Lyon et Marseille : l'arrondissement.
 let chipMinut=null, chipNum=0;
+// toucher la pastille de la mairie ouvre la commune où elle se trouve (19 nov. : « comme Pokémon GO », on entre par la carte)
+function toucherMairie(e){ if(!map.getLayer('lieux-ville')) return false; const b=14, fs=map.queryRenderedFeatures([[e.point.x-b,e.point.y-b],[e.point.x+b,e.point.y+b]], { layers:['lieux-ville'] }).filter(f=>f.properties.nature==='Mairie'); if(!fs.length) return false;
+  const f=parcellesRendues([[e.point.x-70,e.point.y-70],[e.point.x+70,e.point.y+70]])[0]; if(!f) return false;
+  const p=f.properties, code = p.code_arr && p.code_arr!=='000' ? p.code_dep+p.code_arr : p.code_insee, k=communeName(code, p.nom_com); if(!k) return false;
+  vibrer(10); showScreen('communes'); ouvrirCommune(k, '', e.lngLat.lng, e.lngLat.lat); return true; }
 function majChipCommune(){ clearTimeout(chipMinut); chipMinut=setTimeout(async()=>{ const el=document.getElementById('commune-chip'), num=++chipNum;
   if(map.getZoom()<14.5){ el.hidden=true; document.body.classList.remove('avec-commune'); return; }
   const c=map.getCenter(), pt=map.project(c), f=parcellesRendues([[pt.x-60,pt.y-60],[pt.x+60,pt.y+60]])[0]; if(!f) return;
@@ -704,7 +734,7 @@ map.once('load', ()=>setTimeout(finAccueil, 400)); setTimeout(finAccueil, 6000);
 map.on('load', ()=>{ const at=document.querySelector('.maplibregl-ctrl-attrib'); if(at) at.classList.remove('maplibregl-compact-show'); });
 
 // clic
-map.on('click', (e)=>{ if(sugg.style.display==='block'){ sugg.style.display='none'; } if(PROM.on){ promToucher(e); return; } pointVise=[e.lngLat.lng, e.lngLat.lat];
+map.on('click', (e)=>{ if(sugg.style.display==='block'){ sugg.style.display='none'; } if(PROM.on){ promToucher(e); return; } if(toucherMairie(e)) return; pointVise=[e.lngLat.lng, e.lngLat.lat];
   // une maquette sous le doigt : son monument (elle est dessinée par-dessus le sol et les parcelles), ou le monument
   // qu'elle porte s'il est plus près de l'endroit touché (l'obélisque dans la Concorde, la basilique dans la Cité)
   const mq = COUCHE_MAQ && COUCHE_MAQ.toucher(e.point.x, e.point.y);

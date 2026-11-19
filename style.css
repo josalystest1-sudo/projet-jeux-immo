@@ -2090,3 +2090,15 @@ html.pocket.nuit .mairie-maire .mm-nom{color:#FFE08A}
 /* la fiche fermée ne dépasse plus sous les boutons ronds de la carte (la barre y est transparente) */
 #sheet:not(.open){visibility:hidden;transition:transform .32s cubic-bezier(.2,.9,.25,1),visibility 0s .32s}
 #sheet.open{visibility:visible}
+
+/* ===== Le booster posé sur la carte (19 nov.) : sur la carte, plus de bandeau ; un sachet qui flotte à droite, qu'on touche ===== */
+body.sur-carte #booster-pret,body.sur-carte #booster-pret.carte{left:auto;right:12px;width:auto;height:auto;bottom:calc(var(--nav) + env(safe-area-inset-bottom) + 104px);padding:6px 6px 4px;border-radius:16px;background:none;box-shadow:none;flex-direction:column;gap:3px;z-index:37}
+body.sur-carte #booster-pret .bp-sachet{width:46px;height:64px;border-radius:7px;box-shadow:0 0 0 2px #FFE08A,0 0 22px 4px rgba(255,200,80,.75);animation:rec-piece 1.7s ease-in-out infinite}
+body.sur-carte #booster-pret .bp-texte{flex-direction:column;align-items:center;gap:0;padding:2px 8px;border-radius:9px;background:rgba(8,16,48,.88);border:1.5px solid #FFC94A}
+body.sur-carte #booster-pret .bp-texte b{font-size:11px;letter-spacing:.04em}
+body.sur-carte #booster-pret .bp-texte small{display:none}
+body.sur-carte.booster-la{--nav:92px}
+html.pocket body.sur-carte.booster-la #nav button.centre i{width:62px;height:62px;margin-top:-30px}
+html.pocket body.sur-carte.booster-la #nav button.centre i .ico-svg{width:32px!important;height:32px!important}
+body.fiche-ouverte #booster-pret{display:none!important}
+body.sur-carte.booster-la #nav{padding-top:0}
