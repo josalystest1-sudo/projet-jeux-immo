@@ -441,6 +441,7 @@ Puis une PR par étape, fusionnée en squash :
 | #242 | 18/11 | Retouches : la ville de nuit dès le premier chargement ; la fiche fermée ne dépasse plus ; les écrans arrivent bloc après bloc ; test de syntaxe des scripts |
 | #243 | 18/11 | Documents : le récit du 18 nov. (« plus jeu, moins tableau de contrôle »), ce qui reste à faire, les règles de navigation de `docs/DESIGN.md` |
 | #244 | 19/11 | La carte au centre (6) : pastilles des lieux de la ville (mairie, écoles, cultes, musées, santé, secours, poste, sport) ; toucher la mairie ouvre la commune ; le booster prêt flotte sur la carte |
+| #245 | 19/11 | Icônes « néon rempli » (choix B de Gautier) ; les sons du jeu faits sur place (toucher, écran, fenêtre, construire, miser, verser, refus) |
 | #200 | 16/11 | Prototype du booster validé par Gautier : brillance moyenne fixée, boutons de réglage retirés |
 | #199 | 16/11 | Prototype du booster : une ligne de toits en néon sur le booster du jour, à la place de la maison |
 | #198 | 16/11 | Prototype du booster : moins brillant, lettres cernées, trois niveaux de brillance à choisir |
@@ -540,7 +541,7 @@ Les décisions du 2 novembre (interview) sont dans `CLAUDE.md` § 4 et dans le G
 
 - **La refonte « plus jeu » (18 nov.)**, ce qui attend Gautier :
   - **à vérifier sur son téléphone** (tout a été vu en captures, en démo) : la fluidité de la carte avec les façades, le vol des pièces, les sauts du tour de ses lieux avec plus de 200 adresses, les filtres sur sa vraie collection, les enchères et les communes sur le vrai serveur ;
-  - **à décider** : les petites icônes (au trait, « néon rempli » ou en couleurs : trois essais envoyés, sans réponse) ; la couleur de ses lieux sur la carte (bleu clair choisi par Claude, l'or étant pris par les monuments) ; des sons (le plugin SoundWeaver n'est pas activé) ; un générateur d'images payant ou non (rien de branché) ;
+  - **décidé le 19 nov.** : icônes « néon rempli » (B), ses lieux en bleu clair, des sons fabriqués par Claude (PR #245) ; **à décider** : un générateur d'images payant ou non (rien de branché) ; le volume et l'agrément des sons, à l'oreille ;
   - **idées non faites** : la fiche d'un lieu allégée ; visiter le profil d'un joueur depuis la carte. (Faites le 19 nov., PR #244 : toucher la mairie sur la carte, le booster posé sur la carte.)
 
 - **Le serveur, suite** (phase 8) :
