@@ -442,6 +442,7 @@ Puis une PR par étape, fusionnée en squash :
 | #243 | 18/11 | Documents : le récit du 18 nov. (« plus jeu, moins tableau de contrôle »), ce qui reste à faire, les règles de navigation de `docs/DESIGN.md` |
 | #244 | 19/11 | La carte au centre (6) : pastilles des lieux de la ville (mairie, écoles, cultes, musées, santé, secours, poste, sport) ; toucher la mairie ouvre la commune ; le booster prêt flotte sur la carte |
 | #245 | 19/11 | Icônes « néon rempli » (choix B de Gautier) ; les sons du jeu faits sur place (toucher, écran, fenêtre, construire, miser, verser, refus) |
+| #246 | 19/11 | Le booster disponible est un petit sachet dessiné, plus un rectangle vide |
 | #200 | 16/11 | Prototype du booster validé par Gautier : brillance moyenne fixée, boutons de réglage retirés |
 | #199 | 16/11 | Prototype du booster : une ligne de toits en néon sur le booster du jour, à la place de la maison |
 | #198 | 16/11 | Prototype du booster : moins brillant, lettres cernées, trois niveaux de brillance à choisir |

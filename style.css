@@ -2108,3 +2108,9 @@ body.sur-carte.booster-la #nav{padding-top:0}
 html.pocket.nuit .ico-svg:not(.dessin){fill:currentColor;fill-opacity:.2;filter:drop-shadow(0 0 3px currentColor)}
 html.pocket.nuit #nav button.centre i .ico-svg{filter:none;fill-opacity:.18}
 @media (prefers-reduced-motion:reduce){html.pocket.nuit .ico-svg:not(.dessin){filter:none}}
+
+/* ===== Le sachet du booster dessiné (19 nov., Gautier : « l'icône booster dispo affiche une carte vide ») : un vrai petit sachet
+   (bords crantés, ville de nuit, plaque d'or), dessiné dans la page, à la place du rectangle de couleur ===== */
+.bp-dessin{display:block;width:100%;height:100%}
+#booster-pret .bp-sachet{background:none;box-shadow:none;border-radius:0}
+body.sur-carte #booster-pret .bp-sachet{width:54px;height:75px;border-radius:0;box-shadow:none;filter:drop-shadow(0 0 9px rgba(255,200,80,.85))}
