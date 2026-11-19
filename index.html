@@ -311,6 +311,25 @@ function volPieces(n, depuis){ const cible=ciblePieces(), calme=window.matchMedi
   setTimeout(()=>w.remove(), 820+n*32+600);
   try{ sonGain(); sonPieces(n); }catch(e){} vibrer([12,40,18]); }
 const piecesEnVol = g => Math.min(18, 7+Math.floor(Math.log10(Math.max(1,g))*3));
+// Les sons du jeu (19 nov., Gautier : « oui, fabrique-les ») : de petits sons faits sur place (aucun fichier), discrets, qui
+// suivent le réglage « Sons ». une(…) joue une note ; souffle(…) un bruit filtré. Toucher un bouton, changer d'écran, ouvrir une
+// fenêtre, construire, miser, verser, un refus.
+function une(f, quand, duree, forme, volume, vers){ const a=audio(); if(!a) return; const o=a.createOscillator(), g=a.createGain(), t=a.currentTime+(quand||0); o.type=forme||'sine'; o.frequency.setValueAtTime(f,t); if(vers) o.frequency.exponentialRampToValueAtTime(vers, t+duree);
+  g.gain.setValueAtTime(0.0001,t); g.gain.exponentialRampToValueAtTime(volume||0.08, t+0.008); g.gain.exponentialRampToValueAtTime(0.0001, t+duree); o.connect(g); g.connect(a.destination); o.start(t); o.stop(t+duree+0.03); }
+function souffle(quand, duree, frequence, volume, vers){ const a=audio(); if(!a) return; const n=Math.max(1, Math.floor(a.sampleRate*duree)), b=a.createBuffer(1,n,a.sampleRate), d=b.getChannelData(0); for(let i=0;i<n;i++) d[i]=(Math.random()*2-1)*Math.sin(Math.PI*i/n);
+  const src=a.createBufferSource(), f=a.createBiquadFilter(), g=a.createGain(), t=a.currentTime+(quand||0); src.buffer=b; f.type='bandpass'; f.frequency.setValueAtTime(frequence,t); if(vers) f.frequency.exponentialRampToValueAtTime(vers, t+duree); f.Q.value=1.2; g.gain.value=volume||0.05; src.connect(f); f.connect(g); g.connect(a.destination); src.start(t); }
+let sonTouchePrecedent=0;
+function sonTouche(){ const m=performance.now(); if(m-sonTouchePrecedent<60) return; sonTouchePrecedent=m; une(620, 0, 0.05, 'triangle', 0.035, 760); }
+function sonEcran(){ souffle(0, 0.16, 900, 0.035, 2600); }
+function sonFenetre(){ une(520, 0, 0.09, 'sine', 0.05); une(780, 0.06, 0.12, 'sine', 0.045); }
+function sonConstruit(){ une(110, 0, 0.22, 'sine', 0.2, 60); souffle(0, 0.18, 300, 0.07); [523,659,784,1046].forEach((f,i)=>une(f, 0.16+i*0.07, 0.28, 'triangle', 0.09)); }
+function sonMise(){ une(190, 0, 0.12, 'square', 0.09, 120); souffle(0, 0.07, 1400, 0.09); une(190, 0.16, 0.14, 'square', 0.07, 110); souffle(0.16, 0.07, 1400, 0.07); }
+function sonVerse(){ [784,988,1175].forEach((f,i)=>une(f, i*0.08, 0.2, 'triangle', 0.08)); }
+function sonRefus(){ une(300, 0, 0.14, 'triangle', 0.09, 240); une(210, 0.13, 0.2, 'triangle', 0.09, 160); }
+// tout ce qu'on touche fait un petit bruit (sauf la carte, le pack et les champs de saisie, qui ont leurs propres sons ou n'en veulent pas)
+document.addEventListener('pointerdown', e=>{ const c=e.target.closest && e.target.closest('button, [role="button"], summary, select, .pat-pastille, .ligne-commune'); if(!c || e.target.closest('#map, #packscene, .rev-scene, #prom')) return; try{ sonTouche(); }catch(x){} }, { passive:true });
+// une fenêtre qui s'ouvre (quinze endroits l'ouvrent : on écoute la fenêtre elle-même)
+{ const m=document.getElementById('modal'); if(m && window.MutationObserver){ let ouverte=m.classList.contains('on'); new MutationObserver(()=>{ const o=m.classList.contains('on'); if(o && !ouverte){ try{ sonFenetre(); }catch(e){} } ouverte=o; }).observe(m, { attributes:true, attributeFilter:['class'] }); } }
 function sonGain(){ const a=audio(); if(!a) return; [988,1319].forEach((f,i)=>{ const o=a.createOscillator(), g=a.createGain(); o.type='triangle'; o.frequency.value=f; const t=a.currentTime+i*0.09; g.gain.setValueAtTime(0.0001,t); g.gain.exponentialRampToValueAtTime(0.16,t+0.01); g.gain.exponentialRampToValueAtTime(0.0001,t+0.28); o.connect(g); g.connect(a.destination); o.start(t); o.stop(t+0.3); }); }
 function vibrer(motif){ if(state.prefs && state.prefs.vibrations===false) return; if(navigator.vibrate) navigator.vibrate(motif); }
 let toastMinuterie=0;
@@ -1352,7 +1371,7 @@ async function construire(id, niveau, cost){ const a=state.owned[id]; if(!a || d
   else { encaisser(true); state.wallet -= cost; a.niveau = niveau; save(); }
   refreshTop(); if(a.idu) paintParcel(a.idu); setBadge(a, niveau); toast(`${NIVEAUX[niveau].icone} ${NIVEAUX[niveau].nom} construit${niveau===1?'e':''} : ${a.label}`); fete(); montrerConstruction(niveau, a); apresAction(); }
 // le bâtiment qu'on vient de construire, en grand, un instant (18 nov.) : il monte du sol dans un halo, puis s'efface ; un toucher le ferme
-function montrerConstruction(niveau, a){ const vieux=document.querySelector('.bati-fete'); if(vieux) vieux.remove();
+function montrerConstruction(niveau, a){ try{ sonConstruit(); }catch(e){} const vieux=document.querySelector('.bati-fete'); if(vieux) vieux.remove();
   const w=document.createElement('div'); w.className='bati-fete r'+rarete(a); w.innerHTML=`<div class="bf-halo"></div>${imageBati(niveau,'bf-img')}<div class="bf-nom">${echapper(NIVEAUX[niveau].nom)}</div><div class="bf-sous">+${nb(loyer(Object.assign({}, a, {niveau})))} par jour</div>`;
   const fin=()=>{ w.classList.add('fin'); setTimeout(()=>w.remove(), 350); }; w.onclick=fin; document.body.appendChild(w); setTimeout(fin, 2200); }
 // la fiche se ferme en la faisant glisser vers le bas (quand elle est tout en haut de son défilement)
@@ -1496,11 +1515,11 @@ const saisieEnch = {}; // ce que le joueur tape dans chaque champ de mise (gard�
 async function encherir(cle, montant){ const lot=lotsDe(semaineEnCours()).find(l=>l.cle===cle); if(!lot) return toast('Cette enchère est close');
   if(MODE_SERVEUR){ if(!(montant>0)) return toast('Tape une mise en pièces');
     const r=await agir('miser', {cle, montant}); if(!r){ chargerEncheres(); return; }
-    delete saisieEnch[cle]; toast(`Tu mènes l’enchère sur ${r.nom} à ${fmt(montant)} (pièces bloquées)`); vibrer(12); await chargerEncheres(); refreshTop(); return; }
+    delete saisieEnch[cle]; try{ sonMise(); }catch(e){} toast(`Tu mènes l’enchère sur ${r.nom} à ${fmt(montant)} (pièces bloquées)`); vibrer(12); await chargerEncheres(); refreshTop(); return; }
   const r=ENC.peutMiser(lot.m, misesDe(lot), montant, state.wallet, bloqueEncheres(cle));
   if(!r.ok) return toast(r.raison==='min' ? `Mise minimale : ${fmt(r.min)}` : `Fonds insuffisants : ${fmt(Math.max(0,r.dispo))} disponibles (tes mises qui mènent ailleurs sont bloquées)`);
   (state.encheres.mises[cle]=state.encheres.mises[cle]||[]).push({ qui:ME, montant, ts:now() }); delete state.encheres.depasse[cle]; delete saisieEnch[cle]; save();
-  toast(`Tu mènes l’enchère sur ${lot.m.nom} à ${fmt(montant)} (fonds bloqués)`); renderEncheres(); refreshTop(); }
+  try{ sonMise(); }catch(e){} toast(`Tu mènes l’enchère sur ${lot.m.nom} à ${fmt(montant)} (fonds bloqués)`); renderEncheres(); refreshTop(); }
 function tickAuction(){ const idx=semaineEnCours(), e=state.encheres; let change=false;
   // clôture des lots passés où j'ai misé : la meilleure mise couverte par les fonds, sinon la suivante
   for(const cle of Object.keys(e.mises)){ const s=parseInt(cle); if(s>=idx || e.clos[cle]) continue; e.clos[cle]=true; change=true;
@@ -2249,7 +2268,7 @@ function appliquerEtat(e){ if(!e) return; window.ETAT_RECU=true;   // (src/progr
   const offerts=state.echangesIn.filter(x=>x.status==='attente').flatMap(x=>x.lieux||[]);
   chargerValeurs([...Object.values(state.owned), ...offerts]).then(n=>{ if(!n) return; if(document.getElementById('s-patrimoine').classList.contains('on')) renderPatrimoine(); if(document.getElementById('s-notifs').classList.contains('on')) renderNotifs(); }).catch(()=>{}); }
 async function agir(action, corps){ serveurOccupe=true; let r; try{ r=await appelServeur(action, corps); } finally { serveurOccupe=false; }
-  if(!r || !r.ok){ toast((r && r.message) || 'Le serveur ne répond pas'); vibrer(30); return null; }
+  if(!r || !r.ok){ try{ sonRefus(); }catch(e){} toast((r && r.message) || 'Le serveur ne répond pas'); vibrer(30); return null; }
   if(r.etat) appliquerEtat(r.etat); return r; }
 async function synchroniser(){ const r=await appelServeur('etat'); if(r && r.ok){ appliquerEtat(r); apresAction(); verifierRetourPaiement().catch(()=>{}); chargerEncheres().catch(()=>{}); chargerCaisses(Object.keys(mesLieuxParCommune())).catch(()=>{}); chargerZoneBientot(); } return r; }
 // ---- le monde réel : les lieux des autres joueurs (table « lieux », lisible par tous), leurs pseudos, les Maires
@@ -2485,7 +2504,7 @@ function dureeCourte(s){ return s>=3600 ? `${Math.floor(s/3600)} h ${String(Math
 // =================== écrans ===================
 function showScreen(name){ vibrer(8); if(window.PROGRESSION && !PROGRESSION.ouvert(name)) return PROGRESSION.ferme(name);   // (un écran fermé d'un cadenas : src/progression.js)
   if(name!=='accueil' && window.ACCUEIL) ACCUEIL.fermerVitrine(); document.querySelectorAll('.screen').forEach(s=>s.classList.remove('on')); document.querySelectorAll('#nav button[data-s]').forEach(b=>b.classList.toggle('on', b.dataset.s===name));
-  document.body.classList.toggle('sur-carte', name==='carte'); const hide = name!=='carte'; ['top','ctrls','legend'].forEach(id=>document.getElementById(id).style.display = hide?'none':''); closeSheet(); if(!(window.Compte && Compte.bloque && Compte.bloque())) closeModal();
+  document.body.classList.toggle('sur-carte', name==='carte'); try{ if(window.ETAT_SON_ECRAN!==name){ if(window.ETAT_SON_ECRAN) sonEcran(); window.ETAT_SON_ECRAN=name; } }catch(e){} const hide = name!=='carte'; ['top','ctrls','legend'].forEach(id=>document.getElementById(id).style.display = hide?'none':''); closeSheet(); if(!(window.Compte && Compte.bloque && Compte.bloque())) closeModal();
   if(name==='patrimoine') renderPatrimoine(); if(name==='encheres') renderEncheres(); if(name==='communes'){ if(MODE_SERVEUR){ for(const k of Object.keys(CAISSES)) delete CAISSES[k]; CLASSES.lu=0; CLASSES.communes={}; } renderCommunes(); } if(name==='notifs') renderNotifs();
   // (l'écran arrive : ses blocs montent l'un après l'autre, une seule fois : classe « entree »)
   if(hide){ const e=document.getElementById('s-'+name); e.classList.add('on'); e.classList.remove('entree'); void e.offsetWidth; e.classList.add('entree'); clearTimeout(e._entree); e._entree=setTimeout(()=>e.classList.remove('entree'), 700); } else { map.resize(); if(!ARRIVEE_FAITE){ const go=()=>setTimeout(descenteArrivee, 150); if(map.loaded()) go(); else { map.once('idle', go); setTimeout(go, 2500); } } }
@@ -2856,7 +2875,7 @@ function verserCaisse(k){ tickMairie(); const I=infoCommune(k); if(!I.lieux) ret
   ok.onclick=async()=>{ maj(); if(ok.disabled) return;
     if(MODE_SERVEUR){ ok.disabled=true; const r=await agir('verser', { commune:k, montant }); if(!r){ ok.disabled=false; return; } await chargerCaisses([k], true); }
     else { tickMairie(); state.wallet-=montant; state.caisse.verse[k]=(state.caisse.verse[k]||0)+pts; save(); }
-    closeModal(); fete(10); toast(`${fmt(montant)} versées à la caisse de ${k}`); refreshTop(); renderCommunes(); };
+    closeModal(); fete(10); try{ sonVerse(); }catch(e){} toast(`${fmt(montant)} versées à la caisse de ${k}`); refreshTop(); renderCommunes(); };
   maj(); }
 // mes lieux par commune
 function mesLieuxParCommune(){ const mine={}; Object.values(state.owned).forEach(a=>{ const k=communeName(a.citycode,a.city); mine[k]=(mine[k]||0)+1; }); return mine; }

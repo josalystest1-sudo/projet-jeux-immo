@@ -2102,3 +2102,9 @@ html.pocket body.sur-carte.booster-la #nav button.centre i{width:62px;height:62p
 html.pocket body.sur-carte.booster-la #nav button.centre i .ico-svg{width:32px!important;height:32px!important}
 body.fiche-ouverte #booster-pret{display:none!important}
 body.sur-carte.booster-la #nav{padding-top:0}
+
+/* ===== Les icônes « néon rempli » (19 nov., choix B de Gautier parmi trois essais) : le même dessin au trait, rempli d'une
+   lueur de sa couleur. Les dessins en couleur (médailles, travaux) ne changent pas. ===== */
+html.pocket.nuit .ico-svg:not(.dessin){fill:currentColor;fill-opacity:.2;filter:drop-shadow(0 0 3px currentColor)}
+html.pocket.nuit #nav button.centre i .ico-svg{filter:none;fill-opacity:.18}
+@media (prefers-reduced-motion:reduce){html.pocket.nuit .ico-svg:not(.dessin){filter:none}}
