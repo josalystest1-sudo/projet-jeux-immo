@@ -1226,7 +1226,15 @@ function renderAddrs(){ const {p, idu, geometry} = currentParcel; const addrs = 
   const mons = LISTE_MON.filter(m=>Math.abs(m.lat-c[1])<0.02 && Math.abs(m.lon-c[0])<0.03 && deLaParcelle(m.lon, m.lat, geometry) && !state.owned['mon:'+m.id]);
   mons.forEach(m=>box.appendChild(ficheMonument(m)));
   if(!nb){ if(!mons.length) box.innerHTML = '<div class="vide"><div class="ico">🌳</div><div class="t">Rien à posséder ici</div><div class="m">Cette parcelle n’a pas d’adresse (cour, voirie, jardin…). Touche un bâtiment voisin.</div></div>'; return; }
-  addrs.forEach(a=>box.appendChild(addrRow(a, true))); }
+  // Plusieurs lieux sur la parcelle (19 nov., « des panneaux empilés », « trop de chiffres ») : un seul est déplié (le mien, sinon le
+  // premier), les autres tiennent sur une ligne et s'ouvrent quand on les touche. Le choix tient tant qu'on reste sur la parcelle.
+  if(ficheIdu!==idu){ ficheIdu=idu; lieuDeplie=null; }
+  const plusieurs=addrs.length>1; if(plusieurs && lieuDeplie!=='aucun' && !addrs.some(a=>a.id===lieuDeplie)) lieuDeplie=(addrs.find(a=>ownerOf(a)===ME) || addrs[0]).id;
+  addrs.forEach(a=>{ const row=addrRow(a, true);
+    if(plusieurs){ row.classList.add('repliable'); if(a.id===lieuDeplie) row.classList.add('ouverte'); const t=row.querySelector('.tete');
+      t.onclick=ev=>{ if(ev.target.closest('a, [data-joueur]')) return; lieuDeplie = row.classList.contains('ouverte') ? 'aucun' : a.id; box.querySelectorAll('.addr.repliable').forEach(r=>r.classList.toggle('ouverte', r===row && lieuDeplie===a.id)); }; }
+    box.appendChild(row); }); }
+let ficheIdu=null, lieuDeplie=null;
 // la fiche d'un monument qu'on ne possède pas : ce qu'il est, et s'il passe aux enchères cette semaine
 function ficheMonument(m){ const nat=m.palier==='national', r=6, enJeu=lotsDe(semaineEnCours()).some(l=>l.m.id===m.id);
   const row=document.createElement('div'); row.className='addr r'+r;
