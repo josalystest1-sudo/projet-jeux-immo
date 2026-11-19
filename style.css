@@ -2114,3 +2114,11 @@ html.pocket.nuit #nav button.centre i .ico-svg{filter:none;fill-opacity:.18}
 .bp-dessin{display:block;width:100%;height:100%}
 #booster-pret .bp-sachet{background:none;box-shadow:none;border-radius:0}
 body.sur-carte #booster-pret .bp-sachet{width:54px;height:75px;border-radius:0;box-shadow:none;filter:drop-shadow(0 0 9px rgba(255,200,80,.85))}
+
+/* ===== La fiche d'une parcelle à plusieurs lieux (19 nov.) : un seul lieu déplié, les autres sur une ligne ===== */
+.addr.repliable .tete{cursor:pointer;position:relative;padding-right:28px}
+.addr.repliable .tete::after{content:"";position:absolute;right:6px;top:16px;width:9px;height:9px;border-right:2.5px solid currentColor;border-bottom:2.5px solid currentColor;transform:rotate(45deg);opacity:.6;transition:transform .2s}
+.addr.repliable.ouverte .tete::after{transform:rotate(225deg);top:21px}
+.addr.repliable:not(.ouverte) > :not(.tete){display:none}
+.addr.repliable:not(.ouverte){padding:10px 14px;margin-bottom:8px}
+.addr.repliable:not(.ouverte) .tete{align-items:center}
