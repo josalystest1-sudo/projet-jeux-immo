@@ -153,8 +153,14 @@
       <div class="ag-note ag-prochain"${packDispo() ? ' hidden' : ''}>Prochain pack dans <b id="ag-pack" data-pas-traduire>${dureeCourte(secondesAvantPack())}</b></div>
       <div class="ag-bac" id="ag-bac"><div class="ag-brique" id="ag-brique"><i id="ag-barre"></i><u></u><span id="ag-jauge"></span></div>
       <div id="ag-pose"></div>
-      <div class="ag-embauches" id="ag-embauches"></div></div>`;
+      <div class="ag-rangee"><button class="ag-fleche g" data-fleche="-1" aria-label="Précédents" hidden>‹</button><div class="ag-embauches" id="ag-embauches"></div><button class="ag-fleche d" data-fleche="1" aria-label="Suivants" hidden>›</button></div></div>`;
     el.onclick = clic; AgencePixel.poser(document.getElementById('ag-ville'), AgencePixel.ville());
+    // à la souris (22 nov., Gautier sur PC : « je ne peux pas aller chercher le réceptionniste ») : deux flèches, et la molette fait défiler les cartes de côté
+    const rangee = document.getElementById('ag-embauches'), fleches = [...el.querySelectorAll('.ag-fleche')];
+    const majFleches = () => { const max = rangee.scrollWidth - rangee.clientWidth; fleches[0].hidden = rangee.scrollLeft < 4; fleches[1].hidden = rangee.scrollLeft > max - 4; };
+    rangee.addEventListener('scroll', majFleches, { passive: true }); new ResizeObserver(majFleches).observe(rangee); setTimeout(majFleches, 0);
+    fleches.forEach((f) => f.addEventListener('click', (ev) => { ev.stopPropagation(); rangee.scrollBy({ left: Number(f.dataset.fleche) * rangee.clientWidth * 0.8, behavior: 'smooth' }); }));
+    rangee.addEventListener('wheel', (ev) => { if (Math.abs(ev.deltaY) > Math.abs(ev.deltaX) && rangee.scrollWidth > rangee.clientWidth) { rangee.scrollLeft += ev.deltaY; ev.preventDefault(); } }, { passive: false });
     majScene(a, true); majCommandes(a); battre();
   }
   function haut() {

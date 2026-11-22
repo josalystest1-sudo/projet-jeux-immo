@@ -2120,3 +2120,11 @@ html.pocket.nuit .ag-bac{background:linear-gradient(180deg,rgba(6,11,32,0),#060B
 .ag-poste.ferme{opacity:.55}
 .ag-poste.ferme .ag-prix{visibility:hidden}
 @media (min-width:900px){ #s-agence>.ag-bac{margin-left:auto;margin-right:auto} }
+
+/* les cartes d'embauche à la souris : flèches de chaque côté (cachées au doigt) */
+.ag-rangee{position:relative}
+.ag-fleche{display:none;position:absolute;top:50%;z-index:4;width:38px;height:38px;margin-top:-19px;border:0;border-radius:50%;font:900 24px/1 inherit;color:#2A1A00;background:linear-gradient(180deg,#FFE08A,#F2A93B);box-shadow:0 3px 10px rgba(0,0,0,.45);cursor:pointer;padding:0 0 3px}
+.ag-fleche.g{left:-8px}.ag-fleche.d{right:-8px}
+@media (any-pointer:fine){ .ag-fleche:not([hidden]){display:block} .ag-bac .ag-embauches{scrollbar-width:thin;scrollbar-color:#5AA8FF transparent;padding-bottom:8px} .ag-bac .ag-embauches::-webkit-scrollbar{display:block;height:8px} .ag-bac .ag-embauches::-webkit-scrollbar-thumb{background:#5AA8FF;border-radius:4px} }
+/* sur ordinateur, le bac s'élargit : les sept cartes tiennent sans défiler */
+@media (min-width:900px){ #s-agence>.ag-bac{max-width:none;margin-left:calc(50% - 470px);margin-right:calc(50% - 470px)} .ag-bac .ag-embauches{overflow:visible;margin-left:0;margin-right:0;padding-left:0;padding-right:0} .ag-bac .ag-case{flex:1 1 0;min-width:0} .ag-bac .ag-brique,.ag-bac #ag-pose{max-width:560px;margin-left:auto;margin-right:auto} }
