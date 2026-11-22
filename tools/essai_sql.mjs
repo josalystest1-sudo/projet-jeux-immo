@@ -447,18 +447,19 @@ await db.exec('reset role;');
 // ---- l'agence (210_agence.sql) : écrire d'un bloc avec le prix des embauches, refus si elle a changé entre-temps, classement
 { const G1 = '00000000-0000-0000-0000-0000000000a1', G2 = '00000000-0000-0000-0000-0000000000a2';
   for (const u of [G1, G2]) { await q('insert into auth.users (id) values ($1)', [u]); await q('select public.jeu_nouveau_joueur($1, 1500)', [u]); }
-  const ecrire = (j, cout, avant, ag, rn, quand, b) => q('select public.jeu_agence($1, $2, $3, 7, $4, 0, 0, $5, $6, $7, $7) as p', [j, cout, avant, ag, rn, quand, b]);
+  const ecrire = (j, cout, avant, ag, rn, quand, b) => q('select public.jeu_agence($1, $2, $3, 7, $4, 0, 0, $5, $6, $7, $7, $8::jsonb) as p', [j, cout, avant, ag, rn, quand, b, JSON.stringify({ formateur: 2 })]);
   const t1 = '2026-11-16T10:00:00.000Z', t2 = '2026-11-16T11:00:00.000Z', t3 = '2026-11-16T12:00:00.000Z';
   ok(Number((await ecrire(G1, 60, null, 1, 0, t1, 0))[0].p) === 1440, 'une embauche : l’agence est créée et les pièces prises');
-  ok((await refus('select public.jeu_agence($1, 60, null, 7, 2, 0, 0, 0, $2, 0, 0)', [G1, t2])) === 'agence_change', 'une agence qui a changé depuis sa lecture : refus');
-  ok((await refus('select public.jeu_agence($1, 999999, $2, 7, 2, 0, 0, 0, $3, 0, 0)', [G1, t1, t2])) === 'fonds', 'pas assez de pièces : refus, rien n’est écrit');
+  ok((await refus('select public.jeu_agence($1, 60, null, 7, 2, 0, 0, 0, $2, 0, 0, \'{}\'::jsonb)', [G1, t2])) === 'agence_change', 'une agence qui a changé depuis sa lecture : refus');
+  ok((await refus('select public.jeu_agence($1, 999999, $2, 7, 2, 0, 0, 0, $3, 0, 0, \'{}\'::jsonb)', [G1, t1, t2])) === 'fonds', 'pas assez de pièces : refus, rien n’est écrit');
   ok((await q('select agents, le from public.agences where joueur = $1', [G1]))[0].agents === 1, 'l’agence n’a pas bougé après un refus');
+  ok((await q('select autres from public.agences where joueur = $1', [G1]))[0].autres.formateur === 2, 'les nouveaux postes sont gardés');
   await ecrire(G1, 0, t1, 0, 0, t2, 1); await ecrire(G2, 0, null, 0, 0, t1, 1); await ecrire(G2, 0, t1, 0, 0, t3, 2);
   const c = await q('select joueur, n from public.classement_agences(7, 10)');
   ok(c.length === 2 && c[0].joueur === G2 && c[0].n === 2 && c[1].joueur === G1, 'le classement des briques de la saison');
   ok(Number((await q('select rang from public.rang_agence(7, $1)', [G1]))[0].rang) === 2 && (await q('select * from public.rang_agence(8, $1)', [G1])).length === 0, 'la place d’un joueur, saison par saison');
   await db.exec('set role authenticated;');
-  ok(!!(await refus('select * from public.agences')) && !!(await refus('select public.jeu_agence($1, 0, null, 7, 9, 9, 9, 9, now(), 9, 9)', [G1])), 'le jeu ne lit ni n’écrit les agences');
+  ok(!!(await refus('select * from public.agences')) && !!(await refus('select public.jeu_agence($1, 0, null, 7, 9, 9, 9, 9, now(), 9, 9, \'{}\'::jsonb)', [G1])), 'le jeu ne lit ni n’écrit les agences');
   ok((await q('select count(*)::int as n from public.classement_agences(7, 10)'))[0].n === 2, 'mais il lit le classement');
   await db.exec('reset role;');
   await q('delete from auth.users where id = $1', [G2]); ok((await q('select count(*)::int as n from public.agences'))[0].n === 1, 'un compte supprimé emporte son agence');

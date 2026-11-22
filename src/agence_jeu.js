@@ -15,10 +15,14 @@
 (function () {
   'use strict';
   const AG = Agence.creer(ECO), P = ECO.agence.postes;
-  const NOMS = { agent: 'Agents', negociateur: 'Négociateurs', directeur: 'Directeurs' }, UN = { agent: 'Agent', negociateur: 'Négociateur', directeur: 'Directeur' };
-  const ETAGES = { agent: 'Agents', negociateur: 'Négociation', directeur: 'Direction' };
-  const EFFET = { agent: `+${P.agent.renom} par heure`, negociateur: `+${Math.round(P.negociateur.bonus * 100)} % de renom`, directeur: `Renom × ${String(P.directeur.facteur).replace('.', ',')}` };
-  const VISIBLES = { agent: 5, negociateur: 4, directeur: 2 }, CLE_VUE = 'cadastra-agence-vue';
+  const UN = { agent: 'Agent', negociateur: 'Négociateur', directeur: 'Directeur', receptionniste: 'Réceptionniste', formateur: 'Formateur', photographe: 'Photographe', associe: 'Associé' };
+  const ETAGES = { agent: 'Agents', negociateur: 'Négociation', directeur: 'Direction', receptionniste: 'Réception', formateur: 'Formation', photographe: 'Studio', associe: 'Associés' };
+  const pct = (x) => String(Math.round(x * 1000) / 10).replace('.', ',');
+  const EFFET = { agent: `+${P.agent.renom} par heure`, negociateur: `+${Math.round(P.negociateur.bonus * 100)} % de renom`, directeur: `Renom × ${String(P.directeur.facteur).replace('.', ',')}`,
+    receptionniste: `+${P.receptionniste.heures} h sans toi`, formateur: `Embauches −${pct(P.formateur.remise)} %`, photographe: `+${pct(P.photographe.brique)} % par brique`, associe: `Garde ${pct(P.associe.garde)} % de l’équipe` };
+  // l'immeuble, de haut en bas ; les trois premiers étages sont toujours là, les autres apparaissent à la première embauche
+  const ORDRE = ['associe', 'directeur', 'photographe', 'formateur', 'negociateur', 'agent', 'receptionniste'], BASE = ['directeur', 'negociateur', 'agent'];
+  const VISIBLES = { agent: 5, negociateur: 4, directeur: 2, receptionniste: 2, formateur: 3, photographe: 3, associe: 5 }, CLE_VUE = 'cadastra-agence-vue';
   let recue = null, recueLe = 0, occupe = false, classement = null, minuteur = 0, etincelles = 0, pose = false, absenceDite = false;
   const saison = () => CLA.saison(mandatCourant());
   const ecran = () => document.getElementById('s-agence');
@@ -47,11 +51,12 @@
   // employés par-dessus), le chantier. Tous les textes de la scène sont en pixels (AgencePixel.texte).
   const PX = { W: 352, H: 386, y: { directeur: 34, negociateur: 130, agent: 226 }, chantier: 322, sol: 90 };
   const graine = (p, i) => (state.pseudo || '') + '/' + p + '/' + i;
-  const PLACE = { agent: (k) => 8 + k * 66, negociateur: (k) => 34 + k * 80, directeur: (k) => 36 + k * 174 };
+  const PLACE = { agent: (k) => 8 + k * 66, negociateur: (k) => 34 + k * 80, directeur: (k) => 36 + k * 174, receptionniste: (k) => 74 + k * 76, formateur: (k) => 62 + k * 106 - (k === 2 ? 20 : 0), photographe: (k) => 62 + k * 104, associe: (k) => 84 + k * 44 };
+  const TETE = { agent: 33, directeur: 50, negociateur: 17, receptionniste: 33, formateur: 17, photographe: 20, associe: 19 };
   // quand un étage est plein, le dernier embauché prend la place d'un ancien : la case k montre le plus récent de rang ≡ k
   const rangCase = (n, vus, k) => (n <= vus ? k : k + vus * Math.floor((n - 1 - k) / vus));
   const tr = (t) => (window.Langue && Langue.t ? Langue.t(t) : t);
-  let image = 0, briquesVues = 0, chute = -99, acteurs = [], travail = null; const modele = { agent: [], negociateur: [], directeur: [] }, eclats = {};
+  let image = 0, briquesVues = 0, chute = -99, acteurs = [], travail = null; const modele = {}, eclats = {}; AG.POSTES.forEach((p) => { modele[p] = []; });
   // ce qui bouge dans le décor d'un étage allumé : l'horloge à l'heure, le cours qui clignote, un avion dans le ciel
   const chatM = { saut: -99 };
   function vieDuDecor(g, R, p, y0) {
@@ -60,10 +65,15 @@
       R('#fbfcff', cx - 6, cy - 6, 13, 13); trait((d.getHours() % 12 + d.getMinutes() / 60) / 12 * 2 * Math.PI, 4, NOIR, 2); trait(d.getMinutes() / 60 * 2 * Math.PI, 6, NOIR, 1); trait(d.getSeconds() / 60 * 2 * Math.PI, 6, '#f26b5e', 1); R(NOIR, cx - 1, cy - 1, 2, 2); }
     if (p === 'negociateur') { R(image % 8 < 4 ? '#f26b5e' : '#7a2e2a', 3 + 184, y0 + 17, 4, 4); const h = [0, 1, 2, 1][Math.floor(image / 3) % 4]; R('#35e0a0', 3 + 184, y0 + 17 + 6 - h, 2, 2 + h); avion(12, 16, 52); avion(282, 19, 52); }
     if (p === 'directeur') avion(128, 13, 90);
+    // le feu de la cheminée des associés, le voyant de l'ascenseur de l'accueil
+    if (p === 'associe') { avion(116, 14, 114); for (let x = 0; x < 34; x += 2) { const h = 6 + ((x * 7 + image * 5) % 9) + (x > 8 && x < 24 ? 6 : 0); R('#f26b5e', 3 + 25 + x, y0 + 79 - h, 2, h); R('#f2b33d', 3 + 25 + x, y0 + 79 - Math.floor(h * 0.6), 2, Math.floor(h * 0.6)); if (h > 12) R('#fff3c4', 3 + 25 + x, y0 + 77, 2, 2); } R('#5a2e1c', 3 + 27, y0 + 77, 30, 3); }
+    if (p === 'receptionniste') { const t = Math.floor(image / 6) % 6; R('#35e0a0', 3 + 303 + t * 4, y0 + 12, 2, 2); R(t < 3 ? '#ffd979' : '#f26b5e', 3 + 322, y0 + 11, 3, 4); }
   }
   function peindre() {
     const page = document.getElementById('ag-pix'), a = courante(); if (!page || !a) return;
-    if (!travail) { travail = document.createElement('canvas'); travail.width = PX.W; travail.height = PX.H; }
+    // les étages à montrer, et la hauteur de l'immeuble
+    const etages = ORDRE.filter((p) => BASE.includes(p) || (a.e[p] || 0) > 0); etages.forEach((p, i) => { PX.y[p] = 34 + i * 96; }); PX.chantier = 34 + etages.length * 96; PX.H = PX.chantier + 64;
+    if (!travail) travail = document.createElement('canvas'); if (travail.width !== PX.W || travail.height !== PX.H) { travail.width = PX.W; travail.height = PX.H; }
     const g = travail.getContext('2d'), R = (coul, x, y, l, h) => { g.fillStyle = coul; g.fillRect(x, y, l, h); }, NOIR = AgencePixel.K;
     g.clearRect(0, 0, PX.W, PX.H); acteurs = [];
     // le toit : le climatiseur, la citerne, l'antenne et son feu, puis l'enseigne au nom du joueur, bordée d'ampoules
@@ -78,7 +88,7 @@
     for (let x = ex + 4, k = 0; x < ex + el - 3; x += 8, k++) { const on = (k + Math.floor(image / 3)) % 2; R(on ? '#fff3c4' : '#8a6a1c', x, 6, 2, 2); R(on ? '#8a6a1c' : '#fff3c4', x, 25, 2, 2); }
     // les murs de l'immeuble
     R(NOIR, 0, 32, PX.W, PX.H - 32); R('#1b2550', 1, 33, PX.W - 2, PX.H - 33); R('#3a4a8c', 1, 33, PX.W - 2, 1); R('#26336e', 1, 34, 2, PX.H - 34); R('#26336e', PX.W - 3, 34, 2, PX.H - 34);
-    for (const p of ['directeur', 'negociateur', 'agent']) {
+    for (const p of etages) {
       const y0 = PX.y[p], n = a.e[p] || 0, sol = y0 + PX.sol; g.drawImage(AgencePixel.decor(p, n > 0), 3, y0);
       if (n > 0) vieDuDecor(g, R, p, y0);
       // qui est où, et ce qu'il fait (tout se déduit du numéro de l'image : rien à retenir)
@@ -87,6 +97,9 @@
         if ((image + ph * 17) % 31 === 0) o.f = 4;
         else if (p === 'agent') { const C = 170 + ph * 13, t = (image + ph * 29) % C; o.f = t < 10 ? 5 : t >= 60 && t < 74 ? 6 : (image + ph) % 4; if (t >= 104 && t < 124) o.bulle = ['idee', 'note', 'coeur', 'zzz', 'cafe', 'etoile'][(m.rang + Math.floor((image + ph * 29) / C)) % 6]; }
         else if (p === 'directeur') { o.f = Math.floor((image + ph) / 2) % 4; const C = 230 + ph * 9, t = (image + ph * 41) % C; if (t < 22) o.bulle = ['etoile', 'idee', 'ok'][(m.rang + Math.floor(image / C)) % 3]; }
+        else if (p === 'receptionniste' || p === 'formateur') o.f = Math.floor((image + ph) / 3) % 4;
+        else if (p === 'photographe') o.f = [0, 0, 0, 3, 2, 2, 2, 0][Math.floor((image + ph * 5) / 3) % 8];
+        else if (p === 'associe') { o.f = Math.floor((image + ph * 2) / 4) % 4; if ((image + ph * 37) % 260 < 20) o.bulle = ['etoile', 'ok', 'coeur'][m.rang % 3]; }
         else { const T = 84 + ph * 6, t = (image + ph * 9) % T, u = t < T / 2 ? t / (T / 2) : 2 - t / (T / 2); o.x += Math.round((u * 2 - 1) * (14 + ph % 4 * 3)); o.miroir = t >= T / 2; o.f = Math.floor(image / 2) % 4; if ((image + ph * 13) % 90 < 22) o.bulle = 'points'; }
         return o; });
       // deux négociateurs qui se croisent s'arrêtent et concluent une affaire
@@ -99,7 +112,7 @@
         R('rgba(8,12,40,.22)', x + 4, sol - 1, im.width - 8, 2);
         if (o.miroir) { g.save(); g.translate(x + im.width, yy); g.scale(-1, 1); g.drawImage(im, 0, 0); g.restore(); } else g.drawImage(im, x, yy);
         if (o.bulle === 'points') { const bx = x + (o.miroir ? -16 : 28), by = yy - 2; R(NOIR, bx + 1, by, 19, 13); R(NOIR, bx, by + 1, 21, 11); R('#fff', bx + 1, by + 1, 19, 11); R(NOIR, bx + (o.miroir ? 14 : 3), by + 13, 4, 2); R('#fff', bx + (o.miroir ? 15 : 4), by + 12, 2, 2); [4, 9, 14].forEach((d, i) => R(i === Math.floor(image / 2) % 3 ? '#2453b3' : '#9fb6dc', bx + d, by + 5, 3, 3)); }
-        else if (o.bulle) { const tx = p === 'agent' ? 33 : p === 'directeur' ? 50 : 17, gauche = p === 'negociateur' ? o.miroir : o.k >= VISIBLES[p] - 1; AgencePixel.bulle(g, gauche ? x + tx - 27 : x + tx + 10, Math.max(y0 + 1, yy - 6), o.bulle, gauche); }
+        else if (o.bulle) { const tx = TETE[p] || 17, gauche = p === 'negociateur' ? o.miroir : o.k >= VISIBLES[p] - 1; AgencePixel.bulle(g, gauche ? x + tx - 27 : x + tx + 10, Math.max(y0 + 1, yy - 6), o.bulle, gauche); }
         acteurs.push({ m, p, x, y: yy, l: im.width, h: im.height });
       });
       // le chat de la direction fait sa ronde devant les bureaux
@@ -121,7 +134,7 @@
     R(NOIR, 298, sol - 14, 3, 14); R(NOIR, 336, sol - 14, 3, 14); R(NOIR, 288, sol - 44, 60, 32); R('#ffd065', 289, sol - 43, 58, 30); R('#ffe9a6', 289, sol - 43, 58, 2); R('#b5811f', 289, sol - 15, 58, 2); for (let k = 0; k < 8; k++) R(k % 2 ? '#2a1a00' : '#ffd065', 289 + k * 7.25, sol - 41, 8, 3);
     const t1 = tr('Chantier'), t2 = nb(a.briques); AgencePixel.texte(g, t1, 318 - Math.round(AgencePixel.largeurTexte(t1) / 2), sol - 35, '#2a1a00'); AgencePixel.texte(g, t2, 311 - Math.round(AgencePixel.largeurTexte(t2) / 2), sol - 25, '#2a1a00'); AgencePixel.brique(g, 314 + Math.round(AgencePixel.largeurTexte(t2) / 2), sol - 26);
     // recopier dans la page, agrandi sans lissage
-    const k = (window.devicePixelRatio || 1) >= 3 ? 4 : 3; if (page.width !== PX.W * k) { page.width = PX.W * k; page.height = PX.H * k; }
+    const k = (window.devicePixelRatio || 1) >= 3 && PX.H < 600 ? 4 : 3; if (page.width !== PX.W * k || page.height !== PX.H * k) { page.width = PX.W * k; page.height = PX.H * k; }
     const gp = page.getContext('2d'); gp.imageSmoothingEnabled = false; gp.clearRect(0, 0, page.width, page.height); gp.drawImage(travail, 0, 0, page.width, page.height);
   }
 
@@ -136,11 +149,11 @@
         <div class="ag-absence" id="ag-absence"></div>
         <div class="ag-cadre" id="ag-cadre"><canvas class="ag-pix" id="ag-pix" width="${PX.W * 3}" height="${PX.H * 3}"></canvas></div>
       </div>
-      <div class="ag-brique" id="ag-brique"><i id="ag-barre"></i><u></u><span id="ag-jauge"></span></div>
-      <div id="ag-pose"></div>
-      <div class="ag-embauches" id="ag-embauches"></div>
       <div class="ag-liens"><button class="ag-lien" data-a="regles">Comment ça marche ?</button>${MODE_SERVEUR ? '<button class="ag-lien" data-a="classement">🏆 Classement des briques</button>' : ''}</div>
-      <div class="ag-note ag-prochain"${packDispo() ? ' hidden' : ''}>Prochain pack dans <b id="ag-pack" data-pas-traduire>${dureeCourte(secondesAvantPack())}</b></div>`;
+      <div class="ag-note ag-prochain"${packDispo() ? ' hidden' : ''}>Prochain pack dans <b id="ag-pack" data-pas-traduire>${dureeCourte(secondesAvantPack())}</b></div>
+      <div class="ag-bac" id="ag-bac"><div class="ag-brique" id="ag-brique"><i id="ag-barre"></i><u></u><span id="ag-jauge"></span></div>
+      <div id="ag-pose"></div>
+      <div class="ag-embauches" id="ag-embauches"></div></div>`;
     el.onclick = clic; AgencePixel.poser(document.getElementById('ag-ville'), AgencePixel.ville());
     majScene(a, true); majCommandes(a); battre();
   }
@@ -162,18 +175,20 @@
   function majCommandes(a) {
     const zone = document.getElementById('ag-embauches'), poseEl = document.getElementById('ag-pose'); if (!zone) return;
     const b = a.briques, pret = AG.briquesPossibles(a.renom, b), argent = fonds();
-    let mieux = null; for (const p of AG.POSTES) { const g = AG.gain(a, p) / AG.cout(p, a.e[p]); if (g > 0 && (!mieux || g > mieux.g)) mieux = { p, g }; }
-    poseEl.innerHTML = pret ? `<button class="ag-poser" data-a="poser"><span class="ag-poser-b"><canvas></canvas></span><span class="ag-poser-t">${pret > 1 ? `Poser <b>${nb(pret)}</b> briques` : 'Poser la brique'}</span><i class="ag-poser-r"></i></button><div class="ag-note">Tes employés et ton renom repartent de zéro, avec <b>+${Math.round(ECO.agence.brique.bonus * 100)} %</b> de renom en plus.</div>` : '';
+    let mieux = null; for (const p of AG.POSTES) { const g = AG.gain(a, p) / AG.prix(a, p); if (g > 0 && AG.embaucher(a, p, Infinity).ok && (!mieux || g > mieux.g)) mieux = { p, g }; }
+    poseEl.innerHTML = pret ? `<button class="ag-poser" data-a="poser"><span class="ag-poser-b"><canvas></canvas></span><span class="ag-poser-t">${pret > 1 ? `Poser <b>${nb(pret)}</b> briques` : 'Poser la brique'}</span><i class="ag-poser-r"></i></button>` : '';
     poseEl.dataset.pret = pret ? '1' : ''; if (pret) AgencePixel.poser(poseEl.querySelector('canvas'), AgencePixel.grandeBrique());
     document.getElementById('ag-brique').classList.toggle('pleine', !!pret);
     if (zone.children.length !== AG.POSTES.length) zone.innerHTML = AG.POSTES.map((p) => `<div class="ag-case" data-case="${p}"><button class="ag-poste" data-poste="${p}"><span class="ag-mieux" hidden>Meilleur choix</span>
         <span class="ag-tete ag-t-${p}"></span><b class="ag-qui">${UN[p]}</b><span class="ag-effet">${EFFET[p]}</span>
         <span class="ag-prix" data-pas-traduire></span><span class="ag-gain"></span></button><button class="ag-max" data-max="${p}" hidden></button></div>`).join('');
-    for (const p of AG.POSTES) { const c = AG.cout(p, a.e[p]), g = AG.gain(a, p), premier = p === 'agent' && !a.e.agent, bt = zone.querySelector(`[data-poste="${p}"]`);
-      bt.classList.toggle('cher', c > argent); bt.classList.toggle('pulse', premier); bt.querySelector('.ag-mieux').hidden = !(mieux && mieux.p === p && a.e.agent > 0);
+    for (const p of AG.POSTES) { const c = AG.prix(a, p), g = AG.gain(a, p), premier = p === 'agent' && !a.e.agent, bt = zone.querySelector(`[data-poste="${p}"]`), essai = AG.embaucher(a, p, Infinity), n = a.e[p] || 0;
+      bt.classList.toggle('cher', c > argent); bt.classList.toggle('ferme', !essai.ok); bt.classList.toggle('pulse', premier); bt.querySelector('.ag-mieux').hidden = !(mieux && mieux.p === p && a.e.agent > 0);
       const tt = bt.querySelector('.ag-tete'); if (tt.dataset.n !== String(a.e[p])) { tt.dataset.n = a.e[p]; tt.innerHTML = '<canvas></canvas>'; AgencePixel.poser(tt.firstChild, AgencePixel.portrait(p, graine(p, a.e[p]))); }
       const prix = bt.querySelector('.ag-prix'); if (prix.dataset.n !== String(c)) { prix.dataset.n = c; prix.innerHTML = pcs(c); }
-      const gt = g > 0 ? `+${debitTexte(g)} par heure` : 'Il faut un agent', ge = bt.querySelector('.ag-gain'); if (ge.dataset.t !== gt) { ge.dataset.t = gt; ge.textContent = gt; } }
+      const gt = essai.raison === 'verrou' ? `Après ${essai.briques} briques` : essai.raison === 'max' ? 'Équipe complète' : essai.raison === 'complet' ? 'Agence pleine'
+        : p === 'receptionniste' ? `${AG.heuresSansVisite(a.e)} h sans toi` : p === 'formateur' ? (n ? `Embauches −${pct(1 - Math.pow(1 - P.formateur.remise, n))} %` : 'Embauches moins chères') : p === 'associe' ? (n ? `Tu gardes ${pct(P.associe.garde * n)} %` : 'Reste toute la saison')
+        : g > 0 ? `+${debitTexte(g)} par heure` : p === 'photographe' ? (a.e.agent ? 'Utile dès la 1re brique' : 'Il faut un agent') : 'Il faut un agent', ge = bt.querySelector('.ag-gain'); if (ge.dataset.t !== gt) { ge.dataset.t = gt; ge.textContent = gt; } }
     majMax(a);
     if (window.ajusterChiffres) try { ajusterChiffres(zone); } catch (e) { /* tant pis */ }
   }
@@ -253,8 +268,10 @@
     const box = document.getElementById('modalbox');
     box.innerHTML = `<h2>🏢 Mon agence</h2><div class="sub">Tes pièces embauchent des employés. Ils produisent du renom, même quand tu n’es pas là.</div>
       <div class="article"><div class="t">Les trois postes</div><div class="m">Les <b>agents</b> produisent le renom. Les <b>négociateurs</b> ajoutent ${Math.round(P.negociateur.bonus * 100)} % chacun à ce que produisent les agents. Les <b>directeurs</b> multiplient le tout par ${String(P.directeur.facteur).replace('.', ',')} chacun. Chaque embauche coûte plus cher que la précédente.</div></div>
+      <div class="article"><div class="t">Les renforts</div><div class="m">Le <b>réceptionniste</b> fait travailler l’agence ${P.receptionniste.heures} h de plus sans toi (${P.receptionniste.max} au plus). Le <b>formateur</b> baisse le prix des embauches de ${pct(P.formateur.remise)} % (${P.formateur.max} au plus). Le <b>photographe</b> ajoute ${pct(P.photographe.brique)} % de renom par brique posée (${P.photographe.max} au plus) : son prix double à chaque embauche.</div></div>
+      <div class="article"><div class="t">Les associés</div><div class="m">Ils s’ouvrent après ${P.associe.debloque} briques et restent jusqu’à la fin de la saison. Chacun garde ${pct(P.associe.garde)} % de tes agents et de tes négociateurs quand tu poses une brique (${P.associe.max} au plus). Très chers : chaque associé coûte ${P.associe.croissance} fois le précédent.</div></div>
       <div class="article"><div class="t">🧱 Les briques</div><div class="m">Avec assez de renom, tu poses une brique : tes employés et ton renom repartent de zéro, et chaque brique donne <b>+${Math.round(ECO.agence.brique.bonus * 100)} %</b> de renom jusqu’à la fin de la saison. La brique suivante demande plus de renom.</div></div>
-      <div class="article"><div class="t">⏳ Passe la voir</div><div class="m">L’agence travaille <b>${ECO.agence.stock_heures} h</b> sans toi. À la fin de la saison, les briques sont comptées et tout repart de zéro.</div></div>
+      <div class="article"><div class="t">⏳ Passe la voir</div><div class="m">L’agence travaille <b>${AG.heuresSansVisite((courante() || { e: {} }).e)} h</b> sans toi. À la fin de la saison, les briques sont comptées et tout repart de zéro.</div></div>
       <button class="btn clair large" onclick="closeModal()">Fermer</button>`;
     document.getElementById('modal').classList.add('on');
   }
@@ -288,7 +305,7 @@
   function embaucher(poste, n) {
     if (pose) return; const a = courante(); if (!a) return;
     const l = lot(a, poste, Math.min(MAX_LOT, n || 1), fonds());
-    if (!l.faits) { vibrer(30); const r = l.refus || {}; return toast(r.raison === 'fonds' ? `Il te manque ${fmt(r.cout - fonds())} pour cette embauche` : 'Ton agence est pleine : pose une brique pour repartir'); }
+    if (!l.faits) { vibrer(30); const r = l.refus || {}; return toast(r.raison === 'fonds' ? `Il te manque ${fmt(r.cout - fonds())} pour cette embauche` : r.raison === 'verrou' ? `Ce poste s’ouvre après ${r.briques} briques` : r.raison === 'max' ? 'Tu as déjà tous les employés possibles à ce poste' : 'Ton agence est pleine : pose une brique pour repartir'); }
     const gain = AG.debit(l.agence.e, a.briques) - AG.debit(a.e, a.briques);
     if (MODE_SERVEUR) { version++; recue = l.agence; recueLe = Date.now(); engage += l.total;
       const d = attente[attente.length - 1]; if (d && d.poste === poste && d.n + l.faits <= MAX_LOT) { d.n += l.faits; d.total += l.total; } else attente.push({ poste, n: l.faits, total: l.total });

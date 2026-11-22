@@ -2100,3 +2100,23 @@ body.sur-carte #booster-pret .bp-sachet{width:54px;height:75px;border-radius:0;b
 .addr.repliable:not(.ouverte) > :not(.tete){display:none}
 .addr.repliable:not(.ouverte){padding:10px 14px;margin-bottom:8px}
 .addr.repliable:not(.ouverte) .tete{align-items:center}
+
+/* l'agence à sept postes (22 nov.) : la brique et les embauches restent en bas de l'écran pendant qu'on fait défiler l'immeuble ; les cartes d'embauche défilent de côté */
+.ag-bac{margin:10px -14px 0;padding:8px 14px 10px;background:linear-gradient(180deg,rgba(244,246,251,0),#F4F6FB 16px);position:relative;z-index:3}
+html.pocket.nuit .ag-bac{background:linear-gradient(180deg,rgba(6,11,32,0),#060B20 16px)}
+#s-agence{padding-bottom:0}
+.ag-bac{position:sticky;bottom:0}
+@media (max-height:599px){ .ag-bac{position:relative} }
+.ag-liens+.ag-note,.ag-liens{margin-bottom:4px}
+.ag-bac .ag-brique{margin-top:6px;height:40px}
+.ag-bac #ag-pose[data-pret="1"]+.ag-embauches,.ag-bac .ag-embauches{margin-top:10px}
+.ag-bac .ag-brique.pleine{display:none}
+.ag-bac .ag-embauches{display:flex;grid-template-columns:none;gap:8px;overflow-x:auto;overflow-y:hidden;scroll-snap-type:x proximity;-webkit-overflow-scrolling:touch;margin-left:-14px;margin-right:-14px;padding:6px 14px 4px;scrollbar-width:none;align-items:stretch}
+.ag-bac .ag-embauches::-webkit-scrollbar{display:none}
+.ag-bac .ag-case{flex:0 0 calc((100% - 16px)/3.25);scroll-snap-align:start}
+.ag-bac .ag-tete{width:52px;height:52px}
+.ag-bac .ag-poste{padding:8px 4px 7px}
+.ag-bac .ag-effet,.ag-bac .ag-gain{line-height:1.15;min-height:2.3em;display:flex;align-items:center;justify-content:center}
+.ag-poste.ferme{opacity:.55}
+.ag-poste.ferme .ag-prix{visibility:hidden}
+@media (min-width:900px){ #s-agence>.ag-bac{margin-left:auto;margin-right:auto} }

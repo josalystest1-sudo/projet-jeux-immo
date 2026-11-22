@@ -326,6 +326,32 @@ const ECO = {
     "base": 5000,
     "croissance": 3.2,
     "facteur": 1.6
+   },
+   "receptionniste": {
+    "base": 900,
+    "croissance": 1.6,
+    "heures": 6,
+    "max": 8
+   },
+   "formateur": {
+    "base": 1500,
+    "croissance": 1.7,
+    "remise": 0.02,
+    "max": 15
+   },
+   "photographe": {
+    "base": 3000,
+    "croissance": 2.1,
+    "brique": 0.006,
+    "max": 12
+   },
+   "associe": {
+    "base": 60000,
+    "croissance": 7,
+    "garde": 0.1,
+    "max": 5,
+    "debloque": 5,
+    "reste": true
    }
   },
   "brique": {
