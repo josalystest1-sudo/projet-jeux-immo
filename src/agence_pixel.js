@@ -13,7 +13,7 @@
   const K = '#161a36';
   const PEAUX = ['#fbd9bb', '#f3c49c', '#e2a678', '#c98856', '#a0653b', '#73452b'];
   const CHEVEUX = ['#2a1b14', '#4b2e1c', '#7a4a24', '#b8772e', '#e3b556', '#b6402a', '#1d1f2b', '#a3acbd'];
-  const HAUTS = { agent: ['#4f8df7', '#35b58a', '#f26b5e', '#f2b33d', '#9b6be8', '#2fb5c9', '#ec6fa8', '#6c7bd9'], negociateur: ['#33457a', '#5b3b8c', '#1f6f6b', '#8c3b4a', '#3b5b8c', '#55556a'], directeur: ['#1f2a52', '#33333d', '#40223a', '#12383f'] };
+  const HAUTS = { agent: ['#4f8df7', '#35b58a', '#f26b5e', '#f2b33d', '#9b6be8', '#2fb5c9', '#ec6fa8', '#6c7bd9'], negociateur: ['#33457a', '#5b3b8c', '#1f6f6b', '#8c3b4a', '#3b5b8c', '#55556a'], directeur: ['#1f2a52', '#33333d', '#40223a', '#12383f'], receptionniste: ['#e25d8a', '#2fb5c9', '#9b6be8', '#35b58a', '#f26b5e'], formateur: ['#c9743a', '#3b82d6', '#7a8c3a', '#8c3b6a', '#2f8f8a'], photographe: ['#4a5075', '#7a4a24', '#2f6b5a', '#8c3b4a', '#5b3b8c'], associe: ['#e9dfc8', '#d9c7a0', '#cdbbe3', '#b7d9cf', '#f0c9c0'] };
   const COIFFURES = ['court', 'meche', 'long', 'chignon', 'afro', 'barbe', 'queue', 'carre'];
   function hasard(graine) { let h = 2166136261; const s = String(graine); for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 16777619); } return () => { h ^= h << 13; h ^= h >>> 17; h ^= h << 5; return ((h >>> 0) % 100000) / 100000; }; }
   const teinte = (c, k) => { const n = parseInt(c.slice(1), 16), f = (v) => Math.max(0, Math.min(255, Math.round(v * k))); return '#' + [n >> 16, (n >> 8) & 255, n & 255].map((v) => f(v).toString(16).padStart(2, '0')).join(''); };
@@ -181,7 +181,56 @@
     R(K, x + 1, y, 15, 13); R(K, x, y + 1, 17, 11); R('#ffffff', x + 1, y + 1, 15, 11); R('#dce9ff', x + 1, y + 10, 15, 2); R(K, x + (gauche ? 10 : 3), y + 13, 4, 2); R('#dce9ff', x + (gauche ? 11 : 4), y + 12, 2, 2);
     g.fillStyle = d[0]; for (let b = 0; b < 7; b++) for (let a = 0; a < 7; a++) if (d[1][b] & (64 >> a)) g.fillRect(x + 5 + a, y + 3 + b, 1, 1);
   }
-  const FAIRE = { agent, negociateur, directeur, stagiaire }, CACHE = new Map(), OUVRIERS = [];
+  // ---- les postes du 22 nov. : i : 0 à 3, 4 = clin d'œil
+  // le réceptionniste (66 × 72) : derrière son comptoir, il salue
+  function receptionniste(a, i) {
+    const F = feuille(66, 72), f = i > 3 ? 0 : i, s = F.mat(a.haut), peau = F.mat(a.peau), blanc = F.mat('#f4f7fd'), marbre = F.mat('#eef2fa'), bleu = F.mat('#26336e'), bleu2 = F.mat('#1b2550'), or = F.mat('#ffd065'), noir = F.mat('#262c4d');
+    F.poly([[17, 60], [17, 46], [22, 39], [44, 39], [49, 46], [49, 60]], s); F.poly([[28, 39], [33, 47], [38, 39]], blanc); F.poly([[31, 40], [35, 40], [36, 44], [33, 47], [30, 44]], F.mat('#f2b33d'));
+    tete(F, 33, 23, a, { casque: true, clin: i === 4, parle: f % 2 === 1, regard: f === 2 ? -1 : 0 });
+    F.l(19, 46, 21, 51, 5, s);
+    if (f % 2) { F.l(47, 46, 53, 37, 5, s); F.e(54.5, 33 - (f === 3 ? 1 : 0), 2.8, 2.8, peau); } else { F.l(47, 46, 46, 51, 5, s); }
+    F.poly([[2, 50], [64, 50], [66, 55], [0, 55]], marbre); F.r(0, 55, 66, 2, F.mat('#c9d3e8')); F.r(1, 57, 64, 13, bleu); F.r(1, 60, 64, 2, or); F.rr(5, 63, 56, 6, 1, bleu2); F.r(3, 70, 5, 2, bleu2); F.r(58, 70, 5, 2, bleu2);
+    F.rr(27, 63, 12, 6, 1, or); F.r(30, 65, 6, 2, F.mat('#b5811f', { plat: true }));
+    F.rr(5, 38, 15, 11, 1, noir); F.r(7, 40, 11, 7, F.mat(f % 2 ? '#8fdbff' : '#a9e4ff', { plat: true })); F.r(8, 42, 6, 1, F.mat('#ffffff', { plat: true })); F.r(11, 49, 3, 2, noir);
+    F.e(56, 48, 3.4, 2.6, or); F.r(55, 44, 2, 2, or); F.r(52, 50, 8, 1, F.mat('#b5811f', { plat: true }));
+    return F.fin();
+  }
+  // le formateur (48 × 68) : debout, une tablette à la main, il montre le tableau de sa baguette
+  function formateur(a, i) {
+    const F = feuille(48, 68), f = i > 3 ? 0 : i, s = F.mat(a.haut), pant = F.mat('#3a3f55'), noir = F.mat('#191d38'), peau = F.mat(a.peau), blanc = F.mat('#f4f7fd'), bras = F.mat(teinte(a.haut, 0.9));
+    F.r(10, 46, 6, 18, pant); F.r(18, 46, 6, 18, pant); F.rr(8, 63, 9, 5, 2, noir); F.rr(17, 63, 9, 5, 2, noir);
+    F.l(8, 35, 7, 43, 5, bras); F.rr(1, 40, 9, 11, 1, blanc); F.r(3, 42, 5, 1, F.mat('#4f8df7', { plat: true })); F.r(3, 45, 4, 1, F.mat('#9fb6dc', { plat: true })); F.e(8, 46, 2.6, 2.6, peau);
+    F.poly([[7, 48], [7, 35], [11, 29], [23, 29], [27, 35], [27, 48]], s); F.poly([[13, 29], [17, 37], [21, 29]], blanc); F.r(16, 40, 2, 2, F.mat(teinte(a.haut, 0.6), { plat: true })); F.r(16, 44, 2, 2, F.mat(teinte(a.haut, 0.6), { plat: true }));
+    tete(F, 17, 17, a, { parle: f % 2 === 1, clin: i === 4, regard: 1 });
+    const h = [0, 3, 6, 3][f]; F.l(26, 35, 32, 31, 5, bras); F.e(34, 29, 2.6, 2.6, peau); F.l(34, 29, 45, 12 + h, 1, F.mat('#8a5a2b', { plat: true })); F.r(44, 10 + h, 3, 3, F.mat('#f26b5e', { plat: true }));
+    return F.fin();
+  }
+  // le photographe (40 × 68) : l'œil dans le viseur ; il vise, déclenche (l'éclair), puis regarde sa photo
+  function photographe(a, i) {
+    const F = feuille(40, 68), f = i > 3 ? 0 : i, s = F.mat(a.haut), pant = F.mat('#2a3256'), noir = F.mat('#191d38'), peau = F.mat(a.peau), bras = F.mat(teinte(a.haut, 0.9)), appareil = F.mat('#262c4d'), baisse = f === 2;
+    F.r(13, 46, 6, 18, pant); F.r(21, 46, 6, 18, pant); F.rr(11, 63, 9, 5, 2, noir); F.rr(20, 63, 9, 5, 2, noir);
+    F.poly([[10, 48], [10, 35], [14, 29], [26, 29], [30, 35], [30, 48]], s); F.poly([[16, 29], [20, 34], [24, 29]], F.mat('#f4f7fd')); F.r(12, 38, 5, 4, F.mat(teinte(a.haut, 0.75))); F.r(23, 38, 5, 4, F.mat(teinte(a.haut, 0.75)));
+    tete(F, 20, 17, a, { clin: i === 4, bas: baisse });
+    const y = baisse ? 32 : 13;
+    if (baisse) { F.l(11, 35, 12, 40, 5, bras); F.l(29, 35, 28, 40, 5, bras); } else { F.l(11, 35, 9, 25, 5, bras); F.l(29, 35, 31, 25, 5, bras); }
+    F.rr(11, y, 18, 11, 2, appareil); F.r(14, y - 2, 6, 2, appareil); F.e(20, y + 5.5, 4.4, 4.4, F.mat('#8c96b3')); F.e(20, y + 5.5, 2.6, 2.6, F.mat('#1b2550')); F.p(19, y + 4, F.mat('#c9f0ff', { plat: true })); F.r(25, y + 1, 3, 2, F.mat(f === 3 ? '#ffffff' : '#f26b5e', { plat: true }));
+    F.e(10, y + 7, 2.6, 2.6, peau); F.e(30, y + 7, 2.6, 2.6, peau);
+    if (f === 3) { const ecl = F.mat('#fff9d6', { plat: true }); F.r(31, y - 6, 2, 12, ecl); F.r(26, y - 1, 12, 2, ecl); F.r(28, y - 4, 2, 2, ecl); F.r(34, y - 4, 2, 2, ecl); F.r(28, y + 2, 2, 2, ecl); F.r(34, y + 2, 2, 2, ecl); }
+    return F.fin();
+  }
+  // l'associé (42 × 68) : costume clair, gilet d'or, mallette, une coupe à la main
+  function associe(a, i) {
+    const F = feuille(42, 68), f = i > 3 ? 0 : i, s = F.mat(a.haut), pant = F.mat(teinte(a.haut, 0.86)), cuir = F.mat('#7a4a24'), peau = F.mat(a.peau), blanc = F.mat('#f4f7fd'), or = F.mat('#f2b33d'), bras = F.mat(teinte(a.haut, 0.92));
+    F.r(12, 46, 6, 18, pant); F.r(20, 46, 6, 18, pant); F.rr(10, 63, 9, 5, 2, cuir); F.rr(19, 63, 9, 5, 2, cuir);
+    F.l(10, 35, 8, 44, 5, bras); F.e(8, 47, 2.6, 2.6, peau); F.rr(2, 49, 12, 9, 1, cuir); F.r(6, 47, 4, 2, cuir); F.r(7, 52, 2, 2, F.mat('#ffd065', { plat: true }));
+    F.poly([[9, 48], [9, 35], [13, 29], [25, 29], [29, 35], [29, 48]], s); F.poly([[14, 29], [24, 29], [19, 44]], or); F.poly([[16, 29], [22, 29], [19, 36]], blanc); F.poly([[18, 31], [20, 31], [21, 36], [19, 39], [17, 36]], F.mat('#b6402a'));
+    F.r(18, 40, 2, 1, F.mat('#b5811f', { plat: true })); F.r(18, 43, 2, 1, F.mat('#b5811f', { plat: true })); F.r(24, 34, 3, 2, F.mat('#ffd065', { plat: true }));
+    tete(F, 19, 17, a, { clin: i === 4, parle: f === 1 });
+    const h = f % 2 ? 3 : 0; F.l(28, 35, 33, 39 - h, 5, bras); F.l(33, 39 - h, 34, 30 - h, 4, bras); F.e(34.5, 28 - h, 2.6, 2.6, peau);
+    F.r(34, 24 - h, 1, 4, F.mat('#dce9ff', { plat: true })); F.poly([[31, 16 - h], [38, 16 - h], [36, 24 - h], [33, 24 - h]], F.mat('#fff3c4')); F.r(33, 18 - h, 3, 1, F.mat('#ffffff', { plat: true })); F.p(35, 14 - h - (f % 2), F.mat('#ffffff', { plat: true })); F.p(33, 12 - h + (f >> 1), F.mat('#ffffff', { plat: true }));
+    return F.fin();
+  }
+  const FAIRE = { agent, negociateur, directeur, stagiaire, receptionniste, formateur, photographe, associe }, CACHE = new Map(), OUVRIERS = [];
   // l'image d'un employé (gardée : on ne la repeint jamais) ; i : 0 à 3, ou 4 pour le clin d'œil
   function employe(poste, graine, i) {
     const k = poste + '|' + graine + '|' + i; let c = CACHE.get(k);
@@ -191,11 +240,14 @@
   // le portrait (34 × 34) du prochain embauché, pour sa carte
   function portrait(poste, graine) {
     const a = allure(poste, graine), F = feuille(34, 34), s = F.mat(a.haut);
-    const fond = F.mat(poste === 'agent' ? '#bcd0ee' : poste === 'negociateur' ? '#f0d2a4' : '#2f6b5a', { plat: true }), fond2 = F.mat(poste === 'agent' ? '#cfe0f5' : poste === 'negociateur' ? '#f8e6c9' : '#377a67', { plat: true });
+    const FONDS = { agent: ['#bcd0ee', '#cfe0f5'], negociateur: ['#f0d2a4', '#f8e6c9'], directeur: ['#2f6b5a', '#377a67'], receptionniste: ['#c9d6ee', '#e8eef8'], formateur: ['#cfe3c4', '#e6f0e0'], photographe: ['#3a3f55', '#4a5075'], associe: ['#4a2433', '#5c2f41'] }[poste] || ['#bcd0ee', '#cfe0f5'];
+    const fond = F.mat(FONDS[0], { plat: true }), fond2 = F.mat(FONDS[1], { plat: true }), cravate = poste === 'negociateur' || poste === 'directeur' || poste === 'associe' || poste === 'receptionniste';
     F.r(0, 0, 34, 34, fond); for (let x = 0; x < 34; x += 6) F.r(x, 0, 3, 34, fond2);
     F.poly([[2, 36], [2, 31], [8, 26], [26, 26], [32, 31], [32, 36]], s);
-    if (poste !== 'agent') { F.poly([[12, 26], [22, 26], [17, 35]], F.mat('#f4f7fd')); F.poly([[16, 27], [18, 27], [19, 34], [15, 34]], F.mat('#f2b33d')); } else F.poly([[12, 26], [17, 31], [22, 26]], F.mat(teinte(a.haut, 1.3)));
-    tete(F, 17, 14, a, { casque: poste === 'agent' });
+    if (cravate) { F.poly([[12, 26], [22, 26], [17, 35]], F.mat('#f4f7fd')); F.poly([[16, 27], [18, 27], [19, 34], [15, 34]], F.mat(poste === 'associe' ? '#b6402a' : '#f2b33d')); } else F.poly([[12, 26], [17, 31], [22, 26]], F.mat(poste === 'agent' ? teinte(a.haut, 1.3) : '#f4f7fd'));
+    tete(F, 17, 14, a, { casque: poste === 'agent' || poste === 'receptionniste' });
+    if (poste === 'photographe') { F.rr(11, 27, 12, 7, 1, F.mat('#262c4d')); F.e(17, 30.5, 2.6, 2.6, F.mat('#8c96b3')); }
+    if (poste === 'formateur') { F.l(27, 33, 32, 20, 1, F.mat('#8a5a2b', { plat: true })); F.r(31, 18, 3, 3, F.mat('#f26b5e', { plat: true })); }
     if (poste === 'negociateur') { F.rr(27, 9, 5, 12, 1, F.mat('#191d38')); F.r(28, 11, 2, 4, F.mat('#8fdbff', { plat: true })); }
     return F.fin();
   }
@@ -268,6 +320,45 @@
       [100, 246].forEach((x) => { R('#ffd065', x, 0, 1, 6); R(K, x - 9, 6, 19, 5); R('#ffd065', x - 8, 6, 17, 3); R('#ffe9a6', x - 8, 6, 17, 1); [-6, 0, 6].forEach((d) => { R(K, x + d - 2, 10, 5, 6); R(allume ? '#fff3c4' : '#8a7b4a', x + d - 1, 11, 3, 4); }); if (allume) { g.fillStyle = 'rgba(255,243,196,.06)'; for (let i = 0; i < 64; i++) g.fillRect(x - 8 - Math.floor(i / 3), 16 + i, 17 + 2 * Math.floor(i / 3), 1); } });
       O.plante(322, 80, true);
       R('#7d1f33', 0, 80, 346, 1); R('#9c2c43', 0, 81, 346, 11); R('#b53a54', 0, 81, 346, 2); for (let x = 6; x < 346; x += 16) { R('#ffd065', x, 86, 4, 1); R('#ffd065', x + 1, 85, 2, 3); R('#7d1f33', x + 8, 88, 3, 1); } R('#ffd065', 0, 83, 346, 1); R('#ffd065', 0, 90, 346, 1); R('#10163a', 0, 92, 346, 4); R('#3a4a8c', 0, 92, 346, 1);
+    }
+    if (poste === 'receptionniste') {
+      g.clearRect(0, 0, 346, 96); R('#e8eef8', 0, 0, 346, 80); R('#c9d6ee', 0, 0, 346, 4); R('#d7e1f3', 0, 4, 346, 2); for (let x = 0; x < 346; x += 28) R('#dde6f5', x, 6, 1, 54); R('#26336e', 0, 60, 346, 17); R('#ffd065', 0, 60, 346, 2); R('#1b2550', 0, 77, 346, 3);
+      // la porte vitrée sur la rue, l'emblème, le canapé d'attente, l'ascenseur
+      R(K, 8, 10, 58, 70); R('#8c96b3', 9, 11, 56, 69); R('#0e1648', 12, 14, 24, 66); R('#0e1648', 38, 14, 24, 66); R('#1a2874', 12, 50, 24, 30); R('#1a2874', 38, 50, 24, 30); [[16, 22], [28, 30], [44, 18], [54, 34]].forEach(([x, y]) => R('#fff', x, y, 1, 1)); R('#2d44a3', 12, 62, 24, 18); R('#2d44a3', 38, 66, 24, 14); R('#ffd979', 18, 68, 2, 3); R('#ffd979', 48, 70, 2, 3); R('rgba(255,255,255,.18)', 14, 14, 3, 66); R('rgba(255,255,255,.18)', 40, 14, 3, 66); R('#ffd065', 33, 44, 2, 8); R('#ffd065', 39, 44, 2, 8);
+      R(K, 153, 12, 40, 34); R('#ffd065', 154, 13, 38, 32); R('#26336e', 157, 16, 32, 26); R('#ffd065', 163, 28, 20, 12); for (let k = 0; k < 10; k++) R('#ffd065', 172 - k, 19 + k, 2 + 2 * k, 1); R('#26336e', 170, 32, 6, 8); R('#26336e', 166, 30, 3, 3); R('#26336e', 177, 30, 3, 3);
+      R(K, 207, 50, 66, 30); R('#3b5bbd', 208, 51, 64, 16); R('#5273d6', 208, 51, 64, 3); R(K, 203, 60, 74, 20); R('#5273d6', 204, 61, 72, 14); R('#6f8de6', 204, 61, 72, 2); R('#3b5bbd', 204, 73, 72, 3); R('#3b5bbd', 240, 61, 1, 12); R('#3b5bbd', 204, 61, 6, 14); R('#3b5bbd', 270, 61, 6, 14); R(K, 207, 78, 4, 3); R(K, 269, 78, 4, 3);
+      R(K, 289, 16, 50, 64); R('#59658c', 290, 17, 48, 63); R('#aab3cc', 293, 24, 20, 56); R('#aab3cc', 315, 24, 20, 56); R('#c9d3e8', 293, 24, 3, 56); R('#c9d3e8', 315, 24, 3, 56); R('#8c96b3', 311, 24, 2, 56); R('#8c96b3', 333, 24, 2, 56); R(K, 313, 24, 2, 56); R(K, 300, 9, 28, 8); R('#0e1640', 301, 10, 26, 6);
+      O.plante(98, 80, true); O.plante(128, 80, false); [86, 240].forEach((x) => O.lampe(x, allume));
+      R('#aab6d2', 0, 80, 346, 1); for (let x = 0; x < 346; x += 16) { R((x / 16) % 2 ? '#f4f7fd' : '#c9d3e8', x, 81, 16, 6); R((x / 16) % 2 ? '#c9d3e8' : '#f4f7fd', x, 87, 16, 5); } R('#10163a', 0, 92, 346, 4); R('#3a4a8c', 0, 92, 346, 1);
+    } else if (poste === 'formateur') {
+      g.clearRect(0, 0, 346, 96); R('#e6f0e0', 0, 0, 346, 80); R('#c4d9b8', 0, 0, 346, 4); R('#d5e5cb', 0, 4, 346, 2); R('#b9cfab', 0, 58, 346, 1); R('#d3e3c8', 0, 59, 346, 18); R('#93ad84', 0, 77, 346, 3);
+      // le grand tableau : un plan, des flèches, un pourcentage ; le projecteur ; les coupes ; la bibliothèque
+      R(K, 107, 7, 132, 52); R('#8c96b3', 108, 8, 130, 50); R('#fbfcff', 110, 10, 126, 46); R('#f26b5e', 116, 15, 30, 2); R('#c6d8f2', 116, 20, 22, 1); R('#c6d8f2', 116, 23, 26, 1);
+      R('#4f8df7', 118, 38, 22, 12); for (let k = 0; k < 9; k++) R('#4f8df7', 128 - k, 29 + k, 2 + 2 * k, 1); R('#fbfcff', 126, 43, 6, 7); R('#35b58a', 150, 42, 14, 2); R('#35b58a', 162, 39, 2, 8); R('#35b58a', 164, 41, 2, 4); R('#f2b33d', 172, 34, 20, 16); R('#fbfcff', 175, 37, 6, 5); R('#fbfcff', 183, 37, 6, 5); R('#fbfcff', 175, 44, 6, 6); R('#35b58a', 198, 42, 12, 2); R('#35b58a', 208, 39, 2, 8); R('#35b58a', 210, 41, 2, 4);
+      R('#9b6be8', 218, 30, 4, 4); R('#9b6be8', 226, 44, 4, 4); for (let k = 0; k < 14; k++) R('#9b6be8', 229 - k, 31 + k, 2, 1); R('#f26b5e', 190, 14, 40, 2); R('#f26b5e', 190, 14, 2, 10); R('#f26b5e', 200, 18, 2, 6); R('#f26b5e', 210, 16, 2, 8); R('#f26b5e', 220, 20, 2, 4); R('#8c96b3', 150, 59, 46, 2);
+      R(K, 160, 0, 26, 6); R('#59658c', 161, 0, 24, 5); R('#c9f0ff', 170, 5, 6, 2);
+      R(K, 10, 12, 44, 68); R('#8a5a2b', 11, 13, 42, 67); [0, 1, 2].forEach((k) => { const y = 16 + k * 21; R('#6f4520', 13, y, 38, 17); R('#573617', 13, y + 17, 38, 2); const r = hasard('manuels' + k); for (let x = 14; x < 48;) { const l = 3 + Math.floor(r() * 4), h = 10 + Math.floor(r() * 6); R(['#f26b5e', '#4f8df7', '#f2b33d', '#35b58a', '#9b6be8', '#e9dfc8'][Math.floor(r() * 6)], x, y + 17 - h, l, h); R('rgba(255,255,255,.3)', x, y + 17 - h, 1, h); x += l + 1; } });
+      R(K, 262, 34, 70, 4); R('#8a5a2b', 263, 35, 68, 2); [[268, '#ffd065'], [288, '#c0c7d6'], [308, '#d98e52']].forEach(([x, coul]) => { R(K, x - 1, 19, 14, 15); R(coul, x, 20, 12, 8); R(coul, x + 4, 28, 4, 3); R(coul, x + 2, 31, 8, 3); R('rgba(255,255,255,.45)', x + 1, 21, 2, 6); R(K, x - 3, 21, 2, 5); R(K, x + 13, 21, 2, 5); });
+      R(K, 270, 44, 28, 20); R('#fff7e0', 271, 45, 26, 18); R('#f26b5e', 274, 48, 12, 2); R('#c6d8f2', 274, 52, 20, 1); R('#c6d8f2', 274, 55, 16, 1); R('#ffd065', 288, 56, 6, 6);
+      O.plante(318, 80, true); [80, 262].forEach((x) => O.lampe(x, allume, '#7a8c3a'));
+      O.sol('#5f9a6a', '#74b07f', '#4d8558', 24);
+    } else if (poste === 'photographe') {
+      g.clearRect(0, 0, 346, 96); R('#3a3f55', 0, 0, 346, 80); R('#2c3044', 0, 0, 346, 4); R('#33384d', 0, 4, 346, 2); for (let x = 14; x < 346; x += 30) R('#40465e', x, 6, 1, 70); R('#262a3b', 0, 77, 346, 3);
+      // le fond de studio qui descend jusqu'au sol, les deux boîtes à lumière, les photos au mur, le poste de retouche
+      R(K, 121, 4, 106, 6); R('#8c96b3', 122, 5, 104, 4); R('#c9d3e8', 122, 5, 104, 1); R('#dff3fb', 126, 9, 96, 71); R('#c9ecf7', 126, 9, 6, 71); R('#eefaff', 150, 9, 30, 71); R('#bfe3f0', 216, 9, 6, 71); R('#cfeaf5', 126, 70, 96, 10);
+      [[92, 0], [254, 1]].forEach(([x, k]) => { R(K, x + 9, 44, 2, 36); R(K, x + 2, 78, 16, 2); R(K, x + 5, 74, 2, 6); R(K, x + 13, 74, 2, 6); R(K, x - 2, 14, 24, 32); R('#262c4d', x - 1, 15, 22, 30); R(allume ? '#fff9d6' : '#8a8f9e', x + 1, 17, 18, 26); R(allume ? '#ffffff' : '#9aa0b0', x + 3, 19, 14, 10); R('#262c4d', x + 9, 17, 1, 26); R('#262c4d', x + 1, 29, 18, 1); if (allume) { g.fillStyle = 'rgba(255,249,214,.08)'; for (let i = 0; i < 34; i++) g.fillRect(k ? x - 40 - i : x + 20, 30 + i, 40 + i, 1); } });
+      [[10, 12, '#2d44a3', '#ffd979'], [44, 18, '#7d1f33', '#f2b33d'], [10, 44, '#2f6b5a', '#fff3c4']].forEach(([x, y, c1, c2]) => { R(K, x - 1, y - 1, 28, 24); R('#f4f7fd', x, y, 26, 22); R('#0e1648', x + 2, y + 2, 22, 18); R(c1, x + 4, y + 9, 6, 11); R(c1, x + 11, y + 5, 7, 15); R(c1, x + 19, y + 11, 4, 9); R(c2, x + 13, y + 8, 2, 2); R(c2, x + 5, y + 12, 2, 2); R(c2, x + 13, y + 13, 2, 2); });
+      R(K, 285, 52, 54, 28); R('#59658c', 286, 53, 52, 4); R('#7b87ad', 286, 53, 52, 1); R('#3d4770', 286, 57, 52, 23); R(K, 296, 24, 34, 24); R('#262c4d', 297, 25, 32, 22); R('#0e1648', 299, 27, 28, 16); R('#2d44a3', 301, 33, 8, 10); R('#2d44a3', 311, 30, 8, 13); R('#ffd979', 314, 33, 2, 2); R('#f26b5e', 322, 29, 3, 3); R(K, 310, 48, 6, 4); R('#8c96b3', 304, 51, 18, 2);
+      R('#4a4f66', 0, 80, 346, 1); R('#6b7088', 0, 81, 346, 11); R('#7b8099', 0, 81, 346, 2); for (let x = 10; x < 346; x += 34) R('#5c6178', x, 85 + (x % 3), 12, 1); R('#10163a', 0, 92, 346, 4); R('#3a4a8c', 0, 92, 346, 1);
+    } else if (poste === 'associe') {
+      g.clearRect(0, 0, 346, 96); R('#4a2433', 0, 0, 346, 54); R('#371a26', 0, 0, 346, 4); R('#40202d', 0, 4, 346, 2); for (let x = 6; x < 346; x += 14) for (let y = 10; y < 52; y += 12) { R('#5c2f41', x + ((y / 12) % 2 ? 7 : 0), y, 2, 2); R('#6b3a4d', x + ((y / 12) % 2 ? 7 : 0), y - 1, 2, 1); } R('#ffd065', 0, 54, 346, 2); R('#b5811f', 0, 56, 346, 1); R('#2c1810', 0, 57, 346, 20); for (let x = 4; x < 346; x += 30) { R('#3d2317', x, 60, 24, 14); R('#4a2c1d', x + 1, 61, 22, 1); } R('#1c0f0a', 0, 77, 346, 3);
+      O.fenetre(116, 8, 114, 40, 41);
+      // la cheminée (le feu est peint par la scène), le bar et ses bouteilles, le lustre
+      R(K, 11, 28, 62, 52); R('#c9c0b0', 12, 29, 60, 51); R('#e3dccf', 12, 29, 60, 3); R('#a89e8c', 12, 32, 60, 2); for (let y = 36; y < 80; y += 8) for (let x = 13 + ((y / 8) % 2 ? 6 : 0); x < 70; x += 12) R('#b5ab99', x, y, 1, 7); R(K, 22, 44, 40, 36); R('#1c0f0a', 23, 45, 38, 35); R(K, 8, 24, 68, 5); R('#e3dccf', 9, 25, 66, 3); R(K, 30, 14, 6, 10); R('#ffd065', 31, 15, 4, 9); R(K, 48, 12, 8, 12); R('#35b58a', 49, 13, 6, 11); R('#f26b5e', 50, 9, 4, 4);
+      R(K, 263, 8, 78, 40); R('#2c1810', 264, 9, 76, 38); [0, 1].forEach((k) => { const y = 11 + k * 18; R('#4a2c1d', 266, y + 14, 72, 2); const r = hasard('bar' + k); for (let x = 268; x < 334; x += 7) { const h = 8 + Math.floor(r() * 5), coul = ['#35b58a', '#f2b33d', '#b6402a', '#8fdbff', '#9b6be8', '#e9dfc8'][Math.floor(r() * 6)]; R(coul, x, y + 14 - h, 4, h); R(coul, x + 1, y + 12 - h, 2, 2); R('rgba(255,255,255,.4)', x, y + 14 - h, 1, h); } });
+      R(K, 259, 54, 84, 26); R('#7a3a22', 260, 55, 82, 4); R('#93492b', 260, 55, 82, 1); R('#5e2a18', 260, 59, 82, 21); for (let x = 264; x < 338; x += 20) R('#7a3a22', x, 62, 14, 15); R('#ffd065', 260, 60, 82, 1);
+      [173].forEach((x) => { R('#ffd065', x, 0, 1, 5); R(K, x - 16, 5, 33, 5); R('#ffd065', x - 15, 5, 31, 3); R('#ffe9a6', x - 15, 5, 31, 1); [-13, -6, 0, 6, 12].forEach((d) => { R(K, x + d - 1, 9, 4, 7); R(allume ? '#fff3c4' : '#8a7b4a', x + d, 10, 2, 5); }); });
+      R('#3a2014', 0, 80, 346, 1); R('#6b3d26', 0, 81, 346, 11); R('#7d4a30', 0, 81, 346, 2); for (let x = 0; x < 346; x += 20) { R('#57301d', x, 83, 1, 9); R('#57301d', x + 10, 87, 10, 1); } R('#10163a', 0, 92, 346, 4); R('#3a4a8c', 0, 92, 346, 1);
     }
     if (!allume) { g.fillStyle = 'rgba(6,9,30,.7)'; g.fillRect(0, 0, 346, 92); }
     DECORS.set(cle, c); return c;

@@ -1006,14 +1006,15 @@ ACTIONS.gemmes_essai = async (j) => ({ gemmes: Number(await rpc('jeu_gemmes_essa
 // Les pièces embauchent des employés, qui produisent du renom, heure après heure ; à un certain renom, tout repart de zéro
 // contre une brique. Les règles (src/regles/agence.js) font tout le calcul ; ici on lit, on applique, on écrit d'un bloc.
 async function agenceDe(j: string) {
-  const { data, error } = await admin.from('agences').select('saison, agents, negociateurs, directeurs, renom, le, briques, total').eq('joueur', j).maybeSingle();
+  const { data, error } = await admin.from('agences').select('saison, agents, negociateurs, directeurs, renom, le, briques, total, autres').eq('joueur', j).maybeSingle();
   if (error) throw error;
   const jm = await jourMs(), maintenant = Date.now(), s = CLA.saison(MAI.mandat(Regles.jourDuJeu(maintenant, jm)));
-  const lue = data ? { saison: Number(data.saison), e: { agent: Number(data.agents), negociateur: Number(data.negociateurs), directeur: Number(data.directeurs) }, renom: Number(data.renom), le: ms(data.le), briques: Number(data.briques), total: Number(data.total) } : null;
+  const lue = data ? { saison: Number(data.saison), e: Object.assign({}, (data.autres && typeof data.autres === 'object') ? data.autres : {}, { agent: Number(data.agents), negociateur: Number(data.negociateurs), directeur: Number(data.directeurs) }), renom: Number(data.renom), le: ms(data.le), briques: Number(data.briques), total: Number(data.total) } : null;
   return { a: AGE.avancer(lue, maintenant, jm, s), avant: data ? data.le : null };
 }
 async function ecrireAgence(j: string, a: Ligne, cout: number, avant: string | null) {
-  await rpc('jeu_agence', { j, cout, avant, s: a.saison, ag: a.e.agent, ng: a.e.negociateur, dr: a.e.directeur, rn: a.renom, quand: new Date(a.le).toISOString(), b: a.briques, t: a.total });
+  const au: Record<string, number> = {}; for (const p of AGE.POSTES) if (p !== 'agent' && p !== 'negociateur' && p !== 'directeur') au[p] = Math.max(0, Math.floor(Number(a.e[p]) || 0));
+  await rpc('jeu_agence', { j, cout, avant, s: a.saison, ag: a.e.agent, ng: a.e.negociateur, dr: a.e.directeur, rn: a.renom, quand: new Date(a.le).toISOString(), b: a.briques, t: a.total, au });
 }
 // mon agence, à jour (la visite compte : l'agence travaille 48 h du jeu au plus sans elle)
 ACTIONS.agence = async (j) => { const x = await agenceDe(j); await ecrireAgence(j, x.a, 0, x.avant); return { agence: x.a }; };
@@ -1025,7 +1026,7 @@ ACTIONS.agence_embaucher = async (j, corps) => {
   let a = x.a, total = 0, faits = 0;
   for (let k = 0; k < n; k++) {
     const r = AGE.embaucher(a, poste, dispo - total);
-    if (!r.ok) { if (k) break; throw new Refus(r.raison, r.raison === 'fonds' ? `Pas assez de pièces : il en faut ${fmt(r.cout)}.` : (r.raison === 'complet' ? 'Ton agence est pleine : pose une brique pour repartir.' : 'Poste inconnu.')); }
+    if (!r.ok) { if (k) break; throw new Refus(r.raison, r.raison === 'fonds' ? `Pas assez de pièces : il en faut ${fmt(r.cout)}.` : (r.raison === 'complet' ? 'Ton agence est pleine : pose une brique pour repartir.' : r.raison === 'max' ? 'Tu as déjà tous les employés possibles à ce poste.' : r.raison === 'verrou' ? `Ce poste s’ouvre après ${r.briques} briques.` : 'Poste inconnu.')); }
     a = r.agence; total += r.cout; faits++;
   }
   await ecrireAgence(j, a, total, x.avant);

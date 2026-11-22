@@ -14,6 +14,8 @@ create table if not exists public.agences (
   total        integer not null default 0,           -- de toutes les saisons
   brique_le    timestamptz                           -- la dernière brique posée (à égalité, le premier arrivé passe devant)
 );
+-- les postes ajoutés le 22 nov. 2026 (réceptionniste, formateur, photographe, associé) : leur nombre, par nom de poste
+alter table public.agences add column if not exists autres jsonb not null default '{}'::jsonb;
 alter table public.agences enable row level security;
 revoke all on public.agences from anon, authenticated;
 grant all on public.agences to service_role;
@@ -21,7 +23,8 @@ grant all on public.agences to service_role;
 -- écrire l'agence d'un joueur et lui prendre le prix de ses embauches, d'un bloc. « avant » : l'instant de l'agence
 -- quand la fonction l'a lue (vide si elle n'existait pas) ; si elle a changé depuis (deux touchers à la fois), refus.
 -- Rend les pièces du joueur.
-create or replace function public.jeu_agence(j uuid, cout bigint, avant timestamptz, s integer, ag integer, ng integer, dr integer, rn double precision, quand timestamptz, b integer, t integer) returns bigint
+drop function if exists public.jeu_agence(uuid, bigint, timestamptz, integer, integer, integer, integer, double precision, timestamptz, integer, integer);
+create or replace function public.jeu_agence(j uuid, cout bigint, avant timestamptz, s integer, ag integer, ng integer, dr integer, rn double precision, quand timestamptz, b integer, t integer, au jsonb) returns bigint
 language plpgsql security definer set search_path = '' as $$
 declare p bigint; vu timestamptz; vb integer; vs integer; existe boolean;
 begin
@@ -35,9 +38,9 @@ begin
   else
     select pieces into p from public.joueurs where id = j;
   end if;
-  insert into public.agences (joueur, saison, agents, negociateurs, directeurs, renom, le, briques, total, brique_le)
-  values (j, s, ag, ng, dr, rn, quand, b, t, case when b > 0 then quand end)
-  on conflict (joueur) do update set saison = s, agents = ag, negociateurs = ng, directeurs = dr, renom = rn, le = quand, briques = b, total = t,
+  insert into public.agences (joueur, saison, agents, negociateurs, directeurs, renom, le, briques, total, brique_le, autres)
+  values (j, s, ag, ng, dr, rn, quand, b, t, case when b > 0 then quand end, coalesce(au, '{}'::jsonb))
+  on conflict (joueur) do update set saison = s, agents = ag, negociateurs = ng, directeurs = dr, renom = rn, le = quand, briques = b, total = t, autres = coalesce(au, '{}'::jsonb),
     brique_le = case when s is distinct from vs then (case when b > 0 then quand end) when b > coalesce(vb, 0) then quand else public.agences.brique_le end;
   return p;
 end $$;
@@ -59,8 +62,8 @@ language sql stable security definer set search_path = '' as $$
     from public.agences a where a.joueur = j and a.saison = s and a.briques > 0;
 $$;
 
-revoke all on function public.jeu_agence(uuid, bigint, timestamptz, integer, integer, integer, integer, double precision, timestamptz, integer, integer) from public, anon, authenticated;
-grant execute on function public.jeu_agence(uuid, bigint, timestamptz, integer, integer, integer, integer, double precision, timestamptz, integer, integer) to service_role;
+revoke all on function public.jeu_agence(uuid, bigint, timestamptz, integer, integer, integer, integer, double precision, timestamptz, integer, integer, jsonb) from public, anon, authenticated;
+grant execute on function public.jeu_agence(uuid, bigint, timestamptz, integer, integer, integer, integer, double precision, timestamptz, integer, integer, jsonb) to service_role;
 revoke all on function public.classement_agences(integer, integer) from public;
 revoke all on function public.rang_agence(integer, uuid) from public;
 grant execute on function public.classement_agences(integer, integer) to anon, authenticated, service_role;

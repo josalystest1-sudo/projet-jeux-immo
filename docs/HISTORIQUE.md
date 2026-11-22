@@ -449,6 +449,7 @@ Puis une PR par étape, fusionnée en squash :
 | #250 | 22/11 | L'agence en pixel art : employés, bureaux, chantier et portraits peints pixel par pixel, scène animée dans un seul canevas |
 | #251 | 22/11 | L'agence en pixel art fin : design refait (employés de face, pièces détaillées, enseigne, chantier), scène deux fois plus fine, textes en pixels |
 | #252 | 22/11 | De la vie dans l'agence : pauses et bulles des employés, stagiaire aux cafés, négociateurs qui concluent, chat, horloge à l'heure, avion, pigeons |
+| #253 | 22/11 | Quatre nouveaux postes à l'agence (réceptionniste, formateur, photographe, associé), chacun son étage ; bonus plafonnés et de plus en plus chers ; embauches en bas de l'écran |
 | #200 | 16/11 | Prototype du booster validé par Gautier : brillance moyenne fixée, boutons de réglage retirés |
 | #199 | 16/11 | Prototype du booster : une ligne de toits en néon sur le booster du jour, à la place de la maison |
 | #198 | 16/11 | Prototype du booster : moins brillant, lettres cernées, trois niveaux de brillance à choisir |
