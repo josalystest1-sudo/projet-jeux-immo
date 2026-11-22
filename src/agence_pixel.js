@@ -87,20 +87,22 @@
   }
 
   // ---------------------------------------------------------------- les employés
-  // l'agent (66 × 72) : de face derrière son portable, il tape ; i : 0 à 3, 4 = un clin d'œil
+  // l'agent (66 × 72) : de face derrière son portable, il tape ; i : 0 à 3, 4 = un clin d'œil, 5 = il s'étire, 6 = il boit son café
   function agent(a, i) {
-    const F = feuille(66, 72), f = i % 4, s = F.mat(a.haut), fauteuil = F.mat('#3d4f8f'), bois = F.mat('#e0a569'), bois2 = F.mat('#b97b43'), bois3 = F.mat('#9a6233'), gris = F.mat('#4a5378'), noir = F.mat('#262c4d'), blanc = F.mat('#f4f7fd'), peau = F.mat(a.peau);
+    const F = feuille(66, 72), f = i > 4 ? 0 : i % 4, etire = i === 5, boit = i === 6, s = F.mat(a.haut), fauteuil = F.mat('#3d4f8f'), bois = F.mat('#e0a569'), bois2 = F.mat('#b97b43'), bois3 = F.mat('#9a6233'), gris = F.mat('#4a5378'), noir = F.mat('#262c4d'), blanc = F.mat('#f4f7fd'), peau = F.mat(a.peau);
     const ht = f === 1 ? 1 : 0;
     F.rr(16, 22, 34, 34, 8, fauteuil); F.r(22, 26, 22, 1, F.mat('#5266ad', { plat: true }));
     F.poly([[17, 60], [17, 46], [22, 39], [44, 39], [49, 46], [49, 60]], s);
     F.poly([[28, 39], [33, 44], [38, 39]], F.mat(teinte(a.haut, 1.3))); F.r(32, 44, 2, 6, F.mat(teinte(a.haut, 0.72), { plat: true }));
-    tete(F, 33, 23 + ht, a, { casque: true, regard: f === 2 ? 1 : 0, clin: i === 4, bas: f === 3 });
-    F.l(19, 46, 21, 53, 5, s); F.l(47, 46, 45, 53, 5, s);
+    tete(F, 33, 23 + ht - (etire ? 1 : 0), a, { casque: true, regard: f === 2 ? 1 : 0, clin: i === 4 || etire, bas: f === 3 && !boit, parle: etire });
+    if (etire) { F.l(19, 45, 12, 33, 5, s); F.l(47, 45, 54, 33, 5, s); F.e(11.5, 30, 2.6, 2.6, peau); F.e(54.5, 30, 2.6, 2.6, peau); }
+    else { F.l(19, 46, 21, 53, 5, s); if (boit) F.l(47, 46, 44, 37, 5, s); else F.l(47, 46, 45, 53, 5, s); }
     F.poly([[3, 52], [63, 52], [66, 58], [0, 58]], bois); F.r(0, 58, 66, 2, bois2); F.r(2, 60, 62, 10, bois2); F.rr(5, 62, 56, 6, 1, bois3); F.r(30, 64, 6, 1, F.mat('#e0a569', { plat: true })); F.r(3, 70, 5, 2, bois3); F.r(58, 70, 5, 2, bois3);
     F.poly([[23, 37], [43, 37], [44, 53], [22, 53]], gris); F.r(21, 53, 24, 2, noir); F.r(32, 43, 2, 2, F.mat(f % 2 ? '#8fdbff' : '#c9f0ff', { plat: true })); F.r(25, 39, 16, 1, F.mat('#5d6790', { plat: true }));
-    F.e(19.5, 53 - (f % 2), 2.6, 2.2, peau); F.e(46.5, 53 - ((f + 1) % 2), 2.6, 2.2, peau);
-    F.rr(53, 46, 6, 7, 1, blanc); F.r(59, 48, 2, 3, blanc); F.r(54, 46, 4, 1, F.mat('#6b4423', { plat: true }));
-    const vapeur = F.mat('#dce9ff', { plat: true }); F.p(55 + (f % 2), 43, vapeur); F.p(56 - (f % 2), 41, vapeur); F.p(55 + (f >> 1), 39, vapeur);
+    if (!etire) { F.e(19.5, 53 - (f % 2), 2.6, 2.2, peau); if (!boit) F.e(46.5, 53 - ((f + 1) % 2), 2.6, 2.2, peau); }
+    if (boit) { F.rr(36, 28, 7, 7, 1, blanc); F.e(44, 33, 2.6, 2.6, peau); }
+    else { F.rr(53, 46, 6, 7, 1, blanc); F.r(59, 48, 2, 3, blanc); F.r(54, 46, 4, 1, F.mat('#6b4423', { plat: true }));
+      const vapeur = F.mat('#dce9ff', { plat: true }); F.p(55 + (f % 2), 43, vapeur); F.p(56 - (f % 2), 41, vapeur); F.p(55 + (f >> 1), 39, vapeur); }
     F.poly([[5, 54], [15, 54], [16, 57], [4, 57]], blanc); F.r(7, 55, 6, 1, F.mat('#9fb6dc', { plat: true })); F.r(6, 51, 9, 2, F.mat('#f2b33d')); F.r(7, 49, 7, 2, F.mat('#f26b5e'));
     return F.fin();
   }
@@ -150,7 +152,36 @@
     else { F.l(26, 31, 29, 24, 5, gilet); F.e(29, 21, 2.6, 2.6, peau); F.l(29, 21, 30, 12, 2, manche); F.rr(26, 8, 8, 4, 1, fer); }
     return F.fin();
   }
-  const FAIRE = { agent, negociateur, directeur }, CACHE = new Map(), OUVRIERS = [];
+  // le stagiaire (36 × 68) : il traverse l'open space avec un plateau de cafés ; i : 0 à 3 (il marche)
+  function stagiaire(a, i) {
+    const F = feuille(36, 68), f = i % 4, s = F.mat(a.haut), pant = F.mat('#3d4f8f'), noir = F.mat('#f4f7fd'), peau = F.mat(a.peau), plateau = F.mat('#8c96b3'), tasse = F.mat('#f4f7fd');
+    const gx = [0, -2, 0, 2][f], gl = f === 1 ? 2 : 0, dl = f === 3 ? 2 : 0;
+    F.r(11 + gx, 46, 6, 18 - gl, pant); F.r(19 - gx, 46, 6, 18 - dl, pant); F.rr(9 + gx, 63 - gl, 9, 5, 2, noir); F.rr(18 - gx, 63 - dl, 9, 5, 2, noir);
+    F.poly([[8, 48], [8, 35], [12, 29], [24, 29], [28, 35], [28, 48]], s); F.poly([[14, 29], [18, 33], [22, 29]], F.mat(teinte(a.haut, 0.75))); F.r(15, 40, 6, 5, F.mat(teinte(a.haut, 0.82)));
+    tete(F, 18, 17, a, { regard: 1, clin: i === 4 });
+    const b = f % 2; F.l(9, 35, 10, 41, 5, s); F.l(27, 35, 28, 41, 5, s); F.r(6, 41 - b, 26, 2, plateau); F.e(10, 42 - b, 2.6, 2.4, peau); F.e(28, 42 - b, 2.6, 2.4, peau);
+    [[9, 0], [16, 0], [23, 0]].forEach(([x]) => { F.rr(x, 35 - b, 5, 6, 1, tasse); F.r(x + 1, 35 - b, 3, 1, F.mat('#6b4423', { plat: true })); });
+    return F.fin();
+  }
+  // le chat du bureau (28 × 18) ; i : 0 ou 1 (il marche)
+  const CHATS = [];
+  function chat(i) {
+    i %= 2; if (CHATS[i]) return CHATS[i];
+    const F = feuille(28, 18), roux = F.mat('#e08a3c'), clair = F.mat('#f6d7a8'), raie = F.mat('#b8621f', { plat: true }), noir = F.mat(K, { plat: true }), rose = F.mat('#f08c7e', { plat: true });
+    F.l(3, 9, 1, 3 + i, 2, roux); F.rr(3, 7, 17, 8, 3, roux); [7, 11, 15].forEach((x) => F.r(x, 7, 2, 4, raie));
+    F.r(5 + i, 14, 2, 4 - i, roux); F.r(9 - i, 14, 2, 3 + i, roux); F.r(14 + i, 14, 2, 4 - i, roux); F.r(17 - i, 14, 2, 3 + i, roux);
+    F.poly([[17, 4], [19, 0], [21, 4]], roux); F.poly([[22, 4], [24, 0], [26, 4]], roux); F.rr(16, 3, 11, 9, 3, roux); F.rr(19, 8, 6, 4, 2, clair);
+    F.r(19, 6, 1, 2, noir); F.r(24, 6, 1, 2, noir); F.p(22, 9, rose);
+    return (CHATS[i] = F.fin());
+  }
+  // une bulle au-dessus d'une tête (17 × 15), avec son petit dessin
+  const DESSINS = { idee: ['#f2b33d', [28, 62, 62, 62, 28, 28, 8]], note: ['#4f8df7', [14, 10, 8, 8, 56, 56, 0]], coeur: ['#f26b5e', [54, 127, 127, 62, 28, 8, 0]], etoile: ['#f2b33d', [8, 8, 127, 62, 28, 54, 34]], ok: ['#27a86b', [0, 1, 2, 68, 40, 16, 0]], zzz: ['#6c7bd9', [112, 32, 119, 2, 7, 0, 0]], cafe: ['#8a5a2b', [36, 18, 0, 124, 126, 124, 56]], pourcent: ['#f26b5e', [98, 100, 8, 16, 38, 70, 0]] };
+  function bulle(g, x, y, sorte, gauche) {
+    const R = (c, a, b, l, h) => { g.fillStyle = c; g.fillRect(a, b, l, h); }, d = DESSINS[sorte]; if (!d) return;
+    R(K, x + 1, y, 15, 13); R(K, x, y + 1, 17, 11); R('#ffffff', x + 1, y + 1, 15, 11); R('#dce9ff', x + 1, y + 10, 15, 2); R(K, x + (gauche ? 10 : 3), y + 13, 4, 2); R('#dce9ff', x + (gauche ? 11 : 4), y + 12, 2, 2);
+    g.fillStyle = d[0]; for (let b = 0; b < 7; b++) for (let a = 0; a < 7; a++) if (d[1][b] & (64 >> a)) g.fillRect(x + 5 + a, y + 3 + b, 1, 1);
+  }
+  const FAIRE = { agent, negociateur, directeur, stagiaire }, CACHE = new Map(), OUVRIERS = [];
   // l'image d'un employé (gardée : on ne la repeint jamais) ; i : 0 à 3, ou 4 pour le clin d'œil
   function employe(poste, graine, i) {
     const k = poste + '|' + graine + '|' + i; let c = CACHE.get(k);
@@ -276,5 +307,5 @@
   }
   // recopier un dessin dans un canevas de la page (les portraits, la brique du bouton, la ville)
   function poser(cible, source) { if (!cible || !source) return; cible.width = source.width; cible.height = source.height; cible.getContext('2d').drawImage(source, 0, 0); }
-  window.AgencePixel = { employe, portrait, decor, grue, ouvrier, brique, grandeBrique, poser, ville, texte, largeurTexte, plaque, K };
+  window.AgencePixel = { employe, portrait, decor, grue, ouvrier, brique, grandeBrique, poser, ville, texte, largeurTexte, plaque, chat, bulle, K };
 })();

@@ -52,6 +52,15 @@
   const rangCase = (n, vus, k) => (n <= vus ? k : k + vus * Math.floor((n - 1 - k) / vus));
   const tr = (t) => (window.Langue && Langue.t ? Langue.t(t) : t);
   let image = 0, briquesVues = 0, chute = -99, acteurs = [], travail = null; const modele = { agent: [], negociateur: [], directeur: [] }, eclats = {};
+  // ce qui bouge dans le décor d'un étage allumé : l'horloge à l'heure, le cours qui clignote, un avion dans le ciel
+  const chatM = { saut: -99 };
+  function vieDuDecor(g, R, p, y0) {
+    const NOIR = AgencePixel.K, avion = (fx, fy, fl) => { const t = (image * 0.7 + fx) % 260; if (t < fl - 2) { R(image % 6 < 3 ? '#ff6b5e' : '#fff', 3 + fx + Math.floor(t), y0 + fy, 2, 1); R('#dce9ff', 3 + fx + Math.floor(t) + 2, y0 + fy, 1, 1); } };
+    if (p === 'agent') { const d = new Date(), cx = 3 + 190, cy = y0 + 22, trait = (an, l, coul, ep) => { for (let i = 1; i <= l; i++) R(coul, Math.round(cx + Math.sin(an) * i - (ep > 1 ? 0.5 : 0)), Math.round(cy - Math.cos(an) * i - (ep > 1 ? 0.5 : 0)), ep, ep); };
+      R('#fbfcff', cx - 6, cy - 6, 13, 13); trait((d.getHours() % 12 + d.getMinutes() / 60) / 12 * 2 * Math.PI, 4, NOIR, 2); trait(d.getMinutes() / 60 * 2 * Math.PI, 6, NOIR, 1); trait(d.getSeconds() / 60 * 2 * Math.PI, 6, '#f26b5e', 1); R(NOIR, cx - 1, cy - 1, 2, 2); }
+    if (p === 'negociateur') { R(image % 8 < 4 ? '#f26b5e' : '#7a2e2a', 3 + 184, y0 + 17, 4, 4); const h = [0, 1, 2, 1][Math.floor(image / 3) % 4]; R('#35e0a0', 3 + 184, y0 + 17 + 6 - h, 2, 2 + h); avion(12, 16, 52); avion(282, 19, 52); }
+    if (p === 'directeur') avion(128, 13, 90);
+  }
   function peindre() {
     const page = document.getElementById('ag-pix'), a = courante(); if (!page || !a) return;
     if (!travail) { travail = document.createElement('canvas'); travail.width = PX.W; travail.height = PX.H; }
@@ -61,6 +70,8 @@
     R(NOIR, 14, 14, 34, 18); R('#8c96b3', 15, 15, 32, 16); R('#aab3cc', 15, 15, 32, 2); for (let x = 18; x < 44; x += 4) R('#5d6790', x, 19, 2, 10); R(NOIR, 20, 11, 6, 4); R('#5d6790', 21, 12, 4, 3);
     R(NOIR, 296, 8, 26, 24); R('#9a6233', 297, 9, 24, 20); R('#b97b43', 297, 9, 24, 2); for (let x = 300; x < 320; x += 5) R('#7a4a24', x, 11, 1, 18); R('#5d6790', 297, 16, 24, 2); R('#5d6790', 297, 24, 24, 2); R(NOIR, 299, 29, 3, 4); R(NOIR, 316, 29, 3, 4);
     R(NOIR, 333, 2, 3, 30); R('#8c96b3', 334, 3, 1, 29); R(NOIR, 331, 0, 7, 5); R(image % 10 < 5 ? '#ff6b5e' : '#7a2e2a', 332, 1, 5, 3);
+    // deux pigeons sur la citerne : ils picorent, et l'un sautille
+    [[301, 0], [311, (image % 90) < 4 ? -2 : 0]].forEach(([x, dy], i) => { const pic = (image + i * 5) % 16 < 3 ? 1 : 0; R(NOIR, x, 2 + dy + pic, 7, 6); R('#aab3cc', x + 1, 3 + dy + pic, 5, 4); R('#8c96b3', x + 3, 4 + dy + pic, 3, 2); R('#dce3f2', x + (i ? 1 : 4), 2 + dy + pic * 2, 2, 2); R('#f2b33d', x + (i ? 0 : 6), 3 + dy + pic * 2, 1, 1); });
     const nom = state.pseudo || tr('Agence'), ln = Math.min(AgencePixel.largeurTexte(nom), 200), ex = Math.round(176 - ln / 2) - 10, el = ln + 20;
     R(NOIR, ex + 8, 26, 4, 8); R(NOIR, ex + el - 12, 26, 4, 8); R(NOIR, ex - 1, 5, el + 2, 23); R('#ffd065', ex, 6, el, 21); R('#b5811f', ex, 25, el, 2); R('#0b1233', ex + 2, 8, el - 4, 17); R('#16204f', ex + 2, 8, el - 4, 1);
     g.save(); g.beginPath(); g.rect(ex + 4, 8, el - 8, 17); g.clip(); AgencePixel.texte(g, nom, ex + 10, 14, '#b5811f'); AgencePixel.texte(g, nom, ex + 10, 13, '#ffd979'); g.restore();
@@ -68,20 +79,32 @@
     // les murs de l'immeuble
     R(NOIR, 0, 32, PX.W, PX.H - 32); R('#1b2550', 1, 33, PX.W - 2, PX.H - 33); R('#3a4a8c', 1, 33, PX.W - 2, 1); R('#26336e', 1, 34, 2, PX.H - 34); R('#26336e', PX.W - 3, 34, 2, PX.H - 34);
     for (const p of ['directeur', 'negociateur', 'agent']) {
-      const y0 = PX.y[p], n = a.e[p] || 0; g.drawImage(AgencePixel.decor(p, n > 0), 3, y0);
-      if (!pose) modele[p].forEach((m, k) => {
-        const ph = (m.rang * 7 + k * 3) % 11, clin = (image + ph * 17) % 31 === 0; let x = PLACE[p](k), f = 0, miroir = false, dy = 0;
-        if (p === 'agent') f = (image + ph) % 4;
-        else if (p === 'directeur') f = Math.floor((image + ph) / 2) % 4;
-        else { const T = 84 + ph * 6, t = (image + ph * 9) % T, u = t < T / 2 ? t / (T / 2) : 2 - t / (T / 2); x += Math.round((u * 2 - 1) * (14 + ph % 4 * 3)); miroir = t >= T / 2; f = Math.floor(image / 2) % 4; }
-        const age = image - m.ne, saut = image - m.saut; if (age >= 0 && age < 6) dy -= [26, 15, 7, 2, -2, 0][age]; if (saut >= 0 && saut < 5) dy -= [5, 9, 7, 3, -1][saut];
-        const im = AgencePixel.employe(p, graine(p, m.rang), clin ? 4 : f), yy = y0 + PX.sol - im.height + dy;
-        R('rgba(8,12,40,.22)', 3 + x + 4, y0 + PX.sol - 1, im.width - 8, 2);
-        if (miroir) { g.save(); g.translate(3 + x + im.width, yy); g.scale(-1, 1); g.drawImage(im, 0, 0); g.restore(); } else g.drawImage(im, 3 + x, yy);
-        // la bulle du négociateur, de temps en temps
-        if (p === 'negociateur' && (image + ph * 13) % 90 < 22) { const bx = 3 + x + (miroir ? -16 : 28), by = yy - 2; R(NOIR, bx + 1, by, 19, 13); R(NOIR, bx, by + 1, 21, 11); R('#fff', bx + 1, by + 1, 19, 11); R(NOIR, bx + (miroir ? 14 : 3), by + 13, 4, 2); R('#fff', bx + (miroir ? 15 : 4), by + 12, 2, 2); [4, 9, 14].forEach((d, i) => R(i === Math.floor(image / 2) % 3 ? '#2453b3' : '#9fb6dc', bx + d, by + 5, 3, 3)); }
-        acteurs.push({ m, p, x: 3 + x, y: yy, l: im.width, h: im.height });
+      const y0 = PX.y[p], n = a.e[p] || 0, sol = y0 + PX.sol; g.drawImage(AgencePixel.decor(p, n > 0), 3, y0);
+      if (n > 0) vieDuDecor(g, R, p, y0);
+      // qui est où, et ce qu'il fait (tout se déduit du numéro de l'image : rien à retenir)
+      const gens = pose ? [] : modele[p].map((m, k) => {
+        const ph = (m.rang * 7 + k * 3) % 11, o = { m, k, ph, x: PLACE[p](k), f: 0, miroir: false, bulle: null };
+        if ((image + ph * 17) % 31 === 0) o.f = 4;
+        else if (p === 'agent') { const C = 170 + ph * 13, t = (image + ph * 29) % C; o.f = t < 10 ? 5 : t >= 60 && t < 74 ? 6 : (image + ph) % 4; if (t >= 104 && t < 124) o.bulle = ['idee', 'note', 'coeur', 'zzz', 'cafe', 'etoile'][(m.rang + Math.floor((image + ph * 29) / C)) % 6]; }
+        else if (p === 'directeur') { o.f = Math.floor((image + ph) / 2) % 4; const C = 230 + ph * 9, t = (image + ph * 41) % C; if (t < 22) o.bulle = ['etoile', 'idee', 'ok'][(m.rang + Math.floor(image / C)) % 3]; }
+        else { const T = 84 + ph * 6, t = (image + ph * 9) % T, u = t < T / 2 ? t / (T / 2) : 2 - t / (T / 2); o.x += Math.round((u * 2 - 1) * (14 + ph % 4 * 3)); o.miroir = t >= T / 2; o.f = Math.floor(image / 2) % 4; if ((image + ph * 13) % 90 < 22) o.bulle = 'points'; }
+        return o; });
+      // deux négociateurs qui se croisent s'arrêtent et concluent une affaire
+      if (p === 'negociateur') for (let k = 0; k + 1 < gens.length; k++) if (Math.abs(gens[k + 1].x - gens[k].x) < 44) { gens[k].bulle = 'ok'; gens[k + 1].bulle = 'pourcent'; gens[k].miroir = false; gens[k + 1].miroir = true; gens[k].f = gens[k + 1].f = Math.floor(image / 3) % 2 ? 1 : 0; }
+      // le stagiaire passe derrière les bureaux avec ses cafés
+      if (p === 'agent' && n >= 2 && !pose) { const t = image % 300; if (t < 150) { const im = AgencePixel.employe('stagiaire', graine('stagiaire', Math.floor(image / 300) % 3), Math.floor(image / 2) % 4), x = Math.round(-36 + t * 2.6); g.save(); g.beginPath(); g.rect(3, y0, 346, 92); g.clip(); g.drawImage(im, 3 + x, sol - 2 - im.height); g.restore(); } }
+      gens.forEach((o) => {
+        const m = o.m, age = image - m.ne, saut = image - m.saut; let dy = 0; if (age >= 0 && age < 6) dy -= [26, 15, 7, 2, -2, 0][age]; if (saut >= 0 && saut < 5) dy -= [5, 9, 7, 3, -1][saut];
+        const im = AgencePixel.employe(p, graine(p, m.rang), o.f), x = 3 + o.x, yy = sol - im.height + dy;
+        R('rgba(8,12,40,.22)', x + 4, sol - 1, im.width - 8, 2);
+        if (o.miroir) { g.save(); g.translate(x + im.width, yy); g.scale(-1, 1); g.drawImage(im, 0, 0); g.restore(); } else g.drawImage(im, x, yy);
+        if (o.bulle === 'points') { const bx = x + (o.miroir ? -16 : 28), by = yy - 2; R(NOIR, bx + 1, by, 19, 13); R(NOIR, bx, by + 1, 21, 11); R('#fff', bx + 1, by + 1, 19, 11); R(NOIR, bx + (o.miroir ? 14 : 3), by + 13, 4, 2); R('#fff', bx + (o.miroir ? 15 : 4), by + 12, 2, 2); [4, 9, 14].forEach((d, i) => R(i === Math.floor(image / 2) % 3 ? '#2453b3' : '#9fb6dc', bx + d, by + 5, 3, 3)); }
+        else if (o.bulle) { const tx = p === 'agent' ? 33 : p === 'directeur' ? 50 : 17, gauche = p === 'negociateur' ? o.miroir : o.k >= VISIBLES[p] - 1; AgencePixel.bulle(g, gauche ? x + tx - 27 : x + tx + 10, Math.max(y0 + 1, yy - 6), o.bulle, gauche); }
+        acteurs.push({ m, p, x, y: yy, l: im.width, h: im.height });
       });
+      // le chat de la direction fait sa ronde devant les bureaux
+      if (p === 'directeur' && n > 0 && !pose) { const t = image % 420, va = t < 150, revient = t >= 210 && t < 360; if (va || revient) { const im = AgencePixel.chat(Math.floor(image / 2)), x = Math.round(va ? -28 + t * 2.5 : 346 - (t - 210) * 2.5), s2 = image - chatM.saut, yy = sol + 1 - im.height - (s2 >= 0 && s2 < 5 ? [4, 8, 6, 3, 0][s2] : 0);
+        g.save(); g.beginPath(); g.rect(3, y0, 346, 96); g.clip(); if (va) g.drawImage(im, 3 + x, yy); else { g.translate(3 + x + im.width, yy); g.scale(-1, 1); g.drawImage(im, 0, 0); } g.restore(); if (s2 >= 0 && s2 < 12) AgencePixel.bulle(g, 3 + x + 6, yy - 16, 'coeur', false); acteurs.push({ m: chatM, p: 'chat', x: 3 + x - 4, y: yy - 6, l: im.width + 8, h: im.height + 10 }); } }
       AgencePixel.plaque(g, tr(ETAGES[p]) + (n ? ' ×' + nb(n) : ''), y0 + 3, { xd: PX.W - 6, coul: n ? '#ffd979' : '#8fa0ce' });
       const e = image - (eclats[p] || -99); if (e < 4) { g.fillStyle = `rgba(255,255,255,${0.4 - e * 0.1})`; g.fillRect(3, y0, 346, 92); }
     }
@@ -94,6 +117,7 @@
     for (let i = 0; i < nbr; i++) { let y = sol - 9 - Math.floor(i / 10) * 9; const t = image - chute; if (i === nbr - 1 && t >= 0 && t < 5) y -= [36, 22, 10, 3, 0][t]; AgencePixel.brique(g, mx + (i % 10) * 16, y); }
     if (!nbr) for (let x = mx; x < mx + 158; x += 6) { R('#8a6a1c', x, sol - 10, 3, 1); R('#8a6a1c', x, sol - 2, 3, 1); }
     const ouv = AgencePixel.ouvrier(Math.floor(image / 3)); g.drawImage(ouv, 252, sol - ouv.height);
+    if (Math.floor(image / 3) % 2 && image % 3 < 2) [[288, -15], [291, -19], [285, -20], [293, -13]].forEach(([x, y], i) => { if ((i + image) % 2) R(i % 2 ? '#ffd979' : '#fff3c4', x, sol + y - (image % 3), 1, 1); });
     R(NOIR, 298, sol - 14, 3, 14); R(NOIR, 336, sol - 14, 3, 14); R(NOIR, 288, sol - 44, 60, 32); R('#ffd065', 289, sol - 43, 58, 30); R('#ffe9a6', 289, sol - 43, 58, 2); R('#b5811f', 289, sol - 15, 58, 2); for (let k = 0; k < 8; k++) R(k % 2 ? '#2a1a00' : '#ffd065', 289 + k * 7.25, sol - 41, 8, 3);
     const t1 = tr('Chantier'), t2 = nb(a.briques); AgencePixel.texte(g, t1, 318 - Math.round(AgencePixel.largeurTexte(t1) / 2), sol - 35, '#2a1a00'); AgencePixel.texte(g, t2, 311 - Math.round(AgencePixel.largeurTexte(t2) / 2), sol - 25, '#2a1a00'); AgencePixel.brique(g, 314 + Math.round(AgencePixel.largeurTexte(t2) / 2), sol - 26);
     // recopier dans la page, agrandi sans lissage
@@ -188,7 +212,7 @@
   function etincelle() {
     if (!visible() || document.hidden) return; const sc = document.getElementById('ag-scene'); if (!sc || pose) return;
     const cv = document.getElementById('ag-pix'); if (!cv || !acteurs.length || sc.querySelectorAll('.ag-plus').length > 14) return;
-    const g = acteurs[Math.floor(Math.random() * acteurs.length)], r = cv.getBoundingClientRect(), s = sc.getBoundingClientRect(), k = r.width / PX.W;
+    const g = acteurs[Math.floor(Math.random() * acteurs.length)]; if (g.p === 'chat') return; const r = cv.getBoundingClientRect(), s = sc.getBoundingClientRect(), k = r.width / PX.W;
     const gx = r.left - s.left + (g.x + g.l / 2) * k, gy = r.top - s.top + g.y * k;
     const i = document.createElement('i'); i.className = 'ag-plus' + (g.p === 'directeur' ? ' or' : '');
     i.style.left = gx.toFixed(0) + 'px'; i.style.top = gy.toFixed(0) + 'px';
@@ -219,7 +243,7 @@
   function ouvrir() { showScreen('agence'); }
   function clic(e) {
     if (e.target.id === 'ag-pix') { const r = e.target.getBoundingClientRect(), k = PX.W / r.width, x = (e.clientX - r.left) * k, y = (e.clientY - r.top) * k;
-      const g = acteurs.find((t) => x >= t.x - 1 && x <= t.x + t.l + 1 && y >= t.y - 1 && y <= t.y + t.h + 1); if (g) { vibrer(8); g.m.saut = image; } return; }
+      const g = acteurs.slice().reverse().find((t) => x >= t.x - 1 && x <= t.x + t.l + 1 && y >= t.y - 1 && y <= t.y + t.h + 1); if (g) { vibrer(8); g.m.saut = image; } return; }
     const b = e.target.closest('[data-a],[data-poste],[data-max]'); if (!b) return; vibrer(8);
     if (b.dataset.max) { serie.t = Date.now(); return embaucher(b.dataset.max, Number(b.dataset.n) || 1); }
     if (b.dataset.poste) { const p = b.dataset.poste, t = Date.now(); serie = serie.poste === p && t - serie.t < 4000 ? { poste: p, n: serie.n + 1, t } : { poste: p, n: 1, t }; embaucher(p, 1); return majMax(); }
