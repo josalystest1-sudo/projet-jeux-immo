@@ -163,7 +163,7 @@
     'Les briques': 'Bricks', 'Avec assez de renom, tu poses une brique : tes employés et ton renom repartent de zéro, et chaque brique donne': 'With enough renown, you lay a brick: your staff and your renown start again from zero, and each brick gives',
     'de renom jusqu’à la fin de la saison. La brique suivante demande plus de renom.': 'renown until the end of the season. The next brick needs more renown.',
     'Passe la voir': 'Drop by', 'sans toi. À la fin de la saison, les briques sont comptées et tout repart de zéro.': 'without you. At the end of the season, bricks are counted and everything starts again from zero.',
-    'Chantier': 'Site',
+    'Chantier': 'Site', 'Précédents': 'Previous', 'Suivants': 'Next',
     'Réceptionniste': 'Receptionist', 'Formateur': 'Trainer', 'Photographe': 'Photographer', 'Associé': 'Partner', 'Réception': 'Reception', 'Négociation': 'Negotiation', 'Direction': 'Management', 'Formation': 'Training', 'Studio': 'Studio', 'Associés': 'Partners',
     '+{n} h sans toi': '+{n} h without you', '{n} h sans toi': '{n} h without you', 'Embauches −{n} %': 'Hires −{n}%', '+{n} % par brique': '+{n}% per brick', 'Garde {n} % de l’équipe': 'Keeps {n}% of the team',
     'Après {n} briques': 'After {n} bricks', 'Équipe complète': 'Full team', 'Agence pleine': 'Agency full', 'Embauches moins chères': 'Cheaper hires', 'Tu gardes {n} %': 'You keep {n}%', 'Reste toute la saison': 'Stays all season', 'Utile dès la 1re brique': 'Useful from the 1st brick',
