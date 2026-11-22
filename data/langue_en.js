@@ -163,6 +163,7 @@
     'Les briques': 'Bricks', 'Avec assez de renom, tu poses une brique : tes employés et ton renom repartent de zéro, et chaque brique donne': 'With enough renown, you lay a brick: your staff and your renown start again from zero, and each brick gives',
     'de renom jusqu’à la fin de la saison. La brique suivante demande plus de renom.': 'renown until the end of the season. The next brick needs more renown.',
     'Passe la voir': 'Drop by', 'sans toi. À la fin de la saison, les briques sont comptées et tout repart de zéro.': 'without you. At the end of the season, bricks are counted and everything starts again from zero.',
+    'Chantier': 'Building site',
     'Chargement…': 'Loading…', 'Ton agence': 'Your agency', 'Tes pièces y embauchent des employés. Et chaque jour, un nouveau pack : un bouton apparaît à l’écran quand il est prêt. Le reste du jeu s’ouvre en jouant.': 'Your coins hire staff there. And every day, a new pack: a button appears on screen when it is ready. The rest of the game opens up as you play.',
     '{n} lieux tirés dans toute la France, dont un Rare ou mieux.': '{n} places drawn from all over France, including one Rare or better.',
     '{n} lieux tirés dans la région de ton choix, dont un Rare ou mieux : moins de hasard, un peu plus cher.': '{n} places drawn from the region of your choice, including one Rare or better: less luck, a little more expensive.',

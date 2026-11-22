@@ -1558,69 +1558,106 @@ html.dos-neon .c3d.dessous .c3d-dos{background:linear-gradient(rgba(3,6,16,.12),
 #s-agence{padding-bottom:96px}
 .ag-haut h1{margin:0;font-size:clamp(17px,5.8vw,24px);min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .ag-loyer{color:#1E9E5A;font-size:12px;font-weight:900}.ag-loyer:empty{display:none}
-.ag-scene{position:relative;margin-top:12px;border-radius:22px;overflow:hidden;background:radial-gradient(120% 70% at 50% 0%,#1B2C6E 0%,#0E1640 55%,#080C26 100%);color:#DCE9FF;padding:14px 12px 12px;box-shadow:0 8px 24px rgba(12,20,60,.28);display:flex;flex-direction:column}
+.ag-scene{position:relative;margin-top:12px;border-radius:22px;overflow:hidden;background:radial-gradient(120% 70% at 50% 0%,#1B2C6E 0%,#0E1640 55%,#080C26 100%);color:#DCE9FF;padding:10px 8px 0;box-shadow:0 8px 24px rgba(12,20,60,.28);display:flex;flex-direction:column}
 .ag-attente{margin:auto;font-weight:800;opacity:.8}
 .ag-compteur{text-align:center;position:relative;z-index:2}
 .ag-compteur span{display:block;font-size:11px;letter-spacing:.22em;text-transform:uppercase;font-weight:800;color:#8FB8FF}
-.ag-compteur b{display:block;font-family:var(--titre);font-size:44px;line-height:1.05;font-weight:800;color:#FFD979;text-shadow:0 0 18px rgba(255,200,80,.55);font-variant-numeric:tabular-nums}
+.ag-compteur b{display:block;font-family:var(--titre);font-size:38px;line-height:1.05;font-weight:800;color:#FFD979;text-shadow:0 0 18px rgba(255,200,80,.55);font-variant-numeric:tabular-nums}
 .ag-compteur b small{font-size:.5em;opacity:.8}
 .ag-compteur em{font-style:normal;font-size:13px;font-weight:800;color:#9CC4FF}
-.ag-absence{text-align:center;font-size:12.5px;font-weight:800;color:#FFE7A6;height:18px;margin-top:4px;opacity:0;transform:translateY(-4px);transition:opacity .4s,transform .4s}
+.ag-absence{position:absolute;left:0;right:0;top:92px;z-index:3;pointer-events:none;text-shadow:0 1px 4px #000;text-align:center;font-size:12.5px;font-weight:800;color:#FFE7A6;height:18px;opacity:0;transform:translateY(-4px);transition:opacity .4s,transform .4s}
 .ag-absence.on{opacity:1;transform:none}
-.ag-bas{display:flex;gap:10px;align-items:flex-end;margin-top:auto;padding-top:20px}
-.ag-immeuble{flex:1;min-width:0;position:relative;border:2px solid #4FA3FF;border-radius:10px 10px 4px 4px;box-shadow:0 0 14px rgba(79,163,255,.45),inset 0 0 18px rgba(79,163,255,.12);background:rgba(10,18,54,.6)}
-.ag-enseigne{position:absolute;top:-12px;left:50%;transform:translateX(-50%);max-width:78%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;background:#0E1640;border:1.5px solid #FFD065;border-radius:6px;padding:1px 9px;font-size:11px;font-weight:900;letter-spacing:.08em;text-transform:uppercase;color:#FFD979;box-shadow:0 0 10px rgba(255,200,80,.4)}
-.ag-etage{display:flex;align-items:flex-end;gap:6px;height:60px;padding:17px 8px 4px;border-top:1.5px solid rgba(79,163,255,.5);position:relative}
-.ag-etage:first-child{border-top:0}
-.ag-nom{position:absolute;left:8px;top:5px;font-size:9px;letter-spacing:.18em;text-transform:uppercase;font-weight:800;color:#7FA9EE}
-.ag-etage.vide .ag-nom{opacity:.45}
-.ag-gens{flex:1;display:flex;min-width:0;align-items:flex-end;height:100%}
-.ag-perso{flex:0 1 34px;min-width:0;width:34px;height:37px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;color:#7DBBFF;overflow:visible}
-.ag-lueur{stroke-width:6;opacity:.16}
-.ag-negociateur{color:#A9DBFF}.ag-directeur{color:#D5E5FF}.ag-perso .ag-or{stroke:#FFD065}
-.ag-ecr{fill:rgba(125,187,255,.4)}
-.ag-combien{font-size:12px;color:#fff;font-weight:900;flex:none;min-width:0}
-@keyframes ag-tape{0%,100%{transform:translateY(0)}50%{transform:translateY(-1.5px)}}
 @keyframes ag-balance{0%,100%{transform:rotate(-3deg)}50%{transform:rotate(3deg)}}
-@keyframes ag-hoche{0%,80%,100%{transform:translateY(0)}90%{transform:translateY(1.5px)}}
-@keyframes ag-clign{0%,49%{opacity:1}50%,100%{opacity:.15}}
 @keyframes ag-entre{0%{transform:translateY(14px) scale(.4);opacity:0}100%{transform:none;opacity:1}}
 @keyframes ag-part{to{transform:translateY(-16px) scale(.6);opacity:0}}
-@keyframes ag-eclat{0%{background:rgba(125,187,255,.35)}100%{background:transparent}}
+@keyframes ag-eclat{0%{opacity:.5}100%{opacity:0}}
 @keyframes ag-monte{0%{transform:translate(0,0) scale(1);opacity:0}15%{opacity:1}100%{transform:translate(var(--dx),var(--dy)) scale(.5);opacity:0}}
 @keyframes ag-tombe{0%{transform:translateY(-150px);opacity:0}60%{opacity:1}100%{transform:none}}
 @keyframes ag-flotte{0%{transform:translate(-50%,0);opacity:0}20%{opacity:1}100%{transform:translate(-50%,-34px);opacity:0}}
 @keyframes ag-pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.035)}}
-.ag-gens .ag-agent{animation:ag-tape .55s ease-in-out infinite}
-.ag-gens .ag-negociateur{animation:ag-balance 2.2s ease-in-out infinite;transform-origin:50% 100%}
-.ag-gens .ag-directeur{animation:ag-hoche 3s ease-in-out infinite}
-.ag-gens .ag-perso.arrive{animation:ag-entre .45s cubic-bezier(.3,1.5,.5,1)}
-.ag-gens .ag-ecr,.ag-gens .ag-onde{animation:ag-clign 1.3s steps(1) infinite}
-.ag-etage.eclat{animation:ag-eclat .7s ease-out}
-.ag-scene.pose .ag-gens .ag-perso{animation:ag-part .5s ease-in forwards}
 .ag-plus{position:absolute;width:7px;height:7px;margin:-3px 0 0 -3px;border-radius:50%;background:#9CCBFF;box-shadow:0 0 8px #6FB2FF;pointer-events:none;z-index:1;animation:ag-monte 1.25s ease-in forwards}
 .ag-plus.or{background:#FFD979;box-shadow:0 0 8px #FFC14A}
-.ag-chantier{flex:0 0 74px;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:5px;min-width:0}
-.ag-grue{width:60px;height:64px;fill:none;stroke:#FFD065;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round;opacity:.85;margin-bottom:-2px}
-.ag-crochet{transform-origin:46px 8px;animation:ag-balance 3.4s ease-in-out infinite}
-.ag-crochet rect{fill:rgba(255,208,101,.45)}
-.ag-mur{display:flex;flex-wrap:wrap-reverse;gap:2px;width:67px;align-content:flex-start;border-bottom:2px solid #FFD065;padding-bottom:2px}
-.ag-mur:empty{height:26px;border:1.5px dashed rgba(255,208,101,.55);border-radius:5px}
-.ag-b{width:21px;height:9px;border-radius:2px;background:linear-gradient(180deg,#FFE08A,#F2A93B);box-shadow:0 0 6px rgba(255,190,70,.55)}
+/* (22 nov. : l'immeuble en coupe, dessiné sur 352 px de large puis mis à l'échelle ; personnages et décors : src/agence_art.js) */
+.ag-cadre{position:relative;margin-top:8px;overflow:hidden}
+.ag-tour{position:absolute;left:0;top:0;width:352px;transform-origin:0 0;padding:0 6px;background:#1B2550;border-radius:10px 10px 0 0;box-shadow:inset 0 0 0 2px #2F3F86}
+.ag-toit{position:relative;height:27px}
+.ag-enseigne{position:absolute;left:50%;top:3px;transform:translateX(-50%);max-width:210px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;background:#0B1233;border:2px solid #FFD065;border-radius:7px;padding:1px 12px;font-family:var(--titre);font-size:13px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:#FFD979;box-shadow:0 0 12px rgba(255,200,80,.45)}
+.ag-antenne{position:absolute;right:26px;bottom:0;width:3px;height:24px;background:#8C96B3;border-radius:2px}.ag-antenne::after{content:"";position:absolute;left:-2.5px;top:-4px;width:8px;height:8px;border-radius:50%;background:#F26B5E;animation:ae-clign 1.6s steps(1) infinite}
+.ag-clim{position:absolute;left:20px;bottom:0;width:30px;height:14px;border-radius:3px 3px 0 0;background:repeating-linear-gradient(90deg,#8C96B3 0 3px,#6E789A 3px 6px)}
+.ag-etage{position:relative;width:340px;height:90px;overflow:hidden}
+.ae-decor{position:absolute;inset:0;width:100%;height:100%}
+.ag-gens{position:absolute;inset:0}
+.ag-noir{position:absolute;inset:0 0 8px;background:#070B22;opacity:0;transition:opacity .5s;pointer-events:none}
+.ag-etage.vide .ag-noir{opacity:.68}
+.ag-etage::after{content:"";position:absolute;inset:0;background:#fff;opacity:0;pointer-events:none}
+.ag-etage.eclat::after{animation:ag-eclat .6s ease-out}
+.ag-nom{position:absolute;right:5px;top:4px;background:rgba(11,18,51,.82);color:#DCE9FF;border-radius:6px;padding:1px 7px;font-size:9.500px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;white-space:nowrap}
+.ag-combien{color:#FFD979;font-size:11px;letter-spacing:0}
+.ag-perso{position:absolute;bottom:8px;transform-origin:50% 100%}
+.ag-perso .ae{display:block;overflow:visible}
+.ag-agent{width:62px}.ag-agent .ae{width:62px;height:62px}
+.ag-negociateur{width:37px}.ag-negociateur .ae{width:37px;height:63px}
+.ag-directeur{width:88px}.ag-directeur .ae{width:88px;height:69.500px}
+.ag-perso.arrive{animation:ag-entre .5s cubic-bezier(.3,1.6,.5,1)}
+.ag-scene.pose .ag-perso{animation:ag-part .5s ease-in forwards}
+/* la vie des personnages : transformations et opacité seulement */
+.ae-tete,.ae-bras,.ae-yeux,.ae-jambe,.ae-geste,.ae-tampon,.ae-bulle,.ae-marteau,.ae-crochet{transform-box:fill-box}
+@keyframes ae-hoche{0%,100%{transform:translateY(0)}50%{transform:translateY(.8px)}}
+@keyframes ae-cligne{0%,94%,100%{transform:scaleY(1)}97%{transform:scaleY(.1)}}
+@keyframes ae-tape{0%,100%{transform:rotate(0)}50%{transform:rotate(-5deg)}}
+@keyframes ae-clign{0%,49%{opacity:1}50%,100%{opacity:.25}}
+@keyframes ae-defile{0%{transform:translateY(0)}100%{transform:translateY(-3px)}}
+@keyframes ae-pas{0%,100%{transform:rotate(-13deg)}50%{transform:rotate(13deg)}}
+@keyframes ae-geste{0%,100%{transform:rotate(0)}30%{transform:rotate(22deg)}60%{transform:rotate(-8deg)}}
+@keyframes ae-bulle{0%,55%,100%{opacity:0;transform:scale(.4)}62%,92%{opacity:1;transform:scale(1)}}
+@keyframes ae-tampon{0%,60%,100%{transform:translateY(-3.500px)}72%,80%{transform:translateY(0)}}
+@keyframes ae-marche{0%{transform:translateX(calc(var(--dist) * -1)) scaleX(1)}46%{transform:translateX(var(--dist)) scaleX(1)}50%{transform:translateX(var(--dist)) scaleX(-1)}96%{transform:translateX(calc(var(--dist) * -1)) scaleX(-1)}100%{transform:translateX(calc(var(--dist) * -1)) scaleX(1)}}
+@keyframes ae-marteau{0%,100%{transform:rotate(0)}50%{transform:rotate(-28deg)}}
+.ag-scene .ae-tete{animation:ae-hoche 2.400s ease-in-out infinite;animation-delay:var(--d,0s)}
+.ag-scene .ae-yeux{transform-origin:50% 50%;animation:ae-cligne 4.300s linear infinite;animation-delay:var(--d,0s)}
+.ag-scene .ae-bras{transform-origin:0 0;animation:ae-tape .34s ease-in-out infinite;animation-delay:var(--d,0s)}
+.ag-scene .ae-ecran{animation:ae-clign 1.700s steps(1) infinite;animation-delay:var(--d,0s)}
+.ag-scene .ae-jambe{transform-origin:50% 0}.ag-scene .ae-jambe.g{animation:ae-pas .7s ease-in-out infinite}.ag-scene .ae-jambe.d{animation:ae-pas .7s ease-in-out infinite reverse}
+.ag-scene .ae-geste{transform-origin:100% 0;animation:ae-geste 2.600s ease-in-out infinite;animation-delay:var(--d,0s)}
+.ag-scene .ae-bulle{transform-origin:30% 100%;opacity:0;animation:ae-bulle 7s ease-in-out infinite;animation-delay:var(--d,0s)}
+.ag-scene .ae-tampon{animation:ae-tampon 1.900s ease-in infinite;animation-delay:var(--d,0s)}
+.ag-marche{animation:ae-marche var(--t,8s) linear infinite;animation-delay:var(--d,0s)}
+.ag-etage.vide .ae-lum{opacity:0}
+/* le chantier : la grue, le mur de briques de la saison, l'ouvrier, le panneau */
+.ag-chantier{position:relative;width:340px;height:60px;background:linear-gradient(180deg,#0D1436 0 52px,#2A3364 52px)}
+.ae-grue{position:absolute;left:2px;bottom:8px;width:52px;height:52px}
+.ae-crochet{transform-origin:50% 0;animation:ag-balance 3.400s ease-in-out infinite}
+.ag-mur{position:absolute;left:62px;bottom:8px;width:164px;display:flex;flex-wrap:wrap-reverse;gap:1.500px;align-content:flex-start}
+.ag-mur:empty{height:22px;border:1.500px dashed rgba(255,208,101,.5);border-radius:4px}
+.ag-b{width:15px;height:8px;border-radius:1.500px;background:linear-gradient(180deg,#FFE08A 0 30%,#F2A93B 30% 78%,#B5811F 78%)}
 .ag-b.neuve{animation:ag-tombe .6s cubic-bezier(.3,1.3,.5,1)}
-.ag-total{font-size:11px;font-weight:800;color:#FFD979;white-space:nowrap}.ag-total b{font-size:13px}
-.ag-brique{position:relative;height:40px;border-radius:11px;background:#E3E8F2;overflow:hidden;margin-top:12px;border:2px solid #C9D2E4}
-.ag-brique i{position:absolute;inset:0;background:linear-gradient(90deg,#F2A93B,#FFD65A);transform-origin:0 50%;transform:scaleX(0);transition:transform .12s linear}
-.ag-brique span{position:relative;display:flex;height:100%;align-items:center;justify-content:center;gap:5px;font-size:13px;font-weight:700;color:#1C2440;white-space:nowrap;min-width:0}
-.ag-brique.pleine{border-color:#E09A1C;animation:ag-pulse 1.2s ease-in-out infinite}
-.ag-poser{margin-top:10px;width:100%}
+.ae-ouvrier{position:absolute;left:231px;bottom:8px;width:29px;height:39px;overflow:visible}
+.ag-chantier .ae-marteau{transform-origin:0 100%;animation:ae-marteau .8s ease-in-out infinite}
+.ag-panneau{position:absolute;right:4px;bottom:11px;width:70px;background:#FFD065;color:#2A1A00;border-radius:5px;padding:3px 2px;text-align:center;line-height:1.15;box-shadow:0 3px 0 #B5811F}
+.ag-panneau span{display:block;font-size:8.500px;font-weight:900;letter-spacing:.12em;text-transform:uppercase}
+.ag-total{display:block;font-size:10px;font-weight:800;white-space:nowrap}.ag-total b{font-size:13px}
+/* la brique en cours : une vraie brique qui se remplit d'or ; puis le bouton pour la poser */
+.ag-brique{position:relative;height:48px;border-radius:9px;margin-top:14px;overflow:hidden;background:#121A45;box-shadow:inset 0 0 0 2px #2F3F86,0 5px 0 #080D28}
+.ag-brique i{position:absolute;inset:0;background:linear-gradient(180deg,#FFE9A6 0 22%,#FFC94D 22% 70%,#E09A1C 70%);transform-origin:0 50%;transform:scaleX(0);transition:transform .12s linear}
+.ag-brique u{position:absolute;inset:0;pointer-events:none;background:linear-gradient(90deg,transparent 0 24%,rgba(8,13,40,.28) 24% 24.600%,transparent 24.600% 49.700%,rgba(8,13,40,.28) 49.700% 50.300%,transparent 50.300% 75.400%,rgba(8,13,40,.28) 75.400% 76%,transparent 76%)}
+.ag-brique span{position:relative;display:flex;height:100%;align-items:center;justify-content:center;gap:5px;font-size:13.500px;font-weight:800;color:#fff;text-shadow:0 1px 3px rgba(8,13,40,.9),0 0 8px rgba(8,13,40,.7);white-space:nowrap;min-width:0}
+.ag-brique.pleine span{color:#2A1A00;text-shadow:0 1px 0 rgba(255,255,255,.5)}
+.ag-brique.pleine{box-shadow:inset 0 0 0 2px #FFE9A6,0 5px 0 #8A5E10,0 0 18px rgba(255,200,80,.6)}
+.ag-poser{position:relative;overflow:hidden;width:100%;margin-top:14px;border:0;border-radius:18px;padding:12px 14px;min-height:62px;display:flex;align-items:center;justify-content:center;gap:12px;font:inherit;font-family:var(--titre);font-size:21px;font-weight:800;letter-spacing:.03em;color:#2A1A00;background:linear-gradient(180deg,#FFF0B8 0%,#FFD65A 38%,#F2A93B 100%);box-shadow:inset 0 2px 0 rgba(255,255,255,.7),0 6px 0 #9A6A12,0 12px 22px rgba(0,0,0,.35);cursor:pointer;animation:ag-pulse 1.200s ease-in-out infinite;touch-action:manipulation}
+.ag-poser:active{transform:translateY(4px);box-shadow:inset 0 2px 0 rgba(255,255,255,.7),0 2px 0 #9A6A12;animation:none}
+.ag-poser-b{flex:none;width:46px;height:28px;animation:ag-balance 1.400s ease-in-out infinite}.ag-poser-b svg{display:block;width:100%;height:100%}
+.ag-poser-t{min-width:0}
+.ag-poser-r{position:absolute;top:0;bottom:0;left:0;width:34%;background:linear-gradient(100deg,transparent,rgba(255,255,255,.55),transparent);transform:translateX(-120%);animation:ag-reflet 2.600s ease-in-out infinite;pointer-events:none}
+@keyframes ag-reflet{0%,55%{transform:translateX(-120%)}100%{transform:translateX(420%)}}
+.ag-tete{width:52px;height:52px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex:none;overflow:hidden;box-shadow:inset 0 0 0 2px rgba(255,255,255,.35)}
+.ag-tete .ae{width:100%;height:100%}
+.ag-t-agent{background:#C6D8F2}.ag-t-negociateur{background:#F3DAB4}.ag-t-directeur{background:#2F6B5A}
+@media (prefers-reduced-motion:reduce){ .ag-scene .ae *,.ag-marche,.ae-crochet,.ag-antenne::after,.ag-poser,.ag-poser-b,.ag-poser-r,.ag-poste.pulse{animation:none!important} .ag-scene .ae-bulle{opacity:1} }
 .ag-note{font-size:12.5px;color:var(--gris);margin:8px 2px;text-align:center}
-.ag-embauches{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-top:16px}
-.ag-poste{position:relative;border:0;background:#fff;border-radius:16px;padding:14px 5px 10px;display:flex;flex-direction:column;align-items:center;gap:2px;font:inherit;color:var(--encre);box-shadow:0 2px 10px rgba(23,35,63,.1);cursor:pointer;min-width:0}
+.ag-embauches{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-top:14px}
+.ag-poste{position:relative;border:0;background:#fff;border-radius:16px;padding:10px 5px 8px;display:flex;flex-direction:column;align-items:center;gap:2px;font:inherit;color:var(--encre);box-shadow:0 2px 10px rgba(23,35,63,.1);cursor:pointer;min-width:0}
 .ag-poste:active{transform:translateY(2px)}
 .ag-poste.pulse{animation:ag-pulse 1.2s ease-in-out infinite}
-.ag-tete{width:46px;height:46px;border-radius:50%;background:#0E1640;display:flex;align-items:center;justify-content:center;flex:none}
-.ag-tete .ag-perso{width:30px;height:33px;flex:none}
 .ag-qui{font-size:13.5px;font-weight:900;max-width:100%;overflow:hidden;text-overflow:ellipsis}
 .ag-effet{font-size:10.5px;color:var(--gris);font-weight:700;text-align:center}
 .ag-prix{margin-top:5px;background:var(--accent,var(--plaque));color:#fff;border-radius:999px;padding:5px 9px;font-weight:900;font-size:13px;display:flex;align-items:center;justify-content:center;gap:3px;max-width:100%;white-space:nowrap}
@@ -1632,7 +1669,6 @@ html.dos-neon .c3d.dessous .c3d-dos{background:linear-gradient(rgba(3,6,16,.12),
 .ag-flotte{position:absolute;font-style:normal;font-weight:900;font-size:16px;color:#FFD979;text-shadow:0 1px 6px rgba(0,0,0,.6);pointer-events:none;z-index:3;animation:ag-flotte 1s ease-out forwards}
 .ag-rang{display:flex;align-items:center;gap:10px;padding:7px 10px;border-radius:12px;min-width:0}.ag-rang.moi{background:var(--ciel)}
 .ag-rang .ag-nomj{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:800}
-@media (prefers-reduced-motion:reduce){ .ag-gens .ag-perso,.ag-gens .ag-ecr,.ag-gens .ag-onde,.ag-crochet,.ag-brique.pleine,.ag-poste.pulse{animation:none} }
 @media (min-width:900px){ #s-agence>*{max-width:560px;margin-left:auto;margin-right:auto} }
 /* le bouton « Booster disponible » (16 nov. au soir) : à l'écran dès que le pack du jour est prêt, sur tous les écrans */
 #booster-pret{position:absolute;left:50%;bottom:calc(var(--nav) + env(safe-area-inset-bottom) + 12px);transform:translate(-50%,160%);opacity:0;pointer-events:none;z-index:38;border:0;border-radius:18px;padding:8px 18px 8px 12px;display:flex;align-items:center;gap:11px;background:linear-gradient(180deg,#1B2C6E,#0E1640);color:#fff;font:inherit;text-align:left;box-shadow:0 0 0 2px #FFD065,0 8px 22px rgba(10,16,50,.45);transition:transform .35s cubic-bezier(.3,1.4,.5,1),opacity .25s;cursor:pointer;white-space:nowrap;max-width:calc(100% - 24px)}
@@ -1764,7 +1800,6 @@ html.pocket.nuit .acc-pill{background:var(--blanc)}
 html.pocket.nuit .prog-ic span{background:var(--blanc)}
 html.pocket.nuit .prog-etape{background:#18245A}
 html.pocket.nuit .prog-etape .prog-barre{background:#152663}
-html.pocket.nuit .ag-brique{background:#18245A}
 html.pocket.nuit .ag-poste{background:var(--blanc)}
 html.pocket.nuit .ag-poste.cher .ag-prix{background:#18245A}
 /* -- textes et bordures passés en nuit -- */
@@ -1840,8 +1875,6 @@ html.pocket.nuit .tag.r1,html.pocket.nuit .tag.r2,html.pocket.nuit .tag.r3,html.
 html.pocket.nuit .tag.r6{background:#231A4D;color:#E3CCFF}
 html.pocket.nuit .compte-a-rebours{background:#0A1233;color:#FFD98A;box-shadow:inset 0 0 0 1px rgba(255,208,101,.5)}
 html.pocket.nuit #bprom,html.pocket.nuit .rond,html.pocket.nuit #bnorth,html.pocket.nuit .seg,html.pocket.nuit .pill,html.pocket.nuit #commune-chip,html.pocket.nuit #legend{background:rgba(10,18,51,.92);color:#DCE9FF;box-shadow:0 0 0 1px rgba(90,168,255,.4),0 6px 16px rgba(0,0,0,.45)}
-html.pocket.nuit .ag-brique{background:#0A1233;border-color:#2A3C86}
-html.pocket.nuit .ag-brique span{color:#EEF3FF}
 /* la plaque de rue : en néon, comme sur les cartes */
 html.pocket.nuit .plaque{background:#0A1233;border:0;box-shadow:0 0 0 2px #5AA8FF,0 0 16px rgba(90,168,255,.6),inset 0 0 14px rgba(90,168,255,.25);text-shadow:0 0 10px rgba(140,200,255,.9)}
 html.pocket.nuit .plaque::before,html.pocket.nuit .plaque::after{background:#5AA8FF;box-shadow:0 0 6px #5AA8FF;width:4px;height:4px;margin-top:-2px}
