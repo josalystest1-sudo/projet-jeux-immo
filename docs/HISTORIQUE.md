@@ -444,6 +444,7 @@ Puis une PR par étape, fusionnée en squash :
 | #245 | 19/11 | Icônes « néon rempli » (choix B de Gautier) ; les sons du jeu faits sur place (toucher, écran, fenêtre, construire, miser, verser, refus) |
 | #246 | 19/11 | Le booster disponible est un petit sachet dessiné, plus un rectangle vide |
 | #247 | 19/11 | La fiche d'une parcelle à plusieurs lieux : un seul déplié, les autres sur une ligne |
+| #248 | 22/11 | L'agence redessinée : immeuble en coupe, bureaux meublés, employés façon dessin animé qui travaillent (tous différents), chantier, brique dorée et vrai bouton « Poser la brique » |
 | #200 | 16/11 | Prototype du booster validé par Gautier : brillance moyenne fixée, boutons de réglage retirés |
 | #199 | 16/11 | Prototype du booster : une ligne de toits en néon sur le booster du jour, à la place de la maison |
 | #198 | 16/11 | Prototype du booster : moins brillant, lettres cernées, trois niveaux de brillance à choisir |

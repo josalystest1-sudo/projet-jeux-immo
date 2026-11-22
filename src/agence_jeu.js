@@ -1,8 +1,10 @@
 // L'agence, côté jeu (16 nov. 2026, GDD § 5 sexies ; règles : src/regles/agence.js). Depuis le 16 nov. au soir, l'agence
 // est un écran de la barre du bas, à la place de l'accueil (Gautier : « on a l'impression d'être devant un panneau de
 // contrôle, on ne voit pas les employés travailler, le renom monter en direct »). Une scène de nuit en néon :
-//   - l'immeuble de l'agence, un étage par poste : on voit les employés travailler (jusqu'à quelques-uns par étage, le
-//     nombre exact à côté) ; chaque embauche fait entrer un personnage ;
+//   - l'immeuble de l'agence vu en coupe, un étage meublé par poste : on voit les employés travailler (quelques-uns par
+//     étage, le nombre exact sur la plaque) ; chaque embauche fait entrer un personnage. Depuis le 22 nov. (Gautier : « de
+//     vrais employés façon dessin animé, les bureaux et tout ça, pas des bonshommes bâtons »), les personnages et les
+//     décors sont dessinés par src/agence_art.js ; l'immeuble est dessiné sur 352 px de large et mis à l'échelle (echelle) ;
 //   - le renom monte en direct (un compteur à décimales, des étincelles qui partent des employés) ;
 //   - le chantier : les briques posées cette saison s'empilent ; la brique en cours se remplit, et on la pose.
 // Tout est en HTML et en CSS (transformations seulement : pas de filtre animé, pas de mélange de couches).
@@ -15,7 +17,7 @@
   const NOMS = { agent: 'Agents', negociateur: 'Négociateurs', directeur: 'Directeurs' }, UN = { agent: 'Agent', negociateur: 'Négociateur', directeur: 'Directeur' };
   const ETAGES = { agent: 'Agents', negociateur: 'Négociation', directeur: 'Direction' };
   const EFFET = { agent: `+${P.agent.renom} par heure`, negociateur: `+${Math.round(P.negociateur.bonus * 100)} % de renom`, directeur: `Renom × ${String(P.directeur.facteur).replace('.', ',')}` };
-  const VISIBLES = { agent: 8, negociateur: 6, directeur: 3 }, CLE_VUE = 'cadastra-agence-vue';
+  const VISIBLES = { agent: 5, negociateur: 4, directeur: 2 }, LARGEUR = 352, CLE_VUE = 'cadastra-agence-vue';
   let recue = null, recueLe = 0, occupe = false, classement = null, minuteur = 0, etincelles = 0, pose = false, absenceDite = false;
   const saison = () => CLA.saison(mandatCourant());
   const ecran = () => document.getElementById('s-agence');
@@ -38,15 +40,23 @@
   function decimales(debit) { if (!(debit > 0)) return 0; const parSeconde = debit / (JOUR / 24 / 1000); return parSeconde >= 2 ? 0 : parSeconde >= 0.2 ? 1 : parSeconde >= 0.02 ? 2 : 3; }
   function renomTexte(x, dec) { const e = Math.floor(x); if (!dec) return nb(e); return nb(e) + '<small>,' + String(Math.floor((x - e) * Math.pow(10, dec))).padStart(dec, '0') + '</small>'; }
 
-  // ---------------------------------------------------------------- les personnages (au trait, en néon)
-  const TRAITS = {
-    agent: '<circle cx="13" cy="13" r="5"/><path d="M13 18v12M13 22l11 4M5 33h32M9 33v8M33 33v8M13 30h-5v11"/><rect class="ag-ecr" x="25" y="15" width="11" height="9" rx="1.5"/><path d="M30 24v4"/>',
-    negociateur: '<circle cx="20" cy="10" r="5"/><path d="M20 15v16M20 31l-5 10M20 31l5 10M20 20l-7 7M20 20l8-5"/><rect x="27" y="9" width="3" height="7" rx="1"/><path class="ag-onde" d="M33 9q3 3.5 0 7M36 7q5 5.500 0 11"/>',
-    directeur: '<path class="ag-or" d="M13 6l3 4 4-5 4 5 3-4v8H13z"/><circle cx="20" cy="19" r="5"/><path d="M20 24v8M20 26l-8 5M20 26l8 5M3 35h34M6 35v7M34 35v7"/><path class="ag-or" d="M20 25v6M14 38h12"/>',
-  };
-  const perso = (p, extra) => `<svg class="ag-perso ag-${p}${extra || ''}" viewBox="0 0 40 44" aria-hidden="true"><g class="ag-lueur">${TRAITS[p]}</g><g>${TRAITS[p]}</g></svg>`;
+  // ---------------------------------------------------------------- les personnages (src/agence_art.js)
+  // chaque employé a sa tête, tirée de son rang dans le poste (et du joueur) : toujours la même d'une visite à l'autre
+  const graine = (p, i) => (state.pseudo || '') + '/' + p + '/' + i;
+  const PLACE = { agent: (k) => 9 + k * 65, negociateur: (k) => 30 + k * 78, directeur: (k) => 40 + k * 172 };
+  // quand un étage est plein, le dernier embauché prend la place d'un ancien : la case k montre le plus récent de rang ≡ k
+  const rangCase = (n, vus, k) => (n <= vus ? k : k + vus * Math.floor((n - 1 - k) / vus));
+  function perso(p, k, rang, entree) {
+    const r = (rang * 37 + k * 11) % 23, corps = AgenceArt.employe(p, graine(p, rang));
+    return `<div class="ag-perso ag-${p}${entree ? ' arrive' : ''}" data-i="${rang}" data-pas-traduire style="left:${PLACE[p](k)}px;--d:-${(r * 0.31).toFixed(2)}s;--t:${(6.5 + r % 5 * 0.9).toFixed(1)}s;--dist:${18 + r % 4 * 7}px">${p === 'negociateur' ? `<div class="ag-marche">${corps}</div>` : corps}</div>`;
+  }
   const BRIQUE = '<i class="ag-b"></i>';
-  const GRUE = '<svg class="ag-grue" viewBox="0 0 60 64" aria-hidden="true"><path d="M14 64V8M20 64V8M14 8h6M14 20l6-6M14 32l6-6M14 44l6-6M14 56l6-6M4 8h52M17 2v6M17 2l30 6M17 2L6 8"/><g class="ag-crochet"><path d="M46 8v18"/><rect x="40" y="26" width="12" height="6" rx="1"/></g></svg>';
+  // l'immeuble est dessiné sur 352 px de large : on le met à la largeur de l'écran
+  function echelle() {
+    const c = document.getElementById('ag-cadre'), t = document.getElementById('ag-tour'); if (!c || !t || !c.clientWidth) return;
+    const k = c.clientWidth / LARGEUR; t.style.transform = `scale(${k.toFixed(4)})`; c.style.height = Math.round(t.offsetHeight * k) + 'px';
+  }
+  window.addEventListener('resize', () => { if (visible()) echelle(); });
 
   // ---------------------------------------------------------------- l'écran
   function rendre() {
@@ -57,12 +67,13 @@
       <div class="ag-scene" id="ag-scene">
         <div class="ag-compteur"><span>Renom</span><b id="ag-renom" data-pas-traduire></b><em id="ag-debit"></em></div>
         <div class="ag-absence" id="ag-absence"></div>
-        <div class="ag-bas">
-          <div class="ag-immeuble">${['directeur', 'negociateur', 'agent'].map((p) => `<div class="ag-etage" data-etage="${p}"><span class="ag-nom">${ETAGES[p]}</span><div class="ag-gens"></div><b class="ag-combien" data-pas-traduire></b></div>`).join('')}<div class="ag-enseigne" data-pas-traduire>${echapper(state.pseudo || 'Agence')}</div></div>
-          <div class="ag-chantier">${GRUE}<div class="ag-mur" id="ag-mur"></div><span class="ag-total" id="ag-total"></span></div>
-        </div>
+        <div class="ag-cadre" id="ag-cadre"><div class="ag-tour" id="ag-tour">
+          <div class="ag-toit"><i class="ag-antenne"></i><i class="ag-clim"></i><div class="ag-enseigne" data-pas-traduire>${echapper(state.pseudo || 'Agence')}</div></div>
+          ${['directeur', 'negociateur', 'agent'].map((p) => `<div class="ag-etage" data-etage="${p}">${AgenceArt.decor(p)}<div class="ag-gens"></div><div class="ag-noir"></div><span class="ag-nom">${ETAGES[p]} <b class="ag-combien" data-pas-traduire></b></span></div>`).join('')}
+          <div class="ag-chantier">${AgenceArt.GRUE}<div class="ag-mur" id="ag-mur"></div>${AgenceArt.ouvrier()}<div class="ag-panneau"><span>Chantier</span><b class="ag-total" id="ag-total"></b></div></div>
+        </div></div>
       </div>
-      <div class="ag-brique" id="ag-brique"><i id="ag-barre"></i><span id="ag-jauge"></span></div>
+      <div class="ag-brique" id="ag-brique"><i id="ag-barre"></i><u></u><span id="ag-jauge"></span></div>
       <div id="ag-pose"></div>
       <div class="ag-embauches" id="ag-embauches"></div>
       <div class="ag-liens"><button class="ag-lien" data-a="regles">Comment ça marche ?</button>${MODE_SERVEUR ? '<button class="ag-lien" data-a="classement">🏆 Classement des briques</button>' : ''}</div>
@@ -80,28 +91,33 @@
     for (const p of AG.POSTES) {
       const et = sc.querySelector(`[data-etage="${p}"]`), gens = et.querySelector('.ag-gens'), n = a.e[p] || 0, vus = Math.min(n, VISIBLES[p]);
       while (gens.children.length > vus) gens.lastChild.remove();
-      while (gens.children.length < vus) { const i = gens.children.length; gens.insertAdjacentHTML('beforeend', perso(p, sansEntree ? '' : ' arrive')); if (sansEntree) gens.lastChild.style.animationDelay = (-((i * 0.37) % 2)).toFixed(2) + 's'; else gens.lastChild.addEventListener('animationend', (ev) => ev.currentTarget.classList.remove('arrive'), { once: true }); }
+      for (let k = 0; k < vus; k++) { const rang = rangCase(n, VISIBLES[p], k), la = gens.children[k]; if (la && la.dataset.i === String(rang)) continue;
+        const neuf = document.createElement('div'); neuf.innerHTML = perso(p, k, rang, !sansEntree); const el = neuf.firstChild;
+        if (!sansEntree) el.addEventListener('animationend', (ev) => { if (ev.target === el) el.classList.remove('arrive'); });
+        if (la) la.replaceWith(el); else gens.appendChild(el); }
       et.classList.toggle('vide', !n); et.querySelector('.ag-combien').textContent = n ? '×' + nb(n) : '';
     }
     sc.classList.toggle('vide', !(a.e.agent > 0));
-    const mur = document.getElementById('ag-mur'), b = Math.min(a.briques, 27);
+    const mur = document.getElementById('ag-mur'), b = Math.min(a.briques, 40);
     while (mur.children.length > b) mur.lastChild.remove();
     while (mur.children.length < b) { mur.insertAdjacentHTML('beforeend', BRIQUE); if (!sansEntree) mur.lastChild.classList.add('neuve'); }
     document.getElementById('ag-total').innerHTML = `<b>${nb(a.briques)}</b> ${a.briques > 1 ? 'briques' : 'brique'}`;
+    echelle();
   }
   // les boutons : poser une brique, embaucher
   function majCommandes(a) {
     const zone = document.getElementById('ag-embauches'), poseEl = document.getElementById('ag-pose'); if (!zone) return;
     const b = a.briques, pret = AG.briquesPossibles(a.renom, b), argent = fonds();
     let mieux = null; for (const p of AG.POSTES) { const g = AG.gain(a, p) / AG.cout(p, a.e[p]); if (g > 0 && (!mieux || g > mieux.g)) mieux = { p, g }; }
-    poseEl.innerHTML = pret ? `<button class="btn large ag-poser" data-a="poser">${pret > 1 ? `Poser <b>${nb(pret)}</b> briques` : 'Poser la brique'}</button><div class="ag-note">Tes employés et ton renom repartent de zéro, avec <b>+${Math.round(ECO.agence.brique.bonus * 100)} %</b> de renom en plus.</div>` : '';
+    poseEl.innerHTML = pret ? `<button class="ag-poser" data-a="poser"><span class="ag-poser-b">${AgenceArt.BRIQUE}</span><span class="ag-poser-t">${pret > 1 ? `Poser <b>${nb(pret)}</b> briques` : 'Poser la brique'}</span><i class="ag-poser-r"></i></button><div class="ag-note">Tes employés et ton renom repartent de zéro, avec <b>+${Math.round(ECO.agence.brique.bonus * 100)} %</b> de renom en plus.</div>` : '';
     poseEl.dataset.pret = pret ? '1' : '';
     document.getElementById('ag-brique').classList.toggle('pleine', !!pret);
     if (zone.children.length !== AG.POSTES.length) zone.innerHTML = AG.POSTES.map((p) => `<div class="ag-case" data-case="${p}"><button class="ag-poste" data-poste="${p}"><span class="ag-mieux" hidden>Meilleur choix</span>
-        <span class="ag-tete">${perso(p, ' fixe')}</span><b class="ag-qui">${UN[p]}</b><span class="ag-effet">${EFFET[p]}</span>
+        <span class="ag-tete ag-t-${p}"></span><b class="ag-qui">${UN[p]}</b><span class="ag-effet">${EFFET[p]}</span>
         <span class="ag-prix" data-pas-traduire></span><span class="ag-gain"></span></button><button class="ag-max" data-max="${p}" hidden></button></div>`).join('');
     for (const p of AG.POSTES) { const c = AG.cout(p, a.e[p]), g = AG.gain(a, p), premier = p === 'agent' && !a.e.agent, bt = zone.querySelector(`[data-poste="${p}"]`);
       bt.classList.toggle('cher', c > argent); bt.classList.toggle('pulse', premier); bt.querySelector('.ag-mieux').hidden = !(mieux && mieux.p === p && a.e.agent > 0);
+      const tt = bt.querySelector('.ag-tete'); if (tt.dataset.n !== String(a.e[p])) { tt.dataset.n = a.e[p]; tt.innerHTML = AgenceArt.portrait(p, graine(p, a.e[p])); }
       const prix = bt.querySelector('.ag-prix'); if (prix.dataset.n !== String(c)) { prix.dataset.n = c; prix.innerHTML = pcs(c); }
       const gt = g > 0 ? `+${debitTexte(g)} par heure` : 'Il faut un agent', ge = bt.querySelector('.ag-gain'); if (ge.dataset.t !== gt) { ge.dataset.t = gt; ge.textContent = gt; } }
     majMax(a);
