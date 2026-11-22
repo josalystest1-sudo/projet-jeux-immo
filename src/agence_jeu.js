@@ -64,7 +64,7 @@
     if (!a) { el.innerHTML = `${haut()}<div class="ag-scene"><div class="ag-attente">Ouverture de l’agence…</div></div>`; return; }
     el.innerHTML = `${haut()}
       <button class="ag-booster" id="ag-booster" data-a="booster"${packDispo() ? '' : ' hidden'}><span class="bp-sachet"></span><span class="bp-texte"><b>Booster disponible</b><small>Touche pour l’ouvrir</small></span></button>
-      <div class="ag-scene" id="ag-scene">
+      <div class="ag-scene" id="ag-scene">${AgenceArt.ville()}
         <div class="ag-compteur"><span>Renom</span><b id="ag-renom" data-pas-traduire></b><em id="ag-debit"></em></div>
         <div class="ag-absence" id="ag-absence"></div>
         <div class="ag-cadre" id="ag-cadre"><div class="ag-tour" id="ag-tour">
@@ -187,6 +187,7 @@
   }
   function ouvrir() { showScreen('agence'); }
   function clic(e) {
+    const pe = e.target.closest('.ag-gens .ag-perso'); if (pe) { vibrer(8); pe.classList.remove('saut'); void pe.offsetWidth; pe.classList.add('saut'); return; }   // (toucher un employé : il sursaute)
     const b = e.target.closest('[data-a],[data-poste],[data-max]'); if (!b) return; vibrer(8);
     if (b.dataset.max) { serie.t = Date.now(); return embaucher(b.dataset.max, Number(b.dataset.n) || 1); }
     if (b.dataset.poste) { const p = b.dataset.poste, t = Date.now(); serie = serie.poste === p && t - serie.t < 4000 ? { poste: p, n: serie.n + 1, t } : { poste: p, n: 1, t }; embaucher(p, 1); return majMax(); }
