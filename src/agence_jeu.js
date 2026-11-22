@@ -41,49 +41,64 @@
   function decimales(debit) { if (!(debit > 0)) return 0; const parSeconde = debit / (JOUR / 24 / 1000); return parSeconde >= 2 ? 0 : parSeconde >= 0.2 ? 1 : parSeconde >= 0.02 ? 2 : 3; }
   function renomTexte(x, dec) { const e = Math.floor(x); if (!dec) return nb(e); return nb(e) + '<small>,' + String(Math.floor((x - e) * Math.pow(10, dec))).padStart(dec, '0') + '</small>'; }
 
-  // ---------------------------------------------------------------- la scène en pixel art (src/agence_pixel.js)
-  // Un seul canevas de 176 × 181 pixels, repeint 7 fois par seconde et agrandi sans lissage : le toit, les trois étages
-  // (décor gardé, employés par-dessus), le chantier. Chaque employé a sa tête, tirée de son rang dans le poste (et du
-  // joueur) : toujours la même d'une visite à l'autre.
-  const PX = { W: 176, H: 181, y: { directeur: 14, negociateur: 59, agent: 104 }, chantier: 149 };
+  // ---------------------------------------------------------------- la scène en pixel art fin (src/agence_pixel.js)
+  // Une scène de 352 × 386 pixels, repeinte 7 fois par seconde dans un canevas de travail puis recopiée, agrandie 3 ou 4
+  // fois sans lissage, dans le canevas de la page (#ag-pix) : le toit et son enseigne, les trois étages (décor gardé,
+  // employés par-dessus), le chantier. Tous les textes de la scène sont en pixels (AgencePixel.texte).
+  const PX = { W: 352, H: 386, y: { directeur: 34, negociateur: 130, agent: 226 }, chantier: 322, sol: 90 };
   const graine = (p, i) => (state.pseudo || '') + '/' + p + '/' + i;
-  const PLACE = { agent: (k) => 4 + k * 33, negociateur: (k) => 16 + k * 40, directeur: (k) => 22 + k * 84 };
+  const PLACE = { agent: (k) => 8 + k * 66, negociateur: (k) => 34 + k * 80, directeur: (k) => 36 + k * 174 };
   // quand un étage est plein, le dernier embauché prend la place d'un ancien : la case k montre le plus récent de rang ≡ k
   const rangCase = (n, vus, k) => (n <= vus ? k : k + vus * Math.floor((n - 1 - k) / vus));
-  let image = 0, briquesVues = 0, chute = -99, acteurs = []; const modele = { agent: [], negociateur: [], directeur: [] }, eclats = {};
+  const tr = (t) => (window.Langue && Langue.t ? Langue.t(t) : t);
+  let image = 0, briquesVues = 0, chute = -99, acteurs = [], travail = null; const modele = { agent: [], negociateur: [], directeur: [] }, eclats = {};
   function peindre() {
-    const c = document.getElementById('ag-pix'), a = courante(); if (!c || !a) return;
-    const g = c.getContext('2d'), R = (coul, x, y, l, h) => { g.fillStyle = coul; g.fillRect(x, y, l, h); };
+    const page = document.getElementById('ag-pix'), a = courante(); if (!page || !a) return;
+    if (!travail) { travail = document.createElement('canvas'); travail.width = PX.W; travail.height = PX.H; }
+    const g = travail.getContext('2d'), R = (coul, x, y, l, h) => { g.fillStyle = coul; g.fillRect(x, y, l, h); }, NOIR = AgencePixel.K;
     g.clearRect(0, 0, PX.W, PX.H); acteurs = [];
-    // le toit : le climatiseur, l'antenne et son feu rouge
-    R('#141a33', 9, 2, 16, 8); R('#8c96b3', 10, 3, 14, 7); for (let x = 11; x < 24; x += 3) R('#6e789a', x, 4, 1, 5);
-    R('#8c96b3', 152, 1, 1, 9); R(image % 10 < 5 ? '#ff6b5e' : '#7a2e2a', 151, 0, 3, 2);
-    R('#141a33', 0, 9, PX.W, PX.H - 9); R('#1b2550', 1, 10, PX.W - 2, PX.H - 10); R('#2f3f86', 1, 10, PX.W - 2, 1); R('#26336e', 1, 11, 2, PX.H - 11); R('#26336e', PX.W - 3, 11, 2, PX.H - 11);
+    // le toit : le climatiseur, la citerne, l'antenne et son feu, puis l'enseigne au nom du joueur, bordée d'ampoules
+    R(NOIR, 14, 14, 34, 18); R('#8c96b3', 15, 15, 32, 16); R('#aab3cc', 15, 15, 32, 2); for (let x = 18; x < 44; x += 4) R('#5d6790', x, 19, 2, 10); R(NOIR, 20, 11, 6, 4); R('#5d6790', 21, 12, 4, 3);
+    R(NOIR, 296, 8, 26, 24); R('#9a6233', 297, 9, 24, 20); R('#b97b43', 297, 9, 24, 2); for (let x = 300; x < 320; x += 5) R('#7a4a24', x, 11, 1, 18); R('#5d6790', 297, 16, 24, 2); R('#5d6790', 297, 24, 24, 2); R(NOIR, 299, 29, 3, 4); R(NOIR, 316, 29, 3, 4);
+    R(NOIR, 333, 2, 3, 30); R('#8c96b3', 334, 3, 1, 29); R(NOIR, 331, 0, 7, 5); R(image % 10 < 5 ? '#ff6b5e' : '#7a2e2a', 332, 1, 5, 3);
+    const nom = state.pseudo || tr('Agence'), ln = Math.min(AgencePixel.largeurTexte(nom), 200), ex = Math.round(176 - ln / 2) - 10, el = ln + 20;
+    R(NOIR, ex + 8, 26, 4, 8); R(NOIR, ex + el - 12, 26, 4, 8); R(NOIR, ex - 1, 5, el + 2, 23); R('#ffd065', ex, 6, el, 21); R('#b5811f', ex, 25, el, 2); R('#0b1233', ex + 2, 8, el - 4, 17); R('#16204f', ex + 2, 8, el - 4, 1);
+    g.save(); g.beginPath(); g.rect(ex + 4, 8, el - 8, 17); g.clip(); AgencePixel.texte(g, nom, ex + 10, 14, '#b5811f'); AgencePixel.texte(g, nom, ex + 10, 13, '#ffd979'); g.restore();
+    for (let x = ex + 4, k = 0; x < ex + el - 3; x += 8, k++) { const on = (k + Math.floor(image / 3)) % 2; R(on ? '#fff3c4' : '#8a6a1c', x, 6, 2, 2); R(on ? '#8a6a1c' : '#fff3c4', x, 25, 2, 2); }
+    // les murs de l'immeuble
+    R(NOIR, 0, 32, PX.W, PX.H - 32); R('#1b2550', 1, 33, PX.W - 2, PX.H - 33); R('#3a4a8c', 1, 33, PX.W - 2, 1); R('#26336e', 1, 34, 2, PX.H - 34); R('#26336e', PX.W - 3, 34, 2, PX.H - 34);
     for (const p of ['directeur', 'negociateur', 'agent']) {
-      const y0 = PX.y[p]; g.drawImage(AgencePixel.decor(p, (a.e[p] || 0) > 0), 3, y0);
-      if (pose) continue;
-      modele[p].forEach((m, k) => {
-        const ph = (m.rang * 7 + k * 3) % 11; let x = PLACE[p](k), f = 0, miroir = false, dy = 0;
-        if (p === 'agent') f = (image + ph) % 2;
+      const y0 = PX.y[p], n = a.e[p] || 0; g.drawImage(AgencePixel.decor(p, n > 0), 3, y0);
+      if (!pose) modele[p].forEach((m, k) => {
+        const ph = (m.rang * 7 + k * 3) % 11, clin = (image + ph * 17) % 31 === 0; let x = PLACE[p](k), f = 0, miroir = false, dy = 0;
+        if (p === 'agent') f = (image + ph) % 4;
         else if (p === 'directeur') f = Math.floor((image + ph) / 2) % 4;
-        else { const T = 64 + ph * 4, t = (image + ph * 9) % T, u = t < T / 2 ? t / (T / 2) : 2 - t / (T / 2); x += Math.round((u * 2 - 1) * (7 + ph % 4 * 2)); miroir = t >= T / 2; f = Math.floor(image / 2) % 4; }
-        const age = image - m.ne, saut = image - m.saut; if (age >= 0 && age < 5) dy -= [12, 7, 3, 1, 0][age]; if (saut >= 0 && saut < 4) dy -= [3, 5, 3, 1][saut];
-        const im = AgencePixel.employe(p, graine(p, m.rang), f), yy = y0 + 41 - im.height + dy;
+        else { const T = 84 + ph * 6, t = (image + ph * 9) % T, u = t < T / 2 ? t / (T / 2) : 2 - t / (T / 2); x += Math.round((u * 2 - 1) * (14 + ph % 4 * 3)); miroir = t >= T / 2; f = Math.floor(image / 2) % 4; }
+        const age = image - m.ne, saut = image - m.saut; if (age >= 0 && age < 6) dy -= [26, 15, 7, 2, -2, 0][age]; if (saut >= 0 && saut < 5) dy -= [5, 9, 7, 3, -1][saut];
+        const im = AgencePixel.employe(p, graine(p, m.rang), clin ? 4 : f), yy = y0 + PX.sol - im.height + dy;
+        R('rgba(8,12,40,.22)', 3 + x + 4, y0 + PX.sol - 1, im.width - 8, 2);
         if (miroir) { g.save(); g.translate(3 + x + im.width, yy); g.scale(-1, 1); g.drawImage(im, 0, 0); g.restore(); } else g.drawImage(im, 3 + x, yy);
         // la bulle du négociateur, de temps en temps
-        if (p === 'negociateur' && (image + ph * 13) % 72 < 16) { const bx = 3 + x + (miroir ? -6 : 13), by = yy - 3; R('#141a33', bx, by, 9, 7); R('#fff', bx + 1, by + 1, 7, 5); R('#fff', bx + (miroir ? 6 : 2), by + 6, 1, 1); [2, 4, 6].forEach((d, i) => R(i === Math.floor(image / 2) % 3 ? '#2453b3' : '#9fb6dc', bx + d, by + 3, 1, 1)); }
+        if (p === 'negociateur' && (image + ph * 13) % 90 < 22) { const bx = 3 + x + (miroir ? -16 : 28), by = yy - 2; R(NOIR, bx + 1, by, 19, 13); R(NOIR, bx, by + 1, 21, 11); R('#fff', bx + 1, by + 1, 19, 11); R(NOIR, bx + (miroir ? 14 : 3), by + 13, 4, 2); R('#fff', bx + (miroir ? 15 : 4), by + 12, 2, 2); [4, 9, 14].forEach((d, i) => R(i === Math.floor(image / 2) % 3 ? '#2453b3' : '#9fb6dc', bx + d, by + 5, 3, 3)); }
         acteurs.push({ m, p, x: 3 + x, y: yy, l: im.width, h: im.height });
       });
-      const e = image - (eclats[p] || -99); if (e < 4) { g.fillStyle = `rgba(255,255,255,${0.4 - e * 0.1})`; g.fillRect(3, y0, 170, 41); }
+      AgencePixel.plaque(g, tr(ETAGES[p]) + (n ? ' ×' + nb(n) : ''), y0 + 3, { xd: PX.W - 6, coul: n ? '#ffd979' : '#8fa0ce' });
+      const e = image - (eclats[p] || -99); if (e < 4) { g.fillStyle = `rgba(255,255,255,${0.4 - e * 0.1})`; g.fillRect(3, y0, 346, 92); }
     }
-    // le chantier : la grue, le mur de briques de la saison, l'ouvrier
-    const y0 = PX.chantier, sol = y0 + 28; R('#0d1436', 3, y0, 170, 28); R('#2a3364', 3, sol, 170, 4); R('#3a4a8c', 3, sol, 170, 1);
-    for (let x = 6; x < 170; x += 23) R('#16204f', x, y0 + 6 + (x % 3) * 5, 1, 1);
-    g.drawImage(AgencePixel.grue(Math.floor(image / 3)), 5, sol - 30);
-    const n = Math.min(briquesVues, 40);
-    if (!n) { for (let x = 44; x < 122; x += 4) { R('#6b5a2a', x, sol - 6, 2, 1); R('#6b5a2a', x, sol - 1, 2, 1); } }
-    for (let i = 0; i < n; i++) { let y = sol - 4 - Math.floor(i / 10) * 5; const t = image - chute; if (i === n - 1 && t >= 0 && t < 5) y -= [20, 12, 6, 2, 0][t]; AgencePixel.brique(g, 44 + (i % 10) * 8, y); }
-    g.drawImage(AgencePixel.ouvrier(Math.floor(image / 3)), 126, sol - 24);
+    // le chantier : la nuit, la grue, l'échafaudage et le mur de briques de la saison, l'ouvrier, le panneau
+    const y0 = PX.chantier, sol = y0 + 56; R('#0b1233', 3, y0, 346, 56); for (let k = 0; k < 14; k++) R('#22306e', 12 + (k * 53) % 330, y0 + 4 + (k * 17) % 30, 1, 1);
+    R('#3b2a1f', 3, sol, 346, 8); R('#5a4030', 3, sol, 346, 2); for (let x = 8; x < 346; x += 13) R('#2c1f17', x, sol + 3 + (x % 3), 4, 1);
+    g.drawImage(AgencePixel.grue(Math.floor(image / 3)), 6, sol - 64);
+    const nbr = Math.min(briquesVues, 40), mx = 84;
+    R('#59658c', mx - 4, sol - 46, 2, 46); R('#59658c', mx + 162, sol - 46, 2, 46); [sol - 46, sol - 23].forEach((y) => { R('#59658c', mx - 4, y, 168, 2); R('#8c96b3', mx - 4, y, 168, 1); }); for (let k = 0; k < 4; k++) R('#3d4770', mx - 2 + k * 41, sol - 44, 1, 44);
+    for (let i = 0; i < nbr; i++) { let y = sol - 9 - Math.floor(i / 10) * 9; const t = image - chute; if (i === nbr - 1 && t >= 0 && t < 5) y -= [36, 22, 10, 3, 0][t]; AgencePixel.brique(g, mx + (i % 10) * 16, y); }
+    if (!nbr) for (let x = mx; x < mx + 158; x += 6) { R('#8a6a1c', x, sol - 10, 3, 1); R('#8a6a1c', x, sol - 2, 3, 1); }
+    const ouv = AgencePixel.ouvrier(Math.floor(image / 3)); g.drawImage(ouv, 252, sol - ouv.height);
+    R(NOIR, 298, sol - 14, 3, 14); R(NOIR, 336, sol - 14, 3, 14); R(NOIR, 288, sol - 44, 60, 32); R('#ffd065', 289, sol - 43, 58, 30); R('#ffe9a6', 289, sol - 43, 58, 2); R('#b5811f', 289, sol - 15, 58, 2); for (let k = 0; k < 8; k++) R(k % 2 ? '#2a1a00' : '#ffd065', 289 + k * 7.25, sol - 41, 8, 3);
+    const t1 = tr('Chantier'), t2 = nb(a.briques); AgencePixel.texte(g, t1, 318 - Math.round(AgencePixel.largeurTexte(t1) / 2), sol - 35, '#2a1a00'); AgencePixel.texte(g, t2, 311 - Math.round(AgencePixel.largeurTexte(t2) / 2), sol - 25, '#2a1a00'); AgencePixel.brique(g, 314 + Math.round(AgencePixel.largeurTexte(t2) / 2), sol - 26);
+    // recopier dans la page, agrandi sans lissage
+    const k = (window.devicePixelRatio || 1) >= 3 ? 4 : 3; if (page.width !== PX.W * k) { page.width = PX.W * k; page.height = PX.H * k; }
+    const gp = page.getContext('2d'); gp.imageSmoothingEnabled = false; gp.clearRect(0, 0, page.width, page.height); gp.drawImage(travail, 0, 0, page.width, page.height);
   }
 
   // ---------------------------------------------------------------- l'écran
@@ -95,11 +110,7 @@
       <div class="ag-scene" id="ag-scene"><canvas class="ag-ville" id="ag-ville"></canvas>
         <div class="ag-compteur"><span>Renom</span><b id="ag-renom" data-pas-traduire></b><em id="ag-debit"></em></div>
         <div class="ag-absence" id="ag-absence"></div>
-        <div class="ag-cadre" id="ag-cadre"><canvas class="ag-pix" id="ag-pix" width="${PX.W}" height="${PX.H}"></canvas>
-          <div class="ag-enseigne" data-pas-traduire>${echapper(state.pseudo || 'Agence')}</div>
-          ${['directeur', 'negociateur', 'agent'].map((p) => `<span class="ag-nom" data-etage="${p}" style="top:${((PX.y[p] + 2) / PX.H * 100).toFixed(2)}%">${ETAGES[p]} <b class="ag-combien" data-pas-traduire></b></span>`).join('')}
-          <div class="ag-panneau"><span>Chantier</span><b class="ag-total" id="ag-total"></b></div>
-        </div>
+        <div class="ag-cadre" id="ag-cadre"><canvas class="ag-pix" id="ag-pix" width="${PX.W * 3}" height="${PX.H * 3}"></canvas></div>
       </div>
       <div class="ag-brique" id="ag-brique"><i id="ag-barre"></i><u></u><span id="ag-jauge"></span></div>
       <div id="ag-pose"></div>
@@ -119,10 +130,8 @@
     for (const p of AG.POSTES) {
       const n = a.e[p] || 0, vus = Math.min(n, VISIBLES[p]), liste = modele[p]; liste.length = Math.min(liste.length, vus);
       for (let k = 0; k < vus; k++) { const rang = rangCase(n, VISIBLES[p], k); if (!liste[k] || liste[k].rang !== rang) liste[k] = { rang, ne: sansEntree ? -99 : image, saut: -99 }; }
-      const pl = sc.querySelector(`.ag-nom[data-etage="${p}"]`); if (pl) { pl.classList.toggle('vide', !n); pl.querySelector('.ag-combien').textContent = n ? '×' + nb(n) : ''; }
     }
     if (a.briques > briquesVues && !sansEntree) chute = image; briquesVues = a.briques;
-    document.getElementById('ag-total').innerHTML = `<b>${nb(a.briques)}</b> ${a.briques > 1 ? 'briques' : 'brique'}`;
     peindre();
   }
   // les boutons : poser une brique, embaucher

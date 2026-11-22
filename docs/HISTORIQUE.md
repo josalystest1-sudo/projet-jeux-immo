@@ -447,6 +447,7 @@ Puis une PR par étape, fusionnée en squash :
 | #248 | 22/11 | L'agence redessinée : immeuble en coupe, bureaux meublés, employés façon dessin animé qui travaillent (tous différents), chantier, brique dorée et vrai bouton « Poser la brique » |
 | #249 | 22/11 | Agence : la ville de nuit derrière l'immeuble, des étoiles de renom, un employé touché sursaute |
 | #250 | 22/11 | L'agence en pixel art : employés, bureaux, chantier et portraits peints pixel par pixel, scène animée dans un seul canevas |
+| #251 | 22/11 | L'agence en pixel art fin : design refait (employés de face, pièces détaillées, enseigne, chantier), scène deux fois plus fine, textes en pixels |
 | #200 | 16/11 | Prototype du booster validé par Gautier : brillance moyenne fixée, boutons de réglage retirés |
 | #199 | 16/11 | Prototype du booster : une ligne de toits en néon sur le booster du jour, à la place de la maison |
 | #198 | 16/11 | Prototype du booster : moins brillant, lettres cernées, trois niveaux de brillance à choisir |
