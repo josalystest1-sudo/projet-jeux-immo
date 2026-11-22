@@ -451,6 +451,7 @@ Puis une PR par étape, fusionnée en squash :
 | #252 | 22/11 | De la vie dans l'agence : pauses et bulles des employés, stagiaire aux cafés, négociateurs qui concluent, chat, horloge à l'heure, avion, pigeons |
 | #253 | 22/11 | Quatre nouveaux postes à l'agence (réceptionniste, formateur, photographe, associé), chacun son étage ; bonus plafonnés et de plus en plus chers ; embauches en bas de l'écran |
 | #254 | 22/11 | Agence sur ordinateur : les sept cartes d'embauche tiennent à l'écran (retour de Gautier) ; flèches et molette à la souris |
+| #255 | 22/11 | Mes bâtiments en vert néon sur la carte de nuit (choix de Gautier : le bleu clair ne ressortait pas) |
 | #200 | 16/11 | Prototype du booster validé par Gautier : brillance moyenne fixée, boutons de réglage retirés |
 | #199 | 16/11 | Prototype du booster : une ligne de toits en néon sur le booster du jour, à la place de la maison |
 | #198 | 16/11 | Prototype du booster : moins brillant, lettres cernées, trois niveaux de brillance à choisir |
