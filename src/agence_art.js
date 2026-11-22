@@ -138,5 +138,13 @@
       <path d="M10 20.500L5.500 27" stroke="#F27D2E" stroke-width="4.400" stroke-linecap="round"/><circle cx="5.300" cy="27.600" r="2.200" fill="#E0A577"/></svg>`;
   }
   const BRIQUE = '<svg viewBox="0 0 30 18" aria-hidden="true"><rect x="1" y="3" width="28" height="14" rx="2.500" fill="#B5811F"/><rect x="1" y="1" width="28" height="14" rx="2.500" fill="#F2A93B"/><rect x="1" y="1" width="28" height="5" rx="2.500" fill="#FFE08A"/><rect x="5" y="8.500" width="8" height="3.600" rx="1.800" fill="#D98E22"/><rect x="17" y="8.500" width="8" height="3.600" rx="1.800" fill="#D98E22"/></svg>';
-  window.AgenceArt = { employe, portrait, decor, allure, GRUE, ouvrier, BRIQUE };
+  // la ville derrière l'immeuble : une ligne de toits et quelques fenêtres allumées
+  function ville() {
+    const r = hasard('ville'); let x = 0, toits = 'M0 120', lueurs = '';
+    while (x < 360) { const w = 14 + Math.floor(r() * 22), h = 22 + Math.floor(r() * 78); toits += `V${120 - h}H${x + w}`;
+      for (let k = 0; k < 4; k++) if (r() < 0.55) lueurs += `<rect x="${(x + 3 + r() * (w - 7)).toFixed(1)}" y="${(124 - h + r() * (h - 14)).toFixed(1)}" width="2.2" height="3" fill="#FFD979" opacity="${(0.35 + r() * 0.5).toFixed(2)}"/>`;
+      x += w; }
+    return `<svg class="ag-ville" viewBox="0 0 360 120" preserveAspectRatio="none" aria-hidden="true"><circle cx="318" cy="24" r="10" fill="#FFF3C4" opacity=".9"/><g fill="#fff"><circle cx="40" cy="18" r="1"/><circle cx="96" cy="40" r=".8"/><circle cx="150" cy="12" r="1"/><circle cx="214" cy="34" r=".8"/><circle cx="340" cy="60" r=".9"/><circle cx="20" cy="62" r=".8"/></g><path d="${toits}V120Z" fill="#1C2A6B"/>${lueurs}</svg>`;
+  }
+  window.AgenceArt = { employe, portrait, decor, allure, GRUE, ouvrier, BRIQUE, ville };
 })();
