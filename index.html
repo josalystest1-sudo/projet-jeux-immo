@@ -3025,6 +3025,30 @@ function guide(i){ let g=document.getElementById('guide'); if(i>=GUIDE.length ||
   bulle.style.animation='none'; void bulle.offsetWidth; bulle.style.animation='';
   bulle.querySelector('#g-suite').onclick=()=>guide(i+1); const ps=bulle.querySelector('#g-passer'); if(ps) ps.onclick=()=>guide(99); }
 
+// ---- la bêta (décision de Gautier, 28 nov. ; ECO.beta.active) : une bêta à nombre restreint de joueurs avant l'ouverture. Tout sera remis à
+// zéro à la sortie ; les participants recevront un pack régional de leur choix le jour de l'ouverture. Un mot d'accueil une fois,
+// un rappel dans les Réglages, et « Signaler un bug » (table « retours », lue par Gautier dans le tableau de bord).
+const BETA = !!(ECO.beta && ECO.beta.active);
+const TEXTE_BETA = 'Le jeu est en bêta : à la sortie, tout sera remis à zéro (lieux, pièces, classements). Pour te remercier, tu recevras un pack régional de ton choix le jour de l’ouverture.';
+function accueilBeta(){ if(!BETA || !state.pseudo || (state.prefs && state.prefs.betaVue) || document.querySelector('#modal.on, #packscene.on, #guide, .rev-scene')) return;
+  const box=document.getElementById('modalbox');
+  box.innerHTML=`<div class="prog-fen"><div class="prog-ic">🎁</div><div class="prog-nouveau">Bêta</div><h2>Bienvenue dans la bêta</h2><div class="sub">${TEXTE_BETA}</div>
+    <div class="sub" style="margin-top:8px">Un bug, une idée ? Dis-le-nous depuis les Réglages : « Signaler un bug ».</div>
+    <div class="liste-btn"><button class="btn large" id="beta-ok">C’est parti</button></div></div>`;
+  document.getElementById('modal').classList.add('on');
+  box.querySelector('#beta-ok').onclick=()=>{ state.prefs.betaVue=true; save(); closeModal(); }; }
+if(BETA) setInterval(accueilBeta, 4000);
+function signalerBug(){ const box=document.getElementById('modalbox');
+  box.innerHTML=`<h2>🚩 Signaler un bug</h2><div class="sub">Dis-nous ce qui ne va pas, ou ce que tu aimerais voir : ce que tu faisais, ce qui s’est passé. La version du jeu est jointe à ton message.</div>
+    <textarea class="txt" id="bug-texte" rows="5" maxlength="1000" placeholder="Ton message…" style="width:100%;margin-top:10px;resize:vertical"></textarea><div class="err" id="bug-err"></div>
+    <div class="liste-btn"><button class="btn large" id="bug-ok">Envoyer</button><button class="btn clair large" onclick="closeModal()">Annuler</button></div>`;
+  document.getElementById('modal').classList.add('on');
+  const ok=box.querySelector('#bug-ok'), err=box.querySelector('#bug-err');
+  ok.onclick=async()=>{ const texte=box.querySelector('#bug-texte').value.trim(); if(texte.length<5){ err.textContent='Écris quelques mots.'; return; }
+    if(MODE_SERVEUR && window.Compte && Compte.client){ ok.disabled=true;
+      const { error } = await Compte.client.from('retours').insert({ texte, version:String(VERSION).slice(0,10), ecran:((document.querySelector('.screen.on')||{}).id||'carte').slice(0,30) });
+      ok.disabled=false; if(error){ err.textContent='Message non envoyé : réessaie dans un instant.'; return; } }
+    closeModal(); toast('Message envoyé. Merci !'); }; }
 // les réglages (depuis le profil ou les notifications)
 function ouvrirReglages(){ const box=document.getElementById('modalbox');
   box.innerHTML=`<h2>⚙️ Réglages</h2>
@@ -3037,6 +3061,8 @@ function ouvrirReglages(){ const box=document.getElementById('modalbox');
     <div class="sw"><span>Vibrations</span><input type="checkbox" ${state.prefs.vibrations!==false?'checked':''} onchange="setPref('vibrations',this.checked)"></div>
     ${MODE_SERVEUR ? (enVraisJours() ? '' : `<div class="m petit" style="margin-top:8px">Serveur d’essai accéléré : un jour du jeu = ${Math.round(JOUR/60000)} min.</div>`)
       : `<div class="sw mode"><span>Démo : joueurs simulés<small>Ta partie de démo reste sur ce téléphone.</small></span><button class="btn sm" onclick="quitterDemo()">Jouer sur le vrai serveur</button></div>`}
+    ${BETA ? `<div class="m beta-rappel"><b class="beta-tag">BÊTA</b> ${TEXTE_BETA}</div>` : ''}
+    <div class="liste-btn"><button class="btn clair large" onclick="signalerBug()">🚩 Signaler un bug</button></div>
     ${(state.signalements||[]).length?`<div class="m" style="margin-top:10px">🚩 Signalements envoyés : ${state.signalements.length}</div>`:''}
     ${MODE_SERVEUR ? '' : `<div class="essais"><b>Pack d’essai</b><small>S’ouvre comme un vrai pack, mais ne compte pas et ne te donne rien.</small>
       <div class="liste-btn"><button class="btn clair" onclick="ouvrirPackEssai([1,2,3,4,5])">🎴 Toutes les raretés</button><button class="btn clair" onclick="ouvrirPackEssai([4,4,4,4,4])">✨ Épiques</button><button class="btn clair" onclick="ouvrirPackEssai([5,5,5,5,5])">👑 Légendaires</button></div>

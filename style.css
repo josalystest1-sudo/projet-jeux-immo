@@ -2131,3 +2131,7 @@ html.pocket.nuit .ag-bac{background:linear-gradient(180deg,rgba(6,11,32,0),#060B
 @media (min-width:900px){ #s-agence>.ag-bac{max-width:none;margin-left:calc(50% - 470px);margin-right:calc(50% - 470px)} .ag-bac .ag-embauches{overflow:visible;margin-left:0;margin-right:0;padding-left:0;padding-right:0} .ag-bac .ag-case{flex:1 1 0;min-width:0} .ag-bac .ag-brique,.ag-bac #ag-pose{max-width:560px;margin-left:auto;margin-right:auto} }
 
 #legend:not(.repliee){z-index:37}   /* (la légende ouverte passe devant « Mes lieux ») */
+.beta-tag{display:inline-block;background:#FFC233;color:#1C2440;font-weight:900;font-size:11px;letter-spacing:.1em;border-radius:6px;padding:1px 6px;margin-right:4px}   /* (la bêta, 28 nov.) */
+.beta-rappel{margin-top:10px}
+textarea.txt{font:inherit;border-radius:12px;padding:10px;box-sizing:border-box}
+html.pocket.nuit textarea.txt{background:#0E1840;color:#fff;border:1px solid rgba(90,168,255,.5)}
