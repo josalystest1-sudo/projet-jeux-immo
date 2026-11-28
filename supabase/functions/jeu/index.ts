@@ -946,6 +946,7 @@ function adresseRetour(retour: unknown) {
 ACTIONS.paiement_creer = async (j, corps) => {
   const o = (BOU.B.gemmes as Ligne[]).find((x) => x.id === String(corps.offre || ''));
   if (!o) throw new Refus('offre', 'Cette offre de gemmes n’existe pas.');
+  { const beta = (ECO as Ligne).beta; if (beta && beta.active && beta.achats_euros === false) throw new Refus('beta', 'Pendant la bêta, on n’achète pas de gemmes : elles sont offertes dans le pack du jour.'); }
   if (corps.renonce !== true) throw new Refus('renonce', 'Coche la case : tu demandes à recevoir tes gemmes tout de suite.');
   const centimes = Math.round(Number(o.euros) * 100), retour = adresseRetour(corps.retour), test = /^(sk|rk)_test_/.test(cleStripe());
   const s = await stripe('checkout/sessions', {
@@ -1103,6 +1104,9 @@ ACTIONS.pack = async (j) => {
   await recolter(j);   // les loyers d'avant sont encaissés : les nouveaux lieux comptent à partir de maintenant
   const lignes = cartes.map((c: Ligne) => ({ ...c, commune: Regles.nomCommune(c.citycode, c.city) }));
   const gagnes: string[] = await rpc('jeu_pack', { j, jour, cartes: lignes });
+  // la bêta : des gemmes dans chaque pack gratuit, pour essayer la boutique sans payer (ECO.beta, 250_beta.sql)
+  const beta = (ECO as Ligne).beta, gemmesBeta = beta && beta.active && gagnes.length ? Number(beta.gemmes_pack) || 0 : 0;
+  if (gemmesBeta > 0) await rpc('jeu_gemmes_beta', { j, n: gemmesBeta });
   // après la réponse (sans faire attendre le joueur) : la rareté des lieux gagnés (classement de patrimoine), le pack
   // préparé consommé, puis le suivant préparé
   const suite = async () => {
@@ -1114,7 +1118,7 @@ ACTIONS.pack = async (j) => {
   const maintenant = Date.now();
   return {
     cartes: cartes.filter((c: Ligne) => gagnes.includes(c.id)).map((c: Ligne) => ({ ...c, niveau: 0, depuis: maintenant })),
-    dernierJour: jour,
+    dernierJour: jour, gemmesBeta,
   };
 };
 

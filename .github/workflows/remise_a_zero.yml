@@ -1,0 +1,42 @@
+name: Remise à zéro
+
+# IRRÉVERSIBLE. Supprime tous les comptes et toutes les parties, puis règle le rythme du jeu (86400 = un jour du jeu vaut
+# un vrai jour). Seulement à la main, avec le mot de confirmation. Décision de Gautier du 28 nov. 2026 (avant la bêta) ;
+# à refaire le jour de la sortie. Les joueurs de la maison sont recréés, puis l'essai complet vérifie le serveur.
+on:
+  workflow_dispatch:
+    inputs:
+      confirmation:
+        description: 'Écrire REMISE A ZERO pour confirmer'
+        required: true
+      jour_secondes:
+        description: 'Durée d''un jour du jeu, en secondes (86400 = le vrai rythme)'
+        required: true
+        default: '86400'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: serveur
+  cancel-in-progress: false
+
+jobs:
+  zero:
+    name: Remise à zéro du serveur
+    runs-on: ubuntu-latest
+    env:
+      SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+      PROJET: hxtyecwofajiozmnfyxt
+      CONFIRMATION: ${{ inputs.confirmation }}
+      JOUR_SECONDES: ${{ inputs.jour_secondes }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Tout effacer et régler le rythme
+        run: node tools/serveur_zero.js "$PROJET" "$JOUR_SECONDES" "$CONFIRMATION"
+      - name: Les joueurs de la maison
+        run: node tools/serveur_robots.js "$PROJET"
+      - name: Essai complet (un joueur jetable)
+        run: |
+          sleep 10
+          node tools/serveur_essai.js "$PROJET"
