@@ -123,10 +123,9 @@ const VERSION='__VERSION__';
 <div id="legend" class="repliee" onclick="this.classList.toggle('repliee')" role="button" aria-label="Légende des couleurs">
   <b class="titre-legende">🎨 Légende</b>
   <span><i class="dot l-moi" style="background:var(--me)"></i>À moi</span>
-  <span><i class="dot" style="background:var(--other)"></i>Autres</span>
-  <span><i class="dot" style="background:var(--mixed)"></i>Partagée</span>
-  <span><i class="dot l-libre" style="background:#fff;box-shadow:inset 0 0 0 1.5px #B9C3D6"></i>Libre</span>
-  <span>💰 En vente</span>
+  <span><i class="dot" style="background:var(--other)"></i>À un autre joueur</span>
+  <span><i class="dot l-vente" style="background:var(--vente)"></i>En vente</span>
+  <span><i class="dot l-libre" style="background:#fff;box-shadow:inset 0 0 0 1.5px #B9C3D6"></i>Libre : pas encore tirée</span>
 </div>
 
 <!-- écrans -->
@@ -338,7 +337,7 @@ function toast(t){ const el=document.getElementById('toast'); el.innerHTML=avecP
 function communeName(citycode, city){ return Regles.nomCommune(citycode, city); }
 // standing (plafond de construction) : démo, en vrai calculé avec DVF
 function rarete(a){ return R.rarete(a); }
-function enVente(a){ if(state.owned[a.id]) return !!state.owned[a.id].enVente; if(MODE_SERVEUR) return !!(PROPRIOS[a.id] && PROPRIOS[a.id].enVente); const o=ownerOf(a); return !!o && hash(a.id+'v')%100<25; }
+function enVente(a){ if(state.owned[a.id]) return !!state.owned[a.id].enVente; if(MODE_SERVEUR) return !!(PROPRIOS[a.id] && PROPRIOS[a.id].enVente); const o=ownerOf(a); if(!o) return false; if(state.cedes && state.cedes[a.id]) return false; return a.idu ? parcelSeed(a.idu)==='sale' : hash(a.id+'v')%100<25; }
 function plafond(a){ return R.plafond(a); }
 function baseValue(a){ return R.valeurBase(a); }
 function coutNiveau(a, n){ return R.coutNiveau(a, n); }
@@ -379,12 +378,11 @@ function notify(type, text, extra){ state.notifs.unshift({ts:now(), type, text, 
 // propriétaires simulés (par adresse)
 function fakeOwner(addrId){ const h=hash(addrId)%100; return h<12 ? FAKE[hash(addrId+'o')%FAKE.length] : null; }
 function fakeLevel(addrId){ const h=hash(addrId+'n')%10; return h<5?0:(h<8?1:(h<9?2:3)); }
-// Les joueurs simulés : le propriétaire d'un lieu suit la couleur de sa parcelle (rouge : un autre joueur ; violet : partagée
-// entre deux joueurs ; sinon libre). Avant, couleur et propriétaire étaient tirés séparément : un bâtiment rouge
+// Les joueurs simulés : le propriétaire d'un lieu suit la couleur de sa parcelle (rouge : un autre joueur ; rose : un autre joueur
+// qui vend ; sinon libre). Avant, couleur et propriétaire étaient tirés séparément : un bâtiment rouge
 // pouvait montrer des adresses « libres ». Un lieu dont on ne connaît pas la parcelle garde l'ancien tirage.
 function proprioSimule(a){ if(!a.idu) return fakeOwner(a.id); const s=parcelSeed(a.idu); if(s==='free') return null;
-  const n=FAKE.length, i=hash(a.idu+'o')%n; if(s==='other') return FAKE[i];
-  const j=(i+1+hash(a.idu+'p')%(n-1))%n; return hash(a.id+'m')%2 ? FAKE[i] : FAKE[j]; }
+  return FAKE[hash(a.idu+'o')%FAKE.length]; }
 function ownerOf(a){ if(state.owned[a.id]) return ME; if(MODE_SERVEUR) return PROPRIOS[a.id] ? PROPRIOS[a.id].qui : null; if(state.cedes && state.cedes[a.id]) return state.cedes[a.id].qui; if(state.seen[a.id]==='libre') return null; return proprioSimule(a); }
 function levelOf(a){ if(state.owned[a.id]) return state.owned[a.id].niveau||0; if(MODE_SERVEUR) return PROPRIOS[a.id] ? PROPRIOS[a.id].niveau||0 : 0; if(state.cedes && state.cedes[a.id]) return state.cedes[a.id].niveau||0; return ownerOf(a) ? Math.min(fakeLevel(a.id), plafond(a)) : 0; }
 
@@ -393,7 +391,7 @@ const ST = ['coalesce',['feature-state','st'],'free'];
 const SEL = ['boolean',['feature-state','sel'],false];
 const TEINTE = ['%',['to-number',['slice',['get','cleabs'],-2]],5];
 const COULEUR_LIBRE = ['match',TEINTE, 0,'#EEF1F6', 1,'#E9EDF3', 2,'#F1F3F8', 3,'#E6EAF1', 4,'#ECEFF5', '#EEF1F6'];
-const COULEUR_BATI = ['case', ['boolean',['feature-state','monument'],false], ['interpolate',['linear'],['coalesce',['get','hauteur'],9], 0,'#ffb627', 60,'#ffd65a', 200,'#fff1b8'], SEL, '#FFC233', ['match',ST,'me','#4F86F0','other','#F2735B','mixed','#B07BEA', COULEUR_LIBRE]];
+const COULEUR_BATI = ['case', ['boolean',['feature-state','monument'],false], ['interpolate',['linear'],['coalesce',['get','hauteur'],9], 0,'#ffb627', 60,'#ffd65a', 200,'#fff1b8'], SEL, '#FFC233', ['match',ST,'me','#4F86F0','other','#F2735B','sale','#E0489E', COULEUR_LIBRE]];
 const HAUTEUR = ['+', ['coalesce',['get','hauteur'],9], ['coalesce',['feature-state','bonus'],0]];
 const IMPORTANT = ['<=',['to-number',['coalesce',['get','importance'],'5']],3];
 // Le plateau de jeu (choix de Gautier, 6 nov. : « rendre la carte 3D plus jeu vidéo ») : une ville blanche posée sur l'herbe,
@@ -406,7 +404,7 @@ const CHEMIN = ['in',['get','nature'],['literal',['Chemin','Sentier','Escalier',
 const MON_BATI = ['boolean',['feature-state','monument'],false];
 const HAUT_BATI = ['case', MON_BATI, ['*',HAUTEUR,1.15], HAUTEUR];
 const FILTRE_BATI = ['all',['!=',['get','construction_legere'],true],['!',['in',['get','cleabs'],['literal',Maquettes.MASQUES]]]];
-const toitBati = (libre, moi, autre, mixte) => ['case', MON_BATI, '#E8A317', SEL, '#E0A000', ['match',ST,'me',moi,'other',autre,'mixed',mixte, libre]];
+const toitBati = (libre, moi, autre, mixte) => ['case', MON_BATI, '#E8A317', SEL, '#E0A000', ['match',ST,'me',moi,'other',autre,'sale',mixte, libre]];
 // Le genre d'un bâtiment (18 nov., Gautier : « rendre les bâtiments plus vivants que de simples blocs », « faire une différence
 // entre les immeubles, les maisons, les magasins ») : d'après l'usage et le nombre de logements que donne la BD TOPO.
 // maison (habitation, 1 ou 2 logements, basse), immeuble, bureau (commerces et services), hangar, annexe (garages, remises), autre.
@@ -415,7 +413,7 @@ const GENRE_BATI = ['case', ['all',['==',USAGE1,'Résidentiel'],['<=',LOGEMENTS,
   ['in',USAGE1,['literal',['Industriel','Agricole']]], 'hangar', ['==',USAGE1,'Annexe'], 'annexe', ['in',USAGE1,['literal',['Religieux','Sportif']]], 'autre', ['>=',HAUT_M,11], 'immeuble', ['>=',HAUT_M,5], 'maison', 'annexe'];
 const A_VITRINE = ['any',['==',USAGE2,'Commercial et services'],['all',['==',USAGE1,'Commercial et services'],['<',HAUT_M,14]]];
 const TOIT_LIBRE_NUIT = ['match',GENRE_BATI, 'maison','#8A4A4A', 'immeuble','#3C56A8', 'bureau','#1E4A7A', 'hangar','#5A6590', 'annexe','#222C5E', '#34478F'];
-const COULEUR_TOIT = toitBati('#FFFFFF', '#2C5FD4','#C73E28','#7442C8'), COULEUR_TOIT_NUIT = toitBati(TOIT_LIBRE_NUIT, '#22D890','#B13A28','#6A3DC0');
+const COULEUR_TOIT = toitBati('#FFFFFF', '#2C5FD4','#C73E28','#B82E7C'), COULEUR_TOIT_NUIT = toitBati(TOIT_LIBRE_NUIT, '#22D890','#B13A28','#D63CAE');
 const OMBRE_BATI = ['interpolate',['linear'],['zoom'],15,['literal',[4,6]],19,['literal',[34,46]]];
 // La vue d'arrivée (Gautier, 6 nov. : « quand on se connecte, on se retrouve au milieu de dizaines, voire de centaines de gros
 // blocs blancs ; ça ne donne pas envie de jouer ») : avant, tout le monde arrivait dans Paris 9e. Maintenant, chez soi : là où
@@ -444,7 +442,7 @@ const map = new maplibregl.Map({
       { id:'sport', type:'fill', source:'topo', 'source-layer':'terrain_de_sport', paint:{ 'fill-color':'#56C17C' } },
       { id:'water', type:'fill', source:'topo', 'source-layer':'surface_hydrographique', paint:{ 'fill-color':'#2FB4F0' } },
       { id:'parcel-fill', type:'fill', source:'pci', 'source-layer':'parcelle',
-        paint:{ 'fill-color':['match',ST,'me','#4F86F0','other','#E4573D','mixed','#9B51E0','#ffffff'], 'fill-opacity':['match',ST,'free',0.0,0.25] } },
+        paint:{ 'fill-color':['match',ST,'me','#4F86F0','other','#E4573D','sale','#E0489E','#ffffff'], 'fill-opacity':['match',ST,'free',0.0,0.25] } },
       { id:'parcel-line', type:'line', source:'pci', 'source-layer':'parcelle',
         paint:{ 'line-color':['case',SEL,'#e0a800','#8CC870'], 'line-width':['case',SEL,3,1.4] } },
       { id:'rail', type:'line', source:'topo', 'source-layer':'troncon_de_voie_ferree', paint:{ 'line-color':'#7C8899', 'line-width':2, 'line-dasharray':[3,2] } },
@@ -491,13 +489,13 @@ function styleParcelles(deDessus){ map.setPaintProperty('parcel-line','line-widt
 // doit pouvoir se reposer. Les couleurs des lieux (à moi, aux autres, partagés) restent les mêmes de jour et de nuit.
 let CARTE_NUIT=false, CARTE_NUIT_POSEE=null;
 const LIBRE_NUIT = ['match',GENRE_BATI, 'maison','#2A3F8C', 'immeuble','#1B2A6B', 'bureau','#14305E', 'hangar','#2B3558', 'annexe','#141C45', '#232F66'];   // la ville en bleu nuit (18 nov.) : une teinte par genre de bâtiment
-const COULEUR_BATI_NUIT = ['case', ['boolean',['feature-state','monument'],false], ['interpolate',['linear'],['coalesce',['get','hauteur'],9], 0,'#C9973A', 60,'#E9C77B', 200,'#FFF1C8'], SEL, '#FFC233', ['match',ST,'me','#3DFFB0','other','#D9533E','mixed','#9466EE', LIBRE_NUIT]];
+const COULEUR_BATI_NUIT = ['case', ['boolean',['feature-state','monument'],false], ['interpolate',['linear'],['coalesce',['get','hauteur'],9], 0,'#C9973A', 60,'#E9C77B', 200,'#FFF1C8'], SEL, '#FFC233', ['match',ST,'me','#3DFFB0','other','#D9533E','sale','#FF5FD2', LIBRE_NUIT]];
 const COULEURS_CARTE = [ // calque, propriété, de jour, de nuit
   ['bg','background-color','#86CC70','#0A1230'], ['ilot','fill-color','#A6DE84','#0F1B45'], ['veget','fill-color','#62BF52','#0F3A3A'],
   ['parc','fill-color','#5CBB4C','#11443F'], ['sport','fill-color','#56C17C','#0F3F45'], ['water','fill-color','#2FB4F0','#1560C8'],
   ['rail','line-color','#7C8899','#3A4158'], ['road-side','line-color','#E4E9F1','#16224F'], ['road-casing','line-color',['case',CHEMIN,'#B88A4A','#3F4860'],['case',CHEMIN,'#6E5530','#3F9BFF']],
   ['road','line-color',['case',CHEMIN,'#E8CF94',IMPORTANT,'#59627A','#666F86'],['case',CHEMIN,'#4A4030',IMPORTANT,'#182456','#131D45']], ['road-axis','line-color','#FFFFFF','#5AA8FF'],
-  ['parcel-fill','fill-color',['match',ST,'me','#4F86F0','other','#E4573D','mixed','#9B51E0','#ffffff'],['match',ST,'me','#3DFFB0','other','#E4573D','mixed','#9B51E0','#ffffff']],
+  ['parcel-fill','fill-color',['match',ST,'me','#4F86F0','other','#E4573D','sale','#E0489E','#ffffff'],['match',ST,'me','#3DFFB0','other','#E4573D','sale','#FF5FD2','#ffffff']],
   ['road-label','text-color','#FFFFFF','#E3E8F2'], ['road-label','text-halo-color','#2F3749','#0A0F1E'], ['bati-3d','fill-extrusion-color',COULEUR_BATI,COULEUR_BATI_NUIT],
   ['bati-toit','fill-extrusion-color',COULEUR_TOIT,COULEUR_TOIT_NUIT], ['bati-ombre','fill-color','rgba(25,60,30,0.32)','rgba(0,0,0,0.38)'], ['bati-pied','line-color','rgba(20,40,30,0.45)','rgba(90,168,255,0.9)'] ];
 function estNuit(){ const q=new URLSearchParams(location.search).get('carte'); if(q==='nuit') return true; if(q==='jour') return false; if(document.documentElement.classList.contains('nuit')) return true;   // (essai des menus de nuit : la ville de nuit aussi)
@@ -624,12 +622,14 @@ map.on('moveend', ()=>{ clearTimeout(pastilleMin); pastilleMin=setTimeout(()=>{ 
 map.on('idle', ()=>pastilleCharge(false));
 
 // état des parcelles
+// Quatre états (décision de Gautier, 28 nov.) : à moi ; en vente (un lieu d'un autre joueur y est proposé à la vente) ; à un
+// autre joueur ; libre (aucune carte de la parcelle n'a encore été tirée). Plus de couleur « partagée ».
+function etatLieux(lieux){ let st='free'; for(const a of lieux){ const o=ownerOf(a); if(!o) continue; if(o===ME) return 'me'; if(enVente(a)) st='sale'; else if(st==='free') st='other'; } return st; }
 const parcelAddrs = {};
-function parcelSeed(idu){ const h = hash(idu) % 100; return h<8 ? 'other' : (h<11 ? 'mixed' : 'free'); }
-// la couleur d'une parcelle dont on connaît les lieux : libre, à moi, à un autre, ou partagée (plusieurs propriétaires)
+function parcelSeed(idu){ const h = hash(idu) % 100; return h<8 ? 'other' : (h<11 ? 'sale' : 'free'); }
+// la couleur d'une parcelle dont on connaît les lieux : à moi, en vente, à un autre, libre (etatLieux)
 function parcelState(idu){ const list = parcelAddrs[idu]; if(!list) return null; if(!list.length) return 'free';
-  const owners = new Set(list.map(a=>ownerOf(a)).filter(Boolean));
-  if(!owners.size) return 'free'; if(owners.size>1) return 'mixed'; return owners.has(ME) ? 'me' : 'other'; }
+  return etatLieux(list); }
 function parcelBonus(idu){ const list=parcelAddrs[idu]; if(!list) return 0; let b=0; list.forEach(a=>{ b=Math.max(b, NIVEAUX[levelOf(a)].hauteur); }); return b; }
 // Les couleurs des parcelles et des bâtiments (feature-state). On ne repose un état que s'il change :
 // sinon chaque « idle » relançait un dessin, qui relançait un « idle »… et la carte ne se reposait jamais.
@@ -641,7 +641,7 @@ function seedVisible(){ if(map.getZoom()<15) return; if(MODE_SERVEUR) calculerRe
   for(const f of feats){ const idu=f.id; if(!idu || seen.has(idu)) continue; seen.add(idu);
     if(MODE_SERVEUR){ poserParcelle(idu, etatReel(idu)); continue; }
     if(parcelAddrs[idu]) { const st=parcelState(idu); if(st) poserParcelle(idu, st); continue; }
-    let st = parcelSeed(idu); if(miennes.has(idu)){ st = (st==='free') ? 'me' : 'mixed'; }
+    let st = parcelSeed(idu); if(miennes.has(idu)) st = 'me';
     poserParcelle(idu, st); } }
 const batiParcel = {}; let selected = null;
 // la promenade en Street View (plus bas) : où l'on est, où l'on regarde, et les parcelles longées (surlignées comme la parcelle choisie)
@@ -2313,12 +2313,14 @@ function calculerReel(){ const b=map.getBounds(); let trouver=null; const qui={}
   // seulement les lieux à l'écran (un joueur peut en avoir des centaines dans toute la France)
   const poser=(a,q)=>{ let idu=a.idu || IDU_DE[a.id]; if(!idu){ if(!b.contains([a.lon,a.lat])) return; trouver=trouver||grilleParcelles(parcellesRendues());
       idu=trouver([a.lon,a.lat]) || (parcelleProche(a.lon, a.lat, 12)||{}).id; if(idu) IDU_DE[a.id]=idu; }
-    if(idu) (qui[idu]=qui[idu]||new Set()).add(q); };
-  for(const a of Object.values(state.owned)) poser(a, ME); for(const p of Object.values(PROPRIOS)) poser(p, p.qui); REEL=qui; }
+    if(idu){ (qui[idu]=qui[idu]||new Set()).add(q); if(q!==ME && a.enVente) vente[idu]=true; } };
+  const vente={};
+  for(const a of Object.values(state.owned)) poser(a, ME); for(const p of Object.values(PROPRIOS)) poser(p, p.qui); REEL=qui; REEL_VENTE=vente; }
 function peindreReel(){ if(map.getZoom()<15) return; seedVisible(); paintBuildings(); }
 // la couleur d'une parcelle : ses lieux connus (adresses de la fiche) et ceux posés dessus
-function etatReel(idu){ const s=new Set(REEL[idu]||[]); for(const a of (parcelAddrs[idu]||[])){ const o=ownerOf(a); if(o) s.add(o); }
-  return !s.size ? 'free' : (s.size>1 ? 'mixed' : (s.has(ME) ? 'me' : 'other')); }
+let REEL_VENTE={};
+function etatReel(idu){ const s=REEL[idu]; if(s && s.has(ME)) return 'me'; const st=etatLieux(parcelAddrs[idu]||[]); if(st==='me') return st;
+  if(REEL_VENTE[idu] || st==='sale') return 'sale'; return (s && s.size) || st==='other' ? 'other' : 'free'; }
 // les caisses de travaux de communes (une requête pour toutes) : le mandat en cours et le précédent (qui a élu les Maires),
 // et ma part de Maire touchée ; gardées une minute (force : relire tout de suite)
 async function chargerCaisses(ks, force){ const m=mandatCourant(); ks=[...new Set(ks)].filter(Boolean).filter(k=>force || !(CAISSES[k] && CAISSES[k].m===m && now()-CAISSES[k].lu<60000));

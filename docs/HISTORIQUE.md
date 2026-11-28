@@ -454,6 +454,7 @@ Puis une PR par étape, fusionnée en squash :
 | #254 | 22/11 | Agence sur ordinateur : les sept cartes d'embauche tiennent à l'écran (retour de Gautier) ; flèches et molette à la souris |
 | #255 | 22/11 | Mes bâtiments en vert néon sur la carte de nuit (choix de Gautier : le bleu clair ne ressortait pas) |
 | #256 | 28/11 | La V1 sans l'agence : éteinte par un interrupteur (`ECO.agence.active`), Boutique à sa place dans la barre ; outils d'essai en démo seulement ; `/proto` hors publication |
+| #257 | 28/11 | Les bâtiments en quatre couleurs : à moi, à un autre joueur, en vente (rose), libre ; plus de couleur « partagée » ; légende refaite |
 | #200 | 16/11 | Prototype du booster validé par Gautier : brillance moyenne fixée, boutons de réglage retirés |
 | #199 | 16/11 | Prototype du booster : une ligne de toits en néon sur le booster du jour, à la place de la maison |
 | #198 | 16/11 | Prototype du booster : moins brillant, lettres cernées, trois niveaux de brillance à choisir |
