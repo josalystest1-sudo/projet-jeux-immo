@@ -458,6 +458,7 @@ Puis une PR par étape, fusionnée en squash :
 | #257 | 28/11 | Les bâtiments en quatre couleurs : à moi, à un autre joueur, en vente (rose), libre ; plus de couleur « partagée » ; légende refaite |
 | #258 | 28/11 | La bêta : mot d'accueil (remise à zéro, pack régional offert à l'ouverture), rappel dans les Réglages, « Signaler un bug » (table `retours`) |
 | #259 | 28/11 | Bêta : 60 gemmes dans chaque pack gratuit, pas d'achat en euros ; l'essai du serveur ne dépend plus du rythme ; workflow manuel « Remise à zéro » |
+| #260 | 28/11 | Documents : remise à zéro faite le 28 nov. (12 comptes, 600 lieux), serveur au vrai rythme (86400), robots recréés |
 | #200 | 16/11 | Prototype du booster validé par Gautier : brillance moyenne fixée, boutons de réglage retirés |
 | #199 | 16/11 | Prototype du booster : une ligne de toits en néon sur le booster du jour, à la place de la maison |
 | #198 | 16/11 | Prototype du booster : moins brillant, lettres cernées, trois niveaux de brillance à choisir |
@@ -593,7 +594,7 @@ Les décisions du 2 novembre (interview) sont dans `CLAUDE.md` § 4 et dans le G
   - Brevo : fait et essayé (PR #161 à #163 ; clé SMTP posée par Gautier dans le secret `BREVO_SMTP_KEY_CITY_DECK`) : le 6 nov., un « mot de passe oublié » sur le compte de Gautier est parti de noreply@citydeck.fr et lui est arrivé (journal de Brevo : envoyé, délivré).
 - **La bêta et la sortie de la V1** (décisions du 28 nov.) : faits : l'agence éteinte (PR #256), les quatre couleurs (PR #257), le mot de la bêta et « Signaler un bug » (PR #258). Faits aussi : les gemmes de la bêta, la boutique sans euros, l'essai du serveur indépendant du rythme et l'outil de remise à zéro (PR #259). Restent : marquer les participants à la remise à zéro de la sortie, puis l'écran du pack régional offert ; les monuments « enjolivés » sur la carte ; streetkeep.fr (pas encore acheté) ; `ECO.beta.active` à `false` à la sortie.
 - **Au lancement** :
-  - remettre `jour_secondes` à 86400 et repartir de zéro ;
+  - remettre `jour_secondes` à 86400 et repartir de zéro : fait une première fois le 28 nov. pour la bêta (PR #259 et #260) ; à refaire le jour de la sortie (workflow « Remise à zéro »), en marquant d'abord les participants de la bêta ;
   - les robots restent, cachés parmi les joueurs (décisions du 5 nov., GDD § 5 quater) : repartir de zéro avec eux ; décider de la phrase des CGU sur les joueurs automatiques ;
   - retirer le pack d'essai (Réglages, `?essai-pack`) : fait (PR #256 : démo seulement) ;
   - le nom est décidé : **CityDeck** (4 nov.) ; vérifier qu'il est libre (marque, nom de domaine, magasins d'applications) avant le lancement.
