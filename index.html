@@ -140,6 +140,7 @@ const VERSION='__VERSION__';
 <div id="nav">
   <button data-s="agence"><i>🏢</i>Agence</button>
   <button data-s="patrimoine"><i>🏘️</i>Patrimoine</button>
+  <button id="nav-boutique" hidden onclick="vibrer(8); ouvrirBoutique()"><i>💎</i>Boutique</button>
   <button data-s="carte" class="centre"><i>🗺️</i>Carte</button>
   <button id="packbtn" class="pack-nav attente" aria-label="Pack du jour"><span class="pack-rond">🎁</span><span class="pack-t" id="packt">Pack</span></button>
   <button data-s="encheres"><i>🔨</i>Enchères<span class="cnt" id="cnt-ench"></span></button>
@@ -2455,7 +2456,8 @@ async function acheterPass(){ if(!BOU.peutPayer('pass', state.gemmes||0)) return
   if(MODE_SERVEUR){ const r=await agir('acheter_pass'); if(!r) return; refreshTop(); fete(14); toast(`⭐ Pass actif pour 15 jours : ${BOU.B.pass_cartes} cartes au pack du jour, et un bon d’adresse`); return ouvrirBoutique(); }
   state.gemmes-=BOU.prix('pass'); state.pass=BOU.acheterPass(state.pass, now(), JOUR); save(); refreshTop(); fete(14);
   toast(`⭐ Pass actif pour 15 jours : ${BOU.B.pass_cartes} cartes au pack du jour, et un bon d’adresse`); ouvrirBoutique(); }
-async function gemmesEssai(){ if(MODE_SERVEUR){ const r=await agir('gemmes_essai'); if(!r) return; refreshTop(); fete(10); return toast(`💎 +${nb(BOU.B.gemmes_essai)} gemmes d’essai`); }
+async function gemmesEssai(){ if(MODE_SERVEUR) return;   // (démo seulement depuis la V1)
+  if(MODE_SERVEUR){ const r=await agir('gemmes_essai'); if(!r) return; refreshTop(); fete(10); return toast(`💎 +${nb(BOU.B.gemmes_essai)} gemmes d’essai`); }
   state.gemmes=(state.gemmes||0)+BOU.B.gemmes_essai; save(); refreshTop(); fete(10); toast(`💎 +${nb(BOU.B.gemmes_essai)} gemmes d’essai`); }
 // le bon du Pass : prendre une adresse libre (jusqu'à Épique, pas un monument)
 async function prendreAvecBon(a){ const r=rarete(a), v=BOU.bonPermis(a, r, !ownerOf(a));
@@ -2470,14 +2472,15 @@ async function prendreAvecBon(a){ const r=rarete(a), v=BOU.bonPermis(a, r, !owne
 // serveur et n'ajoute rien au patrimoine. Réglages, ou l'adresse du jeu suivie de ?essai-pack (toutes les raretés),
 // ?essai-pack=4 (cinq Épiques) ou ?essai-pack=5 (cinq Légendaires). À retirer au lancement.
 let PACK_ESSAI=false;
-async function ouvrirPackEssai(raretes){ const sc0=document.getElementById('packscene'); if(sc0.classList.contains('on')) return; closeModal();
+async function ouvrirPackEssai(raretes){ if(MODE_SERVEUR) return;   // (démo seulement depuis la V1)
+  const sc0=document.getElementById('packscene'); if(sc0.classList.contains('on')) return; closeModal();
   PACK_ESSAI=true; openScene(); document.getElementById('pkload').textContent='Pack d’essai…';
   const cartes=[]; await Promise.all(raretes.map(async (r)=>{ for(let k=0;k<8;k++){ try{ const c=await TIRAGE.lieuDeRarete(r, Math.random); if(c && rarete(c)===r && !cartes.some(x=>x.id===c.id)){ cartes.push(c); return; } }catch(e){} } }));
   if(!document.getElementById('packscene').classList.contains('on')) return;
   if(!cartes.length){ finPack(); return toast('Pack d’essai impossible : vérifie ta connexion'); }
   cartes.sort((a,b)=>rarete(a)-rarete(b)); packCards=cartes; cartes.forEach(c=>fetchCommune(c)); if(window.CarteLieu) cartes.forEach(c=>CarteLieu.donnees(c).catch(()=>{}));
   document.getElementById('pkload').textContent=''; if(GL.uni) GL.uni.uReady.value=1; document.getElementById('pkhint').textContent=aideOuvrir(); }
-{ const q=new URLSearchParams(location.search); if(q.has('essai-pack')){ const r=+q.get('essai-pack'); setTimeout(()=>ouvrirPackEssai(r>=1 && r<=5 ? [r,r,r,r,r] : [1,2,3,4,5]), 3000); } }
+{ const q=new URLSearchParams(location.search); if(!MODE_SERVEUR && q.has('essai-pack')){ const r=+q.get('essai-pack'); setTimeout(()=>ouvrirPackEssai(r>=1 && r<=5 ? [r,r,r,r,r] : [1,2,3,4,5]), 3000); } }
 // les consignes du pack : au doigt sur un téléphone, à la souris sur un ordinateur
 const SOURIS = matchMedia('(hover:hover) and (pointer:fine)').matches;
 function aideOuvrir(){ return SOURIS ? 'Fais glisser la souris sur le haut du pack pour l’ouvrir' : 'Glisse ton doigt sur le haut du pack pour l’ouvrir'; }
@@ -2511,13 +2514,16 @@ function refreshPack(){ boutonBooster(); preparerPackDavance(); const b=document
 function dureeCourte(s){ return s>=3600 ? `${Math.floor(s/3600)} h ${String(Math.floor(s%3600/60)).padStart(2,'0')}` : (s>=60 ? `${Math.floor(s/60)} min ${String(s%60).padStart(2,'0')}` : `${s} s`); }
 
 // =================== écrans ===================
-function showScreen(name){ vibrer(8); if(window.PROGRESSION && !PROGRESSION.ouvert(name)) return PROGRESSION.ferme(name);   // (un écran fermé d'un cadenas : src/progression.js)
+function showScreen(name){ if(name==='agence' && !AGENCE_ACTIVE) name='carte'; vibrer(8); if(window.PROGRESSION && !PROGRESSION.ouvert(name)) return PROGRESSION.ferme(name);   // (un écran fermé d'un cadenas : src/progression.js)
   if(name!=='accueil' && window.ACCUEIL) ACCUEIL.fermerVitrine(); document.querySelectorAll('.screen').forEach(s=>s.classList.remove('on')); document.querySelectorAll('#nav button[data-s]').forEach(b=>b.classList.toggle('on', b.dataset.s===name));
   document.body.classList.toggle('sur-carte', name==='carte'); try{ if(window.ETAT_SON_ECRAN!==name){ if(window.ETAT_SON_ECRAN) sonEcran(); window.ETAT_SON_ECRAN=name; } }catch(e){} const hide = name!=='carte'; ['top','ctrls','legend'].forEach(id=>document.getElementById(id).style.display = hide?'none':''); closeSheet(); if(!(window.Compte && Compte.bloque && Compte.bloque())) closeModal();
   if(name==='patrimoine') renderPatrimoine(); if(name==='encheres') renderEncheres(); if(name==='communes'){ if(MODE_SERVEUR){ for(const k of Object.keys(CAISSES)) delete CAISSES[k]; CLASSES.lu=0; CLASSES.communes={}; } renderCommunes(); } if(name==='notifs') renderNotifs();
   // (l'écran arrive : ses blocs montent l'un après l'autre, une seule fois : classe « entree »)
   if(hide){ const e=document.getElementById('s-'+name); e.classList.add('on'); e.classList.remove('entree'); void e.offsetWidth; e.classList.add('entree'); clearTimeout(e._entree); e._entree=setTimeout(()=>e.classList.remove('entree'), 700); } else { map.resize(); if(!ARRIVEE_FAITE){ const go=()=>setTimeout(descenteArrivee, 150); if(map.loaded()) go(); else { map.once('idle', go); setTimeout(go, 2500); } } }
   if(name==='accueil' && window.ACCUEIL) ACCUEIL.render(); if(name==='agence' && window.AGENCE) AGENCE.montrer(); boutonBooster(); }
+// la V1 sort sans l'agence (décision de Gautier, 28 nov. ; ECO.agence.active à false) : son bouton s'en va, la boutique prend sa place
+const AGENCE_ACTIVE = !(ECO.agence && ECO.agence.active===false);
+if(!AGENCE_ACTIVE){ const b=document.querySelector('#nav button[data-s="agence"]'); if(b) b.remove(); document.getElementById('nav-boutique').hidden=false; }
 document.querySelectorAll('#nav button[data-s]').forEach(b=>b.onclick=()=>showScreen(b.dataset.s));
 document.getElementById('cloche').onclick=()=>showScreen('notifs');
 
@@ -2998,7 +3004,8 @@ const GUIDE=[   // (6 nov. : après le premier pack ; les enchères, les commune
   { lieu:true, centre:true, titre:'🗺️ Tes lieux sur la carte', texte:'Tes lieux sont sur la vraie carte de France, à ta couleur. Touche un bâtiment pour voir ses lieux : chez toi, tu construis pour toucher des loyers ; chez les autres, tu fais une offre.' },
   { cible:'#walletpill', titre:'<i class="pc"></i> Tes pièces', texte:'Ton salaire et tes loyers s’accumulent pendant 24 h. Touche ta bourse pour récolter, et reviens chaque jour.' },
   { cible:'#nav button[data-s="patrimoine"]', titre:'🏘️ Ta collection', texte:'Tes lieux en cartes. Maison, Immeuble, Tour : plus tu construis haut, plus le loyer monte.' },
-  { cible:'#nav button[data-s="agence"]', titre:'🏢 Ton agence', texte:'Tes pièces y embauchent des employés. Et chaque jour, un nouveau pack : un bouton apparaît à l’écran quand il est prêt. Le reste du jeu s’ouvre en jouant.' } ];
+  (ECO.agence && ECO.agence.active===false) ? { cible:'#nav button[data-s="carte"]', titre:'🎁 Ton booster chaque jour', texte:'Chaque jour, un nouveau booster : un bouton apparaît à l’écran quand il est prêt. Le reste du jeu s’ouvre en jouant.' }
+  : { cible:'#nav button[data-s="agence"]', titre:'🏢 Ton agence', texte:'Tes pièces y embauchent des employés. Et chaque jour, un nouveau pack : un bouton apparaît à l’écran quand il est prêt. Le reste du jeu s’ouvre en jouant.' } ];
 let GUIDE_LIEU=null;   // le lieu montré par le premier pack guidé (src/accueil.js)
 function guide(i){ let g=document.getElementById('guide'); if(i>=GUIDE.length || i<0){ if(g) g.remove(); state.prefs.guideVu=true; GUIDE_LIEU=null; save(); return; }
   if(window.PROGRESSION && !PROGRESSION.ouvert('carte')) return;   // (avant le premier pack, il n'y a rien à montrer)
@@ -3029,12 +3036,12 @@ function ouvrirReglages(){ const box=document.getElementById('modalbox');
     ${MODE_SERVEUR ? (enVraisJours() ? '' : `<div class="m petit" style="margin-top:8px">Serveur d’essai accéléré : un jour du jeu = ${Math.round(JOUR/60000)} min.</div>`)
       : `<div class="sw mode"><span>Démo : joueurs simulés<small>Ta partie de démo reste sur ce téléphone.</small></span><button class="btn sm" onclick="quitterDemo()">Jouer sur le vrai serveur</button></div>`}
     ${(state.signalements||[]).length?`<div class="m" style="margin-top:10px">🚩 Signalements envoyés : ${state.signalements.length}</div>`:''}
-    <div class="essais"><b>Pack d’essai</b><small>S’ouvre comme un vrai pack, mais ne compte pas et ne te donne rien.</small>
+    ${MODE_SERVEUR ? '' : `<div class="essais"><b>Pack d’essai</b><small>S’ouvre comme un vrai pack, mais ne compte pas et ne te donne rien.</small>
       <div class="liste-btn"><button class="btn clair" onclick="ouvrirPackEssai([1,2,3,4,5])">🎴 Toutes les raretés</button><button class="btn clair" onclick="ouvrirPackEssai([4,4,4,4,4])">✨ Épiques</button><button class="btn clair" onclick="ouvrirPackEssai([5,5,5,5,5])">👑 Légendaires</button></div>
       <b style="display:block;margin-top:10px">Gemmes d’essai</b><small>Pour essayer la boutique avant le paiement par carte. À retirer au lancement.</small>
       <div class="liste-btn"><button class="btn clair" onclick="gemmesEssai()">💎 +${nb(BOU.B.gemmes_essai)} gemmes</button></div>
       ${ECO.chasse.active===false ? '' : `<b style="display:block;margin-top:10px">Chasse au trésor d’essai</b><small>Une chasse rien que pour toi, ici, dans 20 secondes : le trésor est à quelques rues.</small>
-      <div class="liste-btn"><button class="btn clair" onclick="chasseEssai()">🗺️ Lancer une chasse d’essai</button></div>`}</div>
+      <div class="liste-btn"><button class="btn clair" onclick="chasseEssai()">🗺️ Lancer une chasse d’essai</button></div>`}</div>`}
     <div class="liste-btn"><button class="btn bleu large" onclick="closeModal();setTimeout(()=>guide(0),300)">🧭 Revoir le guide</button><button class="btn clair large" onclick="closeModal()">Fermer</button></div>
     <div class="m" style="text-align:center;margin-top:10px">Version du jeu : ${VERSION.indexOf('__')===0 ? 'locale' : VERSION.slice(0,7)}</div>
     <div class="m petit liens-legaux" style="text-align:center"><a href="conditions.html" target="_blank" rel="noopener">Conditions</a> · <a href="confidentialite.html" target="_blank" rel="noopener">Confidentialité</a> · <a href="mentions-legales.html" target="_blank" rel="noopener">Mentions légales</a></div>`;

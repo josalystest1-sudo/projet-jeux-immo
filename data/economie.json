@@ -114,6 +114,7 @@
     "impaye_avertir_jours": 23
   },
   "agence": {
+    "active": false,
     "postes": {
       "agent": {"base": 60, "croissance": 1.13, "renom": 1},
       "negociateur": {"base": 400, "croissance": 1.22, "bonus": 0.12},

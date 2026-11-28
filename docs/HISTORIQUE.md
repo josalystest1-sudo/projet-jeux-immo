@@ -214,6 +214,7 @@ Gautier, sur son téléphone, demande d'abord « tout ce qui est facile », sans
 
 - **La carte en bleu nuit, des bâtiments vivants** (PR #234, #235). Devant trois essais de couleurs, Gautier : « tant qu'à faire, il faut rendre les bâtiments plus vivants que de simples blocs ». Des fenêtres partout : « il y a trop de fenêtres, bien arrangé ça rend moche ; il faut varier ; faire une différence entre les immeubles, les maisons, les magasins ». La BD TOPO donne l'usage et le nombre de logements de chaque bâtiment : maisons, immeubles, bureaux, hangars, annexes, vitrines des commerces. « Tu peux passer en bleu nuit » ; les façades seulement de près.
 - **La refonte de l'ergonomie** (PR #236 à #242). Gautier : « il faut revoir toute l'interface et l'ergonomie du jeu pour que ça fasse plus jeu et moins tableau de contrôle ». À trois questions, il répond : se manier **comme Pokémon GO** ; ce qui gêne : trop de chiffres et de texte, des panneaux empilés, rien ne bouge, trop d'écrans. Une ville personnelle « Ma ville » (ses adresses réunies dans une scène) est maquettée (`proto/ville.html`) ; Gautier : « quel est l'intérêt d'avoir sa propre ville ? » ; réponse honnête : aucune règle nouvelle ; il choisit **la vraie carte comme écran principal**. Faits : ouverture sur la carte, la Carte au centre de la barre, des boutons ronds sur la carte, une pièce à toucher sur ses lieux, le tour de ses lieux (#236) ; « j'ai plus de 200 adresses » : recherche et filtres complets dans la collection (#237) ; Patrimoine, la collection d'abord (#238) ; les enchères, un monument à la fois (#239) ; la mairie en scène (#240) ; puis, Gautier absent (« continue jusqu'à ce que tu ne puisses plus rien faire »), une passe sur tous les écrans (#241, #242).
+- **La V1 sans l'agence** (PR #256). Le 28 nov., Gautier fixe la sortie : « le jeu va sortir en V1 sans l'agence, donc juste de la collection, on garde les enchères pour les monuments », avec une bêta à nombre restreint de joueurs avant l'ouverture (les participants recevront un pack régional de leur choix le jour de l'ouverture), des couleurs de bâtiments par état (occupé, en vente, libre, à soi) et le retour au vrai rythme (un jour = un jour). Il vise la fin du week-end. Claude garde la version avec agence (étiquette `v0-avec-agence`) et commence par éteindre l'agence et retirer les outils d'essai.
 
 ## Toutes les PR
 
@@ -452,6 +453,7 @@ Puis une PR par étape, fusionnée en squash :
 | #253 | 22/11 | Quatre nouveaux postes à l'agence (réceptionniste, formateur, photographe, associé), chacun son étage ; bonus plafonnés et de plus en plus chers ; embauches en bas de l'écran |
 | #254 | 22/11 | Agence sur ordinateur : les sept cartes d'embauche tiennent à l'écran (retour de Gautier) ; flèches et molette à la souris |
 | #255 | 22/11 | Mes bâtiments en vert néon sur la carte de nuit (choix de Gautier : le bleu clair ne ressortait pas) |
+| #256 | 28/11 | La V1 sans l'agence : éteinte par un interrupteur (`ECO.agence.active`), Boutique à sa place dans la barre ; outils d'essai en démo seulement ; `/proto` hors publication |
 | #200 | 16/11 | Prototype du booster validé par Gautier : brillance moyenne fixée, boutons de réglage retirés |
 | #199 | 16/11 | Prototype du booster : une ligne de toits en néon sur le booster du jour, à la place de la maison |
 | #198 | 16/11 | Prototype du booster : moins brillant, lettres cernées, trois niveaux de brillance à choisir |
@@ -502,6 +504,7 @@ Les décisions du 2 novembre (interview) sont dans `CLAUDE.md` § 4 et dans le G
 
 | Date | Décision |
 |---|---|
+| 28 nov. | **La V1 sort sans l'agence** : la collection, les enchères de monuments, les communes. Une **bêta fermée** d'abord ; ses participants auront un pack régional de leur choix le jour de l'ouverture. Couleurs des bâtiments par état (à moi, à un autre, en vente, libre). Retour au vrai rythme (un jour = un jour) |
 | 6 nov. | Le nom du jeu est StreetKeep (CityDeck abandonné : city-deck.com). Vérifier un nom : Google d'abord, puis stores, INPI, domaines, réseaux |
 | 2 nov. | Supabase pour le serveur (plutôt que le VPS du site de quiz) |
 | 2 nov. | Le pseudo est définitif : choisi une fois, jamais modifiable par le joueur |
@@ -586,7 +589,7 @@ Les décisions du 2 novembre (interview) sont dans `CLAUDE.md` § 4 et dans le G
 - **Au lancement** :
   - remettre `jour_secondes` à 86400 et repartir de zéro ;
   - les robots restent, cachés parmi les joueurs (décisions du 5 nov., GDD § 5 quater) : repartir de zéro avec eux ; décider de la phrase des CGU sur les joueurs automatiques ;
-  - retirer le pack d'essai (Réglages, `?essai-pack`) ;
+  - retirer le pack d'essai (Réglages, `?essai-pack`) : fait (PR #256 : démo seulement) ;
   - le nom est décidé : **CityDeck** (4 nov.) ; vérifier qu'il est libre (marque, nom de domaine, magasins d'applications) avant le lancement.
 - **L'anglais** (PR #146) : faire relire les textes par un anglophone ; les e-mails de connexion (Supabase, puis Brevo) n'existent qu'en une langue ; tout nouveau texte du jeu doit entrer dans `data/langue_en.js` (le test le rappelle pour les bandeaux et les refus du serveur).
 - **La chasse au trésor** (GDD § 5 quinquies) : faite (PR #172). Reste : régler le rythme (Gautier : « toutes les demi-heures ou toutes les heures, faudra régler ça plus tard ») et la récompense (500 pièces et une carte, proposés) ; la voir jouer à plusieurs.
