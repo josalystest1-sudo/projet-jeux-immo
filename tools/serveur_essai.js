@@ -259,8 +259,10 @@ async function nouveauJoueur(publique, secrete) {
       verifier(agBrique.corps && agBrique.corps.ok === false && agBrique.corps.code === 'renom' && agPoste.corps && agPoste.corps.ok === false && agPoste.corps.code === 'poste', 'pas de brique sans renom, pas de poste inconnu', { b: agBrique.corps, p: agPoste.corps });
     }
     // la boutique (GDD § 3 et § 9) : gemmes d'essai, Pass, pack national et régional, refus
-    const g0 = await jeu({ action: 'gemmes_essai' });
-    verifier(g0.corps && g0.corps.ok && g0.corps.gemmes >= 1000, 'des gemmes d’essai (serveur d’essai)', g0);
+    // (au vrai rythme, « gemmes_essai » est refusé : la clé du serveur pose les gemmes du joueur d'essai)
+    const poserGemmes = async (qui, n) => { await requete(`${URL}/rest/v1/joueurs?id=eq.${qui}`, { method: 'PATCH', headers: { ...entetesSecrets(secrete), 'Content-Type': 'application/json', Prefer: 'return=minimal' }, body: JSON.stringify({ gemmes: n }) }); const e = await jeu({ action: 'etat' }); return { corps: { ok: e.corps && e.corps.ok, gemmes: e.corps && e.corps.gemmes } }; };
+    const g0 = await poserGemmes(id, 1000);
+    verifier(g0.corps && g0.corps.ok && g0.corps.gemmes === 1000, 'des gemmes pour le joueur d’essai', g0);
     const pass = await jeu({ action: 'acheter_pass' });
     verifier(pass.corps && pass.corps.ok && pass.corps.etat.gemmes === g0.corps.gemmes - 300 && pass.corps.etat.pass.bons === 1 && pass.corps.etat.pass.fin > Date.now(), 'le Pass 15 jours : 300 gemmes, un bon', pass.corps && pass.corps.etat && { g: pass.corps.etat.gemmes, p: pass.corps.etat.pass });
     // le booster national préparé d'avance, puis acheté
@@ -282,7 +284,7 @@ async function nouveauJoueur(publique, secrete) {
         verifier(vg.corps && vg.corps.ok && (vg.corps.etat.lieux.find((x) => x.id === Lg.id) || {}).deviseVente === 'gemmes', 'mettre en vente en gemmes', vg.corps && vg.corps.etat && vg.corps.etat.lieux.find((x) => x.id === Lg.id));
         const sansG = await C.jeu({ action: 'acheter', id: Lg.id, prix: 40 });
         verifier(sansG.corps && sansG.corps.ok === false && sansG.corps.code === 'gemmes', 'l’acheter sans gemmes : refusé', sansG.corps);
-        await C.jeu({ action: 'gemmes_essai' });
+        await requete(`${URL}/rest/v1/joueurs?id=eq.${C.id}`, { method: 'PATCH', headers: { ...entetesSecrets(secrete), 'Content-Type': 'application/json', Prefer: 'return=minimal' }, body: JSON.stringify({ gemmes: 1000 }) });
         const avantG = (await jeu({ action: 'etat' })).corps.gemmes;
         const ag = await C.jeu({ action: 'acheter', id: Lg.id, prix: 40 });
         verifier(ag.corps && ag.corps.ok && ag.corps.devise === 'gemmes' && ag.corps.etat.gemmes === 1000 - 40 && ag.corps.etat.lieux.some((x) => x.id === Lg.id), 'un autre joueur l’achète en gemmes : 40 gemmes', ag.corps && { d: ag.corps.devise, g: ag.corps.etat && ag.corps.etat.gemmes });
@@ -300,14 +302,19 @@ async function nouveauJoueur(publique, secrete) {
     const gemVol = await requete(`${URL}/rest/v1/joueurs?id=eq.${id}`, { method: 'PATCH', headers: { apikey: publique, Authorization: `Bearer ${acces}`, 'Content-Type': 'application/json', Prefer: 'return=representation' }, body: JSON.stringify({ gemmes: 999999 }) });
     verifier(gemVol.statut >= 400 || (Array.isArray(gemVol.corps) && gemVol.corps.length === 0), 'me donner des gemmes directement : refusé', gemVol.statut);
     // le paiement par carte (Stripe) : il faut cocher l'accès immédiat ; avec la clé de test, une vraie page de paiement
-    const sansCase = await jeu({ action: 'paiement_creer', offre: 'g500' });
-    verifier(sansCase.corps && sansCase.corps.ok === false && sansCase.corps.code === 'renonce', 'payer sans demander l’accès immédiat : refusé', sansCase.corps);
-    const pay = await jeu({ action: 'paiement_creer', offre: 'g500', renonce: true, retour: 'https://citydeck.fr/' });
-    if (pay.corps && pay.corps.ok) {
-      verifier(/^https:\/\/checkout\.stripe\.com\//.test(pay.corps.url) && pay.corps.test === true, 'une page de paiement Stripe (clé de test)', pay.corps);
-      const ver = await jeu({ action: 'paiement_verifier', session: pay.corps.session });
-      verifier(ver.corps && ver.corps.ok && ver.corps.credites.length === 0, 'pas payé : aucune gemme créditée', ver.corps);
-    } else verifier(pay.corps && pay.corps.code === 'paiement', 'pas encore de clé Stripe : le paiement est fermé', pay.corps);
+    if (ECO.beta && ECO.beta.active && ECO.beta.achats_euros === false) {   // (la bêta : on n'achète pas de gemmes en euros)
+      const payBeta = await jeu({ action: 'paiement_creer', offre: 'g500', renonce: true, retour: 'https://citydeck.fr/' });
+      verifier(payBeta.corps && payBeta.corps.ok === false && payBeta.corps.code === 'beta', 'la bêta : acheter des gemmes en euros est refusé', payBeta.corps);
+    } else {
+      const sansCase = await jeu({ action: 'paiement_creer', offre: 'g500' });
+      verifier(sansCase.corps && sansCase.corps.ok === false && sansCase.corps.code === 'renonce', 'payer sans demander l’accès immédiat : refusé', sansCase.corps);
+      const pay = await jeu({ action: 'paiement_creer', offre: 'g500', renonce: true, retour: 'https://citydeck.fr/' });
+      if (pay.corps && pay.corps.ok) {
+        verifier(/^https:\/\/checkout\.stripe\.com\//.test(pay.corps.url) && pay.corps.test === true, 'une page de paiement Stripe (clé de test)', pay.corps);
+        const ver = await jeu({ action: 'paiement_verifier', session: pay.corps.session });
+        verifier(ver.corps && ver.corps.ok && ver.corps.credites.length === 0, 'pas payé : aucune gemme créditée', ver.corps);
+      } else verifier(pay.corps && pay.corps.code === 'paiement', 'pas encore de clé Stripe : le paiement est fermé', pay.corps);
+    }
     const mairieVol = await requete(`${URL}/rest/v1/mairies`, { method: 'POST', headers: { apikey: publique, Authorization: `Bearer ${acces}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ mandat: 1, commune: 'x', maire: id, rivaux: 999 }) });
     verifier(mairieVol.statut >= 400, 'me donner une mairie directement : refusé', mairieVol.statut);
     // les robots sont cachés parmi les joueurs (décision de Gautier, 5 nov.) : le jeu ne peut pas savoir qui en est un
@@ -317,8 +324,9 @@ async function nouveauJoueur(publique, secrete) {
     verifier(classement.statut === 200 && Array.isArray(classement.corps), 'le classement d’une commune est lisible', classement.statut);
     // la chasse au trésor (GDD § 5 quinquies) : une chasse d'essai rien que pour moi, son trésor tout près ; je m'inscris, un
     // saut est refusé, puis je marche jusqu'au trésor (à la vitesse de la balade) et je gagne, une seule fois
-    const essaiChasse = await jeu({ action: 'chasse_essai' });
-    verifier(essaiChasse.corps && essaiChasse.corps.ok && essaiChasse.corps.chasse && essaiChasse.corps.cible, 'une chasse au trésor d’essai', essaiChasse.corps);
+    // (la chasse est retirée de la V1, ECO.chasse.active à false, et ses chasses d'essai n'existent pas au vrai rythme)
+    const essaiChasse = ECO.chasse.active === false ? { corps: null } : await jeu({ action: 'chasse_essai' });
+    if (ECO.chasse.active !== false) verifier(essaiChasse.corps && essaiChasse.corps.ok && essaiChasse.corps.chasse && essaiChasse.corps.cible, 'une chasse au trésor d’essai', essaiChasse.corps);
     if (essaiChasse.corps && essaiChasse.corps.ok && essaiChasse.corps.cible) {
       const ch = essaiChasse.corps.chasse, cible = essaiChasse.corps.cible;
       const ins = await jeu({ action: 'chasse_rejoindre' });

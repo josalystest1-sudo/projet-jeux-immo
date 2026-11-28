@@ -2065,7 +2065,9 @@ let packOuverture=null;   // la ligne d'ouverture du pack à l'écran (les carte
 function openScene(){ const sc=document.getElementById('packscene'); setTimeout(()=>{ poserDosCarte(); }, 250); packTorn=false; packCards=null; packOuverture=null; GL.rmax=null; document.getElementById('pkgl').style.display='block';
   document.getElementById('pkcards').innerHTML=''; document.getElementById('packdone').style.display='none'; document.getElementById('pkhint').textContent='Incline ton téléphone…'; document.getElementById('pkload').textContent='Le pack arrive…';
   sc.classList.add('on'); requestAnimationFrame(()=>{ sc.classList.add('show'); initGL(); }); }
-function finPack(){ const sc=document.getElementById('packscene'); cancelAnimationFrame(PK.anim); if(PACK_ESSAI){ PACK_ESSAI=false; setTimeout(()=>toast('Pack d’essai : rien n’a été ajouté à ton patrimoine'), 600); } sc.classList.remove('show','fini'); setTimeout(()=>{ sc.classList.remove('on'); disposeGL(); }, 500); renderPatrimoine(); refreshTop(); if(window.ACCUEIL) setTimeout(ACCUEIL.apresPack, 550); if(!state.prefs.guideVu && !document.getElementById('s-accueil').classList.contains('on')) setTimeout(()=>guide(0), 900); }
+let PACK_GEMMES_BETA=0;
+function finPack(){ if(PACK_GEMMES_BETA){ const g=PACK_GEMMES_BETA; PACK_GEMMES_BETA=0; setTimeout(()=>{ refreshTop(); toast(`💎 +${nb(g)} gemmes de bêta : va voir la boutique`); }, 900); }
+  const sc=document.getElementById('packscene'); cancelAnimationFrame(PK.anim); if(PACK_ESSAI){ PACK_ESSAI=false; setTimeout(()=>toast('Pack d’essai : rien n’a été ajouté à ton patrimoine'), 600); } sc.classList.remove('show','fini'); setTimeout(()=>{ sc.classList.remove('on'); disposeGL(); }, 500); renderPatrimoine(); refreshTop(); if(window.ACCUEIL) setTimeout(ACCUEIL.apresPack, 550); if(!state.prefs.guideVu && !document.getElementById('s-accueil').classList.contains('on')) setTimeout(()=>guide(0), 900); }
 function dechirer(){ if(GL.torn) return; packTorn=true; packOuverture=null;
   if(GL.r && GL.pack){ const cv=document.getElementById('pkgl'), r=cv.getBoundingClientRect(), w=GL.pack.localToWorld(new THREE.Vector3(0,1.17,0.12)).project(GL.cam); packOuverture=r.top+(1-w.y)/2*r.height; }
   if(GL.dech){ GL.dech.actif=false; GL.dech.cible=1; } sonDechirureFin(); GL.torn=true; GL.tornAt=performance.now(); sonDechirure(); sonOuverture(); document.getElementById('pkhint').textContent='';
@@ -2371,6 +2373,7 @@ async function ouvrirPack(opts){ opts=opts||{}; const payant=opts.payant; PACK_P
   else { const base=(state.pseudo||'?')+':'+jour(); cards=await TIRAGE.tirerPack(base, ECO.pack.chances, BOU.cartesDuJour(state.pass, now(), premierPack())); }
   delete btn.dataset.ouverture; refreshPack();
   if(!cards.length){ finPack(); return toast('Pack impossible à tirer : vérifie ta connexion'); }
+  if(!payant && BETA && ECO.beta.gemmes_pack>0){ if(!MODE_SERVEUR) state.gemmes=(state.gemmes||0)+ECO.beta.gemmes_pack; PACK_GEMMES_BETA=ECO.beta.gemmes_pack; }   // (bêta : des gemmes dans le pack gratuit, annoncées à la fin)
   encaisser(true); if(!payant) state.lastPack=jour(); state.cartesDuJour={ le:now(), ids:cards.map(c=>c.id) }; state.packsOuverts=(state.packsOuverts||0)+1; for(const c of cards){ if(!MODE_SERVEUR) state.owned[c.id]=Object.assign({}, c, {niveau:0, depuis:now()}); state.seen[c.id]='libre'; setBadge(c,0); } save(); refreshTop();
   // tri : les communes d'abord, la meilleure carte en dernier (suspense)
   cards.sort((a,b)=>rarete(a)-rarete(b)); packCards=cards; cards.forEach(c=>fetchCommune(c)); document.getElementById('pkload').textContent=''; if(GL.uni) GL.uni.uReady.value=1; document.getElementById('pkhint').textContent=aideOuvrir(); }
@@ -2408,8 +2411,8 @@ function ouvrirBoutique(){ const box=document.getElementById('modalbox'), t=now(
       <div class="choix-region" id="bq-region"></div>${acheter('pack_regional','Ouvrir')}</div>
     <div class="article pass"><div class="t">⭐ Pass 15 jours</div><div class="m">Ton pack du jour a <b>${BOU.B.pass_cartes} cartes</b> au lieu de ${ECO.pack.cartes}, et un <b>bon</b> pour prendre l’adresse libre de ton choix (jusqu’à Épique) : « Prendre avec mon bon » sur sa fiche.</div>
       ${actif ? `<div class="m pass-actif">Actif encore ${dureeTexte(pass.fin-t)} · ${bons} bon${bons>1?'s':''} (${BOU.B.bons_max} au plus)</div>` : ''}${acheter('pass', actif ? 'Prolonger de 15 jours' : 'Prendre le Pass')}</div>
-    <div class="article"><div class="t">💎 Gemmes</div><div class="gemmes-offres">${BOU.B.gemmes.map(o=>`<button class="offre-gemmes" data-gemmes="${o.id}"><b>💎 ${nb(o.gemmes)}</b><small>${o.euros.toFixed(2).replace('.',',')} €</small></button>`).join('')}</div>
-      <div class="m petit">${MODE_SERVEUR ? 'Paiement sécurisé par carte (Stripe).' : 'Le paiement par carte se fait sur le vrai serveur, pas dans la démo.'} Les gemmes ne se revendent pas et ne s’échangent pas contre des pièces.</div></div>
+    ${BETA && ECO.beta.achats_euros===false ? `<div class="article"><div class="t">💎 Gemmes <b class="beta-tag">BÊTA</b></div><div class="m">Pendant la bêta, les gemmes ne s’achètent pas : chaque pack gratuit du jour t’en donne <b>${nb(ECO.beta.gemmes_pack)}</b>, pour essayer la boutique. À la sortie du jeu, les packs gratuits n’en donneront plus autant.</div></div>` : `<div class="article"><div class="t">💎 Gemmes</div><div class="gemmes-offres">${BOU.B.gemmes.map(o=>`<button class="offre-gemmes" data-gemmes="${o.id}"><b>💎 ${nb(o.gemmes)}</b><small>${o.euros.toFixed(2).replace('.',',')} €</small></button>`).join('')}</div>
+      <div class="m petit">${MODE_SERVEUR ? 'Paiement sécurisé par carte (Stripe).' : 'Le paiement par carte se fait sur le vrai serveur, pas dans la démo.'} Les gemmes ne se revendent pas et ne s’échangent pas contre des pièces.</div></div>`}
     <div class="probas"><div class="t">🎲 Chances par carte</div><div class="m">${proba}</div><div class="m petit">Les mêmes pour le pack du jour, le pack national et le pack régional. Les monuments ne sortent jamais des packs.</div></div>
     <button class="btn clair large" style="width:100%;margin-top:12px" onclick="closeModal()">Fermer</button>`;
   document.getElementById('modal').classList.add('on');
@@ -3029,10 +3032,12 @@ function guide(i){ let g=document.getElementById('guide'); if(i>=GUIDE.length ||
 // zéro à la sortie ; les participants recevront un pack régional de leur choix le jour de l'ouverture. Un mot d'accueil une fois,
 // un rappel dans les Réglages, et « Signaler un bug » (table « retours », lue par Gautier dans le tableau de bord).
 const BETA = !!(ECO.beta && ECO.beta.active);
-const TEXTE_BETA = 'Le jeu est en bêta : à la sortie, tout sera remis à zéro (lieux, pièces, classements). Pour te remercier, tu recevras un pack régional de ton choix le jour de l’ouverture.';
+const TEXTE_BETA = 'Le jeu est en bêta : à la sortie, tout sera remis à zéro (lieux, pièces, gemmes, classements). Pour te remercier, tu recevras un pack régional de ton choix le jour de l’ouverture.';
+const TEXTE_BETA_GEMMES = 'Pour tester la boutique, chaque pack gratuit te donne des gemmes : rien ne s’achète avec de l’argent pendant la bêta. À la sortie, les packs gratuits n’en donneront plus autant.';
 function accueilBeta(){ if(!BETA || !state.pseudo || (state.prefs && state.prefs.betaVue) || document.querySelector('#modal.on, #packscene.on, #guide, .rev-scene')) return;
   const box=document.getElementById('modalbox');
   box.innerHTML=`<div class="prog-fen"><div class="prog-ic">🎁</div><div class="prog-nouveau">Bêta</div><h2>Bienvenue dans la bêta</h2><div class="sub">${TEXTE_BETA}</div>
+    <div class="sub" style="margin-top:8px">${TEXTE_BETA_GEMMES}</div>
     <div class="sub" style="margin-top:8px">Un bug, une idée ? Dis-le-nous depuis les Réglages : « Signaler un bug ».</div>
     <div class="liste-btn"><button class="btn large" id="beta-ok">C’est parti</button></div></div>`;
   document.getElementById('modal').classList.add('on');
@@ -3061,7 +3066,7 @@ function ouvrirReglages(){ const box=document.getElementById('modalbox');
     <div class="sw"><span>Vibrations</span><input type="checkbox" ${state.prefs.vibrations!==false?'checked':''} onchange="setPref('vibrations',this.checked)"></div>
     ${MODE_SERVEUR ? (enVraisJours() ? '' : `<div class="m petit" style="margin-top:8px">Serveur d’essai accéléré : un jour du jeu = ${Math.round(JOUR/60000)} min.</div>`)
       : `<div class="sw mode"><span>Démo : joueurs simulés<small>Ta partie de démo reste sur ce téléphone.</small></span><button class="btn sm" onclick="quitterDemo()">Jouer sur le vrai serveur</button></div>`}
-    ${BETA ? `<div class="m beta-rappel"><b class="beta-tag">BÊTA</b> ${TEXTE_BETA}</div>` : ''}
+    ${BETA ? `<div class="m beta-rappel"><b class="beta-tag">BÊTA</b> ${TEXTE_BETA} ${TEXTE_BETA_GEMMES}</div>` : ''}
     <div class="liste-btn"><button class="btn clair large" onclick="signalerBug()">🚩 Signaler un bug</button></div>
     ${(state.signalements||[]).length?`<div class="m" style="margin-top:10px">🚩 Signalements envoyés : ${state.signalements.length}</div>`:''}
     ${MODE_SERVEUR ? '' : `<div class="essais"><b>Pack d’essai</b><small>S’ouvre comme un vrai pack, mais ne compte pas et ne te donne rien.</small>

@@ -311,7 +311,9 @@ const ECO = {
   "impaye_avertir_jours": 23
  },
  "beta": {
-  "active": true
+  "active": true,
+  "gemmes_pack": 60,
+  "achats_euros": false
  },
  "agence": {
   "active": false,
