@@ -529,6 +529,8 @@ Où c'est dans le code :
 
 ![L'accueil, la carte, le dos des cartes, l'icône et la pièce](bible/logo-et-piece.jpg)
 
+**Le logo refait (28 nov. 2026).** Gautier : le logo à la plaque « ne ressemble pas du tout au jeu », passé depuis en nuit néon. Les pistes écartées : la ville de nuit et sa ligne de toits (« trop simpliste », puis « trop générique, pas d'identité »), la France en néon (« ça fixe l'idée que ce sera utilisé que sur la France »), le donjon, la clé. Interview : un symbole fort, en nuit néon. **Retenu : le repère à serrure** : un repère de carte en or plein et en relief, une serrure découpée dedans et éclairée de vert (ce lieu est gardé : « keep »), posé sur un plan de ville en néon bleu ; le nom penché sur deux lignes, STREET en tube de néon fin, KEEP plein, en or, souligné de vert. L'icône du téléphone est le repère seul sur la nuit. La pièce de la monnaie ne change pas.
+
 ## 14. La carte 3D, « plateau de jeu » (6 nov. 2026)
 
 Gautier : « est-ce qu'il n'est pas possible de rendre la carte 3D plus jeu vidéo ? Là, au final, elle dénote complètement. » La carte était restée un plan pastel (bâtiments beige, sol gris-vert, rues blanches) à côté des menus façon Pocket et des cartes nuit et or. Trois propositions lui ont été montrées à Paris et dans un village (Saint-Cirq-Lapopie) ; il a choisi **A · Plateau de jeu**, puis, pour les routes (« tu peux aussi styliser les routes au lieu de laisser blanc »), **l'asphalte**.

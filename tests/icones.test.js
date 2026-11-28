@@ -28,11 +28,11 @@ test('la page charge les icônes et pose le style', () => {
   assert.match(css, /ico-t\{display:contents\}/);
 });
 
-test('le logo de Gautier (src/logo.js) et la pièce ronde à la maison (5 nov.)', () => {
+test('le logo au repère à serrure (src/logo.js, 28 nov.) et la pièce ronde à la maison (5 nov.)', () => {
   const Logo = require('../src/logo.js');
-  assert.match(Logo.svg(), /STREETKEEP/);
+  for (const l of [Logo.svg(), Logo.svg(null, { empile: true })]) { assert.match(l, />STREET</); assert.match(l, />KEEP</); assert.match(l, /aria-label="StreetKeep"/); }
   const ic = Logo.icone({ plein: true, zone: true });
-  assert.match(ic, />CITY</); assert.match(ic, />DECK</); assert.match(ic, /scale\(0\.8\)/);
+  assert.ok(!/CITY|DECK|<text/.test(ic), 'l’icône ne porte plus de nom, seulement le repère'); assert.ok(!/mix-blend-mode/.test(Logo.svg() + ic)); assert.match(ic, /scale\(0\.8\)/);
   // une seule pièce partout : le fichier, l'image de fond des montants (.pc) et le logo dessinent la même maison
   const piece = fs.readFileSync(path.join(__dirname, '..', 'icones', 'piece.svg'), 'utf8');
   assert.ok(piece.includes(Logo.MAISON));

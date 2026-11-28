@@ -52,14 +52,14 @@ const VERSION='__VERSION__';
 <meta property="og:image:type" content="image/jpeg">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
-<meta property="og:image:alt" content="Le logo StreetKeep : une plaque de rue, des cartes à collectionner et une pièce d’or">
+<meta property="og:image:alt" content="Le logo StreetKeep : un repère de carte en or, percé d’une serrure, posé sur un plan de ville">
 <meta property="og:locale" content="fr_FR">
 <meta name="twitter:card" content="summary_large_image">
 </head>
 <body>
 <div id="accueil"><div class="logo-jeu"></div><div class="points-charge"><i></i><i></i><i></i></div></div>
 <script src="src/logo.js"></script>
-<script>/* le logo de StreetKeep (src/logo.js, modèle de Gautier, 5 nov.) */ document.querySelector('#accueil .logo-jeu').innerHTML=Logo.svg();</script>
+<script>/* le logo de StreetKeep (src/logo.js : le repère à serrure, choix de Gautier du 28 nov.), le symbole au-dessus du nom */ document.querySelector('#accueil .logo-jeu').innerHTML=Logo.svg(null,{empile:true});</script>
 <!-- les moteurs (carte, 3D, serveur) et les règles : après l'accueil, pour que le logo s'affiche tout de suite -->
 <script src="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js"></script>
 <script src="https://unpkg.com/three@0.147.0/build/three.min.js"></script>

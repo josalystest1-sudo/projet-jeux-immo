@@ -1,10 +1,14 @@
-// Le logo de StreetKeep, d'après le modèle envoyé par Gautier le 5 nov. 2026 : la plaque de rue émaillée « STREETKEEP »
-// (cadre vert, filet blanc aux coins rentrants, liseré d'or, deux vis), deux cartes au bord d'or en éventail derrière, et la
-// pièce d'or ronde frappée d'une maison (la monnaie du jeu, icones/piece.svg). Dessiné en SVG (net à toutes les tailles) :
-//   Logo.svg()        le logo en long (l'écran d'accueil, la connexion)
-//   Logo.icone(opts)  l'icône carrée (tools/icones.js) : opts.fond (tuile perle arrondie), opts.plein (sans arrondi),
-//                     opts.zone (réduit dans la zone sûre d'Android)
-//   Logo.piece(x, y, r) la pièce, à poser dans un autre SVG
+// Le logo de StreetKeep (choix de Gautier du 28 nov. 2026, après une interview : « un symbole fort », en nuit néon comme le
+// jeu, sans carte de France : « ça fixe l'idée que ce sera utilisé que sur la France ») : LE REPÈRE À SERRURE. Un repère de
+// carte en or massif, une serrure découpée dedans et éclairée de vert (ce lieu est gardé : « keep »), posé sur un plan de
+// ville en néon bleu ; le nom penché sur deux lignes, STREET en tube de néon fin, KEEP plein, en or et en relief.
+// Il remplace la plaque émaillée aux deux cartes du 5 nov. Dessiné en SVG (net à toutes les tailles) :
+//   Logo.svg(attrs, opts)  le logo : en long (la connexion, l'image de partage) ; opts.empile : le symbole au-dessus du nom
+//                          (l'écran d'ouverture, sur un téléphone tenu debout)
+//   Logo.icone(opts)       l'icône carrée (tools/icones.js) : opts.fond (tuile de nuit arrondie), opts.plein (sans arrondi),
+//                          opts.zone (réduit dans la zone sûre d'Android)
+//   Logo.symbole(id, cx, cy, t)  le repère seul, à poser dans un autre SVG (avec Logo.defs(id))
+//   Logo.piece(x, y, r)    la pièce de la monnaie (ronde, frappée d'une maison : icones/piece.svg), à poser dans un autre SVG
 // Le texte est en Barlow Condensed (fonts/) : un SVG en ligne dans la page la trouve ; en image (<img>), non.
 (function () {
   // la maison frappée sur la pièce (grille de 32, centre 16 16), la porte en creux
@@ -17,55 +21,69 @@
       + `<path d="${MAISON}" transform="translate(.45 .5)" fill="#FFF4C4" fill-opacity=".85" fill-rule="evenodd"/><path d="${MAISON}" fill="#A86A08" fill-rule="evenodd"/>`
       + `<path d="M6.2 10.4A11 11 0 0 1 12.5 5.2" stroke="#fff" stroke-opacity=".85" stroke-width="1.4" stroke-linecap="round" fill="none"/></g>`;
   }
-  // l'éclat : une étoile fine à quatre branches
-  const eclat = (x, y, r) => `<path d="M${x} ${y - r}Q${x + r * 0.12} ${y - r * 0.12} ${x + r} ${y}Q${x + r * 0.12} ${y + r * 0.12} ${x} ${y + r}Q${x - r * 0.12} ${y + r * 0.12} ${x - r} ${y}Q${x - r * 0.12} ${y - r * 0.12} ${x} ${y - r}Z" fill="#fff"/>`;
-  // une carte au bord d'or, l'intérieur sombre
-  function carte(cx, cy, l, h, rot, id) {
-    return `<g transform="translate(${cx} ${cy}) rotate(${rot})"><rect x="${-l / 2}" y="${-h / 2}" width="${l}" height="${h}" rx="${h * 0.08}" fill="url(#${id}or)" stroke="#3B2A0A" stroke-width="5"/>`
-      + `<rect x="${-l / 2 + h * 0.06}" y="${-h / 2 + h * 0.06}" width="${l - h * 0.12}" height="${h * 0.88}" rx="${h * 0.04}" fill="url(#${id}nuit)" stroke="#3B2A0A" stroke-opacity=".6" stroke-width="2.5"/></g>`;
+  const POLICE = `font-family="'Barlow Condensed','Arial Narrow',sans-serif" font-weight="700"`;
+  const a1 = (v) => Math.round(v * 10) / 10;
+  // les flous des halos (e : l'échelle du dessin, pour que le halo suive sa taille) et l'or
+  function defs(id, e) {
+    const k = e || 1;
+    return `<defs><filter id="${id}g" x="-40%" y="-60%" width="180%" height="220%"><feGaussianBlur stdDeviation="${a1(7 * k)}"/></filter>`
+      + `<filter id="${id}p" x="-40%" y="-60%" width="180%" height="220%"><feGaussianBlur stdDeviation="${a1(2.2 * k)}"/></filter>`
+      + `<linearGradient id="${id}or" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#FFF1B8"/><stop offset=".5" stop-color="#FFC93D"/><stop offset="1" stop-color="#E0900C"/></linearGradient>`
+      + `<radialGradient id="${id}nuit" cx=".5" cy=".42" r=".75"><stop offset="0" stop-color="#1B2C6E"/><stop offset=".6" stop-color="#0B1437"/><stop offset="1" stop-color="#060B20"/></radialGradient></defs>`;
   }
-  // le cadre aux coins rentrants (le filet blanc et l'émail des plaques de Paris)
-  const coinsRentrants = (x0, y0, x1, y1, r) => `M${x0 + r} ${y0}H${x1 - r}A${r} ${r} 0 0 0 ${x1} ${y0 + r}V${y1 - r}A${r} ${r} 0 0 0 ${x1 - r} ${y1}H${x0 + r}A${r} ${r} 0 0 0 ${x0} ${y1 - r}V${y0 + r}A${r} ${r} 0 0 0 ${x0 + r} ${y0}Z`;
-  // la plaque : l × h, centrée en (0, 0) ; lignes de texte (une ou deux)
-  function plaque(l, h, lignes, taille, id) {
-    const x0 = -l / 2, y0 = -h / 2, x1 = l / 2, y1 = h / 2, b = h * 0.045, v = h * 0.11;
-    const vis = (x, y) => `<g transform="translate(${x} ${y})"><circle r="${h * 0.04}" fill="url(#${id}or)" stroke="#5A3A00" stroke-width="2.5"/><path d="M${-h * 0.025} ${h * 0.012}L${h * 0.025} ${-h * 0.012}" stroke="#5A3A00" stroke-width="3" stroke-linecap="round"/></g>`;
-    const ty = lignes.length === 1 ? [h * 0.08] : [-h * 0.094, h * 0.19];
-    return `<rect x="${x0}" y="${y0}" width="${l}" height="${h}" rx="${h * 0.075}" fill="url(#${id}or)" stroke="#3B2A0A" stroke-width="5"/>`
-      + `<rect x="${x0 + b}" y="${y0 + b}" width="${l - 2 * b}" height="${h - 2 * b}" rx="${h * 0.05}" fill="url(#${id}vert)"/>`
-      + `<path d="${coinsRentrants(x0 + b + v * 0.7, y0 + b + v * 0.7, x1 - b - v * 0.7, y1 - b - v * 0.7, h * 0.09)}" fill="#F7F4EA"/>`
-      + `<path d="${coinsRentrants(x0 + b + v, y0 + b + v, x1 - b - v, y1 - b - v, h * 0.075)}" fill="url(#${id}bleu)"/>`
-      + `<path d="M${x0 + b + v} ${y0 + b + v}L${x1 - b - v - h * 0.3} ${y0 + b + v}L${x0 + b + v + h * 0.5} ${y1 - b - v}L${x0 + b + v} ${y1 - b - v}Z" fill="#fff" opacity=".07"/>`
-      + `<rect x="${x0 + b + v + h * 0.06}" y="${y0 + b + v + h * 0.1}" width="${l - 2 * (b + v) - h * 0.12}" height="${h * 0.022}" rx="${h * 0.011}" fill="#F7F4EA"/>`
-      + vis(x0 + b + v * 0.42, y0 + b + v * 0.42) + vis(x1 - b - v * 0.42, y0 + b + v * 0.42)
-      + lignes.map((t, i) => { const lg = (l - 2 * (b + v)) * (lignes.length === 1 ? 0.86 : 0.78), att = `x="0" y="${ty[i]}" text-anchor="middle" dominant-baseline="middle" font-family="'Barlow Condensed','Arial Narrow',sans-serif" font-weight="700" font-size="${taille}" textLength="${lg}" lengthAdjust="spacingAndGlyphs"`;
-        return `<text ${att} fill="#173B85" opacity=".5" transform="translate(0 ${taille * 0.03})">${t}</text><text ${att} fill="#FFF8EA">${t}</text>`; }).join('');
+  // un tube de néon : un halo large, un halo serré, le trait de couleur, le cœur blanc
+  const neon = (id, d, c, w) => `<path d="${d}" fill="none" stroke="${c}" stroke-width="${a1(w * 2.4)}" stroke-linecap="round" stroke-linejoin="round" opacity=".55" filter="url(#${id}g)"/>`
+    + `<path d="${d}" fill="none" stroke="${c}" stroke-width="${a1(w * 1.3)}" stroke-linecap="round" stroke-linejoin="round" opacity=".8" filter="url(#${id}p)"/>`
+    + `<path d="${d}" fill="none" stroke="${c}" stroke-width="${a1(w)}" stroke-linecap="round" stroke-linejoin="round"/>`
+    + `<path d="${d}" fill="none" stroke="#fff" stroke-width="${a1(w * 0.32)}" stroke-linecap="round" stroke-linejoin="round" opacity=".9"/>`;
+  // le repère de carte (la goutte), pointe en (x, y), hauteur h
+  function goutte(x, y, h) {
+    const r = h * 0.36, cy = y - h + r;
+    return `M${a1(x)} ${a1(y)}C${a1(x - r * 0.5)} ${a1(y - h * 0.3)} ${a1(x - r)} ${a1(cy + r * 0.75)} ${a1(x - r)} ${a1(cy)}A${a1(r)} ${a1(r)} 0 1 1 ${a1(x + r)} ${a1(cy)}C${a1(x + r)} ${a1(cy + r * 0.75)} ${a1(x + r * 0.5)} ${a1(y - h * 0.3)} ${a1(x)} ${a1(y)}Z`;
   }
-  function degrades(id) {
-    return `<defs><linearGradient id="${id}or" x1="0" y1="0" x2=".3" y2="1"><stop offset="0" stop-color="#FFE68A"/><stop offset=".5" stop-color="#F2B92E"/><stop offset="1" stop-color="#C98A12"/></linearGradient>`
-      + `<linearGradient id="${id}nuit" x1="0" y1="0" x2=".2" y2="1"><stop offset="0" stop-color="#5C5340"/><stop offset=".35" stop-color="#2B2820"/><stop offset="1" stop-color="#1B1A16"/></linearGradient>`
-      + `<linearGradient id="${id}vert" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#3DB26A"/><stop offset="1" stop-color="#22813F"/></linearGradient>`
-      + `<linearGradient id="${id}bleu" x1="0" y1="0" x2=".5" y2="1"><stop offset="0" stop-color="#2C5EC0"/><stop offset="1" stop-color="#173F94"/></linearGradient>`
-      + `<linearGradient id="${id}perle" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff"/><stop offset="1" stop-color="#E6EBF3"/></linearGradient></defs>`;
+  // le trou de la serrure, la tête ronde en (cx, ky), de rayon k
+  const serrure = (cx, ky, k) => `M${a1(cx - k * 0.55)} ${a1(ky + k * 0.75)}A${a1(k)} ${a1(k)} 0 1 1 ${a1(cx + k * 0.55)} ${a1(ky + k * 0.75)}L${a1(cx + k * 0.95)} ${a1(ky + k * 2.7)}H${a1(cx - k * 0.95)}Z`;
+  // le symbole, dans un carré de côté t centré en (cx, cy) : le plan de ville (un disque de rues vu de biais), le repère d'or
+  // massif en relief planté dessus, la serrure découpée et son néon vert
+  function symbole(id, cx, cy, t) {
+    const py = cy + t * 0.36, rx = t * 0.47, ry = t * 0.14, h = t * 0.86, r = h * 0.36, G = goutte(cx, py, h), S = serrure(cx, py - h + r - t * 0.04, t * 0.095);
+    const rues = [-0.6, -0.2, 0.25, 0.65].map((u) => `M${a1(cx + u * rx - rx * 0.25)} ${a1(py + ry * 0.9)}L${a1(cx + u * rx + rx * 0.25)} ${a1(py - ry * 0.9)}`).join('')
+      + [-0.45, 0.1, 0.55].map((v) => `M${a1(cx - rx)} ${a1(py + v * ry)}H${a1(cx + rx)}`).join('');
+    const disque = `cx="${a1(cx)}" cy="${a1(py)}" rx="${a1(rx)}" ry="${a1(ry)}"`;
+    return `<clipPath id="${id}c"><ellipse ${disque}/></clipPath><ellipse ${disque} fill="#16277A" opacity=".75"/>`
+      + `<g clip-path="url(#${id}c)"><path d="${rues}" stroke="#5AA8FF" stroke-width="${a1(t * 0.012)}" fill="none" opacity=".9"/></g>`
+      + `<ellipse ${disque} fill="none" stroke="#3F9BFF" stroke-width="${a1(t * 0.05)}" opacity=".5" filter="url(#${id}p)"/><ellipse ${disque} fill="none" stroke="#3F9BFF" stroke-width="${a1(t * 0.018)}"/>`
+      + `<ellipse cx="${a1(cx)}" cy="${a1(py)}" rx="${a1(t * 0.13)}" ry="${a1(t * 0.035)}" fill="#FFC233" opacity=".75" filter="url(#${id}p)"/>`
+      + `<path d="${G}" fill="#FFC233" opacity=".5" filter="url(#${id}g)"/>`
+      + [5, 4, 3, 2, 1].map((k) => `<path d="${G}" fill="#5A3200" transform="translate(${a1(k * t * 0.006)} ${a1(k * t * 0.008)})"/>`).join('')
+      + `<path d="${G}" fill="url(#${id}or)" stroke="#FFF1B8" stroke-width="${a1(t * 0.01)}"/>`
+      + `<path d="M${a1(cx - r * 0.62)} ${a1(py - h + r * 0.7)}A${a1(r * 0.75)} ${a1(r * 0.75)} 0 0 1 ${a1(cx - r * 0.1)} ${a1(py - h + r * 0.22)}" stroke="#fff" stroke-opacity=".8" stroke-width="${a1(t * 0.018)}" stroke-linecap="round" fill="none"/>`
+      + `<path d="${S}" fill="#081033"/>` + neon(id, S, '#3DFFB0', t * 0.018);
   }
-  // le logo en long : 1000 × 620
-  function svg(attrs) {
-    const id = 'lg' + (++n);
-    return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 620" role="img" aria-label="StreetKeep" ${attrs || ''}>${degrades(id)}`
-      + carte(470, 250, 620, 330, -12, id) + carte(520, 270, 620, 330, -7, id)
-      + `<g transform="translate(500 360) rotate(-3)">${plaque(800, 400, ['STREETKEEP'], 200, id)}</g>`
-      + piece(868, 498, 92) + eclat(820, 430, 22) + `</svg>`;
+  // le nom : penché, sur deux lignes ; (x, y) = le pied gauche de STREET, e = l'échelle (large de 245 × e, haut de 150 × e)
+  function nom(id, x, y, e) {
+    const T = (t, dy, taille, extra) => `<text x="0" y="${dy}" ${POLICE} font-size="${taille}" ${extra}>${t}</text>`;
+    return `<g transform="translate(${a1(x)} ${a1(y)}) scale(${e}) skewX(-9)">`
+      + T('STREET', 0, 58, `letter-spacing="9" fill="none" stroke="#5AA8FF" stroke-width="6" opacity=".6" filter="url(#${id}p)"`) + T('STREET', 0, 58, 'letter-spacing="9" fill="none" stroke="#DCEBFF" stroke-width="2.2" stroke-linejoin="round"')
+      + T('KEEP', 86, 112, `letter-spacing="3" fill="#FFC233" opacity=".6" filter="url(#${id}g)"`)
+      + [6, 5, 4, 3, 2, 1].map((k) => `<text x="${a1(k * 0.7)}" y="${86 + k}" ${POLICE} font-size="112" letter-spacing="3" fill="#5A3200">KEEP</text>`).join('')
+      + T('KEEP', 86, 112, `letter-spacing="3" fill="url(#${id}or)" stroke="#FFF1B8" stroke-width="1"`)
+      + neon(id, 'M4 104H236', '#3DFFB0', 2.6) + `</g>`;
   }
-  // l'icône carrée : 512 × 512
+  // le logo : en long 600 × 260 (le symbole à gauche, le nom à droite), ou empilé 420 × 470 (le symbole au-dessus du nom)
+  function svg(attrs, opts) {
+    const id = 'lg' + (++n), o = opts || {};
+    if (o.empile) return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 420 500" role="img" aria-label="StreetKeep" ${attrs || ''}>${defs(id, 1.2)}${symbole(id, 210, 138, 250)}${nom(id, 64, 338, 1.3)}</svg>`;
+    return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 260" role="img" aria-label="StreetKeep" ${attrs || ''}>${defs(id)}${symbole(id, 130, 124, 200)}${nom(id, 268, 112, 1.12)}</svg>`;
+  }
+  // l'icône carrée : 512 × 512, le repère seul sur la nuit
   function icone(opts) {
     const o = opts || {}, id = 'li' + (++n), k = o.zone ? 0.8 : 1;
-    const dessin = carte(236, 200, 330, 210, -12, id) + carte(262, 214, 330, 210, -6, id)
-      + `<g transform="translate(250 290) rotate(-3)">${plaque(390, 320, ['CITY', 'DECK'], 96, id)}</g>` + piece(392, 392, 64) + eclat(358, 340, 15);
-    return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" ${o.attrs || ''}>${degrades(id)}`
-      + (o.fond === false ? '' : `<rect width="512" height="512" rx="${o.plein ? 0 : 112}" fill="url(#${id}perle)"/>`)
-      + `<g transform="translate(256 256) scale(${k}) translate(-256 -256)">${dessin}</g></svg>`;
+    return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" ${o.attrs || ''}>${defs(id, 2.4)}`
+      + (o.fond === false ? '' : `<rect width="512" height="512" rx="${o.plein ? 0 : 112}" fill="url(#${id}nuit)"/>`)
+      + `<g transform="translate(256 256) scale(${k}) translate(-256 -256)">${symbole(id, 256, 246, 400)}</g></svg>`;
   }
-  const Logo = { svg, icone, piece, MAISON };
+  const Logo = { svg, icone, symbole, defs, piece, MAISON };
   if (typeof window !== 'undefined') window.Logo = Logo;
   if (typeof module !== 'undefined') module.exports = Logo;
 })();
