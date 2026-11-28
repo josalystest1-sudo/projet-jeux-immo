@@ -311,6 +311,7 @@ const ECO = {
   "impaye_avertir_jours": 23
  },
  "agence": {
+  "active": false,
   "postes": {
    "agent": {
     "base": 60,

@@ -139,7 +139,7 @@ Garde-fous (Claude, 4 nov.) **[Proposé]** :
 
 ## 5 bis. Les classements et les saisons **[Proposé, 4 nov.]**
 
-Périmètre V1 (décision de Gautier, 4 nov.) : **la collection, le classement des Maires et le classement de patrimoine.** Pas de combat, pas d'événements (V2, § 14).
+**Périmètre de la V1 confirmé le 28 nov. 2026 [Décidé par Gautier]** : la collection, les enchères de monuments, les communes ; **pas d'agence** (gardée dans le code, éteinte) ni de chasse au trésor ; une bêta fermée avant l'ouverture (remise à zéro à la sortie ; les participants reçoivent un pack régional de leur choix le jour de l'ouverture). Périmètre V1 (décision de Gautier, 4 nov.) : **la collection, le classement des Maires et le classement de patrimoine.** Pas de combat, pas d'événements (V2, § 14).
 
 - **Patrimoine** d'un joueur = somme de ses lieux pondérés par rareté (Commun 1, Peu commun 2, Rare 4, Épique 8, Légendaire 12, monument 20) plus les constructions (Maison +1, Immeuble +3, Tour +6, Gratte-ciel +10, Palace +12, Prestige +15). Classement national et par commune.
 - **Classement des pièces** **[Décidé par Gautier, 5 nov. : « ajoute un classement par pièces possédées »]** : les pièces que chacun a en main, en ce moment (sans les gemmes, ni ce qui reste à récolter). **[Proposé]** : il bouge tout le temps et n'est pas figé à la fin d'une saison (pas de podium) ; seuls les joueurs qui ont choisi leur pseudo y figurent. Les classements s'ouvrent par le trophée en haut de la carte, à côté de la cloche (Gautier : « le classement est trop caché »), et aussi depuis le patrimoine, le profil et la carte de la saison (Communes).
@@ -209,7 +209,7 @@ Gautier (6 nov.) : « toutes les demi-heures ou toutes les heures (faudra régle
 - **Les données** : la position du pion (sur la carte du jeu, pas la position réelle) pendant une chasse, effacée 7 jours après (page de confidentialité).
 - **Pour essayer** : Réglages → « Lancer une chasse d'essai » (serveur d'essai et démo) : une chasse rien que pour soi, partant de là où l'on est, dans 20 secondes, le trésor à quelques rues.
 
-## 5 sexies. L'agence : le jeu « idle » **[Décidé par Gautier le 16 nov. 2026 pour la boucle ; chiffres Proposés]**
+## 5 sexies. L'agence : le jeu « idle » **[Décidé par Gautier le 16 nov. 2026 pour la boucle ; chiffres Proposés ; hors de la V1 : décision du 28 nov., `ECO.agence.active` à `false`]**
 
 **L'écran (demande de Gautier, 16 nov. au soir).** L'agence est un écran de la barre du bas, à la place de l'accueil, et le jeu s'ouvre sur elle ; l'accueil ne sert plus qu'au tout premier pack, et un bouton « Booster disponible » apparaît à l'écran quand le pack du jour est prêt. L'agence doit se voir, pas se lire : un immeuble de nuit en néon, les employés au travail à chaque étage, le renom qui monte en direct, les briques qui s'empilent sur le chantier. **[Proposé]** : l'étiquette « Meilleur choix » reste sur l'embauche la plus rentable.
 

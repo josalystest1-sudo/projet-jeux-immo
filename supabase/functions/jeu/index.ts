@@ -1005,7 +1005,10 @@ ACTIONS.gemmes_essai = async (j) => ({ gemmes: Number(await rpc('jeu_gemmes_essa
 // ---------------------------------------------------------------- l'agence (GDD § 5 sexies, supabase/sql/210_agence.sql)
 // Les pièces embauchent des employés, qui produisent du renom, heure après heure ; à un certain renom, tout repart de zéro
 // contre une brique. Les règles (src/regles/agence.js) font tout le calcul ; ici on lit, on applique, on écrit d'un bloc.
+// la V1 sort sans l'agence (ECO.agence.active à false, 28 nov.) : ses actions sont refusées
+const AGENCE_ACTIVE = !(ECO.agence && (ECO.agence as { active?: boolean }).active === false);
 async function agenceDe(j: string) {
+  if (!AGENCE_ACTIVE) throw new Refus('retire', 'L’agence n’est pas ouverte dans cette version.');
   const { data, error } = await admin.from('agences').select('saison, agents, negociateurs, directeurs, renom, le, briques, total, autres').eq('joueur', j).maybeSingle();
   if (error) throw error;
   const jm = await jourMs(), maintenant = Date.now(), s = CLA.saison(MAI.mandat(Regles.jourDuJeu(maintenant, jm)));
