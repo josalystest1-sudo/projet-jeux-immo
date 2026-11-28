@@ -1277,10 +1277,10 @@ html.pocket .mlabel{background:#fff;color:var(--encre);font-family:var(--titre);
 html.pocket #toast{border-radius:16px}
 html.pocket select{background:#fff;border:1px solid #D9DFEA;border-radius:12px;padding:8px 10px;font-family:var(--texte);font-weight:700;font-size:15px;color:var(--encre)}
 
-/* ===================== le logo de StreetKeep (5 nov. 2026 : le modèle de Gautier, redessiné en SVG, src/logo.js) ===================== */
+/* ===================== le logo de StreetKeep (28 nov. 2026 : le repère à serrure, en nuit néon, src/logo.js ; il porte ses propres halos) ===================== */
 .logo-jeu svg{display:block;width:100%;height:auto}
-#accueil .logo-jeu{width:min(84vw,380px);filter:drop-shadow(0 12px 22px rgba(20,30,60,.18));animation:pop .5s cubic-bezier(.2,1.4,.4,1)}
-.logo-jeu.petit{width:210px;margin:-4px auto 6px}
+#accueil .logo-jeu{width:min(74vw,330px,46vh);animation:pop .5s cubic-bezier(.2,1.4,.4,1)}
+.logo-jeu.petit{width:250px;max-width:100%;margin:-4px auto 6px}
 .points-charge{display:flex;gap:9px}
 .points-charge i{width:10px;height:10px;border-radius:50%;background:var(--accent,#2453B3);animation:point-charge 1.1s ease-in-out infinite}
 .points-charge i:nth-child(2){animation-delay:.15s}.points-charge i:nth-child(3){animation-delay:.3s}
@@ -1838,7 +1838,7 @@ html.pocket.nuit .plaque small{border-bottom-color:rgba(90,168,255,.6)}
 .ag-embauches{align-items:start}
 /* -- menus de nuit par défaut (18 nov.) : l'écran de chargement et le voyage -- */
 html.pocket.nuit #accueil{background:radial-gradient(circle at 50% 42%,#1B2C6E 0,#0B1437 50%,#060B20 100%)}
-html.pocket.nuit #accueil .logo-jeu{filter:drop-shadow(0 0 26px rgba(90,168,255,.45)) drop-shadow(0 12px 22px rgba(0,0,0,.5))}
+html.pocket.nuit #accueil .logo-jeu{filter:none}
 html.pocket.nuit #voyage{background:radial-gradient(circle at 50% 42%,rgba(27,44,110,.97) 0,rgba(11,20,55,.98) 50%,rgba(6,11,32,.99) 100%);color:#EEF3FF}
 
 /* revue d'interface, suite (18 nov.) */

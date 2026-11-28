@@ -1,5 +1,5 @@
 // L'image de partage de citydeck.fr (1200 × 630, balises Open Graph de index.html) : ce qui s'affiche quand on partage un
-// lien vers le jeu (messages, réseaux, publicités). Le logo de Gautier (src/logo.js) sur le fond perle des menus.
+// lien vers le jeu (messages, réseaux, publicités). Le logo (src/logo.js, le repère à serrure) sur la nuit des menus.
 //   node tools/image_partage.js      (Chrome installé ; sans bibliothèque : le protocole DevTools) → icones/partage.jpg (JPEG léger : WhatsApp boude les aperçus de plus de 300 Ko)
 const { spawn } = require('child_process');
 const fs = require('fs');
@@ -16,14 +16,14 @@ const HTML = `<html><head><style>
   @font-face{font-family:'Nunito';font-weight:900;src:url(${police('nunito-latin-900-normal.woff2')})}
   @font-face{font-family:'Nunito';font-weight:800;src:url(${police('nunito-latin-800-normal.woff2')})}
   html,body{margin:0;width:1200px;height:630px;overflow:hidden}
-  body{background:radial-gradient(70% 90% at 50% 38%,#FFFFFF 0%,#F3F5F9 55%,#DCE5F3 100%);font-family:'Nunito',sans-serif;color:#1F2633;position:relative}
+  body{background:radial-gradient(70% 90% at 50% 38%,#1B2C6E 0%,#0B1437 55%,#060B20 100%);font-family:'Nunito',sans-serif;color:#F2F6FF;position:relative}
   .rues{position:absolute;inset:0;width:1200px;height:630px}
-  .rues path{stroke:#2453B3;stroke-opacity:.05;stroke-width:3;fill:none}
-  .logo{position:absolute;left:50%;top:38px;width:640px;margin-left:-320px;filter:drop-shadow(0 18px 30px rgba(20,30,60,.22))}
+  .rues path{stroke:#5AA8FF;stroke-opacity:.07;stroke-width:3;fill:none}
+  .logo{position:absolute;left:50%;top:44px;width:860px;margin-left:-430px}
   .logo svg{width:100%;height:auto;display:block}
   .t{position:absolute;left:0;right:0;top:452px;text-align:center;font-weight:900;font-size:52px;letter-spacing:-.01em}
-  .t b{color:#2453B3}
-  .s{position:absolute;left:0;right:0;top:530px;text-align:center;font-weight:800;font-size:27px;color:#5A6378}
+  .t b{color:#FFC93D}
+  .s{position:absolute;left:0;right:0;top:530px;text-align:center;font-weight:800;font-size:27px;color:#9DB4E8}
 </style></head><body><svg class="rues" viewBox="0 0 1200 630">${rues}</svg>
   <div class="logo">${Logo.svg()}</div>
   <div class="t">Collectionne les lieux <b>réels</b> de France</div>

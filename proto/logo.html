@@ -1,0 +1,272 @@
+<!doctype html>
+<!-- Page d'essai (28 nov. 2026) : trois propositions de logo « nuit néon » pour StreetKeep, à côté du logo actuel.
+     Gautier : « il faut refaire le logo, là il ne ressemble pas du tout au jeu ». Hors publication (proto/). -->
+<html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Logo StreetKeep : propositions</title>
+<style>
+@font-face{font-family:'Barlow Condensed';font-weight:700;src:url(../fonts/barlow-condensed-latin-700-normal.woff2) format('woff2')}
+@font-face{font-family:'Barlow Condensed';font-weight:600;src:url(../fonts/barlow-condensed-latin-600-normal.woff2) format('woff2')}
+@font-face{font-family:'Nunito';font-weight:800;src:url(../fonts/nunito-latin-800-normal.woff2) format('woff2')}
+body{margin:0;background:#04081A;font-family:Nunito,sans-serif;color:#DCE9FF;display:flex;flex-wrap:wrap;gap:14px;padding:14px;justify-content:center}
+.cas{width:330px;border-radius:22px;overflow:hidden;background:radial-gradient(circle at 50% 42%,#1B2C6E 0,#0B1437 50%,#060B20 100%);box-shadow:0 0 0 1px rgba(90,168,255,.35);padding:14px 10px 12px;text-align:center}
+.cas h2{margin:0 0 4px;font-size:17px;color:#FFD98A}.cas p{margin:0 0 6px;font-size:12px;opacity:.8;min-height:32px}
+.cas svg.logo{width:100%;height:auto;display:block}
+.bas{display:flex;align-items:center;justify-content:center;gap:12px;margin-top:8px}
+.bas svg{width:74px;height:74px;border-radius:18px;box-shadow:0 0 0 1px rgba(255,255,255,.2)}
+.bas small{font-size:11px;opacity:.7;text-align:left}
+</style></head><body>
+<script src="geo.js"></script>
+<script src="../src/logo.js"></script>
+<script>
+const F = "font-family=\"'Barlow Condensed','Arial Narrow',sans-serif\" font-weight=\"700\"";
+const defs = (id) => `<defs>
+  <filter id="${id}g" x="-30%" y="-60%" width="160%" height="220%"><feGaussianBlur stdDeviation="7"/></filter>
+  <filter id="${id}p" x="-30%" y="-60%" width="160%" height="220%"><feGaussianBlur stdDeviation="2.2"/></filter>
+  <linearGradient id="${id}or" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#FFF1B8"/><stop offset=".5" stop-color="#FFC93D"/><stop offset="1" stop-color="#E0900C"/></linearGradient>
+  <linearGradient id="${id}nuit" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#16277A"/><stop offset="1" stop-color="#0A1238"/></linearGradient></defs>`;
+// un tube de néon : un halo large, un halo serré, le trait de couleur, le cœur blanc
+const neon = (id, d, c, w = 5) => `<path d="${d}" fill="none" stroke="${c}" stroke-width="${w * 2.4}" stroke-linecap="round" stroke-linejoin="round" opacity=".55" filter="url(#${id}g)"/><path d="${d}" fill="none" stroke="${c}" stroke-width="${w * 1.3}" stroke-linecap="round" stroke-linejoin="round" opacity=".8" filter="url(#${id}p)"/><path d="${d}" fill="none" stroke="${c}" stroke-width="${w}" stroke-linecap="round" stroke-linejoin="round"/><path d="${d}" fill="none" stroke="#fff" stroke-width="${w * 0.32}" stroke-linecap="round" stroke-linejoin="round" opacity=".9"/>`;
+const texteNeon = (id, x, y, t, taille, c, esp = 3) => `<text x="${x}" y="${y}" text-anchor="middle" ${F} font-size="${taille}" letter-spacing="${esp}" fill="${c}" opacity=".7" filter="url(#${id}g)">${t}</text><text x="${x}" y="${y}" text-anchor="middle" ${F} font-size="${taille}" letter-spacing="${esp}" fill="${c}" opacity=".9" filter="url(#${id}p)">${t}</text><text x="${x}" y="${y}" text-anchor="middle" ${F} font-size="${taille}" letter-spacing="${esp}" fill="#fff">${t}</text>`;
+const coins = (x0, y0, x1, y1, r) => `M${x0 + r} ${y0}H${x1 - r}A${r} ${r} 0 0 0 ${x1} ${y0 + r}V${y1 - r}A${r} ${r} 0 0 0 ${x1 - r} ${y1}H${x0 + r}A${r} ${r} 0 0 0 ${x0} ${y1 - r}V${y0 + r}A${r} ${r} 0 0 0 ${x0 + r} ${y0}Z`;
+// une ligne de toits (maison, immeuble, tour…) entre x0 et x1, posée sur y
+function toits(x0, y, pas, hs) { let d = `M${x0} ${y}`, x = x0; for (const h of hs) { if (h < 0) { d += `V${y + h * 0.55}L${x + pas / 2} ${y + h}L${x + pas} ${y + h * 0.55}V${y}`; } else d += `V${y - h}H${x + pas}V${y}`; x += pas; } return d; }
+
+// A : la plaque de rue en néon (la forme des plaques de Paris, en tubes bleus ; le nom en blanc ; un filet d'or)
+function logoA(id = 'a') { return `<svg class="logo" viewBox="0 0 600 300" xmlns="http://www.w3.org/2000/svg">${defs(id)}
+  <path d="${coins(40, 62, 560, 238, 22)}" fill="url(#${id}nuit)" opacity=".92"/>
+  ${neon(id, coins(40, 62, 560, 238, 22), '#3F9BFF', 6)}
+  ${neon(id, coins(58, 80, 542, 220, 14), '#FFC233', 2.2)}
+  ${texteNeon(id, 300, 178, 'STREETKEEP', 96, '#5AA8FF', 4)}
+  <circle cx="70" cy="150" r="5" fill="#FFD98A"/><circle cx="530" cy="150" r="5" fill="#FFD98A"/></svg>`; }
+// B : la ligne de toits (la ville de nuit ; un bâtiment vert, le mien) au-dessus du nom en deux tons
+function logoB(id = 'b') { const y = 148;
+  return `<svg class="logo" viewBox="0 0 600 300" xmlns="http://www.w3.org/2000/svg">${defs(id)}
+  ${neon(id, toits(96, y, 34, [38, -52, 70, 44]), '#3F9BFF', 4)}
+  ${neon(id, toits(232, y, 34, [96]), '#3DFFB0', 4.6)}
+  ${neon(id, toits(266, y, 34, [58, -66, 84, 40, -48, 62, 34]), '#3F9BFF', 4)}
+  ${neon(id, `M70 ${y}H530`, '#FFC233', 2.4)}
+  <text x="300" y="236" text-anchor="middle" ${F} font-size="92" letter-spacing="4" fill="#5AA8FF" opacity=".7" filter="url(#${id}g)">STREETKEEP</text>
+  <text x="300" y="236" text-anchor="middle" ${F} font-size="92" letter-spacing="4"><tspan fill="#fff">STREET</tspan><tspan fill="url(#${id}or)">KEEP</tspan></text></svg>`; }
+// C : la carte à collectionner en néon, penchée, avec son bâtiment ; le nom sur une plaque pleine, bord d'or
+function logoC(id = 'c') { return `<svg class="logo" viewBox="0 0 600 300" xmlns="http://www.w3.org/2000/svg">${defs(id)}
+  <g transform="translate(300 118) rotate(-9)"><rect x="-62" y="-92" width="124" height="172" rx="14" fill="url(#${id}nuit)"/>${neon(id, 'M-48 -92H48A14 14 0 0 1 62 -78V66A14 14 0 0 1 48 80H-48A14 14 0 0 1 -62 66V-78A14 14 0 0 1 -48 -92Z', '#FF5FD2', 4)}
+    ${neon(id, 'M-30 52V-8L0 -40L30 -8V52M-10 52V22H10V52', '#3DFFB0', 3.4)}</g>
+  <g transform="translate(300 118) rotate(11)" opacity=".55"><path d="M-48 -92H48A14 14 0 0 1 62 -78V66A14 14 0 0 1 48 80H-48A14 14 0 0 1 -62 66V-78A14 14 0 0 1 -48 -92Z" fill="none" stroke="#3F9BFF" stroke-width="3"/></g>
+  <path d="${coins(60, 168, 540, 272, 16)}" fill="url(#${id}nuit)"/>${neon(id, coins(60, 168, 540, 272, 16), '#FFC233', 3.4)}
+  ${texteNeon(id, 300, 246, 'STREETKEEP', 76, '#5AA8FF', 5)}</svg>`; }
+// les icônes carrées assorties (le téléphone)
+const icone = (id, corps) => `<svg viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg">${defs(id)}<rect width="120" height="120" fill="#0A1238"/><circle cx="60" cy="54" r="70" fill="#1B2C6E" opacity=".55"/>${corps}</svg>`;
+const iconeA = icone('ia', neon('ia', coins(16, 30, 104, 90, 9), '#3F9BFF', 4) + `<text x="60" y="76" text-anchor="middle" ${F} font-size="44" fill="#5AA8FF" filter="url(#iap)">SK</text><text x="60" y="76" text-anchor="middle" ${F} font-size="44" fill="#fff">SK</text>`);
+const iconeB = icone('ib', neon('ib', toits(20, 84, 20, [26, -40]), '#3F9BFF', 3.4) + neon('ib', toits(60, 84, 20, [58]), '#3DFFB0', 3.8) + neon('ib', toits(80, 84, 20, [34]), '#3F9BFF', 3.4) + neon('ib', 'M14 84H106', '#FFC233', 2.2));
+const iconeC = icone('ic', `<g transform="translate(60 60) rotate(-9) scale(.56)"><rect x="-62" y="-92" width="124" height="172" rx="14" fill="url(#icnuit)"/>${neon('ic', 'M-48 -92H48A14 14 0 0 1 62 -78V66A14 14 0 0 1 48 80H-48A14 14 0 0 1 -62 66V-78A14 14 0 0 1 -48 -92Z', '#FF5FD2', 6)}${neon('ic', 'M-30 52V-8L0 -40L30 -8V52M-10 52V22H10V52', '#3DFFB0', 5)}</g>`);
+// --- les icônes pour le logo B (Gautier : « j'aime bien la B, mais je ne suis pas fan de l'icône ») : quatre essais, traits épais
+const bati = (id, x, y, l, h, c, toit) => { const d = toit ? `M${x} ${y}V${y - h * 0.6}L${x + l / 2} ${y - h}L${x + l} ${y - h * 0.6}V${y}Z` : `M${x} ${y}V${y - h}H${x + l}V${y}Z`; return `<path d="${d}" fill="${c}" opacity=".22"/>` + neon(id, d, c, 3.6); };
+const iconeB1 = icone('j1', bati('j1', 14, 92, 24, 34, '#3F9BFF', true) + bati('j1', 44, 92, 30, 68, '#3DFFB0') + bati('j1', 80, 92, 26, 46, '#3F9BFF') + neon('j1', 'M8 92H112', '#FFC233', 3));
+const iconeB2 = icone('j2', `<text x="60" y="88" text-anchor="middle" ${F} font-size="66" letter-spacing="1" fill="#5AA8FF" opacity=".8" filter="url(#j2g)">SK</text><text x="60" y="88" text-anchor="middle" ${F} font-size="66" letter-spacing="1"><tspan fill="#fff">S</tspan><tspan fill="url(#j2or)">K</tspan></text>` + neon('j2', toits(24, 32, 12, [8, -14, 18, 10, -12, 14]), '#3F9BFF', 1.8) + neon('j2', 'M18 100H102', '#FFC233', 2.4));
+const iconeB3 = icone('j3', neon('j3', 'M26 96V44L60 16L94 44V96Z', '#3DFFB0', 5) + neon('j3', 'M50 96V68H70V96', '#FFC233', 3.6) + `<rect x="36" y="48" width="12" height="12" rx="2" fill="#FFD98A"/><rect x="72" y="48" width="12" height="12" rx="2" fill="#FFD98A"/>`);
+const iconeB4 = icone('j4', neon('j4', coins(12, 22, 108, 98, 10), '#3F9BFF', 3.6) + bati('j4', 26, 84, 16, 22, '#3F9BFF', true) + bati('j4', 48, 84, 22, 46, '#3DFFB0') + bati('j4', 76, 84, 18, 30, '#3F9BFF') + neon('j4', 'M22 84H98', '#FFC233', 2.4));
+const essaiIcone = (nom, texte, ico) => `<div class="cas" style="width:190px"><h2>${nom}</h2><p>${texte}</p><div class="bas" style="flex-direction:column"><div style="zoom:1.6">${ico}</div><div style="zoom:.62;margin-top:6px">${ico}</div></div></div>`;
+const ICONES_B = `<div class="cas" style="width:340px"><h2>Le logo B</h2><p>La ville de nuit, choisie par Gautier.</p>${logoB('bb')}</div><div style="flex-basis:100%"></div>`
+  + essaiIcone('1 · Trois bâtiments', 'Pleins et épais : le tien au milieu.', iconeB1) + essaiIcone('2 · SK', 'Les initiales, blanc et or, sous les toits.', iconeB2)
+  + essaiIcone('3 · La maison', 'Ta maison en néon vert, porte d’or.', iconeB3) + essaiIcone('4 · La plaque', 'La ville dans une plaque de rue.', iconeB4);
+// --- RICHE (Gautier : « trop simpliste : les détails qu'il y a sont vraiment basiques ») : la ville travaillée
+// un hasard fixe (les mêmes fenêtres allumées à chaque dessin)
+const hasard = (g) => { let x = g; return () => { x = (x * 1103515245 + 12345) & 0x7fffffff; return x / 0x7fffffff; }; };
+// un trait fin de néon (les détails : corniches, fenêtres, antennes)
+const fin = (id, d, c, w = 1.3, o = 1) => '<path d="' + d + '" fill="none" stroke="' + c + '" stroke-width="' + (w * 2.6) + '" stroke-linecap="round" stroke-linejoin="round" opacity="' + (0.5 * o) + '" filter="url(#' + id + 'p)"/><path d="' + d + '" fill="none" stroke="' + c + '" stroke-width="' + w + '" stroke-linecap="round" stroke-linejoin="round" opacity="' + o + '"/>';
+// des fenêtres : une grille, certaines allumées (or chaud), les autres juste dessinées
+function fenetres(id, x, y, l, h, col, rg, c, r, part = 0.45) { let out = ''; const fw = l / (col * 1.9), fh = h / (rg * 1.7), px = (l - col * fw) / (col + 1), py = (h - rg * fh) / (rg + 1);
+  for (let i = 0; i < col; i++) for (let j = 0; j < rg; j++) { const fx = x + px + i * (fw + px), fy = y + py + j * (fh + py), on = r() < part;
+    out += on ? '<rect x="' + fx + '" y="' + fy + '" width="' + fw + '" height="' + fh + '" rx="' + (fw * 0.18) + '" fill="#FFD98A" opacity=".9"/><rect x="' + (fx - 1) + '" y="' + (fy - 1) + '" width="' + (fw + 2) + '" height="' + (fh + 2) + '" fill="#FFC233" opacity=".5" filter="url(#' + id + 'p)"/>'
+      : '<rect x="' + fx + '" y="' + fy + '" width="' + fw + '" height="' + fh + '" rx="' + (fw * 0.18) + '" fill="none" stroke="' + c + '" stroke-width=".8" opacity=".55"/>'; }
+  return out; }
+// un immeuble haussmannien : rez-de-chaussée à vitrine, étages, balcon filant, toit à la Mansart, lucarnes, cheminées
+function haussmann(id, x, y, l, h, c, g, k = 1) { const r = hasard(g), t = h * 0.2, rdc = h * 0.17, top = y - h, w = 3 * k;
+  let o = '<path d="M' + x + ' ' + y + 'V' + (top + t) + 'L' + (x + l * 0.08) + ' ' + top + 'H' + (x + l * 0.92) + 'L' + (x + l) + ' ' + (top + t) + 'V' + y + 'Z" fill="' + c + '" opacity=".16"/>';
+  o += neon(id, 'M' + x + ' ' + y + 'V' + (top + t) + 'L' + (x + l * 0.08) + ' ' + top + 'H' + (x + l * 0.92) + 'L' + (x + l) + ' ' + (top + t) + 'V' + y, c, w);
+  o += fin(id, 'M' + (x - 2 * k) + ' ' + (top + t) + 'H' + (x + l + 2 * k), c, 1.5 * k);                       // la corniche
+  o += fin(id, 'M' + x + ' ' + (y - rdc) + 'H' + (x + l), c, 1.2 * k);                                           // le bandeau du rez-de-chaussée
+  o += fin(id, 'M' + (x + l * 0.06) + ' ' + (top + t + (h - t - rdc) * 0.36) + 'H' + (x + l * 0.94), c, 0.9 * k, 0.8);   // le balcon filant
+  const nl = Math.max(2, Math.round(l / (17 * k)));
+  for (let i = 0; i < nl; i++) { const lx = x + l * 0.12 + (l * 0.76) * (i + 0.5) / nl, lw = Math.min(5 * k, l * 0.3 / nl + 2.4 * k); o += fin(id, 'M' + (lx - lw / 2) + ' ' + (top + t * 0.82) + 'V' + (top + t * 0.38) + 'Q' + lx + ' ' + (top + t * 0.12) + ' ' + (lx + lw / 2) + ' ' + (top + t * 0.38) + 'V' + (top + t * 0.82), c, 0.9 * k, 0.9); }   // les lucarnes
+  o += fin(id, 'M' + (x + l * 0.2) + ' ' + top + 'V' + (top - 7 * k) + 'H' + (x + l * 0.3) + 'V' + top + 'M' + (x + l * 0.7) + ' ' + top + 'V' + (top - 5 * k) + 'H' + (x + l * 0.78) + 'V' + top, c, 1 * k, 0.9);   // les cheminées
+  o += fenetres(id, x + l * 0.04, top + t + 2 * k, l * 0.92, h - t - rdc - 4 * k, nl, Math.max(2, Math.round((h - t - rdc) / (15 * k))), c, r, 0.5);
+  o += fin(id, 'M' + (x + l * 0.1) + ' ' + y + 'V' + (y - rdc * 0.74) + 'H' + (x + l * 0.52) + 'V' + y + 'M' + (x + l * 0.64) + ' ' + y + 'V' + (y - rdc * 0.78) + 'Q' + (x + l * 0.75) + ' ' + (y - rdc * 1.02) + ' ' + (x + l * 0.86) + ' ' + (y - rdc * 0.78) + 'V' + y, c, 1 * k);   // la vitrine et la porte
+  return o; }
+// une tour de bureaux : façade en bandes, antenne
+function tour(id, x, y, l, h, c, g, k = 1) { const r = hasard(g), top = y - h;
+  let o = '<rect x="' + x + '" y="' + top + '" width="' + l + '" height="' + h + '" fill="' + c + '" opacity=".14"/>' + neon(id, 'M' + x + ' ' + y + 'V' + top + 'H' + (x + l) + 'V' + y, c, 2.6 * k);
+  o += fin(id, 'M' + (x + l * 0.5) + ' ' + top + 'V' + (top - 16 * k) + 'M' + (x + l * 0.36) + ' ' + (top - 5 * k) + 'H' + (x + l * 0.64), c, 1 * k);
+  o += '<circle cx="' + (x + l * 0.5) + '" cy="' + (top - 17 * k) + '" r="' + (1.8 * k) + '" fill="#FF5FD2"/><circle cx="' + (x + l * 0.5) + '" cy="' + (top - 17 * k) + '" r="' + (4 * k) + '" fill="#FF5FD2" opacity=".6" filter="url(#' + id + 'p)"/>';
+  o += fenetres(id, x + 1, top + 3 * k, l - 2, h - 6 * k, Math.max(2, Math.round(l / (9 * k))), Math.max(3, Math.round(h / (10 * k))), c, r, 0.38);
+  return o; }
+// une maison : toit pentu, cheminée, fenêtre ronde, porte
+function maison(id, x, y, l, h, c, k = 1) { const m = y - h * 0.58;
+  let o = '<path d="M' + x + ' ' + y + 'V' + m + 'L' + (x + l / 2) + ' ' + (y - h) + 'L' + (x + l) + ' ' + m + 'V' + y + 'Z" fill="' + c + '" opacity=".16"/>' + neon(id, 'M' + x + ' ' + y + 'V' + m + 'L' + (x + l / 2) + ' ' + (y - h) + 'L' + (x + l) + ' ' + m + 'V' + y, c, 2.6 * k);
+  o += fin(id, 'M' + (x - 3 * k) + ' ' + (m + 2 * k) + 'L' + (x + l / 2) + ' ' + (y - h - 2 * k) + 'L' + (x + l + 3 * k) + ' ' + (m + 2 * k), c, 1.2 * k);
+  o += fin(id, 'M' + (x + l * 0.72) + ' ' + (y - h * 0.8) + 'V' + (y - h * 1.02) + 'H' + (x + l * 0.84) + 'V' + (y - h * 0.7), c, 1 * k);
+  o += '<circle cx="' + (x + l / 2) + '" cy="' + (y - h * 0.68) + '" r="' + (l * 0.09) + '" fill="#FFD98A"/>' + '<rect x="' + (x + l * 0.14) + '" y="' + (y - h * 0.42) + '" width="' + (l * 0.24) + '" height="' + (h * 0.2) + '" rx="1" fill="#FFD98A" opacity=".9"/>';
+  o += fin(id, 'M' + (x + l * 0.56) + ' ' + y + 'V' + (y - h * 0.34) + 'H' + (x + l * 0.82) + 'V' + y, c, 1 * k);
+  return o; }
+// une église : la nef, le clocher et sa flèche, la rosace
+function eglise(id, x, y, l, h, c, k = 1) { const cl = l * 0.34, top = y - h;
+  let o = '<path d="M' + x + ' ' + y + 'V' + (y - h * 0.34) + 'L' + (x + (l - cl) / 2) + ' ' + (y - h * 0.5) + 'L' + (x + l - cl) + ' ' + (y - h * 0.34) + 'V' + (y - h * 0.62) + 'L' + (x + l - cl / 2) + ' ' + top + 'L' + (x + l) + ' ' + (y - h * 0.62) + 'V' + y + 'Z" fill="' + c + '" opacity=".15"/>';
+  o += neon(id, 'M' + x + ' ' + y + 'V' + (y - h * 0.34) + 'L' + (x + (l - cl) / 2) + ' ' + (y - h * 0.5) + 'L' + (x + l - cl) + ' ' + (y - h * 0.34) + 'M' + (x + l - cl) + ' ' + y + 'V' + (y - h * 0.62) + 'L' + (x + l - cl / 2) + ' ' + top + 'L' + (x + l) + ' ' + (y - h * 0.62) + 'V' + y, c, 2.4 * k);
+  o += fin(id, 'M' + (x + l - cl / 2) + ' ' + top + 'V' + (top - 9 * k) + 'M' + (x + l - cl / 2 - 3 * k) + ' ' + (top - 5.5 * k) + 'H' + (x + l - cl / 2 + 3 * k), c, 1 * k);
+  o += fin(id, 'M' + (x + l - cl) + ' ' + (y - h * 0.62) + 'H' + (x + l), c, 1 * k) + '<circle cx="' + (x + (l - cl) / 2) + '" cy="' + (y - h * 0.26) + '" r="' + (l * 0.07) + '" fill="#FFD98A"/>';
+  o += fin(id, 'M' + (x + l - cl * 0.68) + ' ' + (y - h * 0.44) + 'V' + (y - h * 0.54) + 'Q' + (x + l - cl / 2) + ' ' + (y - h * 0.6) + ' ' + (x + l - cl * 0.32) + ' ' + (y - h * 0.54) + 'V' + (y - h * 0.44), c, 0.9 * k);
+  o += fin(id, 'M' + (x + (l - cl) * 0.36) + ' ' + y + 'V' + (y - h * 0.13) + 'Q' + (x + (l - cl) / 2) + ' ' + (y - h * 0.2) + ' ' + (x + (l - cl) * 0.64) + ' ' + (y - h * 0.13) + 'V' + y, c, 0.9 * k);
+  return o; }
+// la ville au loin : une silhouette pleine, sombre
+const loin = (x0, y, pas, hs, c = '#22399A', o = 0.6) => '<path d="' + toits(x0, y, pas, hs) + 'Z" fill="' + c + '" opacity="' + o + '"/>';
+const etoiles = (g, n, x0, x1, y0, y1) => { const r = hasard(g); let o = ''; for (let i = 0; i < n; i++) { const t = r(); o += '<circle cx="' + (x0 + r() * (x1 - x0)) + '" cy="' + (y0 + r() * (y1 - y0)) + '" r="' + (0.5 + t * 1.1) + '" fill="#fff" opacity="' + (0.25 + t * 0.6) + '"/>'; } return o; };
+// le nom en relief : une épaisseur sombre, le corps, un biseau clair, un liseré
+function nomRelief(id, x, y, taille) { const T = (dx, dy, extra) => '<text x="' + (x + dx) + '" y="' + (y + dy) + '" text-anchor="middle" ' + F + ' font-size="' + taille + '" letter-spacing="5" ' + extra + '>';
+  let o = T(0, 6, 'fill="#5AA8FF" opacity=".75" filter="url(#' + id + 'g)"') + 'STREETKEEP</text>';
+  for (let k = 7; k >= 1; k--) o += T(k * 0.55, k, 'fill="' + (k > 4 ? '#060B28' : '#0E1C5C') + '"') + 'STREETKEEP</text>';
+  o += T(0, 0, 'stroke="#0A1238" stroke-width="5" stroke-linejoin="round" paint-order="stroke"') + '<tspan fill="url(#' + id + 'blanc)">STREET</tspan><tspan fill="url(#' + id + 'or)">KEEP</tspan></text>';
+  o += T(0, 0, 'fill="none" stroke="#fff" stroke-width="1" opacity=".55"') + 'STREETKEEP</text>';
+  return o; }
+const defsRiche = (id) => defs(id).replace('</defs>', '<linearGradient id="' + id + 'blanc" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff"/><stop offset=".55" stop-color="#E4EEFF"/><stop offset="1" stop-color="#9CC4FF"/></linearGradient><radialGradient id="' + id + 'lune" cx=".5" cy=".5" r=".5"><stop offset="0" stop-color="#5AA8FF" stop-opacity=".55"/><stop offset="1" stop-color="#5AA8FF" stop-opacity="0"/></radialGradient><linearGradient id="' + id + 'sol" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff" stop-opacity=".28"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></linearGradient><mask id="' + id + 'm"><rect x="0" y="0" width="700" height="60" fill="url(#' + id + 'sol)" transform="translate(0 YSOL)"/></mask></defs>');
+// le logo travaillé : la rue de nuit (au loin la ville, devant une rue de Paris, ton immeuble en vert), son reflet, le nom en relief
+function logoRiche(id = 'r') { const y = 168;
+  const rue = maison(id, 62, y, 40, 46, '#3F9BFF') + haussmann(id, 108, y, 70, 84, '#3F9BFF', 7) + tour(id, 184, y, 34, 118, '#3F9BFF', 3)
+    + haussmann(id, 226, y, 86, 112, '#3DFFB0', 11, 1.08) + eglise(id, 320, y, 74, 100, '#3F9BFF') + haussmann(id, 402, y, 62, 74, '#3F9BFF', 5)
+    + tour(id, 470, y, 30, 96, '#3F9BFF', 9) + maison(id, 506, y, 36, 40, '#3F9BFF');
+  return '<svg class="logo" viewBox="0 0 600 310" xmlns="http://www.w3.org/2000/svg">' + defsRiche(id).replace('YSOL', y + 2)
+    + '<ellipse cx="300" cy="110" rx="250" ry="120" fill="url(#' + id + 'lune)"/>' + etoiles(4, 26, 30, 570, 6, 80)
+    + loin(40, y, 26, [60, 92, 74, 110, 86, 128, 96, 70, 118, 88, 104, 66, 96, 120, 78, 100, 62, 84, 108, 72])
+    + rue + '<g mask="url(#' + id + 'm)"><g transform="translate(0 ' + (2 * y + 4) + ') scale(1 -1)" opacity=".8">' + rue + '</g></g>'
+    + neon(id, 'M36 ' + y + 'H564', '#FFC233', 2.6)
+    + nomRelief(id, 300, 268, 86) + '</svg>'; }
+// les icônes travaillées
+const iconeRiche = (id, corps) => '<svg viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg">' + defsRiche(id).replace('YSOL', 90) + '<rect width="120" height="120" fill="#081033"/><ellipse cx="60" cy="50" rx="74" ry="62" fill="url(#' + id + 'lune)"/>' + etoiles(8, 12, 8, 112, 6, 40) + corps + '</svg>';
+const sceneIcone = (id, y) => loin(0, y, 12, [34, 50, 40, 58, 44, 66, 48, 36, 56, 42]) + haussmann(id, 6, y, 30, 40, '#3F9BFF', 5, 0.62) + tour(id, 86, y, 22, 52, '#3F9BFF', 9, 0.6) + haussmann(id, 36, y, 48, 70, '#3DFFB0', 11, 0.9);
+const iconeR1 = iconeRiche('k1', sceneIcone('k1', 96) + neon('k1', 'M4 96H116', '#FFC233', 2.4));
+const iconeR2 = iconeRiche('k2', sceneIcone('k2', 78) + neon('k2', 'M4 78H116', '#FFC233', 2)
+  + '<text x="60" y="113" text-anchor="middle" ' + F + ' font-size="34" letter-spacing="2" fill="#0A1238" stroke="#0A1238" stroke-width="5" stroke-linejoin="round">SK</text><text x="60" y="113" text-anchor="middle" ' + F + ' font-size="34" letter-spacing="2"><tspan fill="url(#k2blanc)">S</tspan><tspan fill="url(#k2or)">K</tspan></text>');
+const iconeR3 = iconeRiche('k3', '<g transform="translate(-22 4) scale(1.36)">' + haussmann('k3', 30, 82, 60, 72, '#3DFFB0', 11, 0.95) + '</g>' + neon('k3', 'M6 116H114', '#FFC233', 2.6));
+const RICHE = '<div class="cas" style="width:560px"><h2>B, travaillé</h2><p>La rue de nuit : la ville au loin, une rue de Paris devant (ton immeuble en vert), son reflet, le nom en relief.</p>' + logoRiche() + '</div><div style="flex-basis:100%"></div>'
+  + [['1 · La rue', 'Ton immeuble parmi les autres.', iconeR1], ['2 · La rue et SK', 'La même, avec les initiales.', iconeR2], ['3 · Ton immeuble', 'Un seul, en grand.', iconeR3]].map(([n, t, i]) => '<div class="cas" style="width:200px"><h2>' + n + '</h2><p>' + t + '</p><div class="bas" style="flex-direction:column"><div style="zoom:2">' + i + '</div><div style="zoom:.62;margin-top:6px">' + i + '</div></div></div>').join('');
+// --- SYMBOLE (interview du 28 nov. : « un symbole fort », « de vrais lieux de France », nuit néon ; pas de ligne de toits, des lettres de caractère)
+// le contour de la France (geo.js), simplifié, dans une boîte : le plus grand anneau (la métropole), Douglas-Peucker
+function france(cx, cy, taille, tol = 0.11) { const an = GEO.france.slice().sort((p, q) => q.length - p.length)[0];
+  const d2 = (p, a, b) => { const dx = b[0] - a[0], dy = b[1] - a[1], L = dx * dx + dy * dy || 1, t = Math.max(0, Math.min(1, ((p[0] - a[0]) * dx + (p[1] - a[1]) * dy) / L)); return Math.hypot(p[0] - a[0] - t * dx, p[1] - a[1] - t * dy); };
+  const dp = (l) => { if (l.length < 3) return l; let m = 0, k = 0; for (let i = 1; i < l.length - 1; i++) { const d = d2(l[i], l[0], l[l.length - 1]); if (d > m) { m = d; k = i; } } return m > tol ? dp(l.slice(0, k + 1)).slice(0, -1).concat(dp(l.slice(k))) : [l[0], l[l.length - 1]]; };
+  const moitie = Math.floor(an.length / 2), pts = dp(an.slice(0, moitie + 1)).slice(0, -1).concat(dp(an.slice(moitie)));
+  const kx = Math.cos(46.5 * Math.PI / 180), xs = pts.map((p) => p[0] * kx), ys = pts.map((p) => -p[1]);
+  const x0 = Math.min(...xs), x1 = Math.max(...xs), y0 = Math.min(...ys), y1 = Math.max(...ys), e = taille / Math.max(x1 - x0, y1 - y0);
+  const P = (lon, lat) => [cx + (lon * kx - (x0 + x1) / 2) * e, cy + (-lat - (y0 + y1) / 2) * e];
+  return { d: 'M' + pts.map((p) => P(p[0], p[1]).map((v) => v.toFixed(1)).join(' ')).join('L') + 'Z', P }; }
+// un repère de carte (la goutte), pointe en (x, y), hauteur h
+const goutte = (x, y, h) => { const r = h * 0.36, cy = y - h + r; return 'M' + x + ' ' + y + 'C' + (x - r * 0.5) + ' ' + (y - h * 0.3) + ' ' + (x - r) + ' ' + (cy + r * 0.75) + ' ' + (x - r) + ' ' + cy + 'A' + r + ' ' + r + ' 0 1 1 ' + (x + r) + ' ' + cy + 'C' + (x + r) + ' ' + (cy + r * 0.75) + ' ' + (x + r * 0.5) + ' ' + (y - h * 0.3) + ' ' + x + ' ' + y + 'Z'; };
+const point = (id, x, y, r, c) => '<circle cx="' + x + '" cy="' + y + '" r="' + (r * 2.6) + '" fill="' + c + '" opacity=".55" filter="url(#' + id + 'p)"/><circle cx="' + x + '" cy="' + y + '" r="' + r + '" fill="#fff"/>';
+// S1 : l'Hexagone épinglé : la France en néon bleu, des lieux qui s'allument, un grand repère d'or planté dedans, une maison verte
+function symbole1(id, cx, cy, t) { const F0 = france(cx, cy, t), [px, py] = F0.P(2.6, 47.0), h = t * 0.56;
+  const villes = [[2.35, 48.86], [-1.55, 47.22], [-0.58, 44.84], [5.37, 43.3], [4.83, 45.76], [7.75, 48.58], [1.44, 43.6], [3.06, 50.63], [-4.49, 48.39]];
+  return '<path d="' + F0.d + '" fill="#16277A" opacity=".55"/>' + neon(id, F0.d, '#3F9BFF', t * 0.022)
+    + villes.map(([lo, la]) => { const [x, y] = F0.P(lo, la); return point(id, x, y, t * 0.012, '#5AA8FF'); }).join('')
+    + '<path d="' + goutte(px, py, h) + '" fill="#0A1238" opacity=".9"/>' + neon(id, goutte(px, py, h), '#FFC233', t * 0.026)
+    + neon(id, 'M' + (px - h * 0.17) + ' ' + (py - h * 0.5) + 'V' + (py - h * 0.68) + 'L' + px + ' ' + (py - h * 0.84) + 'L' + (px + h * 0.17) + ' ' + (py - h * 0.68) + 'V' + (py - h * 0.5) + 'Z', '#3DFFB0', t * 0.02); }
+// S2 : la plaque de France : la France pleine, en bleu de plaque de rue, liseré vert et filet blanc (les plaques de Paris), un numéro
+function symbole2(id, cx, cy, t) { const F0 = france(cx, cy, t), F1 = france(cx, cy, t * 0.86);
+  return '<path d="' + F0.d + '" fill="#0E5A3A" stroke="#3DFFB0" stroke-width="' + (t * 0.018) + '" stroke-linejoin="round"/>' + '<path d="' + F0.d + '" fill="none" stroke="#3DFFB0" stroke-width="' + (t * 0.05) + '" opacity=".5" filter="url(#' + id + 'g)"/>'
+    + '<path d="' + F1.d + '" fill="#1B3FB8" stroke="#fff" stroke-width="' + (t * 0.014) + '" stroke-linejoin="round"/>'
+    + '<text x="' + (cx + t * 0.02) + '" y="' + (cy + t * 0.03) + '" text-anchor="middle" ' + F + ' font-size="' + (t * 0.3) + '" fill="#fff" letter-spacing="1">SK</text>'
+    + '<text x="' + (cx + t * 0.02) + '" y="' + (cy + t * 0.2) + '" text-anchor="middle" ' + F + ' font-size="' + (t * 0.085) + '" fill="#CFE0FF" letter-spacing="3">FRANCE</text>'
+    + '<circle cx="' + (cx - t * 0.2) + '" cy="' + (cy - t * 0.02) + '" r="' + (t * 0.016) + '" fill="#FFD98A"/><circle cx="' + (cx + t * 0.25) + '" cy="' + (cy - t * 0.02) + '" r="' + (t * 0.016) + '" fill="#FFD98A"/>'; }
+// S3 : le repère-France : un repère de carte dont la tête est la France elle-même, un point de lumière au cœur
+function symbole3(id, cx, cy, t) { const F0 = france(cx, cy - t * 0.1, t * 0.8), bas = cy + t * 0.5, [qx, qy] = [cx + t * 0.02, cy + t * 0.26];
+  return neon(id, 'M' + (qx - t * 0.16) + ' ' + (qy - t * 0.02) + 'L' + cx + ' ' + bas + 'L' + (qx + t * 0.16) + ' ' + (qy - t * 0.02), '#FFC233', t * 0.024)
+    + '<path d="' + F0.d + '" fill="#0A1238"/><path d="' + F0.d + '" fill="#3DFFB0" opacity=".13"/>' + neon(id, F0.d, '#3DFFB0', t * 0.024)
+    + '<circle cx="' + cx + '" cy="' + (cy - t * 0.08) + '" r="' + (t * 0.13) + '" fill="none" stroke="#FFC233" stroke-width="' + (t * 0.022) + '"/>' + point(id, cx, cy - t * 0.08, t * 0.045, '#FFC233')
+    + '<ellipse cx="' + cx + '" cy="' + (bas + t * 0.03) + '" rx="' + (t * 0.16) + '" ry="' + (t * 0.03) + '" fill="#FFC233" opacity=".35" filter="url(#' + id + 'p)"/>'; }
+// les lettres : penchées, sur deux lignes, STREET en tube blanc fin, KEEP plein et or, la jambe du K qui souligne
+function nom2(id, x, y, e = 1) { const T = (t, dy, taille, extra) => '<text x="0" y="' + dy + '" ' + F + ' font-size="' + taille + '" ' + extra + '>' + t + '</text>';
+  return '<g transform="translate(' + x + ' ' + y + ') scale(' + e + ') skewX(-9)">'
+    + T('STREET', 0, 58, 'letter-spacing="9" fill="none" stroke="#5AA8FF" stroke-width="6" opacity=".6" filter="url(#' + id + 'p)"') + T('STREET', 0, 58, 'letter-spacing="9" fill="none" stroke="#DCEBFF" stroke-width="2.2" stroke-linejoin="round"')
+    + T('KEEP', 86, 112, 'letter-spacing="3" fill="#FFC233" opacity=".6" filter="url(#' + id + 'g)"')
+    + [6, 5, 4, 3, 2, 1].map((k) => '<text x="' + (k * 0.7) + '" y="' + (86 + k) + '" ' + F + ' font-size="112" letter-spacing="3" fill="#5A3200">KEEP</text>').join('')
+    + T('KEEP', 86, 112, 'letter-spacing="3" fill="url(#' + id + 'or)" stroke="#FFF1B8" stroke-width="1"')
+    + neon(id, 'M4 104H236', '#3DFFB0', 2.6) + '</g>'; }
+const logoSym = (id, sym) => '<svg class="logo" viewBox="0 0 600 260" xmlns="http://www.w3.org/2000/svg">' + defs(id) + sym(id, 130, 130, 200) + nom2(id, 268, 112, 1.12) + '</svg>';
+const iconeSym = (id, sym) => '<svg viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg">' + defs(id) + '<rect width="120" height="120" fill="#081033"/><circle cx="60" cy="56" r="66" fill="#1B2C6E" opacity=".55"/>' + sym(id, 60, 60, 92) + '</svg>';
+const SYMBOLES = [['1 · L’Hexagone épinglé', 'La France en néon, ses villes allumées, un repère d’or et ta maison.', symbole1], ['2 · La plaque de France', 'La France comme une plaque de rue de Paris : bleu, liseré vert, filet blanc.', symbole2], ['3 · Le repère-France', 'Un repère de carte dont la tête est la France.', symbole3]]
+  .map(([n, t, sy], k) => '<div class="cas" style="width:430px"><h2>' + n + '</h2><p>' + t + '</p>' + logoSym('s' + k, sy) + '<div class="bas"><div style="zoom:1.5">' + iconeSym('t' + k, sy) + '</div><div style="zoom:.62">' + iconeSym('u' + k, sy) + '</div><small>l’icône sur<br>le téléphone</small></div></div>').join('');
+// --- SANS PAYS (Gautier, 28 nov. : « la France, ça fixe l'idée que ce sera utilisé que sur la France ») : un symbole qui dit « un vrai lieu, et je le garde », sans carte d'un pays
+const sol = (id, cx, y, t) => neon(id, 'M' + (cx - t * 0.42) + ' ' + (y + t * 0.02) + 'L' + (cx + t * 0.42) + ' ' + (y - t * 0.1), '#3F9BFF', t * 0.014) + neon(id, 'M' + (cx - t * 0.36) + ' ' + (y - t * 0.12) + 'L' + (cx + t * 0.36) + ' ' + (y + t * 0.06), '#3F9BFF', t * 0.014)
+  + '<ellipse cx="' + cx + '" cy="' + y + '" rx="' + (t * 0.15) + '" ry="' + (t * 0.035) + '" fill="#FFC233" opacity=".5" filter="url(#' + id + 'p)"/>';
+// S4 : le repère à serrure : un repère de carte planté à un carrefour, une serrure au cœur (ce lieu est gardé)
+function symbole4(id, cx, cy, t) { const y = cy + t * 0.46, h = t * 0.92, r = h * 0.36, ky = y - h + r, k = t * 0.085;
+  const serrure = 'M' + (cx - k * 0.55) + ' ' + (ky + k * 0.75) + 'A' + k + ' ' + k + ' 0 1 1 ' + (cx + k * 0.55) + ' ' + (ky + k * 0.75) + 'L' + (cx + k * 0.95) + ' ' + (ky + k * 2.7) + 'H' + (cx - k * 0.95) + 'Z';
+  return sol(id, cx, y, t) + '<path d="' + goutte(cx, y, h) + '" fill="#0A1238"/><path d="' + goutte(cx, y, h) + '" fill="#FFC233" opacity=".12"/>' + neon(id, goutte(cx, y, h), '#FFC233', t * 0.03)
+    + '<path d="' + serrure + '" fill="#3DFFB0" opacity=".25"/>' + neon(id, serrure, '#3DFFB0', t * 0.024); }
+// S5 : le donjon-repère (« keep » = le donjon) : une tour à créneaux qui finit en pointe de repère, une porte d'or
+function symbole5(id, cx, cy, t) { const y = cy + t * 0.48, a = t * 0.2, b = t * 0.27, y1 = cy + t * 0.04, y2 = cy - t * 0.2, y3 = cy - t * 0.3, y4 = cy - t * 0.44, c = (2 * b) / 5;
+  let d = 'M' + cx + ' ' + y + 'L' + (cx - a) + ' ' + y1 + 'V' + y2 + 'L' + (cx - b) + ' ' + y3 + 'V' + y4;
+  for (let i = 0; i < 5; i++) d += 'H' + (cx - b + c * (i + 1)) + (i < 4 ? 'V' + (i % 2 ? y4 : y4 + t * 0.09) : '');
+  d += 'V' + y3 + 'L' + (cx + a) + ' ' + y2 + 'V' + y1 + 'Z';
+  const p = t * 0.075, py = cy + t * 0.06, porte = 'M' + (cx - p) + ' ' + py + 'V' + (py - p * 1.6) + 'A' + p + ' ' + p + ' 0 0 1 ' + (cx + p) + ' ' + (py - p * 1.6) + 'V' + py + 'Z';
+  return sol(id, cx, y, t) + '<path d="' + d + '" fill="#0A1238"/><path d="' + d + '" fill="#3DFFB0" opacity=".13"/>' + neon(id, d, '#3DFFB0', t * 0.028)
+    + neon(id, 'M' + (cx - a) + ' ' + y2 + 'H' + (cx + a), '#3DFFB0', t * 0.014)
+    + '<path d="' + porte + '" fill="#FFC233" opacity=".3"/>' + neon(id, porte, '#FFC233', t * 0.022); }
+// S6 : la clé de la rue : une clé dont l'anneau est une maison et la tige une rue (ligne pointillée), le panneton en or
+function symbole6(id, cx, cy, t) { const hx = cx, m = t * 0.21, ty = cy - t * 0.47, by = cy - t * 0.06, w = t * 0.055, bas = cy + t * 0.47;
+  const maison = 'M' + (hx - m) + ' ' + by + 'V' + (ty + m * 0.95) + 'L' + hx + ' ' + ty + 'L' + (hx + m) + ' ' + (ty + m * 0.95) + 'V' + by + 'Z';
+  const tige = 'M' + (hx - w) + ' ' + by + 'V' + bas + 'H' + (hx + w) + 'V' + by;
+  const dents = 'M' + (hx + w) + ' ' + (bas - t * 0.2) + 'H' + (hx + t * 0.2) + 'V' + (bas - t * 0.11) + 'H' + (hx + t * 0.13) + 'V' + (bas - t * 0.06) + 'H' + (hx + t * 0.2) + 'V' + bas + 'H' + (hx + w);
+  return '<g transform="rotate(32 ' + cx + ' ' + cy + ')"><path d="' + maison + '" fill="#0A1238"/><path d="' + maison + '" fill="#3DFFB0" opacity=".13"/><path d="' + tige + '" fill="#0A1238"/>'
+    + neon(id, maison, '#3DFFB0', t * 0.028) + neon(id, tige, '#3F9BFF', t * 0.022) + neon(id, dents, '#FFC233', t * 0.024)
+    + '<path d="M' + hx + ' ' + (by + t * 0.06) + 'V' + (bas - t * 0.04) + '" stroke="#FFD98A" stroke-width="' + (t * 0.012) + '" stroke-dasharray="' + (t * 0.05) + ' ' + (t * 0.04) + '"/>'
+    + '<circle cx="' + hx + '" cy="' + (ty + m * 1.15) + '" r="' + (t * 0.06) + '" fill="#081033" stroke="#FFC233" stroke-width="' + (t * 0.018) + '"/></g>'; }
+const SYMBOLES2 = [['4 · Le repère à serrure', 'Un repère de carte planté à un carrefour, une serrure au cœur : ce lieu est gardé.', symbole4], ['5 · Le donjon-repère', '« Keep » veut dire donjon : une tour à créneaux qui finit en pointe de repère.', symbole5], ['6 · La clé de la rue', 'Une clé dont l’anneau est une maison et la tige une rue.', symbole6]]
+  .map(([n, t, sy], k) => '<div class="cas" style="width:430px"><h2>' + n + '</h2><p>' + t + '</p>' + logoSym('v' + k, sy) + '<div class="bas"><div style="zoom:1.5">' + iconeSym('w' + k, sy) + '</div><div style="zoom:.62">' + iconeSym('x' + k, sy) + '</div><small>l’icône sur<br>le téléphone</small></div></div>').join('');
+// --- VARIANTES DU 4 (Gautier, 28 nov. : « le 4 est pas mal avec la serrure et le repère, fais-moi plusieurs variantes »)
+const serrureD = (cx, ky, k) => 'M' + (cx - k * 0.55) + ' ' + (ky + k * 0.75) + 'A' + k + ' ' + k + ' 0 1 1 ' + (cx + k * 0.55) + ' ' + (ky + k * 0.75) + 'L' + (cx + k * 0.95) + ' ' + (ky + k * 2.7) + 'H' + (cx - k * 0.95) + 'Z';
+const geo4 = (cx, cy, t) => { const y = cy + t * 0.46, h = t * 0.92, r = h * 0.36; return { y, h, r, ky: y - h + r }; };
+// a : l'or plein : un repère d'or massif, en relief, la serrure découpée dedans et éclairée de vert
+function var4a(id, cx, cy, t) { const g = geo4(cx, cy, t), G = goutte(cx, g.y, g.h), S = serrureD(cx, g.ky - t * 0.04, t * 0.1);
+  return sol(id, cx, g.y, t) + '<path d="' + G + '" fill="#FFC233" opacity=".55" filter="url(#' + id + 'g)"/>'
+    + [5, 4, 3, 2, 1].map((k) => '<path d="' + G + '" fill="#5A3200" transform="translate(' + (k * t * 0.006) + ' ' + (k * t * 0.008) + ')"/>').join('')
+    + '<path d="' + G + '" fill="url(#' + id + 'or)" stroke="#FFF1B8" stroke-width="' + (t * 0.01) + '"/>'
+    + '<path d="' + S + '" fill="#081033"/>' + neon(id, S, '#3DFFB0', t * 0.018); }
+// b : la lumière : la serrure laisse passer un rai de lumière verte
+function var4b(id, cx, cy, t) { const g = geo4(cx, cy, t), G = goutte(cx, g.y, g.h), ky = g.ky - t * 0.04, S = serrureD(cx, ky, t * 0.09);
+  const rais = [-60, -30, 0, 30, 60].map((an) => { const r1 = t * 0.17, r2 = t * 0.26, x = Math.sin(an * Math.PI / 180), yy = -Math.cos(an * Math.PI / 180); return 'M' + (cx + x * r1) + ' ' + (ky + yy * r1) + 'L' + (cx + x * r2) + ' ' + (ky + yy * r2); }).join('');
+  return sol(id, cx, g.y, t) + '<path d="' + G + '" fill="#0A1238"/><circle cx="' + cx + '" cy="' + (ky + t * 0.04) + '" r="' + (t * 0.2) + '" fill="#3DFFB0" opacity=".35" filter="url(#' + id + 'g)"/>' + neon(id, G, '#FFC233', t * 0.03)
+    + '<path d="' + rais + '" stroke="#9BFFD6" stroke-width="' + (t * 0.014) + '" stroke-linecap="round" opacity=".8"/>'
+    + '<path d="' + S + '" fill="#3DFFB0"/><path d="' + S + '" fill="#fff" opacity=".55"/>' + neon(id, S, '#3DFFB0', t * 0.016); }
+// c : la maison-serrure : le trou de la serrure a un toit, c'est une maison
+function var4c(id, cx, cy, t) { const g = geo4(cx, cy, t), G = goutte(cx, g.y, g.h), ky = g.ky - t * 0.02, m = t * 0.15;
+  const M = 'M' + (cx - m) + ' ' + (ky + m * 0.9) + 'V' + (ky - m * 0.15) + 'L' + cx + ' ' + (ky - m * 1.05) + 'L' + (cx + m) + ' ' + (ky - m * 0.15) + 'V' + (ky + m * 0.9) + 'Z', S = serrureD(cx, ky - m * 0.05, t * 0.045);
+  return sol(id, cx, g.y, t) + '<path d="' + G + '" fill="#0A1238"/><path d="' + G + '" fill="#FFC233" opacity=".12"/>' + neon(id, G, '#FFC233', t * 0.03)
+    + '<path d="' + M + '" fill="#3DFFB0" opacity=".22"/>' + neon(id, M, '#3DFFB0', t * 0.022) + '<path d="' + S + '" fill="#FFD98A"/>'; }
+// d : le plan : le repère posé sur un plan de ville en néon (un disque de rues), repère vert « à moi », serrure d'or
+function var4d(id, cx, cy, t) { const g = geo4(cx, cy, t), G = goutte(cx, g.y - t * 0.06, g.h * 0.9), ky = g.y - t * 0.06 - g.h * 0.9 + g.h * 0.9 * 0.36 - t * 0.04, S = serrureD(cx, ky, t * 0.085), py = g.y - t * 0.06, rx = t * 0.46, ry = t * 0.15;
+  const rues = [-0.6, -0.2, 0.25, 0.65].map((u) => 'M' + (cx + u * rx - rx * 0.25) + ' ' + (py + ry * 0.9) + 'L' + (cx + u * rx + rx * 0.25) + ' ' + (py - ry * 0.9)).join('') + [-0.45, 0.1, 0.55].map((v) => 'M' + (cx - rx) + ' ' + (py + v * ry) + 'H' + (cx + rx)).join('');
+  return '<clipPath id="' + id + 'c"><ellipse cx="' + cx + '" cy="' + py + '" rx="' + rx + '" ry="' + ry + '"/></clipPath><ellipse cx="' + cx + '" cy="' + py + '" rx="' + rx + '" ry="' + ry + '" fill="#16277A" opacity=".7"/>'
+    + '<g clip-path="url(#' + id + 'c)"><path d="' + rues + '" stroke="#5AA8FF" stroke-width="' + (t * 0.012) + '" opacity=".9"/></g><ellipse cx="' + cx + '" cy="' + py + '" rx="' + rx + '" ry="' + ry + '" fill="none" stroke="#3F9BFF" stroke-width="' + (t * 0.016) + '"/>'
+    + '<ellipse cx="' + cx + '" cy="' + py + '" rx="' + (t * 0.1) + '" ry="' + (t * 0.03) + '" fill="#3DFFB0" opacity=".7" filter="url(#' + id + 'p)"/>'
+    + '<path d="' + G + '" fill="#0A1238"/><path d="' + G + '" fill="#3DFFB0" opacity=".14"/>' + neon(id, G, '#3DFFB0', t * 0.03) + '<path d="' + S + '" fill="#FFC233" opacity=".3"/>' + neon(id, S, '#FFC233', t * 0.022); }
+// e : le double trait : deux anneaux (comme le liseré d'une plaque de rue), bleu dehors, or dedans, serrure pleine
+function var4e(id, cx, cy, t) { const g = geo4(cx, cy, t), G = goutte(cx, g.y, g.h), G2 = goutte(cx, g.y - t * 0.11, g.h * 0.76), ky = g.ky - t * 0.03, S = serrureD(cx, ky, t * 0.075);
+  return sol(id, cx, g.y, t) + '<path d="' + G + '" fill="#12205F"/>' + neon(id, G, '#3F9BFF', t * 0.03) + neon(id, G2, '#FFC233', t * 0.018)
+    + '<path d="' + S + '" fill="#FFC233" opacity=".5" filter="url(#' + id + 'p)"/><path d="' + S + '" fill="url(#' + id + 'or)"/>'; }
+// f : la clé dedans : la serrure et sa clé, le repère est la tête d'une clé dont la pointe descend en panneton
+function var4f(id, cx, cy, t) { const y = cy + t * 0.2, h = t * 0.66, r = h * 0.36, ky = y - h + r - t * 0.03, G = goutte(cx, y, h), S = serrureD(cx, ky, t * 0.065), bas = cy + t * 0.48, w = t * 0.03;
+  const tige = 'M' + cx + ' ' + y + 'V' + bas + 'M' + cx + ' ' + (bas - t * 0.02) + 'H' + (cx + t * 0.13) + 'M' + cx + ' ' + (bas - t * 0.13) + 'H' + (cx + t * 0.1);
+  return '<ellipse cx="' + cx + '" cy="' + (bas + t * 0.02) + '" rx="' + (t * 0.16) + '" ry="' + (t * 0.03) + '" fill="#FFC233" opacity=".4" filter="url(#' + id + 'p)"/>'
+    + neon(id, tige, '#FFC233', t * 0.032) + '<path d="' + G + '" fill="#0A1238"/><path d="' + G + '" fill="#FFC233" opacity=".12"/>' + neon(id, G, '#FFC233', t * 0.03)
+    + '<path d="' + S + '" fill="#3DFFB0" opacity=".3"/>' + neon(id, S, '#3DFFB0', t * 0.022); }
+const VARIANTES4 = [['A · L’or plein', 'Un repère d’or massif, en relief ; la serrure découpée dedans.', var4a], ['B · La lumière', 'La serrure est allumée : un rai de lumière verte en sort.', var4b], ['C · La maison-serrure', 'Dans le repère, une maison ; sa porte est la serrure.', var4c],
+  ['D · Sur le plan', 'Le repère vert (« à moi ») posé sur un plan de ville, serrure d’or.', var4d], ['E · Le double trait', 'Bleu dehors, or dedans, comme le liseré d’une plaque de rue.', var4e], ['F · La clé', 'Le repère devient la tête d’une clé.', var4f]]
+  .map(([n, t, sy], k) => '<div class="cas" style="width:430px"><h2>' + n + '</h2><p>' + t + '</p>' + logoSym('y' + k, sy) + '<div class="bas"><div style="zoom:1.5">' + iconeSym('z' + k, sy) + '</div><div style="zoom:.62">' + iconeSym('q' + k, sy) + '</div><small>l’icône sur<br>le téléphone</small></div></div>').join('');
+const cas = (titre, texte, logo, ico) => `<div class="cas"><h2>${titre}</h2><p>${texte}</p>${logo}<div class="bas">${ico}<small>l’icône sur<br>le téléphone</small></div></div>`;
+const TOUS = [
+  cas('Aujourd’hui', 'La plaque émaillée verte, les cartes d’or, la pièce : l’ancien style du jeu.', Logo.svg().replace('<svg', '<svg class="logo"'), Logo.icone({ plein: true })),
+  cas('A · La plaque en néon', 'La plaque de rue de Paris, en tubes de néon bleu, un filet d’or.', logoA(), iconeA),
+  cas('B · La ville de nuit', 'La ligne de toits du jeu : un bâtiment vert, le tien, parmi les autres.', logoB(), iconeB),
+  cas('C · La carte', 'La carte à collectionner en néon, avec son bâtiment ; le nom sur sa plaque d’or.', logoC(), iconeC)];
+const seul = new URLSearchParams(location.search).get('seul');
+document.body.innerHTML = seul === 'variantes4' ? VARIANTES4 : seul === 'symboles2' ? SYMBOLES2 : seul === 'symboles' ? SYMBOLES : seul === 'riche' ? RICHE : seul === 'icones' ? ICONES_B : seul == null ? TOUS.join('') : TOUS[+seul];
+</script></body></html>
