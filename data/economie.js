@@ -310,6 +310,9 @@ const ECO = {
   "impaye_jours": 30,
   "impaye_avertir_jours": 23
  },
+ "beta": {
+  "active": true
+ },
  "agence": {
   "active": false,
   "postes": {
